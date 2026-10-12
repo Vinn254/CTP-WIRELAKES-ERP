@@ -2,7 +2,7 @@
 @section('title', 'Site content & pages')
 
 @section('content')
-<a class="back" href="{{ route('admin.dashboard') }}">Back to Departments</a>
+<a class="back" href="{{ route('admin.department', 'membership') }}">Back to Public Site &amp; Membership</a>
 <h1>Site content &amp; pages</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 22px;">
     Edit everything visitors see — logo, background photos, hero text, cards, mission &amp; vision, fees.

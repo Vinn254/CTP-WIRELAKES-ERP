@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 @php
+    use App\Support\Departments;
     $brandName = content('site','branding','brand_name','CTP-WireLakes');
     $brandLogo = content('site','branding','logo');
-    $onMembership = request()->is('admin/content/membership');
-    $navPending = \App\Models\CtpRegistration::where('status', 'pending_review')->count()
-        + \App\Models\FundiRegistration::where('status', 'pending_review')->count()
-        + \App\Models\HirerRegistration::where('status', 'pending_review')->count();
-    $navPartners = \App\Models\Partner::where('is_listed', false)->count();
-    $navApplications = \App\Models\ProjectApplication::where('status', 'pending_review')->count();
-    $navMessages = \App\Models\ContactMessage::count();
+    $route = request()->route();
+    $deptSlug = ($route ? $route->parameter('department') : null) ?: Departments::owner($route ? $route->getName() : null);
+    $dept = $deptSlug ? Departments::find($deptSlug) : null;
+    $deptPage = request()->route('page');
+    $isActive = function (array $item) use ($deptPage) {
+        $target = $item['route'][0];
+        if ($target === 'admin.content.index') {
+            return request()->routeIs('admin.content.index') || (request()->routeIs('admin.content.edit') && $deptPage !== 'membership');
+        }
+        if ($target === 'admin.content.edit') {
+            return request()->routeIs('admin.content.edit') && $deptPage === 'membership';
+        }
+
+        return request()->routeIs(preg_replace('/\.[^.]+$/', '.', $target).'*');
+    };
     $me = auth()->user();
     $initials = collect(explode(' ', trim($me->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
 @endphp
@@ -24,55 +33,36 @@
 <body class="admin-body">
 <div class="admin-shell">
     <aside class="admin-sidebar" id="adminSidebar">
-        <a class="admin-brand" href="{{ route('admin.dashboard') }}">
+        <a class="admin-brand" href="{{ route('admin.departments') }}">
             <img src="{{ $brandLogo ?: asset('logo.png') }}" alt="">
             <span>{{ $brandName }}<small>Staff portal</small></span>
         </a>
         <nav class="admin-nav">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'grid']) Departments
+            <a href="{{ route('admin.departments') }}" class="{{ $dept ? '' : 'active' }}">
+                @include('partials.icon', ['n' => 'grid']) All departments
             </a>
 
-            <div class="nav-group">Module 1 · Public Site &amp; Membership</div>
-            <a href="{{ route('admin.registrations.index', 'ctp') }}" class="{{ request()->routeIs('admin.registrations.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'users']) Applicants
-                @if ($navPending)<span class="nav-badge">{{ $navPending }}</span>@endif
-            </a>
-            <a href="{{ route('admin.content.index') }}" class="{{ request()->routeIs('admin.content.*') && ! $onMembership ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'layout']) Site content &amp; pages
-            </a>
-            <a href="{{ route('admin.content.edit', 'membership') }}" class="{{ $onMembership ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'sliders']) Membership settings
-            </a>
-            <a href="{{ route('admin.projects.index') }}" class="{{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'briefcase']) Projects
-                @if ($navApplications)<span class="nav-badge">{{ $navApplications }}</span>@endif
-            </a>
-            <a href="{{ route('admin.hirers.index') }}" class="{{ request()->routeIs('admin.hirers.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'building']) Hirers
-            </a>
-            <a href="{{ route('admin.partners.index') }}" class="{{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'link']) Partners
-                @if ($navPartners)<span class="nav-badge">{{ $navPartners }}</span>@endif
-            </a>
-            <a href="{{ route('admin.donations.index') }}" class="{{ request()->routeIs('admin.donations.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'heart']) Donations
-            </a>
-            <a href="{{ route('admin.messages.index') }}" class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'mail']) Messages
-                <span class="nav-badge gray">{{ $navMessages }}</span>
-            </a>
+            @if ($dept)
+                <div class="nav-group">{{ $dept['tag'] }} · {{ $dept['name'] }}</div>
+                <a href="{{ route('admin.department', $dept['slug']) }}" class="{{ request()->routeIs('admin.department') ? 'active' : '' }}">
+                    @include('partials.icon', ['n' => 'chevron']) Overview
+                </a>
+                @foreach (Departments::nav($dept['slug']) as $item)
+                    @php $badge = Departments::badge($item['badge'] ?? null); @endphp
+                    <a href="{{ route(...$item['route']) }}" class="{{ $isActive($item) ? 'active' : '' }}">
+                        @include('partials.icon', ['n' => $item['icon']]) {{ $item['label'] }}
+                        @if ($badge)<span class="nav-badge">{{ $badge }}</span>@endif
+                    </a>
+                @endforeach
+            @endif
 
-            <div class="nav-group">Administration</div>
-            <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-                @include('partials.icon', ['n' => 'key']) Staff &amp; roles
-            </a>
+            <div class="nav-group">Outside the portal</div>
             <a href="{{ route('home') }}" target="_blank">
                 @include('partials.icon', ['n' => 'globe']) View public site
             </a>
         </nav>
         <div class="side-foot">
-            <span class="side-ver">Module 1 · Public Site &amp; Membership</span>
+            <span class="side-ver">{{ $dept ? $dept['tag'].' · '.$dept['name'] : '13 departments · 1 programme' }}</span>
         </div>
     </aside>
 

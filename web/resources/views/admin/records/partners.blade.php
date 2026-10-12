@@ -6,7 +6,7 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.dashboard') }}">&larr; Departments</a></p>
+<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Partners</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 18px;">
  Post your own partners straight onto the public wall, and review every partnership request sent from the public Partners page.

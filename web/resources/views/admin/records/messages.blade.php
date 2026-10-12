@@ -2,7 +2,7 @@
 @section('title', 'Messages')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.dashboard') }}">&larr; Departments</a></p>
+<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Messages from the public site</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 18px;">
  Every enquiry sent through the Contact page. {{ number_format($messages->total()) }} in total — newest first.

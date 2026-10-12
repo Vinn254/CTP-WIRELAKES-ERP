@@ -40,7 +40,7 @@ class LoginController extends Controller
 
         return redirect()->intended(in_array($user->role, ['ctp', 'fundi'], true)
             ? route('portal.dashboard')
-            : route('admin.dashboard'));
+            : route('admin.departments'));
     }
 
     public function logout(Request $request)

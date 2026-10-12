@@ -6,7 +6,7 @@
 @endphp
 
 @section('content')
-<a class="back" href="{{ route('admin.dashboard') }}">Back to Departments</a>
+<a class="back" href="{{ route('admin.department', 'membership') }}">Back to Public Site &amp; Membership</a>
 <h1>Staff &amp; roles</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 20px;">
     @if ($isSuper)

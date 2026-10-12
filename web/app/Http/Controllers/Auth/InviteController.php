@@ -39,6 +39,6 @@ class InviteController extends Controller
         Auth::login($user, true);
         $request->session()->regenerate();
 
-        return redirect()->route('admin.dashboard')->with('status', 'Welcome aboard, '.$user->name.'! Your staff account is ready.');
+        return redirect()->route('admin.departments')->with('status', 'Welcome aboard, '.$user->name.'! Your staff account is ready.');
     }
 }

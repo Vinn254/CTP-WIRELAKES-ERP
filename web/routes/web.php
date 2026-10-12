@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ContentController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
@@ -50,9 +50,10 @@ Route::post('/invite/{token}', [InviteController::class, 'accept'])->name('invit
 Route::get('/activate/{token}', [ActivateController::class, 'show'])->name('activate.show');
 Route::post('/activate/{token}', [ActivateController::class, 'accept'])->name('activate.accept');
 
-// Admin (department dashboard + Module 1 review queue)
+// Admin — departments, then the screens inside each one
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [DepartmentController::class, 'index'])->name('departments');
+    Route::get('/department/{department}', [DepartmentController::class, 'show'])->name('department');
     Route::get('/registrations/{type}', [ReviewController::class, 'index'])->name('registrations.index');
     Route::get('/registrations/{type}/{id}', [ReviewController::class, 'show'])->whereNumber('id')->name('registrations.show');
     Route::get('/registrations/{type}/{id}/file/{doc}', [ReviewController::class, 'file'])->name('registrations.file');

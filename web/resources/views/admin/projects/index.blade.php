@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.dashboard') }}">&larr; Departments</a></p>
+<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Projects</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
  Post projects here — they are <b>never shown on the public site</b>. Approved CTPs and E-Fundis see only the projects

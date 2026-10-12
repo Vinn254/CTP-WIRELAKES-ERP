@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.dashboard') }}">&larr; Departments</a></p>
+<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>{{ $label }}</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
     Every application is reviewed here. Approving a CTP or E-Fundi issues their member ID and an activation link
