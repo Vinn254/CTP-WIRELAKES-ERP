@@ -14,11 +14,23 @@
     </div>
 </section>
 
-<div class="counters">
-    <div class="count-card"><div class="num">{{ number_format($counters['ctps']) }}</div><div class="lbl">Active CTPs</div></div>
-    <div class="count-card"><div class="num">{{ number_format($counters['fundis']) }}</div><div class="lbl">Verified E-Fundis</div></div>
-    <div class="count-card"><div class="num">{{ number_format($counters['hirers']) }}</div><div class="lbl">Registered Hirers</div></div>
-    <div class="count-card"><div class="num">{{ number_format($counters['applications']) }}</div><div class="lbl">Applications Received</div></div>
+@php
+    $tickerItems = [
+        number_format($counters['ctps']).' Active CTPs',
+        number_format($counters['fundis']).' Verified E-Fundis',
+        number_format($counters['hirers']).' Registered Hirers',
+        number_format($counters['applications']).' Applications Received',
+        'Training · E-Fundis · Projects · E-Waste · Entrepreneurship · Green Economy',
+    ];
+@endphp
+<div class="ticker" aria-label="Live programme stats">
+    <div class="ticker-track">
+        @foreach ([$tickerItems, $tickerItems] as $copy)
+            @foreach ($copy as $item)
+                <span class="ticker-item">{{ $item }}</span>
+            @endforeach
+        @endforeach
+    </div>
 </div>
 
 <section class="section">
