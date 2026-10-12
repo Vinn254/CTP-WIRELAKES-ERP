@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
-use App\Models\CtpRegistration;
 use App\Models\Donation;
-use App\Models\FundiRegistration;
-use App\Models\HirerRegistration;
 use App\Models\Partner;
 use Illuminate\Http\Request;
 
@@ -15,12 +12,6 @@ class PageController extends Controller
     public function home()
     {
         return view('pages.home', [
-            'counters' => [
-                'ctps' => CtpRegistration::where('status', 'active')->count(),
-                'fundis' => FundiRegistration::where('status', 'active')->count(),
-                'hirers' => HirerRegistration::where('status', 'active')->count(),
-                'partners' => Partner::count(),
-            ],
             'partners' => Partner::where('is_listed', true)->orderBy('name')->get(),
         ]);
     }

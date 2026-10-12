@@ -6,6 +6,7 @@
     <title>@yield('title', 'Admin') — CTP-WireLakes Admin</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <script>if (localStorage.getItem('ctp-theme') === 'dark') document.documentElement.classList.add('dark');</script>
 </head>
 <body>
 <header class="admin-header">
@@ -15,6 +16,7 @@
             <span>CTP-WireLakes · Staff</span>
         </a>
         <div style="display:flex;align-items:center;gap:14px;">
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode" onclick="toggleTheme(this)">🌙</button>
             <span>{{ auth()->user()->name }} ({{ auth()->user()->role }})</span>
             <a href="{{ route('home') }}">View site</a>
             <form method="POST" action="{{ route('logout') }}">
@@ -28,5 +30,6 @@
     @include('partials.flash')
     @yield('content')
 </main>
+<script src="{{ asset('js/theme.js') }}"></script>
 </body>
 </html>

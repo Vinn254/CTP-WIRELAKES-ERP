@@ -7,8 +7,9 @@
     <title>@yield('title', 'CTP-WireLakes') — CTP-WireLakes</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <script>if (localStorage.getItem('ctp-theme') === 'dark') document.documentElement.classList.add('dark');</script>
 </head>
-<body>
+<body class="@yield('bodyClass')">
 <header class="site-header">
     <div class="container header-bar">
         <a class="brand" href="{{ route('home') }}">
@@ -22,21 +23,61 @@
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
-            <div class="nav-cta">
-                <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
-                <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
+            <div class="nav-cta join-menu">
+                <button type="button" class="btn btn-primary btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">Join / Sign up ▾</button>
+                <div class="join-drop">
+                    <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
+                    <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
+                    <a class="btn btn-primary btn-sm" href="{{ route('login') }}">Sign up / Log in</a>
+                </div>
             </div>
         </nav>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" onclick="toggleTheme(this)">{{ request()->cookie('ctp-theme') === 'dark' ? '☀️' : '🌙' }}</button>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" onclick="toggleSiteMenu(this)">☰</button>
     </div>
 </header>
+<script src="{{ asset('js/theme.js') }}"></script>
 <script>
 function toggleSiteMenu(btn) {
     const nav = document.getElementById('siteNav');
     const open = nav.classList.toggle('open');
     btn.setAttribute('aria-expanded', open);
     btn.textContent = open ? '✕' : '☰';
+    syncHeader();
 }
+function toggleJoinMenu(btn) {
+    const menu = btn.closest('.join-menu');
+    const open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+}
+document.addEventListener('click', function (e) {
+    document.querySelectorAll('.join-menu.open').forEach(function (m) {
+        if (!m.contains(e.target)) {
+            m.classList.remove('open');
+            m.querySelector('.join-toggle').setAttribute('aria-expanded', 'false');
+        }
+    });
+});
+(function () {
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+    const hasHero = document.body.classList.contains('has-hero');
+    window.syncHeader = function () {
+        const y = window.scrollY;
+        const navOpen = !!document.querySelector('.main-nav.open');
+        const solid = !hasHero || y > 30 || navOpen;
+        header.classList.toggle('solid', solid);
+        header.classList.toggle('hidden', y > 160 && window.direction === 'down' && !navOpen);
+    };
+    let last = window.scrollY;
+    window.direction = 'up';
+    window.addEventListener('scroll', function () {
+        window.direction = window.scrollY > last ? 'down' : 'up';
+        last = window.scrollY;
+        syncHeader();
+    }, { passive: true });
+    syncHeader();
+})();
 </script>
 
 <main class="container">

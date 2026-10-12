@@ -1,37 +1,29 @@
 @extends('layouts.app')
 @section('title', 'Home')
+@section('bodyClass', 'has-hero')
 
 @section('content')
 <section class="hero">
-    <div class="container">
-        <span class="kicker">Community Technology Promoters · Kenya</span>
-        <h1>From a community need, we create trained people, certified fundis, completed projects and lasting jobs.</h1>
-        <p class="lede">CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.</p>
-        <div class="hero-ctas">
-            <a class="btn btn-lime btn-lg" href="{{ route('register.ctp') }}">Become a CTP</a>
-            <a class="btn btn-outline btn-lg" href="{{ route('register.fundi') }}">Become a Fundi</a>
-            <a class="btn btn-outline btn-lg" href="{{ route('register.hirer') }}">Post a Project</a>
+    <div class="container hero-inner">
+        <div class="hero-text">
+            <span class="kicker">Community Technology Promoters · Kenya</span>
+            <h1>From a community need, we create trained people, certified fundis, completed projects and lasting jobs.</h1>
+            <p class="lede">CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.</p>
+            <div class="hero-ctas">
+                <a class="btn btn-lime btn-lg" href="{{ route('register.ctp') }}">Become a CTP</a>
+                <a class="btn btn-outline btn-lg" href="{{ route('register.fundi') }}">Become a Fundi</a>
+            </div>
+        </div>
+        <div class="hero-slider" aria-label="Highlights">
+            <div class="slides">
+                <div class="slide" style="background-image:url('{{ asset('images/hero-1.jpg') }}')"></div>
+                <div class="slide" style="background-image:url('{{ asset('images/hero-2.jpg') }}')"></div>
+                <div class="slide" style="background-image:url('{{ asset('images/hero-3.jpg') }}')"></div>
+            </div>
+            <span class="slider-note">Add sliding images — drop files at <code>public/images/hero-1.jpg … hero-3.jpg</code></span>
         </div>
     </div>
 </section>
-
-@php
-    $tickerItems = [
-        number_format($counters['ctps']).' Active CTPs',
-        number_format($counters['fundis']).' Verified E-Fundis',
-        number_format($counters['hirers']).' Registered Hirers',
-        number_format($counters['partners']).' Registered Partners',
-    ];
-@endphp
-<div class="ticker" aria-label="Live programme stats">
-    <div class="ticker-track">
-        @foreach ([$tickerItems, $tickerItems] as $copy)
-            @foreach ($copy as $item)
-                <span class="ticker-item">{{ $item }}</span>
-            @endforeach
-        @endforeach
-    </div>
-</div>
 
 <section class="section">
     <h2>What the programme does</h2>
