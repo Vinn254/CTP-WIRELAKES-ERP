@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'staff' => \App\Http\Middleware\EnsureUserIsStaff::class,
+        ]);
+
         // API requests never redirect to a web login route — they return JSON 401.
         $middleware->redirectGuestsTo(function (Request $request) {
             return $request->is('api/*') || $request->expectsJson()

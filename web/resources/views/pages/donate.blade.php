@@ -1,0 +1,80 @@
+@extends('layouts.app')
+@section('title', 'Donate')
+
+@section('content')
+<section class="section grid-2">
+    <div>
+        <span class="tag">Donate</span>
+        <h1>Fund a skill. Change a life.</h1>
+        <p class="sub">Every donation is mapped to something you can see. One-time or recurring — M-Pesa, card or bank.</p>
+        <div class="card">
+            <h3>Your money, translated</h3>
+            <dl class="kv">
+                @foreach ($impacts as $amount => $label)
+                    <dt>KSh {{ number_format($amount) }}</dt>
+                    <dd>{{ explode('—', $label, 2)[1] ?? $label }}</dd>
+                @endforeach
+            </dl>
+        </div>
+        <p class="help">Secure payment (M-Pesa STK Push, card, bank) is being switched on in the next phase. Your pledge is recorded and our team will contact you to complete it.</p>
+    </div>
+
+    <div class="card">
+        <h2>Donation form</h2>
+        @include('partials.errors')
+        <form method="POST" action="{{ route('donate.store') }}">
+            @csrf
+            <div class="field">
+                <label>Amount (KSh) <span class="req">*</span></label>
+                <input type="number" name="amount" min="1" step="1" value="{{ old('amount') }}" required>
+                <div class="help">
+                    @foreach (array_keys($impacts) as $a)
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('form').amount.value={{ $a }}">{{ number_format($a) }}</button>
+                    @endforeach
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Payment method <span class="req">*</span></label>
+                    <select name="method" required>
+                        @foreach (['mpesa' => 'M-Pesa', 'card' => 'Card', 'bank' => 'Bank transfer'] as $k => $v)
+                            <option value="{{ $k }}" @selected(old('method', 'mpesa') === $k)>{{ $v }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Frequency <span class="req">*</span></label>
+                    <select name="frequency" required>
+                        @foreach (['one_time' => 'One-time', 'monthly' => 'Monthly', 'yearly' => 'Yearly'] as $k => $v)
+                            <option value="{{ $k }}" @selected(old('frequency', 'one_time') === $k)>{{ $v }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Your name</label>
+                    <input type="text" name="donor_name" value="{{ old('donor_name') }}" maxlength="120">
+                </div>
+                <div class="field">
+                    <label>M-Pesa phone / contact</label>
+                    <input type="text" name="phone" value="{{ old('phone') }}" maxlength="20" placeholder="07XX XXX XXX">
+                </div>
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ old('email') }}">
+            </div>
+            <div class="field">
+                <label>Message (optional)</label>
+                <textarea name="message" rows="3">{{ old('message') }}</textarea>
+            </div>
+            <div class="field checkbox-row">
+                <input type="checkbox" name="anonymous" value="1" @checked(old('anonymous'))>
+                <label>Donate anonymously (leaderboard shows no name)</label>
+            </div>
+            <button class="btn btn-lime btn-lg btn-block" type="submit">Record my pledge</button>
+        </form>
+    </div>
+</section>
+@endsection
