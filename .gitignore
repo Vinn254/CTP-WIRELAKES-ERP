@@ -1,0 +1,186 @@
+# CTP-WireLakes monorepo .gitignore
+# This file lives at the repo root so it covers BOTH web/ (Laravel) and app/ (Flutter).
+
+# ====================================================================
+# OS / editor junk
+# ====================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+Desktop.ini
+
+# Windows
+$RECYCLE.BIN/
+
+# macOS
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.fuse_hidden*
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ====================================================================
+# Laravel (web/)
+# ====================================================================
+web/vendor/
+web/node_modules/
+web/public/storage
+public/storage
+public/build
+public/hot
+public/storage/*.key
+public/css
+public/js
+public/mix-manifest.json
+public/.htaccess
+
+# Laravel env (keep .env.example)
+web/.env
+web/.env.backup
+web/.env.production
+
+# Laravel logs and caches
+web/storage/*.key
+web/storage/logs/*
+web/storage/framework/cache/data/*
+web/storage/framework/sessions/*
+web/storage/framework/testing/*
+web/storage/framework/views/*
+!web/storage/logs/.gitkeep
+!web/storage/framework/cache/.gitkeep
+!web/storage/framework/sessions/.gitkeep
+!web/storage/framework/views/.gitkeep
+!web/storage/framework/testing/.gitkeep
+
+# Laravel sqlite db (dev only)
+web/database/*.sqlite
+web/database/*.sqlite-journal
+web/database/*.sqlite-shm
+web/database/*.sqlite-wal
+# Keep the file in source so empty-repo clones don't break first run:
+!web/database/database.sqlite
+
+# Laravel telescope / horizon
+web/storage/telescope/
+web/.horizon
+
+# PHPUnit / Pest coverage
+web/coverage/
+web/.phpunit.result.cache
+web/.phpunit.cache
+web/.phpunit-watcher.yml
+
+# Vite / npm
+web/.vite/
+web/.npm/
+
+# ====================================================================
+# Flutter (app/)
+# ====================================================================
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/build/
+app/coverage/
+app/.idea/
+app/.vscode/
+app/.last_build_id
+app/.metadata
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+
+# Flutter / Dart
+app/pubspec.lock
+app/**.lock
+app/.dart_tool/
+app/.packages
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+
+# Per-platform build artifacts
+app/android/.gradle/
+app/android/captures/
+app/android/local.properties
+app/android/**/GeneratedPluginRegistrant.java
+app/android/key.properties
+app/android/app/release/
+app/android/app/debug/
+app/android/app/profile/
+
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/Flutter/flutter_export_environment.sh
+app/ios/ServiceDefinitions.json
+app/ios/Runner/GeneratedPluginRegistrant.*
+app/ios/Runner.xcworkspace/xcuserdata/
+app/ios/Runner.xcodeproj/xcuserdata/
+app/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+app/ios/Flutter/flutter_export_environment.sh
+
+app/windows/flutter/CMakeLists.txt
+app/windows/flutter/ephemeral/
+app/windows/runner/CMakeLists.txt.user
+app/windows/runner/Runner.sln.user
+app/windows/runner/*.exe
+app/windows/runner/*.exp
+app/windows/runner/*.lib
+app/windows/runner/*.pdb
+app/windows/runner/*.ilk
+app/windows/runner/runner.dir/
+app/windows/runner/Debug/
+app/windows/runner/Release/
+app/windows/.cmake/
+app/windows/.gradle/
+
+app/macos/Pods/
+app/macos/Flutter/ephemeral/
+app/macos/Flutter/GeneratedPluginRegistrant.swift
+app/macos/Runner.xcworkspace/xcuserdata/
+
+app/linux/flutter/ephemeral/
+app/linux/build/
+
+# ====================================================================
+# Build artifacts
+# ====================================================================
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# ====================================================================
+# Temp / scratch
+# ====================================================================
+*.tmp
+*.bak
+*.swp
+
+# Office lock files
+~*.docx
+~*.doc
+~*.xlsx
+~*.xls
+~*.pptx
+

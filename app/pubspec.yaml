@@ -1,0 +1,48 @@
+name: ctp_wirelakes_app
+description: "CTP-WireLakes Construction and Technology Enterprise mobile + desktop app. Talks to the Laravel backend at /api/*."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Networking
+  http: ^1.2.2
+
+  # Local storage for the Sanctum token (use flutter_secure_storage in production)
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Regenerates launcher icons from assets/logo.png for Android, iOS, Windows
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+
+flutter_launcher_icons:
+  image_path: "assets/logo.png"
+  min_sdk_android: 23
+  background_color: "#0e6b3a"
+  adaptive_icon_background: "#0e6b3a"
+  adaptive_icon_foreground: "assets/logo.png"
+  remove_alpha_ios: true
+  android:
+    enabled: true
+    image: "assets/logo.png"
+  ios:
+    enabled: true
+    image: "assets/logo.png"
+  windows:
+    enabled: true
+    image: "assets/logo.png"
