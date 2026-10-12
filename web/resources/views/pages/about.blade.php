@@ -25,15 +25,6 @@
 </section>
 
 <section class="section">
-    <h2>Leadership</h2>
-    <div class="grid-3">
-        <div class="card"><h3>James Ombet</h3><p>Programme Design Lead — Kisumu, Kenya</p></div>
-        <div class="card"><h3>Vincent Otieno</h3><p>Programme Co-Design &amp; Systems — Kisumu, Kenya</p></div>
-        <div class="card"><h3>County Coordinators</h3><p>Field leadership across participating counties (recruiting as we scale).</p></div>
-    </div>
-</section>
-
-<section class="section">
     <h2>Where we operate</h2>
     <p class="sub">CTP-WireLakes works county-by-county across Kenya, starting from the Lake Victoria region and expanding through CTP mobilization. The interactive Kenya-wide impact map arrives with the M&amp;E / GIS department (Module 12).</p>
     <div class="card" style="text-align:center;padding:40px;">

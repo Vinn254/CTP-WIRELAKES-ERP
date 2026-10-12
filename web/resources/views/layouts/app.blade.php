@@ -10,15 +10,12 @@
 </head>
 <body>
 <header class="site-header">
-    <div class="container header-top">
+    <div class="container header-bar">
         <a class="brand" href="{{ route('home') }}">
             <img src="{{ asset('logo.png') }}" alt="CTP-WireLakes logo">
             <span>CTP-WireLakes</span>
         </a>
-        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" onclick="toggleSiteMenu(this)">☰</button>
-    </div>
-    <nav class="main-nav" id="siteNav">
-        <div class="container nav-inner">
+        <nav class="main-nav" id="siteNav">
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
             <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a>
             <a href="{{ route('what-we-do') }}" class="{{ request()->routeIs('what-we-do') ? 'active' : '' }}">What We Do</a>
@@ -29,8 +26,9 @@
                 <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
                 <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
             </div>
-        </div>
-    </nav>
+        </nav>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" onclick="toggleSiteMenu(this)">☰</button>
+    </div>
 </header>
 <script>
 function toggleSiteMenu(btn) {

@@ -6,16 +6,7 @@
     <div>
         <span class="tag">Donate</span>
         <h1>Fund a skill. Change a life.</h1>
-        <p class="sub">Every donation is mapped to something you can see. One-time or recurring — M-Pesa, card or bank.</p>
-        <div class="card">
-            <h3>Your money, translated</h3>
-            <dl class="kv">
-                @foreach ($impacts as $amount => $label)
-                    <dt>KSh {{ number_format($amount) }}</dt>
-                    <dd>{{ explode('—', $label, 2)[1] ?? $label }}</dd>
-                @endforeach
-            </dl>
-        </div>
+        <p class="sub">Every donation goes directly to programme work. One-time or recurring — M-Pesa, card or bank.</p>
         <p class="help">Secure payment (M-Pesa STK Push, card, bank) is being switched on in the next phase. Your pledge is recorded and our team will contact you to complete it.</p>
     </div>
 
@@ -27,11 +18,6 @@
             <div class="field">
                 <label>Amount (KSh) <span class="req">*</span></label>
                 <input type="number" name="amount" min="1" step="1" value="{{ old('amount') }}" required>
-                <div class="help">
-                    @foreach (array_keys($impacts) as $a)
-                        <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('form').amount.value={{ $a }}">{{ number_format($a) }}</button>
-                    @endforeach
-                </div>
             </div>
             <div class="form-grid">
                 <div class="field">

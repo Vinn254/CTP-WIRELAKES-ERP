@@ -12,14 +12,6 @@ use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
-    public const DONATION_IMPACTS = [
-        500 => 'KSh 500 — gives one trainee a set of hand tools for a term',
-        5000 => 'KSh 5,000 — trains 1 CTP',
-        15000 => 'KSh 15,000 — certifies 1 E-Fundi end to end',
-        50000 => 'KSh 50,000 — equips one community computer corner',
-        100000 => 'KSh 100,000 — runs a full training cohort in a ward',
-    ];
-
     public function home()
     {
         return view('pages.home', [
@@ -81,7 +73,7 @@ class PageController extends Controller
 
     public function donate()
     {
-        return view('pages.donate', ['impacts' => self::DONATION_IMPACTS]);
+        return view('pages.donate');
     }
 
     public function storeDonation(Request $request)
@@ -97,14 +89,7 @@ class PageController extends Controller
             'anonymous' => 'boolean',
         ]);
 
-        $impact = collect(self::DONATION_IMPACTS)
-            ->filter(fn ($label, $threshold) => $data['amount'] >= $threshold)
-            ->keys()
-            ->max();
-
-        Donation::create($data + [
-            'impact_label' => $impact ? self::DONATION_IMPACTS[$impact] : null,
-        ]);
+        Donation::create($data);
 
         return back()->with('status', 'Asante! Your pledge has been recorded. Secure payment (M-Pesa / card / bank) is being switched on in the next phase — we will contact you to complete it.');
     }

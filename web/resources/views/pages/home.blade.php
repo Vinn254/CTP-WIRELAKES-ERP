@@ -2,8 +2,9 @@
 @section('title', 'Home')
 
 @section('content')
-<section class="hero" style="margin:0 -20px;">
+<section class="hero">
     <div class="container">
+        <span class="kicker">Community Technology Promoters · Kenya</span>
         <h1>From a community need, we create trained people, certified fundis, completed projects and lasting jobs.</h1>
         <p class="lede">CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.</p>
         <div class="hero-ctas">
@@ -53,8 +54,8 @@
 <section class="section">
     <div class="donate-strip">
         <div>
-            <h3>Every shilling has a visible impact</h3>
-            <p>KSh 5,000 trains 1 CTP. KSh 50,000 equips a community computer corner.</p>
+            <h3>Every donation goes directly to programme work</h3>
+            <p>Training fundis, certifying skills and equipping communities across Kenya.</p>
         </div>
         <a class="btn btn-lime btn-lg" href="{{ route('donate') }}">Donate now</a>
     </div>
