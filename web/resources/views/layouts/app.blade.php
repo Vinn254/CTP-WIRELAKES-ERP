@@ -132,7 +132,7 @@ document.addEventListener('click', function (e) {
                 <a href="{{ route('about') }}">About us</a><br>
                 <a href="{{ route('what-we-do') }}">What we do</a><br>
                 <a href="{{ route('faq') }}">FAQ</a><br>
-                <a href="{{ route('login') }}">Staff login</a>
+                <a href="{{ route('login') }}">Programme staff login</a>
             </p>
         </div>
     </div>

@@ -1,11 +1,12 @@
 @extends('layouts.app')
-@section('title', 'Staff login')
+@section('title', 'Log in')
 
 @section('content')
 <section class="section login-section">
     <div class="card login-card">
         <span class="login-badge">🔒</span>
-        <h1>Staff login</h1>
+        <h1>Staff &amp; member login</h1>
+        <p class="help">Programme staff reach the admin console. Approved CTPs and E-Fundis reach their project portal.</p>
         @include('partials.errors')
         <form method="POST" action="{{ route('login') }}">
             @csrf

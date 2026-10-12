@@ -2,21 +2,33 @@
 @section('title', $label)
 
 @php
-    $tabs = ['ctp' => 'CTPs', 'fundi' => 'Fundis', 'hirer' => 'Hirers'];
+    use Illuminate\Support\Str;
+    $types = ['ctp' => 'CTP applications', 'fundi' => 'E-Fundi applications'];
     $statuses = ['pending_review' => 'Pending review', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'];
 @endphp
 
 @section('content')
-<p><a href="{{ route('admin.dashboard') }}">← Departments</a></p>
+<p class="back"><a href="{{ route('admin.dashboard') }}">&larr; Departments</a></p>
 <h1>{{ $label }}</h1>
+<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+    Every application is reviewed here. Approving a CTP or E-Fundi issues their member ID and an activation link
+    they use to set a password and sign in to the member portal.
+</p>
 
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;">
-    @foreach ($tabs as $t => $lbl)
-        <a class="btn btn-sm {{ $t === $type ? 'btn-primary' : 'btn-ghost' }}" href="{{ route('admin.registrations.index', $t) }}">{{ $lbl }}</a>
+<div class="tabs">
+    @foreach ($types as $t => $lbl)
+        <a class="tab {{ $t === $type ? 'on' : '' }}" href="{{ route('admin.registrations.index', $t) }}">
+            {{ $lbl }}
+            @if ($pendingByType[$t] ?? 0)<span class="n">{{ $pendingByType[$t] }} pending</span>@endif
+        </a>
     @endforeach
-    <span style="flex:1;"></span>
+</div>
+
+<div class="tabs">
     @foreach ($statuses as $s => $lbl)
-        <a class="btn btn-sm {{ $status === $s ? 'btn-lime' : 'btn-ghost' }}" href="{{ route('admin.registrations.index', ['type' => $type, 'status' => $s]) }}">{{ $lbl }}</a>
+        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.registrations.index', ['type' => $type, 'status' => $s]) }}">
+            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
+        </a>
     @endforeach
 </div>
 
@@ -28,7 +40,6 @@
             <th>Phone</th>
             @if ($type === 'fundi')<th>Tier</th>@endif
             @if ($type === 'ctp')<th>Track</th>@endif
-            @if ($type === 'hirer')<th>Organisation</th>@endif
             <th>County</th>
             <th>Status</th>
             <th>Submitted</th>
@@ -38,19 +49,21 @@
     <tbody>
         @forelse ($records as $r)
             <tr>
-                <td>{{ $r->reference }}</td>
-                <td>{{ $r->full_name ?? $r->contact_name }}</td>
+                <td><b>{{ $r->reference }}</b></td>
+                <td>
+                    {{ $r->full_name ?? $r->contact_name }}
+                    <div class="hint">{{ $r->email }}</div>
+                </td>
                 <td>{{ $r->phone }}</td>
-                @if ($type === 'fundi')<td>{{ \Illuminate\Support\Str::headline($r->tier) }}</td>@endif
-                @if ($type === 'ctp')<td>{{ \Illuminate\Support\Str::headline($r->track) }}</td>@endif
-                @if ($type === 'hirer')<td>{{ $r->organisation }}</td>@endif
-                <td>{{ $r->county ?? implode(', ', array_slice((array) $r->service_counties, 0, 2)) }}@if($type === 'fundi' && count((array) $r->service_counties) > 2) +{{ count((array) $r->service_counties) - 2 }}@endif</td>
+                @if ($type === 'fundi')<td><span class="tag">{{ \App\Models\FundiRegistration::tierLabel($r->tier) }}</span></td>@endif
+                @if ($type === 'ctp')<td><span class="tag">{{ Str::headline($r->track) }}</span></td>@endif
+                <td>{{ $r->county ?? implode(', ', array_slice((array) $r->service_counties, 0, 2)) }}@if ($type === 'fundi' && count((array) $r->service_counties) > 2)<span class="hint"> +{{ count((array) $r->service_counties) - 2 }}</span>@endif</td>
                 <td><span class="status {{ $r->status }}">{{ str_replace('_', ' ', $r->status) }}</span></td>
                 <td>{{ $r->created_at->format('d M Y') }}</td>
-                <td><a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a></td>
+                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a></td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
+            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
         @endforelse
     </tbody>
 </table>

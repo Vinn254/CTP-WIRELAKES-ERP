@@ -8,6 +8,7 @@
         'email' => 'Email', 'dob' => 'Date of birth', 'gender' => 'Gender',
         'county' => 'County', 'sub_county' => 'Sub-county', 'ward' => 'Ward', 'village' => 'Village',
         'education_level' => 'Education level', 'track' => 'Track', 'referral_code' => 'Referral code',
+        'fundi_tier' => 'Fundi pool',
         'tier' => 'Fundi tier', 'business_name' => 'Business name', 'business_reg_no' => 'Business reg no.',
         'years_in_business' => 'Years in business', 'specialisations' => 'Specialisations',
         'service_counties' => 'Service counties', 'referee_name' => 'Referee name',
@@ -18,7 +19,7 @@
     $groups = [
         'Personal details' => ['full_name', 'contact_name', 'national_id', 'dob', 'gender', 'email', 'phone'],
         'Location' => ['county', 'sub_county', 'ward', 'village'],
-        'Programme' => ['track', 'tier', 'education_level', 'business_name', 'business_reg_no', 'years_in_business',
+        'Programme' => ['track', 'fundi_tier', 'tier', 'education_level', 'business_name', 'business_reg_no', 'years_in_business',
                         'specialisations', 'service_counties', 'referral_code', 'org_type', 'organisation'],
         'Referee' => ['referee_name', 'referee_phone', 'referee_role'],
         'Membership' => ['ctp_code', 'ef_code', 'hirer_code', 'status', 'rejection_reason'],
@@ -71,7 +72,7 @@
                             @elseif (in_array($key, ['dob'], true))
                                 {{ \Illuminate\Support\Carbon::parse($value)->format('d M Y') }}
                                 <span class="hint">({{ \Illuminate\Support\Carbon::parse($value)->age }} years old)</span>
-                            @elseif (in_array($key, ['gender', 'track', 'tier', 'education_level', 'org_type', 'status'], true))
+                            @elseif (in_array($key, ['gender', 'track', 'tier', 'fundi_tier', 'education_level', 'org_type', 'status'], true))
                                 <span class="chip">{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $value)) }}</span>
                             @else
                                 {{ $value }}
@@ -120,7 +121,28 @@
                 <h3>{{ $record->status === 'active' ? 'Approved' : 'Rejected' }}</h3>
                 @if ($record->status === 'active')
                     <p>{{ $personName }} is an active member — ID <b>{{ $memberCode }}</b>.</p>
-                    <p class="hint">Welcome email and SMS are dispatched in the notifications phase.</p>
+                    @if ($invite)
+                        <div class="link-box">
+                            <label class="hint">Activation link — send this to the member</label>
+                            <input type="text" readonly value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
+                            <button class="btn btn-sm btn-outline" type="button"
+                                    onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
+                        </div>
+                        <div class="hint">
+                            Status: <span class="status {{ $invite->status === 'accepted' ? 'active' : 'pending_review' }}">{{ ucfirst($invite->status) }}</span>
+                            @if ($invite->expires_at) · expires {{ $invite->expires_at->format('d M Y') }}@endif
+                            @if ($invite->status === 'accepted') · they have set a password and can sign in @endif
+                        </div>
+                        @if ($invite->status === 'pending')
+                        <form method="POST" action="{{ route('admin.registrations.reissue', [$type, $record->id]) }}" class="mini-form"
+                              data-confirm="Issue a fresh activation link? The old one stops working.">
+                            @csrf
+                            <button class="btn btn-sm btn-ghost" type="submit">New link</button>
+                        </form>
+                        @endif
+                    @else
+                        <p class="hint">Welcome email and SMS are dispatched in the notifications phase.</p>
+                    @endif
                 @else
                     <p>Reason sent to the applicant:<br><em>“{{ $record->rejection_reason }}”</em></p>
                     <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
@@ -130,6 +152,28 @@
                     </form>
                 @endif
             </div>
+
+            @if ($type === 'ctp' && $record->status === 'active')
+                <div class="card">
+                    <h3>Project level</h3>
+                    <p class="help">A CTP who has finished attachment, internship and their course moves into the fundi
+                        pool — choose the level of projects they should see in their portal.</p>
+                    <form method="POST" action="{{ route('admin.registrations.tier', [$type, $record->id]) }}" class="mini-form"
+                          data-confirm="Change which projects {{ $personName }} can see?" data-title="Project level">
+                        @csrf
+                        <div class="field">
+                            <label>Sees projects for</label>
+                            <select name="fundi_tier">
+                                <option value="">CTP attachment only</option>
+                                @foreach (\App\Models\Project::CTP_POOL_TIERS as $key => $desc)
+                                    <option value="{{ $key }}" @selected($record->fundi_tier === $key)>{{ $desc }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-primary" type="submit">Save level</button>
+                    </form>
+                </div>
+            @endif
         @endif
     </div>
 </div>

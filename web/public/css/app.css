@@ -288,6 +288,7 @@ html.dark .btn-logout:hover { background: var(--danger); border-color: var(--dan
 
 /* Back link + application review page */
 .back { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-weight: 700; text-decoration: none; font-size: .88rem; padding: 7px 14px; border-radius: 999px; background: var(--lime-soft); border: 1px solid rgba(6,103,34,.14); margin-bottom: 14px; transition: .15s; }
+.back a { color: inherit; text-decoration: none; }
 .back:hover { background: var(--lime); color: #083d0d; transform: translateX(-2px); }
 html.dark .back { background: #1d3122; color: #9ad87f; border-color: #2c4a32; }
 .applicant-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-left: 5px solid var(--lime); }
@@ -502,3 +503,43 @@ html.dark .theme-toggle { background: #1d3122; color: #f5d76e; border-color: #3c
 .btn-signin:hover .arr { transform: translateX(4px); }
 html.dark .login-badge { box-shadow: 0 10px 24px rgba(0,0,0,.5); }
 html.dark .btn-signin { box-shadow: 0 10px 22px rgba(0,0,0,.5); }
+
+/* Projects — admin list, detail and member portal */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 18px; }
+.tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); font-weight: 700; font-size: .86rem; text-decoration: none; transition: .15s; }
+.tab:hover { border-color: var(--lime); color: var(--green); }
+.tab.on { background: var(--green); border-color: var(--green); color: #fff; }
+.tab .n { background: rgba(6,103,34,.1); border-radius: 999px; padding: 1px 8px; font-size: .76rem; }
+.tab.on .n { background: rgba(255,255,255,.24); }
+html.dark .tab { background: #17231b; color: #b9d3b3; border-color: var(--line); }
+html.dark .tab.on { background: var(--lime); border-color: var(--lime); color: #08210a; }
+.status.awarded { background: #e6f0ff; color: #1a4f8a; }
+html.dark .status.awarded { background: #17283d; color: #92bdf5; }
+.page-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
+.proj-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.proj-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .proj-grid { grid-template-columns: 1fr; } }
+.proj-list { display: flex; flex-direction: column; gap: 12px; }
+.proj-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 14px 18px; transition: .15s; }
+.proj-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.proj-item b a { color: var(--green-dark); text-decoration: none; }
+.proj-item b a:hover { text-decoration: underline; }
+.proj-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.member-body { background: var(--bg); }
+.member-topbar { position: sticky; top: 0; justify-content: space-between; }
+.member-topbar .brand { flex: 1; min-width: 0; }
+.member-topbar .brand img { height: 40px; width: 40px; object-fit: contain; }
+html.dark .member-topbar .brand img { filter: brightness(0) invert(1); }
+.member-main { padding-top: 26px; padding-bottom: 48px; }
+.member-hero { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; background: linear-gradient(100deg, var(--green) 0%, #0b7f2c 58%, var(--lime) 100%); color: #fff; border-radius: var(--radius); padding: 22px 26px; margin-bottom: 22px; box-shadow: var(--shadow); }
+.member-hero h1 { color: #fff; margin: 6px 0 4px; }
+.member-hero .sub { color: rgba(255,255,255,.88); margin: 0; }
+.member-hero .tag { background: rgba(255,255,255,.22); color: #fff; }
+.member-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.member-stats .stat { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); border-left-color: #fff; min-width: 118px; }
+.member-stats .stat small { color: rgba(255,255,255,.82); }
+.member-stats .stat b, html.dark .member-stats .stat b { color: #fff; }
+.apply-state { margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.link-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 6px; }
+.link-box input { flex: 1; min-width: 220px; margin: 0; font-size: .8rem; }
+.mini-form { display: inline-block; margin-top: 6px; }

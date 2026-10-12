@@ -7,6 +7,7 @@
         + \App\Models\FundiRegistration::where('status', 'pending_review')->count()
         + \App\Models\HirerRegistration::where('status', 'pending_review')->count();
     $navPartners = \App\Models\Partner::where('is_listed', false)->count();
+    $navApplications = \App\Models\ProjectApplication::where('status', 'pending_review')->count();
     $navMessages = \App\Models\ContactMessage::count();
     $me = auth()->user();
     $initials = collect(explode(' ', trim($me->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
@@ -42,6 +43,13 @@
             </a>
             <a href="{{ route('admin.content.edit', 'membership') }}" class="{{ $onMembership ? 'active' : '' }}">
                 @include('partials.icon', ['n' => 'sliders']) Membership settings
+            </a>
+            <a href="{{ route('admin.projects.index') }}" class="{{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
+                @include('partials.icon', ['n' => 'briefcase']) Projects
+                @if ($navApplications)<span class="nav-badge">{{ $navApplications }}</span>@endif
+            </a>
+            <a href="{{ route('admin.hirers.index') }}" class="{{ request()->routeIs('admin.hirers.*') ? 'active' : '' }}">
+                @include('partials.icon', ['n' => 'building']) Hirers
             </a>
             <a href="{{ route('admin.partners.index') }}" class="{{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
                 @include('partials.icon', ['n' => 'link']) Partners

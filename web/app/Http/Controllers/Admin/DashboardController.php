@@ -10,6 +10,7 @@ use App\Models\Donation;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Partner;
+use App\Models\ProjectApplication;
 use App\Models\User;
 
 class DashboardController extends Controller
@@ -53,6 +54,11 @@ class DashboardController extends Controller
                  'meta' => 'Feeds the registration forms'],
                 ['route' => ['admin.staff.index'], 'label' => 'Staff & roles',
                  'meta' => User::where('active', true)->count().' active staff'],
+                ['route' => ['admin.projects.index'], 'label' => 'Projects & assignments',
+                 'meta' => ProjectApplication::where('status', 'pending_review')->count().' applications waiting',
+                 'alert' => ProjectApplication::where('status', 'pending_review')->count() > 0],
+                ['route' => ['admin.hirers.index'], 'label' => 'Hirers & organisations',
+                 'meta' => HirerRegistration::where('status', 'active')->count().' recorded'],
                 ['route' => ['admin.partners.index'], 'label' => 'Partners',
                  'meta' => Partner::where('is_listed', false)->count().' awaiting listing'],
                 ['route' => ['admin.donations.index'], 'label' => 'Donations',

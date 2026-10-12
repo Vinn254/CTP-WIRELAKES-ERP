@@ -2,7 +2,7 @@
 @section('title', 'Application received')
 
 @php
-    $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi', 'hirer' => 'Hirer'];
+    $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
     $fees = [
         'ctp' => content('membership', 'fees', 'fee_ctp', App\Models\Setting::get('membership_fee_ctp', '500')),
         'fundi' => content('membership', 'fees', 'fee_fundi', App\Models\Setting::get('membership_fee_fundi', '1000')),
@@ -18,24 +18,17 @@
 
     <div class="card" style="text-align:left;margin-top:26px;">
         <h3>What happens next</h3>
-        @if ($type === 'hirer')
-            <ol>
-                <li>An admin verifies your organisation (registration is free).</li>
-                <li>On approval you receive a Hirer ID (e.g. HIR-0001) and portal access.</li>
-                <li>You can then post your project to the marketplace.</li>
-            </ol>
-        @else
-            <ol>
-                <li>One-time membership fee: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong> via M-Pesa or bank.
-                    <span class="tag gold">Payment checkout comes online in the next phase — your application is already saved.</span></li>
-                <li>A Director/Admin reviews your documents.</li>
-                @if ($type === 'fundi')
-                    <li>The admin contacts your referee to confirm the recommendation.</li>
-                @endif
-                <li>On approval you are issued a {{ $type === 'ctp' ? 'CTP' : 'Fundi' }} ID
-                    ({{ $type === 'ctp' ? 'CTP-0001' : 'EF-0001' }} style) and receive welcome email + SMS with portal login details.</li>
-            </ol>
-        @endif
+        <ol>
+            <li>One-time membership fee: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong> via M-Pesa or bank.
+                <span class="tag gold">Payment checkout comes online in the next phase — your application is already saved.</span></li>
+            <li>A Director/Admin reviews your documents.</li>
+            @if ($type === 'fundi')
+                <li>The admin contacts your referee to confirm the recommendation.</li>
+            @endif
+            <li>On approval you are issued a {{ $type === 'ctp' ? 'CTP' : 'Fundi' }} ID
+                ({{ $type === 'ctp' ? 'CTP-0001' : 'EF-0001' }} style), plus an activation link by email or WhatsApp
+                to set your password and open the member portal.</li>
+        </ol>
     </div>
 
     <p style="margin-top:22px;">

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class FundiRegistration extends Model
 {
@@ -23,7 +24,7 @@ class FundiRegistration extends Model
         'tier', 'business_name', 'business_reg_no', 'years_in_business',
         'specialisations', 'service_counties', 'referee_name', 'referee_phone', 'referee_role',
         'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
-        'status', 'rejection_reason', 'ef_code',
+        'status', 'user_id', 'rejection_reason', 'ef_code',
     ];
 
     protected $casts = [
@@ -33,6 +34,12 @@ class FundiRegistration extends Model
         'trade_cert_paths' => 'array',
         'portfolio_paths' => 'array',
     ];
+
+    /** Short name of a tier — the part before the description dash. */
+    public static function tierLabel(?string $tier): string
+    {
+        return $tier ? trim(Str::before(trim(self::TIERS[$tier] ?? $tier), '—')) : '';
+    }
 
     public static function nextCode(): string
     {

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
-use App\Models\HirerRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -152,42 +151,11 @@ class RegistrationController extends Controller
         return redirect()->route('register.success', ['type' => 'fundi', 'reference' => $ref]);
     }
 
-    public function hirerForm()
-    {
-        return view('register.hirer', $this->formData() + [
-            'orgTypes' => HirerRegistration::ORG_TYPES,
-        ]);
-    }
-
-    public function storeHirer(Request $request)
-    {
-        $data = $request->validate([
-            'contact_name' => 'required|string|max:150',
-            'organisation' => 'required|string|max:150',
-            'phone' => ['required', 'max:20', ...$this->uniqueIn('hirer_registrations', 'phone')],
-            'email' => ['required', 'email', ...$this->uniqueIn('hirer_registrations', 'email')],
-            'county' => 'required|string|max:100',
-            'org_type' => 'nullable|in:'.implode(',', array_keys(HirerRegistration::ORG_TYPES)),
-            'org_doc' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
-        ]);
-
-        $ref = $this->reference('HIR');
-        $hirer = HirerRegistration::create(collect($data)->except('org_doc')->all() + ['reference' => $ref]);
-
-        if ($request->hasFile('org_doc')) {
-            $hirer->org_doc_path = $request->file('org_doc')->store('registrations/hirer/'.$ref, 'local');
-            $hirer->save();
-        }
-
-        return redirect()->route('register.success', ['type' => 'hirer', 'reference' => $ref]);
-    }
-
     public function success(string $type, string $reference)
     {
         $record = match ($type) {
             'ctp' => CtpRegistration::where('reference', $reference)->firstOrFail(),
             'fundi' => FundiRegistration::where('reference', $reference)->firstOrFail(),
-            'hirer' => HirerRegistration::where('reference', $reference)->firstOrFail(),
         };
 
         return view('register.success', compact('type', 'record'));

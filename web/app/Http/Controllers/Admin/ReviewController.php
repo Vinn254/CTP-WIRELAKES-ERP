@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccountInvite;
 use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReviewController extends Controller
@@ -53,6 +56,9 @@ class ReviewController extends Controller
             'label' => self::TYPES[$type]['label'],
             'status' => $status,
             'records' => $records,
+            'counts' => $model::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
+            'pendingByType' => collect(['ctp', 'fundi'])
+                ->mapWithKeys(fn ($t) => [$t => self::TYPES[$t]['model']::where('status', 'pending_review')->count()]),
         ]);
     }
 
@@ -65,6 +71,9 @@ class ReviewController extends Controller
             'label' => self::TYPES[$type]['label'],
             'record' => $record,
             'docs' => $this->documentList($type, $record),
+            'invite' => in_array($type, ['ctp', 'fundi'], true)
+                ? AccountInvite::where('member_type', $type)->where('member_id', $id)->first()
+                : null,
         ]);
     }
 
@@ -75,13 +84,19 @@ class ReviewController extends Controller
         abort_unless($record->status === 'pending_review', 422, 'Only pending applications can be approved.');
 
         $codeColumn = self::TYPES[$type]['code'];
-        DB::transaction(function () use ($model, $record, $codeColumn) {
+        DB::transaction(function () use ($model, $record, $codeColumn, $type) {
             $record->status = 'active';
             $record->{$codeColumn} = $model::nextCode();
             $record->save();
+
+            if (in_array($type, ['ctp', 'fundi'], true)) {
+                AccountInvite::issueFor($record, auth()->id());
+            }
         });
 
-        return back()->with('status', "Approved — {$record->{$codeColumn}} issued.");
+        return back()->with('status', in_array($type, ['ctp', 'fundi'], true)
+            ? "Approved — {$record->{$codeColumn}} issued. Copy the activation link below and send it so they can set a password."
+            : "Approved — {$record->{$codeColumn}} issued.");
     }
 
     public function reject(Request $request, string $type, int $id)
@@ -93,6 +108,31 @@ class ReviewController extends Controller
         $record->update(['status' => 'rejected', 'rejection_reason' => $data['rejection_reason']]);
 
         return back()->with('status', 'Application rejected; the reason will be shared with the applicant.');
+    }
+
+    /** Replace a stale activation link for an approved member. */
+    public function reissue(string $type, int $id)
+    {
+        abort_unless(in_array($type, ['ctp', 'fundi'], true), 404);
+        $record = $this->model($type)::findOrFail($id);
+        abort_unless($record->status === 'active', 422, 'Only approved members have activation links.');
+
+        AccountInvite::issueFor($record, auth()->id(), true);
+
+        return back()->with('status', 'New activation link ready — copy it below and send it.');
+    }
+
+    /** Move a CTP who finished the programme into the fundi pool. */
+    public function setTier(Request $request, string $type, int $id)
+    {
+        abort_unless($type === 'ctp', 404);
+        $record = CtpRegistration::findOrFail($id);
+
+        $data = $request->validate(['fundi_tier' => 'nullable|in:'.implode(',', array_keys(Project::CTP_POOL_TIERS))]);
+        $record->update(['fundi_tier' => $data['fundi_tier'] ?? null]);
+
+        return back()->with('status', $record->full_name.' can now see '
+            .($record->fundi_tier ? Str::headline($record->fundi_tier).' projects' : 'only CTP attachment projects').'.');
     }
 
     public function file(string $type, int $id, string $doc, Request $request)

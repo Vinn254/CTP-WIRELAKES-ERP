@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'staff' => \App\Http\Middleware\EnsureUserIsStaff::class,
+            'member' => \App\Http\Middleware\EnsureUserIsMember::class,
         ]);
 
         // API requests never redirect to a web login route — they return JSON 401.

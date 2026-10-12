@@ -84,6 +84,14 @@
         return false;
     }
 
+    window.copyText = function (text, btn) {
+        navigator.clipboard.writeText(text).then(function () {
+            const label = btn.textContent;
+            btn.textContent = 'Copied ✓';
+            setTimeout(function () { btn.textContent = label; }, 1800);
+        });
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.flash-ok, .flash-error').forEach(function (node) {
             toast(node.textContent.trim(), node.classList.contains('flash-error'));

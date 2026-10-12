@@ -27,10 +27,10 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
-        if (! in_array($user->role, ['admin', 'superadmin'], true)) {
+        if (! in_array($user->role, ['admin', 'superadmin', 'ctp', 'fundi'], true)) {
             Auth::logout();
 
-            return back()->withErrors(['email' => 'This portal is for programme staff only.']);
+            return back()->withErrors(['email' => 'This portal is for programme staff and members only.']);
         }
         if (! $user->active) {
             Auth::logout();
@@ -38,7 +38,9 @@ class LoginController extends Controller
             return back()->withErrors(['email' => 'This account has been deactivated. Contact a super admin.']);
         }
 
-        return redirect()->intended(route('admin.dashboard'));
+        return redirect()->intended(in_array($user->role, ['ctp', 'fundi'], true)
+            ? route('portal.dashboard')
+            : route('admin.dashboard'));
     }
 
     public function logout(Request $request)
