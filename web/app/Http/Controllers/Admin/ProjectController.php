@@ -45,6 +45,7 @@ class ProjectController extends Controller
         return view('admin.projects.index', [
             'projects' => $projects,
             'status' => $status,
+            'candidates' => Project::assignableMembers(),
             'counts' => Project::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
             'pendingApplications' => ProjectApplication::where('status', 'pending_review')->count(),
         ]);
@@ -77,7 +78,7 @@ class ProjectController extends Controller
     {
         return view('admin.projects.show', [
             'project' => $project->load(['hirer', 'applications', 'award', 'poster']),
-            'candidates' => $project->workerCandidates(),
+            'candidates' => Project::assignableMembers(),
         ]);
     }
 

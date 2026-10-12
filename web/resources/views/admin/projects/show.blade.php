@@ -55,14 +55,12 @@
  <input type="hidden" name="applicant_type" id="swapType" value="{{ $award->applicant_type }}">
  <select name="applicant_id" id="workerSelect" required>
  @foreach ($candidates as $c)
- <option value="{{ $c['id'] }}" data-type="{{ $c['type'] }}" data-note="{{ $c['code'] }} · {{ $c['name'] }} · {{ $c['level'] }}{{ $c['skills'] ? ' · '.$c['skills'] : '' }}{{ $c['fits'] ? '' : ' · level does not match' }}" @selected($c['type'] === $award->applicant_type && (int) $c['id'] === (int) $award->applicant_id)>
- {{ $c['code'] }} · {{ $c['name'] }} — {{ $c['level'] }}{{ $c['skills'] ? ' · '.$c['skills'] : '' }}{{ $c['fits'] ? '' : ' · level mismatch' }}
- </option>
+ <option value="{{ $c['id'] }}" data-type="{{ $c['type'] }}" @selected($c['type'] === $award->applicant_type && (int) $c['id'] === (int) $award->applicant_id)>{{ $c['code'] }} · {{ $c['name'] }}</option>
  @endforeach
  </select>
  <button class="btn btn-sm btn-lime" type="submit">Change worker</button>
  </form>
- <div class="hint" id="workerNote">Pick any approved member. Those whose level does not match {{ Project::CATEGORIES[$project->category]['label'] }} are marked.</div>
+ <div class="hint">Every approved member can take this job — {{ count($candidates) }} on the list.</div>
  </div>
  @endif
  <p style="white-space:pre-line;margin:14px 0 0;">{{ $project->description }}</p>
@@ -145,14 +143,9 @@
 <script>
 const workerSelect = document.getElementById('workerSelect');
 if (workerSelect) {
- const swapType = document.getElementById('swapType'), workerNote = document.getElementById('workerNote');
- const sync = () => {
-  const opt = workerSelect.selectedOptions[0];
-  swapType.value = opt.dataset.type;
-  workerNote.textContent = opt.dataset.note;
- };
- workerSelect.addEventListener('change', sync);
- sync();
+ workerSelect.addEventListener('change', function () {
+ document.getElementById('swapType').value = workerSelect.selectedOptions[0].dataset.type;
+ });
 }
 </script>
 @endonce

@@ -517,6 +517,14 @@ html.dark .tab.on .n { background: #062a0b; color: var(--lime); }
 .worker-swap { margin: 14px 0 2px; padding: 13px 15px; border-radius: 12px; border: 1px solid rgba(6,103,34,.24); background: rgba(6,103,34,.05); }
 .worker-swap .swap-label { display: block; font-weight: 800; color: var(--green-dark); font-size: .8rem; letter-spacing: .03em; text-transform: uppercase; margin-bottom: 8px; }
 .worker-swap select { flex: 1; min-width: 240px; max-width: 520px; }
+.worker-form select { font: inherit; font-size: .8rem; font-weight: 700; color: var(--green-dark); padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(6,103,34,.3); background: rgba(6,103,34,.06); max-width: 210px; }
+.worker-form select:hover { border-color: var(--lime); }
+.mini-chip { display: inline-block; margin: 0 5px 4px 0; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(6,103,34,.26); background: rgba(6,103,34,.06); color: var(--green-dark); font-size: .74rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.mini-chip:hover { background: var(--lime); border-color: var(--lime); color: #083d0d; }
+.mini-chip.chip-award { background: var(--green); border-color: #044d19; color: #fff; }
+.mini-chip.chip-award:hover { background: var(--lime); color: #083d0d; }
+html.dark .mini-chip { background: rgba(76,182,20,.1); border-color: rgba(76,182,20,.3); color: #a9dfa0; }
+html.dark .mini-chip.chip-award { background: var(--lime); color: #062a0b; border-color: var(--lime); }
 .worker-swap .hint { margin-top: 8px; }
 html.dark .worker-swap { background: rgba(76,182,20,.07); border-color: var(--line); }
 html.dark .worker-swap .swap-label { color: var(--lime); }

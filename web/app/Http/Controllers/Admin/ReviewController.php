@@ -8,6 +8,7 @@ use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Project;
+use App\Models\ProjectApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,12 @@ class ReviewController extends Controller
             'label' => self::TYPES[$type]['label'],
             'status' => $status,
             'records' => $records,
+            'assigned' => ProjectApplication::where('applicant_type', $type)
+                ->whereIn('applicant_id', $records->pluck('id'))
+                ->with('project:id,reference,title')
+                ->orderBy('created_at')
+                ->get()
+                ->groupBy('applicant_id'),
             'counts' => $model::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
             'pendingByType' => collect(['ctp', 'fundi'])
                 ->mapWithKeys(fn ($t) => [$t => self::TYPES[$t]['model']::where('status', 'pending_review')->count()]),

@@ -103,10 +103,10 @@ class Project extends Model
     }
 
     /**
-     * Every approved member, for hand-picking the worker. Each row says whether
-     * their level matches this project so staff can override deliberately.
+     * Every approved member, for the worker pickers. 'tier' and 'ctp' drive
+     * fits(), so a list page can flag a mismatch without loading the record.
      */
-    public function workerCandidates(): \Illuminate\Support\Collection
+    public static function assignableMembers(): array
     {
         $fundis = FundiRegistration::where('status', 'active')->orderBy('full_name')->get()
             ->map(fn (FundiRegistration $f) => [
@@ -116,7 +116,8 @@ class Project extends Model
                 'code' => $f->ef_code ?: '—',
                 'level' => FundiRegistration::tierLabel($f->tier),
                 'skills' => implode(', ', (array) $f->specialisations),
-                'member' => $f,
+                'tier' => $f->tier,
+                'ctp' => false,
             ]);
 
         $ctps = CtpRegistration::where('status', 'active')->orderBy('full_name')->get()
@@ -127,15 +128,24 @@ class Project extends Model
                 'code' => $c->ctp_code ?: '—',
                 'level' => $c->fundi_tier ? $c->poolLabel() : 'CTP · '.str_replace('_', ' ', $c->track ?? 'member'),
                 'skills' => $c->track ? Str::headline(str_replace('_', ' ', $c->track)).' track' : '',
-                'member' => $c,
+                'tier' => $c->fundi_tier,
+                'ctp' => true,
             ]);
 
-        return $fundis->concat($ctps)
-            ->map(function (array $row) {
-                $row['fits'] = $this->accepts($row['member']);
-                unset($row['member']);
+        return $fundis->concat($ctps)->all();
+    }
 
-                return $row;
-            });
+    /** Does this member's level fit the project category? */
+    public static function fits(array $member, string $category): bool
+    {
+        $rule = self::CATEGORIES[$category] ?? null;
+
+        if (! $rule) {
+            return false;
+        }
+
+        return $member['ctp']
+            ? ($rule['ctp'] || ($member['tier'] && in_array($member['tier'], $rule['tiers'], true)))
+            : in_array($member['tier'], $rule['tiers'], true);
     }
 }

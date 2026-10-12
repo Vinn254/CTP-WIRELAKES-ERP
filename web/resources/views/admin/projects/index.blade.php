@@ -36,7 +36,7 @@
 
 <table class="data">
  <thead>
- <tr><th>Reference</th><th>Project</th><th>For</th><th>Hirer</th><th>Place</th><th>Deadline</th><th>Apps</th><th>Status</th><th></th></tr>
+ <tr><th>Reference</th><th>Project</th><th>For</th><th>Hirer</th><th>Place</th><th>Deadline</th><th>Apps</th><th>Worker</th><th>Status</th><th></th></tr>
  </thead>
  <tbody>
  @forelse ($projects as $p)
@@ -51,6 +51,21 @@
  <td>{{ collect([$p->county, $p->ward])->filter()->implode(', ') ?: '—' }}</td>
  <td>{{ $p->deadline ? $p->deadline->format('d M Y') : '—' }}</td>
  <td>{{ $p->applications->count() }}@if ($p->applications->where('status', 'pending_review')->count())<span class="nav-badge">{{ $p->applications->where('status', 'pending_review')->count() }}</span>@endif</td>
+ <td>
+ @if ($p->award)
+ <form method="POST" action="{{ route('admin.projects.assign', $p) }}" class="worker-form" data-confirm="Change the worker on {{ $p->reference }}? {{ $p->award->full_name }} will be told they were not selected." data-title="Change worker">
+ @csrf
+ <input type="hidden" name="applicant_type" value="{{ $p->award->applicant_type }}">
+ <select name="applicant_id" aria-label="Worker for {{ $p->reference }}">
+ @foreach ($candidates as $c)
+ <option value="{{ $c['id'] }}" data-type="{{ $c['type'] }}" @selected($c['type'] === $p->award->applicant_type && (int) $c['id'] === (int) $p->award->applicant_id)>{{ $c['code'] }} · {{ $c['name'] }}</option>
+ @endforeach
+ </select>
+ </form>
+ @else
+ <span class="hint">Not awarded</span>
+ @endif
+ </td>
  <td><span class="status {{ $pill[$p->status] ?? 'pending_review' }}">{{ Project::STATUSES[$p->status] ?? $p->status }}</span></td>
  <td style="text-align:right;white-space:nowrap;">
  <a class="btn btn-sm btn-outline" href="{{ route('admin.projects.show', $p) }}">Review</a>
@@ -58,10 +73,21 @@
  </td>
  </tr>
  @empty
- <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">No projects in this view yet.</td></tr>
+ <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No projects in this view yet.</td></tr>
  @endforelse
  </tbody>
 </table>
 
 <div class="pagination">{{ $projects->links() }}</div>
+
+@once
+<script>
+document.querySelectorAll('.worker-form select').forEach(function (select) {
+ select.addEventListener('change', function () {
+ select.form.applicant_type.value = select.selectedOptions[0].dataset.type;
+ select.form.requestSubmit();
+ });
+});
+</script>
+@endonce
 @endsection

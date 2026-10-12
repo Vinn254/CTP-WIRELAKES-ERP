@@ -41,6 +41,7 @@
             @if ($type === 'fundi')<th>Tier</th>@endif
             @if ($type === 'ctp')<th>Track</th>@endif
             <th>County</th>
+            <th>Assigned projects</th>
             <th>Status</th>
             <th>Submitted</th>
             <th></th>
@@ -58,12 +59,23 @@
                 @if ($type === 'fundi')<td><span class="tag">{{ \App\Models\FundiRegistration::tierLabel($r->tier) }}</span></td>@endif
                 @if ($type === 'ctp')<td><span class="tag">{{ Str::headline($r->track) }}</span></td>@endif
                 <td>{{ $r->county ?? implode(', ', array_slice((array) $r->service_counties, 0, 2)) }}@if ($type === 'fundi' && count((array) $r->service_counties) > 2)<span class="hint"> +{{ count((array) $r->service_counties) - 2 }}</span>@endif</td>
+                <td>
+                    @if ($assigned[$r->id] ?? false)
+                        @foreach ($assigned[$r->id] as $a)
+                            <a class="mini-chip {{ $a->status === 'approved' ? 'chip-award' : '' }}" href="{{ route('admin.projects.show', $a->project_id) }}">
+                                {{ $a->project->reference ?? 'Project deleted' }}@if ($a->status !== 'approved') · {{ str_replace('_', ' ', $a->status) }}@endif
+                            </a>
+                        @endforeach
+                    @else
+                        <span class="hint">None yet</span>
+                    @endif
+                </td>
                 <td><span class="status {{ $r->status }}">{{ str_replace('_', ' ', $r->status) }}</span></td>
                 <td>{{ $r->created_at->format('d M Y') }}</td>
                 <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a></td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
+            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
         @endforelse
     </tbody>
 </table>
