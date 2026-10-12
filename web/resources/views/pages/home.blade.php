@@ -19,8 +19,7 @@
         number_format($counters['ctps']).' Active CTPs',
         number_format($counters['fundis']).' Verified E-Fundis',
         number_format($counters['hirers']).' Registered Hirers',
-        number_format($counters['applications']).' Applications Received',
-        'Training · E-Fundis · Projects · E-Waste · Entrepreneurship · Green Economy',
+        number_format($counters['partners']).' Registered Partners',
     ];
 @endphp
 <div class="ticker" aria-label="Live programme stats">

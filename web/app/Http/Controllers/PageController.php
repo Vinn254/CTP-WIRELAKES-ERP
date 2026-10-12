@@ -27,7 +27,7 @@ class PageController extends Controller
                 'ctps' => CtpRegistration::where('status', 'active')->count(),
                 'fundis' => FundiRegistration::where('status', 'active')->count(),
                 'hirers' => HirerRegistration::where('status', 'active')->count(),
-                'applications' => CtpRegistration::count() + FundiRegistration::count() + HirerRegistration::count(),
+                'partners' => Partner::count(),
             ],
             'partners' => Partner::where('is_listed', true)->orderBy('name')->get(),
         ]);
