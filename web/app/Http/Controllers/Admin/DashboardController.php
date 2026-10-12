@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContactMessage;
+use App\Models\ContentSection;
 use App\Models\CtpRegistration;
+use App\Models\Donation;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
+use App\Models\Partner;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -33,10 +38,28 @@ class DashboardController extends Controller
             'hirer' => HirerRegistration::where('status', 'pending_review')->count(),
         ];
 
+        $pendingTotal = array_sum($pending);
+
         return view('admin.dashboard', [
             'departments' => self::DEPARTMENTS,
             'pending' => $pending,
-            'pendingTotal' => array_sum($pending),
+            'pendingTotal' => $pendingTotal,
+            'workspace' => [
+                ['route' => ['admin.registrations.index', 'ctp'], 'label' => 'Review & approve applications',
+                 'meta' => $pendingTotal.' waiting', 'alert' => $pendingTotal > 0],
+                ['route' => ['admin.content.index'], 'label' => 'Site content & pages',
+                 'meta' => ContentSection::distinct('page')->count('page').' pages editable'],
+                ['route' => ['admin.content.edit', 'membership'], 'label' => 'Membership fees, tracks & tiers',
+                 'meta' => 'Feeds the registration forms'],
+                ['route' => ['admin.staff.index'], 'label' => 'Staff & roles',
+                 'meta' => User::where('active', true)->count().' active staff'],
+                ['route' => ['admin.partners.index'], 'label' => 'Partners',
+                 'meta' => Partner::where('is_listed', false)->count().' awaiting listing'],
+                ['route' => ['admin.donations.index'], 'label' => 'Donations',
+                 'meta' => 'KSh '.number_format((float) Donation::sum('amount')).' pledged'],
+                ['route' => ['admin.messages.index'], 'label' => 'Public messages',
+                 'meta' => ContactMessage::count().' received'],
+            ],
         ]);
     }
 }

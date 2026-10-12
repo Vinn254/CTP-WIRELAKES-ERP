@@ -2,13 +2,9 @@ function toggleTheme(btn) {
     const dark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('ctp-theme', dark ? 'dark' : 'light');
     document.cookie = 'ctp-theme=' + (dark ? 'dark' : 'light') + ';path=/;max-age=31536000';
-    if (btn) btn.textContent = dark ? '☀️' : '🌙';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
-
     if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
         const els = document.querySelectorAll('.card, .donate-strip');
         els.forEach(function (el) {

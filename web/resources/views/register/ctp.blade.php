@@ -93,14 +93,12 @@
                     </select>
                 </div>
                 <label style="display:block;margin-bottom:8px;">Choose your track <span class="req">*</span></label>
-                <label class="tier-option">
-                    <input type="radio" name="track" value="school_leaver" @checked(old('track') === 'school_leaver') required>
-                    <span><b>School-leaver training track</b><small>You have not yet learned a trade — the programme trains and certifies you from zero.</small></span>
-                </label>
-                <label class="tier-option">
-                    <input type="radio" name="track" value="junior" @checked(old('track') === 'junior') required>
-                    <span><b>Junior practical-check track</b><small>You already hold a basic certificate and want practical experience or a job.</small></span>
-                </label>
+                @foreach ($tracks as $key => $tr)
+                    <label class="tier-option">
+                        <input type="radio" name="track" value="{{ $key }}" @checked(old('track') === $key) required>
+                        <span><b>{{ $tr['label'] }}</b>@if($tr['desc'])<small>{{ $tr['desc'] }}</small>@endif</span>
+                    </label>
+                @endforeach
                 <div class="field" style="margin-top:14px;">
                     <label>Referral code (if a CTP referred you)</label>
                     <input type="text" name="referral_code" value="{{ old('referral_code') }}" maxlength="20" placeholder="CTP-0001">

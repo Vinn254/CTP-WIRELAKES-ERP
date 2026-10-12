@@ -3,21 +3,25 @@
 
 @section('content')
 <section class="section">
-    <span class="tag">Partners</span>
-    <h1>Organisations that power the programme</h1>
+    <span class="tag">{{ content('partners','intro','tag','Partners') }}</span>
+    <h1>{{ content('partners','intro','title','Organisations that power the programme') }}</h1>
 
     @if ($partners->isEmpty())
         <div class="card" style="text-align:center;padding:36px;">
-            <div class="icon" style="font-size:2.4rem;">🤝</div>
-            <h3>The partner wall is being filled</h3>
-            <p>Our first partner logos will appear here. Want to be one of them? Use the form below.</p>
+            <div class="icon" style="font-size:2.4rem;">{{ content('partners','empty_state','icon','🤝') }}</div>
+            <h3>{{ content('partners','empty_state','title','The partner wall is being filled') }}</h3>
+            <p>{{ content('partners','empty_state','text','Our first partner logos will appear here. Want to be one of them? Use the form below.') }}</p>
         </div>
     @else
         <div class="grid-4">
             @foreach ($partners as $p)
-                <div class="card" style="text-align:center;">
+                <div class="card partner-card" style="text-align:center;">
+                    @if ($p->logo_path)
+                        <img class="partner-logo" src="{{ asset('uploads/partners/'.$p->logo_path) }}" alt="{{ $p->name }} logo">
+                    @endif
                     <span class="tag {{ $p->tier === 'gold' ? 'gold' : '' }}">{{ $p->tier ?? 'Partner' }}</span>
                     <h3>{{ $p->name }}</h3>
+                    @if ($p->caption)<p class="partner-caption">{{ $p->caption }}</p>@endif
                     @if ($p->website)<a href="{{ $p->website }}">Website</a>@endif
                 </div>
             @endforeach
@@ -27,8 +31,8 @@
 
 <section class="section">
     <div class="card" style="max-width:640px;margin:0 auto;">
-        <h2>Become a Partner</h2>
-        <p class="sub">Tiers: Platinum · Gold · Silver. Listed partners appear on the logo wall and home page.</p>
+        <h2>{{ content('partners','form','title','Become a Partner') }}</h2>
+        <p class="sub">{{ content('partners','form','sub','Tiers: Platinum · Gold · Silver. Listed partners appear on the logo wall and home page.') }}</p>
         @include('partials.errors')
         <form method="POST" action="{{ route('partners.store') }}" enctype="multipart/form-data">
             @csrf
@@ -65,4 +69,6 @@
         </form>
     </div>
 </section>
+
+@include('partials.content-extra', ['page' => 'partners', 'used' => ['intro', 'empty_state', 'form']])
 @endsection

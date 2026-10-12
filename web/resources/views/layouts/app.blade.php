@@ -1,20 +1,39 @@
 <!DOCTYPE html>
+@php
+    $brandLogo = content('site','branding','logo');
+    $brandName = content('site','branding','brand_name','CTP-WireLakes');
+    $themeGreen = content('site','branding','theme_green','#066722');
+    $themeLime = content('site','branding','theme_lime','#4cb614');
+    $siteEmail = content('site','contact','email','info@ctp-wirelakes.ke');
+    $heroPhoto = content('site','backgrounds','hero_photo');
+    $pagePhoto = content('site','backgrounds','page_photo');
+    $photoDark = min(max((float) content('site','backgrounds','photo_darkness','0.66'), 0.3), 0.85);
+@endphp
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'CTP-WireLakes') — CTP-WireLakes</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <title>@yield('title', $brandName) — {{ $brandName }}</title>
+    <link rel="icon" href="{{ $brandLogo ?: asset('favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <style>:root { --green: {{ $themeGreen }}; --lime: {{ $themeLime }}; }
+    @if ($heroPhoto)
+        .hero { background-image: linear-gradient(rgba(3,61,16,{{ $photoDark }}), rgba(3,61,16,{{ $photoDark }})), url('{{ $heroPhoto }}'); background-size: cover; background-position: center; }
+    @endif
+    @if ($pagePhoto)
+        body { background-image: linear-gradient(rgba(248,251,247,.94), rgba(248,251,247,.94)), url('{{ $pagePhoto }}'); background-size: cover; background-attachment: fixed; }
+        html.dark body { background-image: linear-gradient(rgba(16,24,18,.94), rgba(16,24,18,.94)), url('{{ $pagePhoto }}'); }
+    @endif
+    </style>
     <script>if (localStorage.getItem('ctp-theme') === 'dark') document.documentElement.classList.add('dark');</script>
 </head>
 <body class="@yield('bodyClass')">
 <header class="site-header">
     <div class="container header-bar">
         <a class="brand" href="{{ route('home') }}">
-            <img src="{{ asset('logo.png') }}" alt="CTP-WireLakes logo">
-            <span>CTP-WireLakes</span>
+            <img src="{{ $brandLogo ?: asset('logo.png') }}" alt="{{ $brandName }} logo">
+            <span>{{ $brandName }}</span>
         </a>
         <nav class="main-nav" id="siteNav">
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
@@ -24,16 +43,22 @@
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
             <div class="nav-cta join-menu">
-                <button type="button" class="btn btn-primary btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">Join / Sign up ▾</button>
+                <button type="button" class="btn btn-primary btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">Join / Sign up @include('partials.icon', ['n' => 'chevron'])</button>
                 <div class="join-drop">
                     <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
                     <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
-                    <a class="btn btn-primary btn-sm" href="{{ route('login') }}">Sign up / Log in</a>
+                    <span class="join-sep"></span>
+                    <a class="btn btn-ghost btn-sm nav-login" href="{{ route('login') }}">Log in</a>
                 </div>
             </div>
         </nav>
-        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" onclick="toggleTheme(this)">{{ request()->cookie('ctp-theme') === 'dark' ? '☀️' : '🌙' }}</button>
-        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" onclick="toggleSiteMenu(this)">☰</button>
+        <div class="header-side">
+            @include('partials.theme-toggle')
+        </div>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" onclick="toggleSiteMenu(this)">
+            <span class="mi mi-open">@include('partials.icon', ['n' => 'menu'])</span>
+            <span class="mi mi-close">@include('partials.icon', ['n' => 'close'])</span>
+        </button>
     </div>
 </header>
 <script src="{{ asset('js/theme.js') }}"></script>
@@ -42,7 +67,7 @@ function toggleSiteMenu(btn) {
     const nav = document.getElementById('siteNav');
     const open = nav.classList.toggle('open');
     btn.setAttribute('aria-expanded', open);
-    btn.textContent = open ? '✕' : '☰';
+    btn.classList.toggle('is-open', open);
     syncHeader();
 }
 function toggleJoinMenu(btn) {
@@ -88,16 +113,16 @@ document.addEventListener('click', function (e) {
 <footer class="site-footer">
     <div class="container foot-grid">
         <div>
-            <h4>CTP-WireLakes</h4>
-            <p>Community Technology Promoters — E-Fundis, Training &amp; Innovation. From a community need, we create trained people, certified fundis, completed projects and lasting jobs.</p>
-            <p>Kisumu, Kenya · <a href="mailto:info@ctp-wirelakes.ke">info@ctp-wirelakes.ke</a></p>
+            <h4>{{ $brandName }}</h4>
+            <p>{{ content('site','footer','about_text','Community Technology Promoters — E-Fundis, Training & Innovation.') }}</p>
+            <p>Kisumu, Kenya · <a href="mailto:{{ $siteEmail }}">{{ $siteEmail }}</a></p>
         </div>
         <div>
             <h4>Join the programme</h4>
             <p>
                 <a href="{{ route('register.ctp') }}">Become a CTP</a><br>
                 <a href="{{ route('register.fundi') }}">Become a Fundi</a><br>
-                <a href="{{ route('register.hirer') }}">Post a Project (Hirer)</a><br>
+                <a href="{{ route('login') }}">Member &amp; fundi login</a><br>
                 <a href="{{ route('donate') }}">Donate</a>
             </p>
         </div>
@@ -111,7 +136,7 @@ document.addEventListener('click', function (e) {
             </p>
         </div>
     </div>
-    <div class="container fine">© {{ date('Y') }} CTP-WireLakes Programme · Designed by James Ombet &amp; Vincent Otieno, Kisumu, Kenya</div>
+    <div class="container fine">{{ content('site','footer','fine_print','© '.date('Y').' CTP-WireLakes Programme') }}</div>
 </footer>
 </body>
 </html>

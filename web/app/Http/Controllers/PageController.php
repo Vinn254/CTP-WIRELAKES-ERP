@@ -6,6 +6,7 @@ use App\Models\ContactMessage;
 use App\Models\Donation;
 use App\Models\Partner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -45,18 +46,20 @@ class PageController extends Controller
             'website' => 'nullable|url|max:200',
             'contact_email' => 'required|email|max:120',
             'tier' => 'nullable|in:platinum,gold,silver',
-            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:1024',
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
         ]);
 
-        if (isset($data['logo'])) {
-            unset($data['logo']);
-        }
-
-        $partner = Partner::create($data + ['is_listed' => false]);
+        $partner = Partner::create(collect($data)->except('logo')->all() + ['source' => 'request', 'is_listed' => false]);
 
         if ($request->hasFile('logo')) {
-            $partner->logo_path = $request->file('logo')->store('registrations/partner/'.$partner->id, 'local');
-            $partner->save();
+            $file = $request->file('logo');
+            $dir = public_path('uploads/partners');
+            if (! is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+            $name = Str::slug($partner->name).'-p'.$partner->id.'.'.$file->getClientOriginalExtension();
+            $file->move($dir, $name);
+            $partner->update(['logo_path' => $name]);
         }
 
         return back()->with('status', 'Thank you! Our partnership team will review your submission and get back to you.');

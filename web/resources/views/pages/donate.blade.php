@@ -4,10 +4,10 @@
 @section('content')
 <section class="section grid-2">
     <div>
-        <span class="tag">Donate</span>
-        <h1>Fund a skill. Change a life.</h1>
-        <p class="sub">Every donation goes directly to programme work. One-time or recurring — M-Pesa, card or bank.</p>
-        <p class="help">Secure payment (M-Pesa STK Push, card, bank) is being switched on in the next phase. Your pledge is recorded and our team will contact you to complete it.</p>
+        <span class="tag">{{ content('donate','intro','tag','Donate') }}</span>
+        <h1>{{ content('donate','intro','title','Fund a skill. Change a life.') }}</h1>
+        <p class="sub">{{ content('donate','intro','sub','Every donation goes directly to programme work. One-time or recurring — M-Pesa, card or bank.') }}</p>
+        <p class="help">{{ content('donate','intro','help','Secure payment (M-Pesa STK Push, card, bank) is being switched on in the next phase. Your pledge is recorded and our team will contact you to complete it.') }}</p>
     </div>
 
     <div class="card">
@@ -63,4 +63,6 @@
         </form>
     </div>
 </section>
+
+@include('partials.content-extra', ['page' => 'donate', 'used' => ['intro']])
 @endsection

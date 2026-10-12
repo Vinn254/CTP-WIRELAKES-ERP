@@ -25,3 +25,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Admin-uploaded content and partner logos (dev data, not source)
+/public/uploads/*/*
+!/public/uploads/*/.gitkeep

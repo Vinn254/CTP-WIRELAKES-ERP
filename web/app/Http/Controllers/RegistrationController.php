@@ -22,9 +22,31 @@ class RegistrationController extends Controller
         return [Rule::unique($table, $column)];
     }
 
+    /** code => "Label — description" from the CMS, falling back to model constants. */
+    private function fundiTiers(): array
+    {
+        $out = [];
+        foreach (content_rows('membership', 'fundi_tiers') as $r) {
+            if (empty($r['code'])) continue;
+            $out[$r['code']] = trim(($r['label'] ?? $r['code']).(! empty($r['desc']) ? ' — '.$r['desc'] : ''));
+        }
+        return $out ?: FundiRegistration::TIERS;
+    }
+
+    private function ctpTracks(): array
+    {
+        $out = [];
+        foreach (content_rows('membership', 'ctp_tracks') as $r) {
+            if (empty($r['code'])) continue;
+            $out[$r['code']] = ['label' => $r['label'] ?? $r['code'], 'desc' => $r['desc'] ?? ''];
+        }
+        if ($out) return $out;
+        return collect(CtpRegistration::TRACKS)->map(fn ($l) => ['label' => $l, 'desc' => ''])->all();
+    }
+
     public function ctpForm()
     {
-        return view('register.ctp', $this->formData());
+        return view('register.ctp', $this->formData() + ['tracks' => $this->ctpTracks()]);
     }
 
     public function storeCtp(Request $request)
@@ -41,7 +63,7 @@ class RegistrationController extends Controller
             'ward' => 'required|string|max:100',
             'village' => 'required|string|max:100',
             'education_level' => 'required|in:none,primary,secondary,certificate,diploma,degree,postgraduate',
-            'track' => 'required|in:school_leaver,junior',
+            'track' => 'required|in:'.implode(',', array_keys($this->ctpTracks())),
             'referral_code' => 'nullable|string|max:20',
             'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
@@ -70,7 +92,7 @@ class RegistrationController extends Controller
     public function fundiForm()
     {
         return view('register.fundi', $this->formData() + [
-            'tiers' => FundiRegistration::TIERS,
+            'tiers' => $this->fundiTiers(),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
         ]);
     }
@@ -84,7 +106,7 @@ class RegistrationController extends Controller
             'email' => ['required', 'email', ...$this->uniqueIn('fundi_registrations', 'email')],
             'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
             'gender' => 'required|in:male,female,other',
-            'tier' => 'required|in:'.implode(',', array_keys(FundiRegistration::TIERS)),
+            'tier' => 'required|in:'.implode(',', array_keys($this->fundiTiers())),
             'business_name' => 'nullable|string|max:150',
             'business_reg_no' => 'nullable|string|max:60',
             'years_in_business' => 'nullable|integer|min:0|max:70',

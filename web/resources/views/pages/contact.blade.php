@@ -4,17 +4,17 @@
 @section('content')
 <section class="section grid-2">
     <div>
-        <span class="tag">Contact</span>
-        <h1>Talk to us</h1>
+        <span class="tag">{{ content('contact','intro','tag','Contact') }}</span>
+        <h1>{{ content('contact','intro','title','Talk to us') }}</h1>
         <div class="card">
-            <h3>Kisumu head office</h3>
-            <p>CTP-WireLakes Programme<br>Kisumu, Kenya</p>
-            <p>📞 +254 700 000 000<br>✉️ <a href="mailto:info@ctp-wirelakes.ke">info@ctp-wirelakes.ke</a></p>
+            <h3>{{ content('contact','office','card_title','Kisumu head office') }}</h3>
+            <p>{!! nl2br(e(content('contact','office','address',"CTP-WireLakes Programme\nKisumu, Kenya"))) !!}</p>
+            <p>📞 {{ content('contact','office','phone','+254 700 000 000') }}<br>✉️ <a href="mailto:{{ $officeEmail = content('contact','office','email','info@ctp-wirelakes.ke') }}">{{ $officeEmail }}</a></p>
         </div>
-        <p style="margin-top:16px;"><a class="btn btn-outline" href="{{ route('faq') }}">Read the FAQ first? Many answers are there →</a></p>
+        <p style="margin-top:16px;"><a class="btn btn-outline" href="{{ route('faq') }}">{{ content('contact','office','faq_note','Read the FAQ first? Many answers are there →') }}</a></p>
     </div>
     <div class="card">
-        <h2>Send a message</h2>
+        <h2>{{ content('contact','form','title','Send a message') }}</h2>
         @include('partials.errors')
         <form method="POST" action="{{ route('contact.store') }}">
             @csrf
@@ -40,4 +40,6 @@
         </form>
     </div>
 </section>
+
+@include('partials.content-extra', ['page' => 'contact', 'used' => ['intro', 'office', 'form']])
 @endsection

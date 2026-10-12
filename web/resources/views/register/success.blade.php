@@ -3,7 +3,10 @@
 
 @php
     $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi', 'hirer' => 'Hirer'];
-    $fees = ['ctp' => App\Models\Setting::get('membership_fee_ctp', '500'), 'fundi' => App\Models\Setting::get('membership_fee_fundi', '1000')];
+    $fees = [
+        'ctp' => content('membership', 'fees', 'fee_ctp', App\Models\Setting::get('membership_fee_ctp', '500')),
+        'fundi' => content('membership', 'fees', 'fee_fundi', App\Models\Setting::get('membership_fee_fundi', '1000')),
+    ];
 @endphp
 
 @section('content')

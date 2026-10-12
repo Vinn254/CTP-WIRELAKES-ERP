@@ -32,6 +32,11 @@ class LoginController extends Controller
 
             return back()->withErrors(['email' => 'This portal is for programme staff only.']);
         }
+        if (! $user->active) {
+            Auth::logout();
+
+            return back()->withErrors(['email' => 'This account has been deactivated. Contact a super admin.']);
+        }
 
         return redirect()->intended(route('admin.dashboard'));
     }
