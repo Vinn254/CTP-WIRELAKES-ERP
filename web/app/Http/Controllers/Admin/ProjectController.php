@@ -120,8 +120,14 @@ class ProjectController extends Controller
         abort_unless($application->project_id === $project->id, 404);
 
         $project->load('award');
-        if ($project->award && $project->award->id !== $application->id) {
-            return back()->with('error', 'Already awarded to '.$project->award->full_name.' — release the award first.');
+        $reassigning = $project->award && $project->award->id !== $application->id;
+        if ($reassigning) {
+            $previous = $project->award;
+            $previous->update([
+                'status' => 'rejected',
+                'rejection_reason' => 'The project was reassigned to another member.',
+                'reviewed_by' => auth()->id(),
+            ]);
         }
 
         $project->applications()->where('id', '!=', $application->id)->where('status', 'pending_review')
@@ -130,7 +136,8 @@ class ProjectController extends Controller
         $application->update(['status' => 'approved', 'reviewed_by' => auth()->id(), 'rejection_reason' => null]);
         $project->update(['status' => 'awarded', 'awarded_at' => now()]);
 
-        return back()->with('status', $project->reference.' awarded to '.$application->full_name.'.');
+        return back()->with('status', $project->reference.' awarded to '.$application->full_name.'.'
+            .($reassigning ? ' '.$previous->full_name.' has been told they were not selected.' : ''));
     }
 
     public function decline(Request $request, Project $project, ProjectApplication $application)

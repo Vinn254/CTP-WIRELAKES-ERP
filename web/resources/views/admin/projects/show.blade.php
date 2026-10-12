@@ -39,8 +39,11 @@
  <div><dt>Deadline</dt><dd>{{ $project->deadline ? $project->deadline->format('d M Y') : 'Open until closed' }}</dd></div>
  <div><dt>Who can apply</dt><dd>{{ Project::CATEGORIES[$project->category]['hint'] }}</dd></div>
  @if ($award)
- <div><dt>Awarded to</dt><dd><b>{{ $award->full_name }}</b> <span class="hint">{{ $award->levelLabel() }}</span>
- <div class="hint">{{ $award->phone }} · {{ $award->email }}</div></dd></div>
+ <div><dt>Awarded to</dt><dd><b>{{ $award->full_name }}</b>
+ <span class="tag gray">{{ $award->memberCode() }}</span> <span class="hint">{{ $award->levelLabel() }}</span>
+ @if ($award->skillsLabel())<div class="hint">Skills: {{ $award->skillsLabel() }}</div>@endif
+ <div class="hint">{{ $award->phone }} · {{ $award->email }}</div>
+ <div class="hint"><a href="{{ route('admin.registrations.show', [$award->applicant_type, $award->applicant_id]) }}">Open their full record →</a></div></dd></div>
  @endif
  </dl>
  <p style="white-space:pre-line;margin:14px 0 0;">{{ $project->description }}</p>
@@ -53,7 +56,7 @@
  <div class="card">
  <h3>Status</h3>
  @if ($project->status === 'awarded')
- <p class="hint">Awarded {{ $project->awarded_at?->format('d M Y, H:i') }}. Members can no longer apply.</p>
+ <p class="hint">Awarded {{ $project->awarded_at?->format('d M Y, H:i') }}. Members can no longer apply. To swap the worker, use <b>Change worker to this member</b> on any applicant below — no need to release first.</p>
  <form method="POST" action="{{ route('admin.projects.release', $project) }}" data-confirm="Release the award and reopen {{ $project->reference }} for applications?">
  @csrf
  <button class="btn btn-outline btn-sm" type="submit">Release award &amp; reopen</button>
@@ -81,17 +84,42 @@
  <div class="invite-row {{ $app->status === 'rejected' ? 'revoked' : '' }}">
  <div class="invite-main">
  <b>{{ $app->full_name }}</b>
+ <span class="tag gray">{{ $app->memberCode() }}</span>
  <span class="tag gray">{{ $app->levelLabel() }}</span>
  @if ($app->status === 'approved')<span class="status awarded">Awarded</span>
  @elseif ($app->status === 'rejected')<span class="status rejected">Not selected</span>
  @else<span class="status pending_review">Pending</span>@endif
+ @if ($app->skillsLabel())<div class="hint">Skills: {{ $app->skillsLabel() }}</div>@endif
  <div class="hint">{{ $app->phone }} · {{ $app->email }}</div>
  @if ($app->note)<div class="hint" style="margin-top:4px;">“{{ $app->note }}”</div>@endif
  @if ($app->rejection_reason && $app->status === 'rejected')<div class="hint">Reason: {{ $app->rejection_reason }}</div>@endif
  <div class="hint">Applied {{ $app->created_at->format('d M Y, H:i') }}</div>
  </div>
  <div class="invite-actions">
- @if ($app->status === 'pending_review' && $project->status !== 'awarded')
+ @if ($project->status === 'awarded')
+ @if ($app->status !== 'approved')
+ <form method="POST" action="{{ route('admin.projects.award', [$project, $app]) }}" data-confirm="Change the worker on {{ $project->reference }} to {{ $app->full_name }}? {{ $award->full_name }} will be told they were not selected." data-title="Change worker">
+ @csrf
+ <button class="btn btn-sm btn-outline" type="submit">Change worker to this member</button>
+ </form>
+ @else
+ <span class="hint">Current worker.</span>
+ @if ($project->applications->where('status', '!=', 'approved')->count())
+ <details class="picker">
+ <summary class="btn btn-sm btn-outline">Change worker</summary>
+ <div class="picker-list">
+ <div class="hint" style="margin-bottom:6px;">Hand {{ $project->reference }} to someone else — {{ $app->full_name }} is told they were not selected.</div>
+ @foreach ($project->applications->where('status', '!=', 'approved') as $other)
+ <form method="POST" action="{{ route('admin.projects.award', [$project, $other]) }}" data-confirm="Change the worker on {{ $project->reference }} to {{ $other->full_name }}?" data-title="Change worker">
+ @csrf
+ <button class="btn btn-sm btn-lime" type="submit">{{ $other->full_name }} · {{ $other->memberCode() }} · {{ $other->levelLabel() }}</button>
+ </form>
+ @endforeach
+ </div>
+ </details>
+ @endif
+ @endif
+ @elseif ($app->status === 'pending_review')
  <form method="POST" action="{{ route('admin.projects.award', [$project, $app]) }}" data-confirm="Assign {{ $project->reference }} to {{ $app->full_name }}? Other applicants will be declined.">
  @csrf
  <button class="btn btn-sm btn-lime" type="submit">Assign to this member</button>
@@ -101,8 +129,8 @@
  <input type="text" name="rejection_reason" maxlength="300" placeholder="Optional reason">
  <button class="btn btn-sm btn-danger" type="submit">Decline</button>
  </form>
- @elseif ($app->status === 'pending_review')
- <span class="hint">Project already awarded.</span>
+ @else
+ <span class="hint">Already reviewed.</span>
  @endif
  </div>
  </div>

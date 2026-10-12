@@ -504,14 +504,25 @@ html.dark .login-badge { box-shadow: 0 10px 24px rgba(0,0,0,.5); }
 html.dark .btn-signin { box-shadow: 0 10px 22px rgba(0,0,0,.5); }
 
 /* Projects — admin list, detail and member portal */
-.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 18px; }
-.tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); font-weight: 700; font-size: .86rem; text-decoration: none; transition: .15s; }
-.tab:hover { border-color: var(--lime); color: var(--green); }
-.tab.on { background: var(--green); border-color: var(--green); color: #fff; }
-.tab .n { background: rgba(6,103,34,.1); border-radius: 999px; padding: 1px 8px; font-size: .76rem; }
-.tab.on .n { background: rgba(255,255,255,.24); }
-html.dark .tab { background: #17231b; color: #b9d3b3; border-color: var(--line); }
-html.dark .tab.on { background: var(--lime); border-color: var(--lime); color: #08210a; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 16px; }
+.tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 17px; border-radius: 999px; border: 1px solid rgba(6,103,34,.34); background: rgba(6,103,34,.07); color: var(--green-dark); font-weight: 800; font-size: .88rem; white-space: nowrap; text-decoration: none; transition: .15s; }
+.tab:hover { background: var(--lime); border-color: var(--lime); color: #083d0d; }
+.tab.on { background: linear-gradient(100deg, #044d19, var(--green) 60%, #0b7d2c); border-color: #044d19; color: #fff; box-shadow: 0 3px 10px rgba(6,103,34,.32); }
+.tab .n { background: rgba(6,103,34,.14); border-radius: 999px; padding: 1px 8px; font-size: .78rem; font-weight: 800; }
+.tab.on .n { background: var(--lime); color: #083d0d; }
+html.dark .tab { background: rgba(76,182,20,.1); color: #a9dfa0; border-color: rgba(76,182,20,.34); }
+html.dark .tab.on { background: linear-gradient(100deg, #0b7d2c, var(--lime)); border-color: var(--lime); color: #062a0b; }
+html.dark .tab .n { background: rgba(76,182,20,.24); color: #d6f5c8; }
+html.dark .tab.on .n { background: #062a0b; color: var(--lime); }
+.picker { display: inline-block; position: relative; }
+.picker summary { list-style: none; cursor: pointer; }
+.picker summary::-webkit-details-marker { display: none; }
+.picker[open] summary { background: var(--green); border-color: #044d19; color: #fff; }
+.picker-list { position: absolute; right: 0; margin-top: 7px; z-index: 12; min-width: 290px; max-width: 360px; padding: 12px; border-radius: 12px; background: var(--card); border: 1px solid rgba(6,103,34,.26); box-shadow: 0 12px 28px rgba(6,103,34,.22); text-align: left; }
+.picker-list form { display: block; margin: 0 0 6px; }
+.picker-list form:last-child { margin-bottom: 0; }
+.picker-list .btn { width: 100%; justify-content: flex-start; white-space: normal; }
+html.dark .picker-list { background: #17231b; border-color: var(--line); box-shadow: 0 12px 28px rgba(0,0,0,.45); }
 .status.awarded { background: #e6f0ff; color: #1a4f8a; }
 html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .page-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }

@@ -3,8 +3,8 @@
 
 @php
     use Illuminate\Support\Str;
-    $types = ['ctp' => 'CTP applications', 'fundi' => 'E-Fundi applications'];
-    $statuses = ['pending_review' => 'Pending review', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'];
+    $types = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
+    $statuses = ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'];
 @endphp
 
 @section('content')
@@ -19,7 +19,7 @@
     @foreach ($types as $t => $lbl)
         <a class="tab {{ $t === $type ? 'on' : '' }}" href="{{ route('admin.registrations.index', $t) }}">
             {{ $lbl }}
-            @if ($pendingByType[$t] ?? 0)<span class="n">{{ $pendingByType[$t] }} pending</span>@endif
+            @if ($pendingByType[$t] ?? 0)<span class="n" title="{{ $pendingByType[$t] }} pending">{{ $pendingByType[$t] }}</span>@endif
         </a>
     @endforeach
 </div>

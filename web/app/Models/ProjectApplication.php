@@ -44,4 +44,38 @@ class ProjectApplication extends Model
             ? $member->poolLabel()
             : 'CTP · '.str_replace('_', ' ', $member->track ?? 'member');
     }
+
+    /** Member ID staff issued — EF-0002 / CTP-0001 style. */
+    public function memberCode(): string
+    {
+        $member = $this->memberRecord();
+
+        if (!$member) {
+            return '—';
+        }
+
+        return $member->ef_code ?? $member->ctp_code ?? $member->reference ?? '—';
+    }
+
+    /** What this member can actually do, as recorded on their application. */
+    public function skillsLabel(): string
+    {
+        $member = $this->memberRecord();
+
+        if ($member instanceof FundiRegistration) {
+            return collect([
+                implode(', ', (array) $member->specialisations),
+                $member->years_in_business ? $member->years_in_business.' years in trade' : null,
+            ])->filter()->implode(' · ');
+        }
+
+        if ($member instanceof CtpRegistration) {
+            return collect([
+                $member->track ? Str::headline(str_replace('_', ' ', $member->track)).' track' : null,
+                $member->county,
+            ])->filter()->implode(' · ');
+        }
+
+        return '';
+    }
 }
