@@ -41,6 +41,8 @@ body:not(.has-hero) main.container { padding-top: 86px; }
 .header-bar { display: flex; align-items: center; gap: 18px; padding-top: 8px; padding-bottom: 8px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--green); text-decoration: none; font-size: 1.05rem; flex-shrink: 0; }
 .brand img { height: 46px; width: 46px; object-fit: contain; }
+/* Logo PNG is transparent now; show it as a white silhouette on dark surfaces so it blends */
+body.has-hero .site-header:not(.solid) .brand img, html.dark .site-header.solid .brand img, .admin-header .brand img { filter: brightness(0) invert(1); }
 .menu-toggle { display: none; background: var(--lime-soft); color: var(--green); border: 1.5px solid var(--green); border-radius: 10px; font-size: 1.3rem; line-height: 1; padding: 8px 13px; cursor: pointer; margin-left: auto; }
 .main-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .main-nav a:not(.btn) { padding: 8px 13px; border-radius: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: .93rem; white-space: nowrap; }
