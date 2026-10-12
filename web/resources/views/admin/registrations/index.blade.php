@@ -4,7 +4,11 @@
 @php
     use Illuminate\Support\Str;
     $types = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
-    $statuses = ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'];
+    // CTPs who have not paid yet are not reviewable, so they get their own tab; the rest of the
+    // CTP lifecycle (suspended, graduated, deployed) is managed in Module 2 — CTP profiles.
+    $statuses = $type === 'ctp'
+        ? ['pending_payment' => 'Awaiting fee', 'pending_review' => 'Pending', 'active' => 'Approved', 'all' => 'All']
+        : ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'];
 @endphp
 
 @section('content')
@@ -70,9 +74,12 @@
                         <span class="hint">None yet</span>
                     @endif
                 </td>
-                <td><span class="status {{ $r->status }}">{{ str_replace('_', ' ', $r->status) }}</span></td>
+                <td><span class="status {{ $r->status }}">{{ method_exists($r, 'statusLabel') ? $r->statusLabel() : str_replace('_', ' ', $r->status) }}</span></td>
                 <td>{{ $r->created_at->format('d M Y') }}</td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a></td>
+                <td style="text-align:right;white-space:nowrap;">
+                    <a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a>
+                    @if ($type === 'ctp')<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.show', $r->id) }}">Profile</a>@endif
+                </td>
             </tr>
         @empty
             <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>

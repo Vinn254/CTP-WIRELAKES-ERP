@@ -53,6 +53,9 @@
     <div class="ah-contact">
         <a href="tel:{{ $record->phone }}">{{ $record->phone }}</a>
         <a href="mailto:{{ $record->email }}">{{ $record->email }}</a>
+        @if ($type === 'ctp')
+            <a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $record->id) }}">CTP profile</a>
+        @endif
     </div>
 </div>
 
@@ -98,7 +101,56 @@
             @endforelse
         </div>
 
-        @if ($record->status === 'pending_review')
+        @if ($record->status === 'pending_payment')
+            <div class="card decision">
+                <h3>Awaiting membership fee</h3>
+                <p class="help">
+                    KSh {{ number_format((int) content('membership', 'fees', 'fee_ctp', App\Models\Setting::get('membership_fee_ctp', '500'))) }}
+                    one-time fee. Online checkout (M-Pesa STK / bank) arrives with the finance module — until then record it here
+                    when the money reaches us, and the application moves into the review queue.
+                </p>
+                <form method="POST" action="{{ route('admin.registrations.fee', [$type, $record->id]) }}"
+                      data-confirm="Record this fee and move the application into the review queue?" data-title="Membership fee">
+                    @csrf
+                    <div class="form-grid-2">
+                        <div class="field">
+                            <label>Fee <span class="req">*</span></label>
+                            <select name="fee_status" required>
+                                <option value="paid">Paid</option>
+                                <option value="waived">Waived — sponsored</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Paid through</label>
+                            <select name="fee_method">
+                                <option value="mpesa">M-Pesa</option>
+                                <option value="bank">Bank transfer</option>
+                                <option value="cash">Cash at office</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Amount (KSh)</label>
+                            <input type="number" step="0.01" min="0" name="fee_amount" placeholder="500">
+                        </div>
+                        <div class="field">
+                            <label>M-Pesa / transaction code</label>
+                            <input type="text" name="fee_reference" maxlength="60" placeholder="e.g. SLK4H29PQ1">
+                        </div>
+                    </div>
+                    <button class="btn btn-lime btn-block" type="submit">Record fee &amp; send to review</button>
+                </form>
+                <form method="POST" action="{{ route('admin.registrations.reject', [$type, $record->id]) }}" class="reject-form"
+                      data-confirm="Reject this application? The reason is sent to the applicant.">
+                    @csrf
+                    <div class="field">
+                        <label>Rejection reason (sent to applicant) <span class="req">*</span></label>
+                        <textarea name="rejection_reason" rows="2" required placeholder="e.g. Application withdrawn by the applicant."></textarea>
+                    </div>
+                    <button class="btn btn-danger btn-block" type="submit">Reject application</button>
+                </form>
+            </div>
+        @elseif ($record->status === 'pending_review')
             <div class="card decision">
                 <h3>Decision</h3>
                 <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
@@ -118,9 +170,16 @@
             </div>
         @else
             <div class="card outcome {{ $record->status }}">
-                <h3>{{ $record->status === 'active' ? 'Approved' : 'Rejected' }}</h3>
-                @if ($record->status === 'active')
-                    <p>{{ $personName }} is an active member — ID <b>{{ $memberCode }}</b>.</p>
+                <h3>{{ method_exists($record, 'statusLabel') ? $record->statusLabel() : ucfirst($record->status) }}</h3>
+                @if ($record->status === 'rejected')
+                    <p>Reason sent to the applicant:<br><em>“{{ $record->rejection_reason }}”</em></p>
+                    <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
+                          data-confirm="Reverse the rejection and approve this application?">
+                        @csrf
+                        <button class="btn btn-outline btn-sm" type="submit">Approve instead</button>
+                    </form>
+                @else
+                    <p>{{ $personName }} is a member — ID <b>{{ $memberCode }}</b>.</p>
                     @if ($invite)
                         <div class="link-box">
                             <label class="hint">Activation link — send this to the member</label>
@@ -143,17 +202,10 @@
                     @else
                         <p class="hint">Welcome email and SMS are dispatched in the notifications phase.</p>
                     @endif
-                @else
-                    <p>Reason sent to the applicant:<br><em>“{{ $record->rejection_reason }}”</em></p>
-                    <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
-                          data-confirm="Reverse the rejection and approve this application?">
-                        @csrf
-                        <button class="btn btn-outline btn-sm" type="submit">Approve instead</button>
-                    </form>
                 @endif
             </div>
 
-            @if ($type === 'ctp' && $record->status === 'active')
+            @if ($type === 'ctp' && in_array($record->status, \App\Models\CtpRegistration::WORKING, true))
                 <div class="card">
                     <h3>Project level</h3>
                     <p class="help">A CTP who has finished attachment, internship and their course moves into the fundi

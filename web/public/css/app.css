@@ -224,8 +224,16 @@ table.data td { padding: 11px 14px; border-top: 1px solid var(--line); font-size
 table.data tr:hover td { background: #f4faf1; }
 .status { padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 800; }
 .status.pending_review { background: #fff3d6; color: var(--warn); }
+.status.pending_payment { background: #ede4ff; color: #4c2d91; }
 .status.active { background: var(--lime-soft); color: var(--green-dark); }
+.status.graduated { background: #d9f0ff; color: #0d5c86; }
+.status.deployed { background: #dcf5e4; color: #0a5a2c; }
+.status.suspended { background: #f7e0d6; color: #8a3b12; }
 .status.rejected { background: #fdecea; color: var(--danger); }
+html.dark .status.pending_payment { background: #2b2145; color: #cbb6ff; }
+html.dark .status.graduated { background: #123044; color: #9fd6f7; }
+html.dark .status.deployed { background: #123523; color: #93e6b3; }
+html.dark .status.suspended { background: #3d2416; color: #f5b98a; }
 .dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 16px; }
 .dept-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 20px; position: relative; }
 .dept-card.live { border-top: 4px solid var(--lime); }
@@ -558,3 +566,27 @@ html.dark .member-topbar .brand img { filter: brightness(0) invert(1); }
 .link-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 6px; }
 .link-box input { flex: 1; min-width: 220px; margin: 0; font-size: .8rem; }
 .mini-form { display: inline-block; margin-top: 6px; }
+
+/* Module 2 — CTP profiles, mobilisation and lifecycle */
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.gaps { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #fff8e6; border-left: 4px solid var(--warn); }
+html.dark .gaps { background: #2a2413; }
+.filter-bar { display: flex; gap: 8px; align-items: center; margin: 4px 0 14px; flex-wrap: wrap; }
+.filter-bar input[type=search] { flex: 1; min-width: 220px; max-width: 420px; margin: 0; }
+.row-line { display: flex; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--line); flex-wrap: wrap; }
+.row-line:first-of-type { border-top: 0; }
+.row-line .hint { flex: 1; }
+.fee-tag { padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 800; background: #ede4ff; color: #4c2d91; white-space: nowrap; }
+.fee-tag.paid { background: var(--lime-soft); color: var(--green-dark); }
+.fee-tag.waived { background: #eef1f4; color: var(--muted); }
+html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
+.milestone { margin: 4px 0 12px; }
+.ms-top { display: flex; gap: 8px; align-items: baseline; }
+.ms-bar { height: 9px; border-radius: 999px; background: var(--soft, #eef2f0); overflow: hidden; margin: 8px 0 6px; }
+.ms-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--lime)); }
+.lifecycle { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.lifecycle .mini-form { margin-top: 0; }
+.repeat-input { display: block; width: 100%; margin-bottom: 8px; }
+.check-row { display: flex; gap: 9px; align-items: flex-start; margin: 10px 0; font-size: .92rem; }
+.check-row input { margin-top: 3px; }
+.form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }

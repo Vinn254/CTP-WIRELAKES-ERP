@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -61,6 +62,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/registrations/{type}/{id}/approve', [ReviewController::class, 'approve'])->name('registrations.approve');
     Route::post('/registrations/{type}/{id}/reject', [ReviewController::class, 'reject'])->name('registrations.reject');
     Route::post('/registrations/{type}/{id}/reissue', [ReviewController::class, 'reissue'])->name('registrations.reissue');
+    Route::post('/registrations/{type}/{id}/fee', [ReviewController::class, 'markFee'])->name('registrations.fee');
 
     // Site content / CMS
     Route::get('/content', [ContentController::class, 'index'])->name('content.index');
@@ -108,6 +110,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/staff/invite', [StaffController::class, 'invite'])->name('staff.invite');
     Route::post('/staff/invites/{invite}/revoke', [StaffController::class, 'revoke'])->name('staff.invite.revoke');
     Route::post('/staff/users/{user}', [StaffController::class, 'updateRole'])->name('staff.users.update');
+
+    // Module 2 — CTP Promoter Management (profiles, lifecycle, mobilisation lineage)
+    Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');
+    Route::get('/promoters/{ctp}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
+    Route::get('/promoters/{ctp}/edit', [CtpProfileController::class, 'edit'])->whereNumber('ctp')->name('promoters.edit');
+    Route::patch('/promoters/{ctp}', [CtpProfileController::class, 'update'])->whereNumber('ctp')->name('promoters.update');
+    Route::post('/promoters/{ctp}/status', [CtpProfileController::class, 'setStatus'])->whereNumber('ctp')->name('promoters.status');
+    Route::post('/promoters/{ctp}/referrer', [CtpProfileController::class, 'setReferrer'])->whereNumber('ctp')->name('promoters.referrer');
 });
 
 // Member portal — approved CTPs and E-Fundis (never public, never staff)

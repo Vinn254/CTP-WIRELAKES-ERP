@@ -18,7 +18,7 @@ class Departments
         ['slug' => 'membership', 'tag' => 'Module 1', 'name' => 'Public Site & Membership',
             'desc' => 'Public pages, CTP / E-Fundi applications, member accounts, projects and assignments', 'live' => true],
         ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoter Management',
-            'desc' => 'Approval, tracks, mobilization 15-30, dashboards', 'live' => false],
+            'desc' => 'CTP profiles and IDs, tracks, mobilisation 15/30, suspension and deployment', 'live' => true],
         ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Community Management',
             'desc' => 'Communities, beneficiaries, needs assessment', 'live' => false],
         ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
@@ -56,6 +56,9 @@ class Departments
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
             ['label' => 'Staff & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
         ],
+        'promoters' => [
+            ['label' => 'CTP profiles', 'icon' => 'users', 'route' => ['admin.promoters.index'], 'badge' => 'promoters'],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -68,6 +71,7 @@ class Departments
         'admin.hirers.' => 'membership',
         'admin.donations.' => 'membership',
         'admin.staff.' => 'membership',
+        'admin.promoters.' => 'promoters',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -81,6 +85,7 @@ class Departments
         'admin.hirers.index' => 'Organisations that projects are posted for',
         'admin.donations.index' => 'Every pledge made on the public donate page',
         'admin.staff.index' => 'Invite staff and set their roles',
+        'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
     ];
 
     public static function all(): array
@@ -121,6 +126,7 @@ class Departments
     {
         return match ($key) {
             'applicants' => static::pendingApplications(),
+            'promoters' => CtpRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
             'applications' => ProjectApplication::where('status', 'pending_review')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
             default => 0,

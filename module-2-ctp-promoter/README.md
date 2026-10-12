@@ -20,4 +20,13 @@ training cohorts and certificates stay in Module 4, communities in Module 3, pay
 
 ## Status
 
-Build in progress. Notes and decisions live in this folder.
+**Built — CTP profile and ID (`/admin/promoters`).**
+Every CTP record now carries: identity, county / sub-county / ward / village + GPS pin, education level,
+year left school and certificates held, track, mobiliser lineage (`referred_by`), service counties,
+mobilisation availability, trainer opt-in, fee state, and the full lifecycle
+`pending_payment → pending_review → active → graduated → deployed` (plus `suspended`, `rejected`).
+The CTP ID is issued once on approval and never re-issued. Approving a CTP now requires the fee to be
+recorded first (paid or waived) in Module 1 — Applicants, which is where the payment checkout will plug in.
+
+**Next — Mobilisation.** 15 / 30 verified referrals inside the current term, the discount as a term credit,
+and the shareable referral link that the profile page already exposes.

@@ -6,6 +6,7 @@ use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class RegistrationController extends Controller
@@ -43,9 +44,12 @@ class RegistrationController extends Controller
         return collect(CtpRegistration::TRACKS)->map(fn ($l) => ['label' => $l, 'desc' => ''])->all();
     }
 
-    public function ctpForm()
+    public function ctpForm(Request $request)
     {
-        return view('register.ctp', $this->formData() + ['tracks' => $this->ctpTracks()]);
+        return view('register.ctp', $this->formData() + [
+            'tracks' => $this->ctpTracks(),
+            'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
+        ]);
     }
 
     public function storeCtp(Request $request)
@@ -73,8 +77,13 @@ class RegistrationController extends Controller
         ]);
 
         $ref = $this->reference('CTP');
+        $referrer = $this->resolveReferrer($data['referral_code'] ?? null, $data);
+
         $record = [
             'reference' => $ref,
+            'status' => 'pending_payment',
+            'referred_by' => $referrer?->id,
+            'referred_at' => $referrer ? now() : null,
             ...collect($data)->except(['id_scan', 'certificate', 'passport_photo'])->all(),
         ];
 
@@ -86,6 +95,33 @@ class RegistrationController extends Controller
         ]);
 
         return redirect()->route('register.success', ['type' => 'ctp', 'reference' => $ref]);
+    }
+
+    /**
+     * Match the typed referral code to an existing CTP. Self-referral is impossible here:
+     * a brand-new record has no code, and anyone re-registering under their own phone, ID or
+     * email is the same person, so the referral is dropped instead of counted.
+     */
+    private function resolveReferrer(?string $code, array $data): ?CtpRegistration
+    {
+        $code = Str::upper(trim((string) $code));
+        if ($code === '') {
+            return null;
+        }
+
+        $referrer = CtpRegistration::whereIn('status', CtpRegistration::WORKING)
+            ->where('ctp_code', $code)
+            ->first();
+
+        if (! $referrer) {
+            return null;
+        }
+
+        $samePerson = $referrer->national_id === $data['national_id']
+            || $referrer->phone === $data['phone']
+            || $referrer->email === $data['email'];
+
+        return $samePerson ? null : $referrer;
     }
 
     public function fundiForm()

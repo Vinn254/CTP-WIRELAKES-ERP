@@ -101,8 +101,11 @@
                 @endforeach
                 <div class="field" style="margin-top:14px;">
                     <label>Referral code (if a CTP referred you)</label>
-                    <input type="text" name="referral_code" value="{{ old('referral_code') }}" maxlength="20" placeholder="CTP-0001">
+                    <input type="text" name="referral_code" value="{{ old('referral_code', $refPrefill ?? '') }}" maxlength="20" placeholder="CTP-0001">
                     <div class="help">Self-referral is blocked. Each referred CTP counts once for its referrer.</div>
+                    @if (! empty($refPrefill))
+                        <div class="help">Filled from the link you opened — the CTP who invited you.</div>
+                    @endif
                 </div>
             </fieldset>
 

@@ -9,6 +9,7 @@ use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -43,8 +44,11 @@ class ReviewController extends Controller
     public function index(Request $request, string $type)
     {
         $model = $this->model($type);
+        $statuses = $type === 'ctp'
+            ? array_merge(array_keys(CtpRegistration::STATUSES), ['all'])
+            : ['pending_review', 'active', 'rejected', 'all'];
         $status = $request->query('status', 'pending_review');
-        abort_unless(in_array($status, ['pending_review', 'active', 'rejected', 'all'], true), 404);
+        abort_unless(in_array($status, $statuses, true), 404);
 
         $records = $model::query()
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
@@ -93,7 +97,12 @@ class ReviewController extends Controller
         $codeColumn = self::TYPES[$type]['code'];
         DB::transaction(function () use ($model, $record, $codeColumn, $type) {
             $record->status = 'active';
-            $record->{$codeColumn} = $model::nextCode();
+            // A CTP ID is issued once and never re-issued, even if the record is later reopened.
+            $record->{$codeColumn} ??= $model::nextCode();
+            if ($type === 'ctp') {
+                $record->approved_by = auth()->id();
+                $record->approved_at = now();
+            }
             $record->save();
 
             if (in_array($type, ['ctp', 'fundi'], true)) {
@@ -106,10 +115,39 @@ class ReviewController extends Controller
             : "Approved — {$record->{$codeColumn}} issued.");
     }
 
+    /** Record a membership fee the applicant paid by M-Pesa bill, bank transfer or cash. */
+    public function markFee(Request $request, string $type, int $id)
+    {
+        abort_unless($type === 'ctp', 404);
+        $record = CtpRegistration::findOrFail($id);
+
+        $data = $request->validate([
+            'fee_status' => 'required|in:paid,waived',
+            'fee_method' => 'nullable|required_if:fee_status,paid|in:mpesa,bank,cash,other',
+            'fee_amount' => 'nullable|numeric|min:0|max:999999',
+            'fee_reference' => 'nullable|string|max:60',
+        ]);
+
+        $record->update([
+            'fee_status' => $data['fee_status'],
+            'fee_method' => $data['fee_status'] === 'paid' ? $data['fee_method'] : null,
+            'fee_amount' => $data['fee_amount'] ?? Setting::get('membership_fee_ctp', null),
+            'fee_reference' => $data['fee_reference'] ?? null,
+            'fee_paid_at' => now(),
+            // The application only reaches the review queue once the fee is settled.
+            'status' => $record->status === 'pending_payment' ? 'pending_review' : $record->status,
+        ]);
+
+        return back()->with('status', $data['fee_status'] === 'paid'
+            ? 'Fee of KSh '.number_format((float) $record->fee_amount).' recorded — the application is now in the review queue.'
+            : 'Fee waived — the application is now in the review queue.');
+    }
+
     public function reject(Request $request, string $type, int $id)
     {
         $record = $this->model($type)::findOrFail($id);
-        abort_unless($record->status === 'pending_review', 422, 'Only pending applications can be rejected.');
+        abort_unless(in_array($record->status, ['pending_payment', 'pending_review'], true), 422,
+            'Only applications that have not been approved can be rejected.');
 
         $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
         $record->update(['status' => 'rejected', 'rejection_reason' => $data['rejection_reason']]);
@@ -122,7 +160,8 @@ class ReviewController extends Controller
     {
         abort_unless(in_array($type, ['ctp', 'fundi'], true), 404);
         $record = $this->model($type)::findOrFail($id);
-        abort_unless($record->status === 'active', 422, 'Only approved members have activation links.');
+        abort_unless(in_array($record->status, ['active', 'graduated', 'deployed'], true), 422,
+            'Only approved members have activation links.');
 
         AccountInvite::issueFor($record, auth()->id(), true);
 
