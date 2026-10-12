@@ -18,11 +18,7 @@
  <form method="POST" action="{{ route('admin.partners.store') }}" enctype="multipart/form-data" class="inline-form" style="align-items:flex-end;">
  @csrf
  <span class="fld"><label>Organisation name</label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
- <span class="fld"><label>Tier</label>
- @include('admin.records.partials.tier', ['selected' => old('tier')])
- </span>
  <span class="fld grow"><label>Caption (shown under the name on the wall)</label><input type="text" name="caption" maxlength="180" value="{{ old('caption') }}" placeholder="e.g. Funding the Kisumu tech hubs"></span>
- <span class="fld"><label>Website</label><input type="url" name="website" maxlength="200" value="{{ old('website') }}" placeholder="https://&#8230;"></span>
  <span class="fld"><label>Logo (PNG / JPG / SVG / WebP)</label><input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp" required></span>
  <button class="btn btn-primary" type="submit">Post on wall</button>
  </form>
@@ -41,17 +37,13 @@
  </div>
  <div class="invite-main">
  <b>{{ $p->name }}</b>
- <span class="tag {{ $p->tier === 'gold' || $p->tier === 'platinum' ? 'gold' : 'gray' }}">{{ $tiers[$p->tier] ?? 'Partner' }}</span>
  @if ($p->source === 'request')<span class="tag gray">from a public request</span>@endif
  @if ($p->caption)<div class="hint">{{ $p->caption }}</div>@endif
- @if ($p->website)<a href="{{ $p->website }}" target="_blank">{{ \Illuminate\Support\Str::limit(parse_url($p->website, PHP_URL_HOST) ?: $p->website, 40) }} &#8599;</a>@endif
  </div>
  <div class="invite-actions">
  <form method="POST" action="{{ route('admin.partners.update', $p->id) }}" enctype="multipart/form-data" class="inline-form mini-edit">
  @csrf @method('PATCH')
- @include('admin.records.partials.tier', ['selected' => $p->tier])
  <input type="text" name="caption" maxlength="180" value="{{ $p->caption }}" placeholder="Caption">
- <input type="url" name="website" maxlength="200" value="{{ $p->website }}" placeholder="https://&#8230;">
  <label class="chk">Logo <input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp"></label>
  <button class="btn btn-sm btn-outline" type="submit">Save</button>
  </form>

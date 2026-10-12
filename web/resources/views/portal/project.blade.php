@@ -17,6 +17,10 @@
  <div class="card">
  <h3>What the work is</h3>
  <p style="white-space:pre-line;margin-top:0;">{{ $project->description }}</p>
+ @if ($project->materials)
+ <h3 style="margin:18px 0 6px;">Materials required</h3>
+ <p style="white-space:pre-line;margin:0;">{{ $project->materials }}</p>
+ @endif
  @if ($project->hirer->organisation)
  <p class="hint">Client: <b>{{ $project->hirer->organisation }}</b>@if ($project->hirer->county) · {{ $project->hirer->county }}@endif</p>
  @endif

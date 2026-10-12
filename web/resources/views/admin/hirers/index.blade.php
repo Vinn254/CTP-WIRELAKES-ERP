@@ -9,22 +9,24 @@
  then post the project against this organisation. <a href="{{ route('admin.projects.create') }}">Post a project →</a>
 </p>
 
+<datalist id="county-names">
+ @foreach ($counties as $c)
+ <option value="{{ $c }}"></option>
+ @endforeach
+</datalist>
+
 <div class="card" style="margin-bottom:22px;">
  <h3>New hirer</h3>
  <form method="POST" action="{{ route('admin.hirers.store') }}" class="inline-form" style="align-items:flex-end;">
  @csrf
- <span class="fld"><label>Organisation</label><input type="text" name="organisation" maxlength="120" value="{{ old('organisation') }}" required></span>
- <span class="fld"><label>Contact person</label><input type="text" name="contact_name" maxlength="120" value="{{ old('contact_name') }}" required></span>
- <span class="fld"><label>Email</label><input type="email" name="email" maxlength="120" value="{{ old('email') }}" required></span>
- <span class="fld"><label>Phone</label><input type="text" name="phone" maxlength="20" value="{{ old('phone') }}" required placeholder="07XX XXX XXX"></span>
- <span class="fld"><label>County</label>
- <select name="county" required>
- @foreach ($counties as $c)
- <option value="{{ $c }}" @selected(old('county') === $c)>{{ $c }}</option>
- @endforeach
- </select>
- </span>
- <span class="fld"><label>Type</label>
+ <span class="fld"><label>Organisation <span class="req">*</span></label><input type="text" name="organisation" maxlength="120" value="{{ old('organisation') }}" required></span>
+ <span class="fld"><label>Contact person <span class="req">*</span></label><input type="text" name="contact_name" maxlength="120" value="{{ old('contact_name') }}" required></span>
+ <span class="fld"><label>Email (optional)</label><input type="email" name="email" maxlength="120" value="{{ old('email') }}"></span>
+ <span class="fld"><label>Phone (optional)</label><input type="text" name="phone" maxlength="20" value="{{ old('phone') }}" placeholder="07XX XXX XXX"></span>
+ <span class="fld"><label>County <span class="req">*</span></label><input type="text" name="county" list="county-names" maxlength="80" value="{{ old('county') }}" required placeholder="Type county"></span>
+ <span class="fld"><label>Sub-county <span class="req">*</span></label><input type="text" name="sub_county" maxlength="100" value="{{ old('sub_county') }}" required placeholder="e.g. Nyando"></span>
+ <span class="fld"><label>Ward <span class="req">*</span></label><input type="text" name="ward" maxlength="100" value="{{ old('ward') }}" required placeholder="e.g. Chemelil/Sango"></span>
+ <span class="fld"><label>Type <span class="req">*</span></label>
  <select name="org_type" required>
  @foreach ($orgTypes as $k => $lbl)
  <option value="{{ $k }}" @selected(old('org_type') === $k)>{{ $lbl }}</option>
@@ -42,21 +44,24 @@
  <b>{{ $h->organisation }}</b>
  <span class="tag gray">{{ $h->hirer_code ?? 'HIRER' }}</span>
  <span class="status {{ $h->status === 'active' ? 'active' : 'rejected' }}">{{ $h->status === 'active' ? 'Active' : 'Inactive' }}</span>
- <div class="hint">{{ $h->contact_name }} · <a href="mailto:{{ $h->email }}">{{ $h->email }}</a> · {{ $h->phone }}</div>
- <div class="hint">{{ $orgTypes[$h->org_type] ?? $h->org_type }} · {{ $h->county }} · {{ $h->projects_count }} project(s)</div>
+ <div class="hint">
+ {{ $h->contact_name }}
+ @if ($h->email) · <a href="mailto:{{ $h->email }}">{{ $h->email }}</a>@endif
+ @if ($h->phone) · {{ $h->phone }}@endif
+ @if (!$h->email && !$h->phone) · <em>no contact details recorded</em>@endif
+ </div>
+ <div class="hint">{{ $orgTypes[$h->org_type] ?? $h->org_type }} · {{ $h->locationLabel() }} · {{ $h->projects_count }} project(s)</div>
  </div>
  <div class="invite-actions">
  <form method="POST" action="{{ route('admin.hirers.update', $h) }}" class="inline-form mini-edit">
  @csrf @method('PATCH')
- <input type="text" name="organisation" maxlength="120" value="{{ $h->organisation }}" required>
- <input type="text" name="contact_name" maxlength="120" value="{{ $h->contact_name }}" required>
- <input type="email" name="email" maxlength="120" value="{{ $h->email }}" required>
- <input type="text" name="phone" maxlength="20" value="{{ $h->phone }}" required>
- <select name="county">
- @foreach ($counties as $c)
- <option value="{{ $c }}" @selected($h->county === $c)>{{ $c }}</option>
- @endforeach
- </select>
+ <input type="text" name="organisation" maxlength="120" value="{{ $h->organisation }}" required placeholder="Organisation">
+ <input type="text" name="contact_name" maxlength="120" value="{{ $h->contact_name }}" required placeholder="Contact person">
+ <input type="email" name="email" maxlength="120" value="{{ $h->email }}" placeholder="Email (optional)">
+ <input type="text" name="phone" maxlength="20" value="{{ $h->phone }}" placeholder="Phone (optional)">
+ <input type="text" name="county" list="county-names" maxlength="80" value="{{ $h->county }}" required placeholder="County">
+ <input type="text" name="sub_county" maxlength="100" value="{{ $h->sub_county }}" required placeholder="Sub-county">
+ <input type="text" name="ward" maxlength="100" value="{{ $h->ward }}" required placeholder="Ward">
  <select name="org_type">
  @foreach ($orgTypes as $k => $lbl)
  <option value="{{ $k }}" @selected($h->org_type === $k)>{{ $lbl }}</option>

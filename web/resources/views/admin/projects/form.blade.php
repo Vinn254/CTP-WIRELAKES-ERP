@@ -29,7 +29,13 @@
 
  <div class="field" style="grid-column:1 / -1;">
  <label>Description <span class="req">*</span></label>
- <textarea name="description" rows="6" maxlength="8000" required placeholder="Scope of work, materials, site conditions, what a good finish looks like.">{{ old('description', $project->description) }}</textarea>
+ <textarea name="description" rows="6" maxlength="8000" required placeholder="Scope of work, site conditions, what a good finish looks like.">{{ old('description', $project->description) }}</textarea>
+ </div>
+
+ <div class="field" style="grid-column:1 / -1;">
+ <label>Materials required</label>
+ <textarea name="materials" rows="4" maxlength="4000" placeholder="List what the job needs — e.g. 40 m of 2.5mm cable, 6 socket outlets, 1 DB board with breakers, conduit and clips.">{{ old('materials', $project->materials) }}</textarea>
+ <div class="hint">Shown to members on the project page, so they know what the job comes with.</div>
  </div>
 
  <div class="field">

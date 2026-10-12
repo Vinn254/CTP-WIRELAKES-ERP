@@ -44,6 +44,10 @@
  @endif
  </dl>
  <p style="white-space:pre-line;margin:14px 0 0;">{{ $project->description }}</p>
+ @if ($project->materials)
+ <h3 style="margin:18px 0 0;">Materials required</h3>
+ <p style="white-space:pre-line;margin:8px 0 0;">{{ $project->materials }}</p>
+ @endif
  </div>
 
  <div class="card">

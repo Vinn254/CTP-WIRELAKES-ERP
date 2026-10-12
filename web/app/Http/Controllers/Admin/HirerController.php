@@ -7,6 +7,7 @@ use App\Models\County;
 use App\Models\HirerRegistration;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Hirers are recorded by staff — organisations no longer post projects themselves.
@@ -74,9 +75,11 @@ class HirerController extends Controller
         return $request->validate([
             'organisation' => 'required|string|max:120',
             'contact_name' => 'required|string|max:120',
-            'email' => 'required|email|max:120|unique:hirer_registrations,email'.($ignoreId ? ','.$ignoreId : ''),
-            'phone' => 'required|string|max:20|unique:hirer_registrations,phone'.($ignoreId ? ','.$ignoreId : ''),
+            'email' => ['nullable', 'email', 'max:120', Rule::unique('hirer_registrations', 'email')->ignore($ignoreId)],
+            'phone' => ['nullable', 'max:20', Rule::unique('hirer_registrations', 'phone')->ignore($ignoreId)],
             'county' => 'required|string|max:80',
+            'sub_county' => 'required|string|max:100',
+            'ward' => 'required|string|max:100',
             'org_type' => 'required|in:'.implode(',', array_keys(HirerRegistration::ORG_TYPES)),
         ]);
     }

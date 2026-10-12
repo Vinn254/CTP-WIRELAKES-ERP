@@ -19,10 +19,9 @@
                     @if ($p->logo_path)
                         <img class="partner-logo" src="{{ asset('uploads/partners/'.$p->logo_path) }}" alt="{{ $p->name }} logo">
                     @endif
-                    <span class="tag {{ $p->tier === 'gold' ? 'gold' : '' }}">{{ $p->tier ?? 'Partner' }}</span>
+                    <span class="tag">Partner</span>
                     <h3>{{ $p->name }}</h3>
                     @if ($p->caption)<p class="partner-caption">{{ $p->caption }}</p>@endif
-                    @if ($p->website)<a href="{{ $p->website }}">Website</a>@endif
                 </div>
             @endforeach
         </div>
@@ -44,21 +43,6 @@
                 <div class="field">
                     <label>Contact email <span class="req">*</span></label>
                     <input type="email" name="contact_email" value="{{ old('contact_email') }}" required>
-                </div>
-                <div class="field">
-                    <label>Website</label>
-                    <input type="url" name="website" value="{{ old('website') }}" placeholder="https://…">
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="field">
-                    <label>Preferred tier</label>
-                    <select name="tier">
-                        <option value="">No preference</option>
-                        @foreach (['platinum', 'gold', 'silver'] as $t)
-                            <option value="{{ $t }}" @selected(old('tier') === $t)>{{ ucfirst($t) }}</option>
-                        @endforeach
-                    </select>
                 </div>
                 <div class="field">
                     <label>Logo (PNG / JPG / SVG)</label>

@@ -254,24 +254,23 @@ table.data tr:hover td { background: #f4faf1; }
 .side-ver { font-size: .7rem; color: #7fb873; letter-spacing: .04em; }
 .admin-main { flex: 1; min-width: 0; }
 .admin-topbar { display: flex; align-items: center; gap: 14px; padding: 11px 22px; position: sticky; top: 0; z-index: 20;
-  background: linear-gradient(100deg, rgba(243,250,240,.82) 0%, rgba(226,245,214,.74) 55%, rgba(214,242,199,.7) 100%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%); backdrop-filter: blur(14px) saturate(180%);
-  box-shadow: 0 4px 18px rgba(6,103,34,.1); border-bottom: 1px solid rgba(6,103,34,.16); }
-.admin-topbar h1 { font-size: 1.08rem; margin: 0; color: var(--green-dark); flex: 1; min-width: 0; }
-.admin-topbar .menu-toggle { display: none; }
+  background: linear-gradient(100deg, #044d19 0%, var(--green) 52%, #0b7d2c 100%);
+  box-shadow: 0 6px 22px rgba(6,103,34,.28); border-bottom: 2px solid var(--lime); }
+.admin-topbar h1 { font-size: 1.08rem; margin: 0; color: #fff; flex: 1; min-width: 0; }
+.admin-topbar .menu-toggle { display: none; background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.32); border-radius: 9px; padding: 7px 9px; }
 .topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-.admin-topbar .theme-toggle { background: rgba(255,255,255,.7); color: var(--green-dark); border: 1px solid rgba(6,103,34,.28); padding: 7px 9px; }
-.admin-topbar .theme-toggle:hover { background: #fff; }
-.profile { display: flex; align-items: center; gap: 9px; padding: 3px 12px 3px 3px; border-radius: 999px; background: rgba(255,255,255,.78); border: 1px solid rgba(6,103,34,.2); }
-.profile .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: .78rem; letter-spacing: .02em; }
+.admin-topbar .theme-toggle { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.32); padding: 7px 9px; }
+.admin-topbar .theme-toggle:hover { background: var(--lime); color: #083d0d; border-color: var(--lime); }
+.profile { display: flex; align-items: center; gap: 9px; padding: 3px 12px 3px 3px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); }
+.profile .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--lime); color: #083d0d; display: grid; place-items: center; font-weight: 800; font-size: .78rem; letter-spacing: .02em; }
 .profile .who { display: flex; flex-direction: column; line-height: 1.2; }
-.profile .who b { color: var(--green-dark); font-size: .83rem; }
-.profile .who small { color: var(--muted); font-size: .67rem; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; }
-.btn-logout { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,.7); color: var(--green-dark); border: 1px solid rgba(6,103,34,.28); border-radius: 9px; padding: 8px 13px; font: inherit; font-weight: 700; font-size: .82rem; cursor: pointer; transition: .15s; }
-.btn-logout:hover { background: var(--green); color: #fff; border-color: var(--green); }
-html.dark .admin-topbar { background: linear-gradient(100deg, rgba(24,38,28,.82), rgba(19,32,24,.76)); box-shadow: 0 4px 18px rgba(0,0,0,.35); border-bottom-color: var(--line); }
+.profile .who b { color: #fff; font-size: .83rem; }
+.profile .who small { color: #bfe8ab; font-size: .67rem; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; }
+.btn-logout { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 9px; padding: 8px 13px; font: inherit; font-weight: 700; font-size: .82rem; cursor: pointer; transition: .15s; }
+.btn-logout:hover { background: #fff; color: var(--green-dark); border-color: #fff; }
+html.dark .admin-topbar { background: linear-gradient(100deg, #021f0a 0%, #053a14 55%, #07481a 100%); box-shadow: 0 6px 22px rgba(0,0,0,.45); border-bottom-color: var(--lime); }
 html.dark .admin-topbar h1 { color: var(--lime); }
-html.dark .admin-topbar .theme-toggle, html.dark .profile, html.dark .btn-logout { background: rgba(255,255,255,.06); border-color: var(--line); color: #e6f2df; }
+html.dark .admin-topbar .theme-toggle, html.dark .profile, html.dark .btn-logout, html.dark .admin-topbar .menu-toggle { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); color: #e6f2df; }
 html.dark .profile .who b { color: #eaf6e2; }
 html.dark .profile .who small { color: #93b58c; }
 html.dark .profile .avatar { background: var(--lime); color: #083d0d; }

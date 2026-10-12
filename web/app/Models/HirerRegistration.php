@@ -20,8 +20,14 @@ class HirerRegistration extends Model
 
     protected $fillable = [
         'reference', 'contact_name', 'organisation', 'phone', 'email',
-        'county', 'org_type', 'org_doc_path', 'status', 'rejection_reason', 'hirer_code',
+        'county', 'sub_county', 'ward', 'org_type', 'org_doc_path', 'status', 'rejection_reason', 'hirer_code',
     ];
+
+    /** County · Sub-county · Ward, skipping whatever staff left blank. */
+    public function locationLabel(): string
+    {
+        return collect([$this->county, $this->sub_county, $this->ward])->filter()->implode(' · ');
+    }
 
     public function projects(): HasMany
     {

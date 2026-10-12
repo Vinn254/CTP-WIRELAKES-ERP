@@ -34,7 +34,7 @@ class Project extends Model
     ];
 
     protected $fillable = [
-        'reference', 'hirer_id', 'title', 'description', 'category', 'trade',
+        'reference', 'hirer_id', 'title', 'description', 'materials', 'category', 'trade',
         'county', 'ward', 'budget', 'duration', 'deadline', 'status',
         'awarded_at', 'posted_by',
     ];

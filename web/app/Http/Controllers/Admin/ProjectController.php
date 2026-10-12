@@ -16,6 +16,7 @@ class ProjectController extends Controller
         return [
             'title' => 'required|string|max:160',
             'description' => 'required|string|max:8000',
+            'materials' => 'nullable|string|max:4000',
             'category' => 'required|in:'.implode(',', array_keys(Project::CATEGORIES)),
             'hirer_id' => 'nullable|exists:hirer_registrations,id',
             'trade' => 'nullable|string|max:80',
