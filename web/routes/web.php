@@ -91,6 +91,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::patch('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::post('/projects/{project}/status', [ProjectController::class, 'setStatus'])->name('projects.status');
     Route::post('/projects/{project}/award/{application}', [ProjectController::class, 'award'])->name('projects.award');
+    Route::post('/projects/{project}/assign', [ProjectController::class, 'assignMember'])->name('projects.assign');
     Route::post('/projects/{project}/decline/{application}', [ProjectController::class, 'decline'])->name('projects.decline');
     Route::post('/projects/{project}/release', [ProjectController::class, 'releaseAward'])->name('projects.release');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.delete');

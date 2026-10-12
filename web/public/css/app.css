@@ -514,15 +514,12 @@ html.dark .tab { background: rgba(76,182,20,.1); color: #a9dfa0; border-color: r
 html.dark .tab.on { background: linear-gradient(100deg, #0b7d2c, var(--lime)); border-color: var(--lime); color: #062a0b; }
 html.dark .tab .n { background: rgba(76,182,20,.24); color: #d6f5c8; }
 html.dark .tab.on .n { background: #062a0b; color: var(--lime); }
-.picker { display: inline-block; position: relative; }
-.picker summary { list-style: none; cursor: pointer; }
-.picker summary::-webkit-details-marker { display: none; }
-.picker[open] summary { background: var(--green); border-color: #044d19; color: #fff; }
-.picker-list { position: absolute; right: 0; margin-top: 7px; z-index: 12; min-width: 290px; max-width: 360px; padding: 12px; border-radius: 12px; background: var(--card); border: 1px solid rgba(6,103,34,.26); box-shadow: 0 12px 28px rgba(6,103,34,.22); text-align: left; }
-.picker-list form { display: block; margin: 0 0 6px; }
-.picker-list form:last-child { margin-bottom: 0; }
-.picker-list .btn { width: 100%; justify-content: flex-start; white-space: normal; }
-html.dark .picker-list { background: #17231b; border-color: var(--line); box-shadow: 0 12px 28px rgba(0,0,0,.45); }
+.worker-swap { margin: 14px 0 2px; padding: 13px 15px; border-radius: 12px; border: 1px solid rgba(6,103,34,.24); background: rgba(6,103,34,.05); }
+.worker-swap .swap-label { display: block; font-weight: 800; color: var(--green-dark); font-size: .8rem; letter-spacing: .03em; text-transform: uppercase; margin-bottom: 8px; }
+.worker-swap select { flex: 1; min-width: 240px; max-width: 520px; }
+.worker-swap .hint { margin-top: 8px; }
+html.dark .worker-swap { background: rgba(76,182,20,.07); border-color: var(--line); }
+html.dark .worker-swap .swap-label { color: var(--lime); }
 .status.awarded { background: #e6f0ff; color: #1a4f8a; }
 html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .page-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }

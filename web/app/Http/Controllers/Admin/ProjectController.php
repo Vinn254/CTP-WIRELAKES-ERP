@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\County;
+use App\Models\CtpRegistration;
+use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
@@ -75,6 +77,7 @@ class ProjectController extends Controller
     {
         return view('admin.projects.show', [
             'project' => $project->load(['hirer', 'applications', 'award', 'poster']),
+            'candidates' => $project->workerCandidates(),
         ]);
     }
 
@@ -151,8 +154,39 @@ class ProjectController extends Controller
         return back()->with('status', $application->full_name.' declined.');
     }
 
-    public function releaseAward(Project $project)
+    /** Hand the job to any approved member — they do not have to have applied. */
+    public function assignMember(Request $request, Project $project)
     {
+        $data = $request->validate([
+            'applicant_type' => 'required|in:ctp,fundi',
+            'applicant_id' => 'required|integer',
+        ]);
+
+        $member = $data['applicant_type'] === 'fundi'
+            ? FundiRegistration::where('status', 'active')->find($data['applicant_id'])
+            : CtpRegistration::where('status', 'active')->find($data['applicant_id']);
+
+        if (! $member) {
+            return back()->with('error', 'That member is not an approved, active account.');
+        }
+
+        $application = ProjectApplication::firstOrNew([
+            'project_id' => $project->id,
+            'applicant_type' => $data['applicant_type'],
+            'applicant_id' => $member->id,
+        ], [
+            'full_name' => $member->full_name,
+            'phone' => $member->phone,
+            'email' => $member->email,
+            'note' => 'Hand-picked for this job by '.auth()->user()->name.', '.$project->reference.'.',
+            'status' => 'pending_review',
+        ]);
+        $application->save();
+
+        return $this->award($project, $application);
+    }
+
+    public function releaseAward(Project $project)    {
         if (! $project->award) {
             return back()->with('error', 'Nothing to release.');
         }

@@ -46,6 +46,25 @@
  <div class="hint"><a href="{{ route('admin.registrations.show', [$award->applicant_type, $award->applicant_id]) }}">Open their full record →</a></div></dd></div>
  @endif
  </dl>
+ @if ($project->status === 'awarded')
+ <div class="worker-swap">
+ <label class="swap-label" for="workerSelect">Change worker</label>
+ <form method="POST" action="{{ route('admin.projects.assign', $project) }}" class="inline-form"
+       data-confirm="Hand {{ $project->reference }} to the selected member? {{ $award->full_name }} will be told they were not selected." data-title="Change worker">
+ @csrf
+ <input type="hidden" name="applicant_type" id="swapType" value="{{ $award->applicant_type }}">
+ <select name="applicant_id" id="workerSelect" required>
+ @foreach ($candidates as $c)
+ <option value="{{ $c['id'] }}" data-type="{{ $c['type'] }}" data-note="{{ $c['code'] }} · {{ $c['name'] }} · {{ $c['level'] }}{{ $c['skills'] ? ' · '.$c['skills'] : '' }}{{ $c['fits'] ? '' : ' · level does not match' }}" @selected($c['type'] === $award->applicant_type && (int) $c['id'] === (int) $award->applicant_id)>
+ {{ $c['code'] }} · {{ $c['name'] }} — {{ $c['level'] }}{{ $c['skills'] ? ' · '.$c['skills'] : '' }}{{ $c['fits'] ? '' : ' · level mismatch' }}
+ </option>
+ @endforeach
+ </select>
+ <button class="btn btn-sm btn-lime" type="submit">Change worker</button>
+ </form>
+ <div class="hint" id="workerNote">Pick any approved member. Those whose level does not match {{ Project::CATEGORIES[$project->category]['label'] }} are marked.</div>
+ </div>
+ @endif
  <p style="white-space:pre-line;margin:14px 0 0;">{{ $project->description }}</p>
  @if ($project->materials)
  <h3 style="margin:18px 0 0;">Materials required</h3>
@@ -96,29 +115,13 @@
  <div class="hint">Applied {{ $app->created_at->format('d M Y, H:i') }}</div>
  </div>
  <div class="invite-actions">
- @if ($project->status === 'awarded')
- @if ($app->status !== 'approved')
+ @if ($project->status === 'awarded' && $app->status !== 'approved')
  <form method="POST" action="{{ route('admin.projects.award', [$project, $app]) }}" data-confirm="Change the worker on {{ $project->reference }} to {{ $app->full_name }}? {{ $award->full_name }} will be told they were not selected." data-title="Change worker">
  @csrf
  <button class="btn btn-sm btn-outline" type="submit">Change worker to this member</button>
  </form>
- @else
- <span class="hint">Current worker.</span>
- @if ($project->applications->where('status', '!=', 'approved')->count())
- <details class="picker">
- <summary class="btn btn-sm btn-outline">Change worker</summary>
- <div class="picker-list">
- <div class="hint" style="margin-bottom:6px;">Hand {{ $project->reference }} to someone else — {{ $app->full_name }} is told they were not selected.</div>
- @foreach ($project->applications->where('status', '!=', 'approved') as $other)
- <form method="POST" action="{{ route('admin.projects.award', [$project, $other]) }}" data-confirm="Change the worker on {{ $project->reference }} to {{ $other->full_name }}?" data-title="Change worker">
- @csrf
- <button class="btn btn-sm btn-lime" type="submit">{{ $other->full_name }} · {{ $other->memberCode() }} · {{ $other->levelLabel() }}</button>
- </form>
- @endforeach
- </div>
- </details>
- @endif
- @endif
+ @elseif ($project->status === 'awarded')
+ <span class="hint">Current worker — change them in Project Details above.</span>
  @elseif ($app->status === 'pending_review')
  <form method="POST" action="{{ route('admin.projects.award', [$project, $app]) }}" data-confirm="Assign {{ $project->reference }} to {{ $app->full_name }}? Other applicants will be declined.">
  @csrf
@@ -137,4 +140,20 @@
 @empty
  <div class="card"><p style="margin:0;color:var(--muted);">No member has applied yet. Share the activation link with eligible members so they can sign in and apply.</p></div>
 @endforelse
+
+@once
+<script>
+const workerSelect = document.getElementById('workerSelect');
+if (workerSelect) {
+ const swapType = document.getElementById('swapType'), workerNote = document.getElementById('workerNote');
+ const sync = () => {
+  const opt = workerSelect.selectedOptions[0];
+  swapType.value = opt.dataset.type;
+  workerNote.textContent = opt.dataset.note;
+ };
+ workerSelect.addEventListener('change', sync);
+ sync();
+}
+</script>
+@endonce
 @endsection

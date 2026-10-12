@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Project extends Model
 {
@@ -99,5 +100,42 @@ class Project extends Model
     public function accepts(FundiRegistration|CtpRegistration|null $member): bool
     {
         return in_array($this->category, self::eligibleCategories($member), true);
+    }
+
+    /**
+     * Every approved member, for hand-picking the worker. Each row says whether
+     * their level matches this project so staff can override deliberately.
+     */
+    public function workerCandidates(): \Illuminate\Support\Collection
+    {
+        $fundis = FundiRegistration::where('status', 'active')->orderBy('full_name')->get()
+            ->map(fn (FundiRegistration $f) => [
+                'type' => 'fundi',
+                'id' => $f->id,
+                'name' => $f->full_name,
+                'code' => $f->ef_code ?: '—',
+                'level' => FundiRegistration::tierLabel($f->tier),
+                'skills' => implode(', ', (array) $f->specialisations),
+                'member' => $f,
+            ]);
+
+        $ctps = CtpRegistration::where('status', 'active')->orderBy('full_name')->get()
+            ->map(fn (CtpRegistration $c) => [
+                'type' => 'ctp',
+                'id' => $c->id,
+                'name' => $c->full_name,
+                'code' => $c->ctp_code ?: '—',
+                'level' => $c->fundi_tier ? $c->poolLabel() : 'CTP · '.str_replace('_', ' ', $c->track ?? 'member'),
+                'skills' => $c->track ? Str::headline(str_replace('_', ' ', $c->track)).' track' : '',
+                'member' => $c,
+            ]);
+
+        return $fundis->concat($ctps)
+            ->map(function (array $row) {
+                $row['fits'] = $this->accepts($row['member']);
+                unset($row['member']);
+
+                return $row;
+            });
     }
 }
