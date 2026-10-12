@@ -11,24 +11,35 @@
 <body>
 <header class="site-header">
     <div class="container">
-        <a class="brand" href="{{ route('home') }}">
-            <img src="{{ asset('logo.png') }}" alt="CTP-WireLakes logo">
-            <span>CTP-WireLakes</span>
-        </a>
-        <nav class="main-nav">
+        <div class="header-top">
+            <a class="brand" href="{{ route('home') }}">
+                <img src="{{ asset('logo.png') }}" alt="CTP-WireLakes logo">
+                <span>CTP-WireLakes</span>
+            </a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" onclick="toggleSiteMenu(this)">☰</button>
+        </div>
+        <nav class="main-nav" id="siteNav">
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
             <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a>
             <a href="{{ route('what-we-do') }}" class="{{ request()->routeIs('what-we-do') ? 'active' : '' }}">What We Do</a>
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
+            <div class="nav-cta">
+                <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
+                <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
+            </div>
         </nav>
-        <div class="header-cta">
-            <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
-            <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
-        </div>
     </div>
 </header>
+<script>
+function toggleSiteMenu(btn) {
+    const nav = document.getElementById('siteNav');
+    const open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    btn.textContent = open ? '✕' : '☰';
+}
+</script>
 
 <main class="container">
     @include('partials.flash')
