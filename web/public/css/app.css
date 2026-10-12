@@ -137,8 +137,6 @@ body.has-hero .site-header:not(.solid) .brand img, html.dark .site-header.solid 
   38% { opacity: 0; }
   100% { opacity: 0; }
 }
-.slider-note { display: block; margin-top: 10px; font-size: .74rem; color: rgba(255,255,255,.72); text-align: center; }
-.slider-note code { background: rgba(255,255,255,.14); padding: 1px 6px; border-radius: 6px; }
 
 @media (max-width: 900px) {
   .hero-inner { grid-template-columns: 1fr; gap: 26px; }

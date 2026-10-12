@@ -20,7 +20,6 @@
                 <div class="slide" style="background-image:url('{{ asset('images/hero-2.jpg') }}')"></div>
                 <div class="slide" style="background-image:url('{{ asset('images/hero-3.jpg') }}')"></div>
             </div>
-            <span class="slider-note">Add sliding images — drop files at <code>public/images/hero-1.jpg … hero-3.jpg</code></span>
         </div>
     </div>
 </section>
