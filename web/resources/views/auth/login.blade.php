@@ -2,10 +2,10 @@
 @section('title', 'Staff login')
 
 @section('content')
-<section class="section" style="max-width:440px;margin:60px auto;">
-    <div class="card">
-        <h1 style="font-size:1.4rem;">Programme staff login</h1>
-        <p class="sub">Directors and Admins only. Applicants do not log in here — your application status is sent to you by email/SMS.</p>
+<section class="section login-section">
+    <div class="card login-card">
+        <span class="login-badge">🔒</span>
+        <h1>Staff login</h1>
         @include('partials.errors')
         <form method="POST" action="{{ route('login') }}">
             @csrf
@@ -17,7 +17,7 @@
                 <label>Password <span class="req">*</span></label>
                 <input type="password" name="password" required>
             </div>
-            <button class="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+            <button class="btn-signin" type="submit">Sign in <span class="arr">→</span></button>
         </form>
     </div>
 </section>

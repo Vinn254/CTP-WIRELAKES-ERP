@@ -299,3 +299,17 @@ html.dark .menu-toggle { background: #1d3122; color: #9ad87f; border-color: #3c6
 /* Theme toggle button */
 .theme-toggle { background: var(--lime-soft); color: var(--green); border: 1.5px solid var(--green); border-radius: 10px; font-size: 1.05rem; line-height: 1; padding: 8px 12px; cursor: pointer; flex-shrink: 0; }
 html.dark .theme-toggle { background: #1d3122; color: #f5d76e; border-color: #3c6b42; }
+
+/* Staff login */
+.login-section { max-width: 440px; margin: 64px auto; }
+.login-card { text-align: center; padding: 34px 30px 30px; }
+.login-card h1 { font-size: 1.5rem; margin: 8px 0 22px; }
+.login-badge { display: inline-flex; align-items: center; justify-content: center; width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(135deg, var(--green) 0%, var(--lime) 100%); color: #fff; font-size: 1.8rem; box-shadow: 0 10px 24px rgba(6,103,34,.28); }
+.login-card form { text-align: left; }
+.btn-signin { width: 100%; margin-top: 6px; border: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 22px; border-radius: 12px; font-weight: 800; font-size: 1.02rem; letter-spacing: .01em; color: #fff; background: linear-gradient(135deg, var(--green) 0%, var(--lime) 100%); box-shadow: 0 10px 22px rgba(6,103,34,.28); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; }
+.btn-signin:hover { filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 14px 28px rgba(6,103,34,.34); }
+.btn-signin:active { transform: translateY(0); box-shadow: 0 6px 14px rgba(6,103,34,.28); }
+.btn-signin .arr { transition: transform .15s ease; }
+.btn-signin:hover .arr { transform: translateX(4px); }
+html.dark .login-badge { box-shadow: 0 10px 24px rgba(0,0,0,.5); }
+html.dark .btn-signin { box-shadow: 0 10px 22px rgba(0,0,0,.5); }
