@@ -20,7 +20,7 @@ training cohorts and certificates stay in Module 4, communities in Module 3, pay
 
 ## Status
 
-**Built — CTP profile and ID (`/admin/promoters`).**
+**Built — CTP profile and ID (`/admin/promoters`), and the CTP trainee interface (`/admin/trainee`).**
 Every CTP record now carries: identity, county / sub-county / ward / village + GPS pin, education level,
 year left school and certificates held, track, mobiliser lineage (`referred_by`), service counties,
 mobilisation availability, trainer opt-in, fee state, and the full lifecycle
@@ -28,5 +28,13 @@ mobilisation availability, trainer opt-in, fee state, and the full lifecycle
 The CTP ID is issued once on approval and never re-issued. Approving a CTP now requires the fee to be
 recorded first (paid or waived) in Module 1 — Applicants, which is where the payment checkout will plug in.
 
-**Next — Mobilisation.** 15 / 30 verified referrals inside the current term, the discount as a term credit,
-and the shareable referral link that the profile page already exposes.
+The trainee side is the CTP's own four tabs — **My training / My mobilisation / My communities / My projects** —
+rendered from one partial (`web/resources/views/portal/partials/trainee.blade.php`) in two places: the member sees
+it at `/portal` after signing in, staff see the identical screen at `/admin/trainee/{ctp}` with a preview banner,
+preview-scoped project links and no apply/withdraw controls. `/admin/trainee` is its own department card beside
+CTP Promoter Management. RBAC is enforced on both sides: staff get 403 at `/portal`, a CTP gets 403 at every
+`/admin/*` URL, and member routes carry no id parameter, so one member cannot open another's screen.
+
+**Next — the mobilisation credit.** The interface already counts verified referrals inside the current term
+(Jan–Apr / May–Aug / Sep–Dec) toward the 15 / 30 milestones; the discount a milestone earns is not yet issued
+as a credit against a fee.

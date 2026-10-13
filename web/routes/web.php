@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
+use App\Http\Controllers\Admin\CtpTraineeController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -118,6 +119,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::patch('/promoters/{ctp}', [CtpProfileController::class, 'update'])->whereNumber('ctp')->name('promoters.update');
     Route::post('/promoters/{ctp}/status', [CtpProfileController::class, 'setStatus'])->whereNumber('ctp')->name('promoters.status');
     Route::post('/promoters/{ctp}/referrer', [CtpProfileController::class, 'setReferrer'])->whereNumber('ctp')->name('promoters.referrer');
+
+    // Module 2 — the CTP trainee interface, previewed by staff on their own account
+    Route::get('/trainee', [CtpTraineeController::class, 'index'])->name('trainee.index');
+    Route::get('/trainee/{ctp}', [CtpTraineeController::class, 'show'])->whereNumber('ctp')->name('trainee.show');
+    Route::get('/trainee/{ctp}/project/{project}', [CtpTraineeController::class, 'project'])->whereNumber('ctp')->name('trainee.project');
 });
 
 // Member portal — approved CTPs and E-Fundis (never public, never staff)

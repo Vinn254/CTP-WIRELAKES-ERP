@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class CtpRegistration extends Model
@@ -39,6 +40,9 @@ class CtpRegistration extends Model
         'certificate' => 'Certificate', 'diploma' => 'Diploma', 'degree' => 'Degree',
         'postgraduate' => 'Postgraduate',
     ];
+
+    /** Tabs of the trainee interface — the three parallel roles plus their work board. */
+    public const PORTAL_TABS = ['training', 'mobilisation', 'communities', 'projects'];
 
     public const MOBILISATION_TIERS = [
         15 => '50% off the current term',
@@ -132,6 +136,19 @@ class CtpRegistration extends Model
         return $this->referrals()->whereIn('status', self::WORKING)->count();
     }
 
+    /** Referrals counted per term — only those verified inside the current term window. */
+    public function termReferrals()
+    {
+        return $this->referrals()
+            ->whereIn('status', self::WORKING)
+            ->where('referred_at', '>=', self::currentTerm()['start']);
+    }
+
+    public function verifiedReferralsThisTerm(): int
+    {
+        return $this->termReferrals()->count();
+    }
+
     public function referralLink(): string
     {
         return route('register.ctp').'?ref='.urlencode($this->ctp_code ?? $this->reference);
@@ -162,6 +179,36 @@ class CtpRegistration extends Model
         }
 
         return $earned ?? 'No term discount yet — '.$count.' verified referral'.($count === 1 ? '' : 's');
+    }
+
+    /** Kenyan programme terms — mobilisation credit is measured inside the current one. */
+    public static function currentTerm(): array
+    {
+        $year = now()->year;
+
+        [$month, $label] = match (true) {
+            now()->month <= 4 => ['01', 'Jan–Apr'],
+            now()->month <= 8 => ['05', 'May–Aug'],
+            default => ['09', 'Sep–Dec'],
+        };
+
+        return ['label' => $label.' '.$year, 'start' => Carbon::parse($year.'-'.$month.'-01')];
+    }
+
+    /** The step of the CTP path the person is standing on, shown on their own dashboard. */
+    public function stageLabel(): string
+    {
+        return match (true) {
+            $this->status === 'pending_payment' => 'Pay the one-time membership fee to reach the review queue',
+            $this->status === 'pending_review' => 'Programme office is reviewing your application and documents',
+            $this->status === 'rejected' => 'Application closed — see the reason on your record',
+            $this->status === 'suspended' => 'Suspended — speak to your County Coordinator',
+            $this->status === 'deployed' => 'Deployed — you are working on projects in the field',
+            $this->status === 'graduated' => 'Certified — waiting on deployment into projects and internship',
+            default => $this->track === 'junior'
+                ? 'Active CTP — book your practical check and certification check'
+                : 'Active CTP — enrolled in the training cohort',
+        };
     }
 
     public function locationLabel(): string

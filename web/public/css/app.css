@@ -590,3 +590,30 @@ html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .check-row { display: flex; gap: 9px; align-items: flex-start; margin: 10px 0; font-size: .92rem; }
 .check-row input { margin-top: 3px; }
 .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+
+/* CTP trainee interface (member portal + staff preview of it) */
+.preview-banner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #fff4e0; border-left: 4px solid #e08a1e; color: #7a4a08; padding: 11px 16px; border-radius: var(--radius); margin-bottom: 16px; font-size: .9rem; }
+.preview-banner a { font-weight: 700; color: #7a4a08; text-decoration: underline; }
+html.dark .preview-banner { background: #2a2113; color: #f0c685; }
+.ctp-hero .ctp-term { margin-top: 4px; font-size: .88rem; }
+.ctp-tabs { margin-bottom: 18px; }
+.steps { list-style: none; margin: 6px 0 0; padding: 0; counter-reset: step; }
+.steps li { position: relative; padding: 10px 0 10px 40px; border-bottom: 1px dashed var(--line); counter-increment: step; }
+.steps li:last-child { border-bottom: 0; }
+.steps li::before { content: counter(step); position: absolute; left: 0; top: 9px; width: 26px; height: 26px; border-radius: 50%; background: var(--soft, #eef2f0); color: var(--muted); font-weight: 800; font-size: .8rem; display: flex; align-items: center; justify-content: center; }
+.steps li.done::before { content: '\2713'; background: var(--lime-soft); color: var(--green-dark); }
+.steps li.current::before { background: var(--green); color: #fff; }
+.steps li.current b { color: var(--green); }
+html.dark .steps li.current b { color: var(--lime); }
+.reward { margin: 8px 0 0; background: var(--lime-soft); color: var(--green-dark); padding: 9px 12px; border-radius: 8px; font-size: .9rem; }
+.rules { margin: 6px 0 0; padding-left: 18px; font-size: .9rem; color: var(--muted); }
+.rules li { margin: 5px 0; }
+.rules b { color: inherit; }
+.soon { font-size: .78rem; font-weight: 800; background: #eef1f4; color: var(--muted); padding: 2px 8px; border-radius: 999px; }
+html.dark .soon { background: #26333c; color: #9fb4bd; }
+.ref-code-box { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: linear-gradient(100deg, var(--green), #0b7f2c); color: #fff; border-radius: var(--radius); padding: 16px 18px; margin: 8px 0 10px; }
+.ref-code-box small { display: block; font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.ref-code-box b { font-size: 1.5rem; letter-spacing: .04em; }
+.ref-code-box .link-box, .ref-code-box input { margin: 0; }
+.ref-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.level-card { margin-bottom: 16px; }

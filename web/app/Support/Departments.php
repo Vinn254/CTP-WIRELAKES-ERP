@@ -19,6 +19,8 @@ class Departments
             'desc' => 'Public pages, CTP / E-Fundi applications, member accounts, projects and assignments', 'live' => true],
         ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoter Management',
             'desc' => 'CTP profiles and IDs, tracks, mobilisation 15/30, suspension and deployment', 'live' => true],
+        ['slug' => 'trainee', 'tag' => 'Module 2 · Trainee side', 'name' => 'CTP Trainee Interface',
+            'desc' => 'The CTP’s own screens — training, mobilisation, communities, projects — previewed as any member', 'live' => true],
         ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Community Management',
             'desc' => 'Communities, beneficiaries, needs assessment', 'live' => false],
         ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
@@ -59,6 +61,9 @@ class Departments
         'promoters' => [
             ['label' => 'CTP profiles', 'icon' => 'users', 'route' => ['admin.promoters.index'], 'badge' => 'promoters'],
         ],
+        'trainee' => [
+            ['label' => 'Open a CTP interface', 'icon' => 'globe', 'route' => ['admin.trainee.index'], 'badge' => 'trainees'],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -72,6 +77,7 @@ class Departments
         'admin.donations.' => 'membership',
         'admin.staff.' => 'membership',
         'admin.promoters.' => 'promoters',
+        'admin.trainee.' => 'trainee',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -86,6 +92,7 @@ class Departments
         'admin.donations.index' => 'Every pledge made on the public donate page',
         'admin.staff.index' => 'Invite staff and set their roles',
         'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
+        'admin.trainee.index' => 'Choose a CTP and see their own interface exactly as they see it — read only',
     ];
 
     public static function all(): array
@@ -127,6 +134,7 @@ class Departments
         return match ($key) {
             'applicants' => static::pendingApplications(),
             'promoters' => CtpRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
+            'trainees' => CtpRegistration::whereIn('status', CtpRegistration::WORKING)->whereNotNull('user_id')->count(),
             'applications' => ProjectApplication::where('status', 'pending_review')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
             default => 0,
