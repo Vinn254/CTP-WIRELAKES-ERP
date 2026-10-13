@@ -17,6 +17,8 @@
     $thisTerm = $isCtp ? $member->verifiedReferralsThisTerm() : 0;
     $next = $isCtp ? ($member->nextMilestone() ?? 30) : 0;
     $openLabel = $isCtp ? 'Open for you' : 'Available projects';
+    $myCommunities = $communities;
+    $openNeeds = $myCommunities->sum(fn ($c) => $c->needs->whereIn('status', ['proposed', 'prioritised'])->count());
 @endphp
 
 @section('content')
@@ -36,10 +38,29 @@
     <div class="member-stats">
         <div class="stat"><small>{{ $openLabel }}</small><b>{{ $projects->count() }}</b></div>
         <div class="stat"><small>Applications</small><b>{{ $applications->count() }}</b></div>
-        <div class="stat"><small>Waiting review</small><b>{{ $waiting }}</b></div>
+        @if ($isCtp)
+            <div class="stat"><small>Communities</small><b>{{ $myCommunities->count() }}</b></div>
+        @else
+            <div class="stat"><small>Waiting review</small><b>{{ $waiting }}</b></div>
+        @endif
         <div class="stat"><small>Awarded</small><b>{{ $won }}</b></div>
     </div>
 </div>
+
+@if ($isCtp && $myCommunities->isNotEmpty())
+    <div class="card">
+        <h3>My communities</h3>
+        @foreach ($myCommunities->take(3) as $c)
+            <div class="row-line">
+                <b>{{ $c->name }}</b>
+                <span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
+                <span class="hint">{{ $c->needs->count() }} needs · {{ $c->beneficiaries->count() }} reached</span>
+            </div>
+        @endforeach
+        <p style="margin:12px 0 0;"><a class="btn btn-sm btn-outline" href="{{ route('portal.communities') }}">Open my communities</a>
+            <span class="hint">{{ $openNeeds }} need{{ $openNeeds === 1 ? '' : 's' }} still open for the office to review.</span></p>
+    </div>
+@endif
 
 @if ($isCtp && $member->status === 'pending_payment')
     <div class="card callout">

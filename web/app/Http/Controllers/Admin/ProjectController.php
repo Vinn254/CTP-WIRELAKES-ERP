@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Community;
 use App\Models\County;
 use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
@@ -24,6 +25,7 @@ class ProjectController extends Controller
             'trade' => 'nullable|string|max:80',
             'county' => 'nullable|string|max:80',
             'ward' => 'nullable|string|max:80',
+            'community_id' => 'nullable|exists:communities,id',
             'budget' => 'nullable|numeric|min:0|max:999999999',
             'duration' => 'nullable|string|max:60',
             'deadline' => 'nullable|date',
@@ -57,6 +59,7 @@ class ProjectController extends Controller
             'project' => new Project(['status' => 'open']),
             'counties' => County::orderBy('name')->pluck('name'),
             'hirers' => $this->hirers(),
+            'communities' => $this->communities(),
         ]);
     }
 
@@ -88,6 +91,7 @@ class ProjectController extends Controller
             'project' => $project,
             'counties' => County::orderBy('name')->pluck('name'),
             'hirers' => $this->hirers(),
+            'communities' => $this->communities(),
         ]);
     }
 
@@ -209,5 +213,12 @@ class ProjectController extends Controller
     private function hirers()
     {
         return HirerRegistration::orderBy('organisation')->get(['id', 'organisation', 'county', 'hirer_code']);
+    }
+
+    private function communities()
+    {
+        return Community::where('status', 'active')
+            ->orderBy('county')->orderBy('name')
+            ->get(['id', 'name', 'county', 'ward', 'community_code']);
     }
 }

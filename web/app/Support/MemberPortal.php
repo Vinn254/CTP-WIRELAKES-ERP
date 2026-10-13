@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\CtpRegistration;
+use App\Models\Community;
 use App\Models\FundiRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
@@ -43,7 +44,22 @@ class MemberPortal
             'member' => $member,
             'projects' => static::projects($member),
             'applications' => static::applications($member),
+            'communities' => $member instanceof CtpRegistration ? static::communities($member) : collect(),
         ];
+    }
+
+    /** A CTP's own communities with the field work they and their colleagues have logged. */
+    public static function communities(CtpRegistration $ctp)
+    {
+        return Community::forCtp($ctp)
+            ->with([
+                'needs' => fn ($q) => $q->with('project:id,title,category,status')->latest('id'),
+                'ctps:id,ctp_code,full_name',
+                'beneficiaries.project:id,title,category,status',
+                'projects',
+            ])
+            ->orderBy('county')->orderBy('ward')->orderBy('name')
+            ->get();
     }
 
     public static function resolve(User $user): ?Model

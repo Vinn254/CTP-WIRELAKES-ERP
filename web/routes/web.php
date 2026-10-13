@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\CommunityController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\HirerController;
+use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -124,6 +126,30 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/promoters/{ctp}/reject', [CtpProfileController::class, 'reject'])->whereNumber('ctp')->name('promoters.reject');
     Route::post('/promoters/{ctp}/reissue', [CtpProfileController::class, 'reissue'])->whereNumber('ctp')->name('promoters.reissue');
     Route::post('/promoters/{ctp}/tier', [CtpProfileController::class, 'setTier'])->whereNumber('ctp')->name('promoters.tier');
+
+    // Module 3 — Community Management. Communities, their needs pipeline and their beneficiaries.
+    Route::get('/communities', [CommunityController::class, 'index'])->name('communities.index');
+    Route::get('/communities/create', [CommunityController::class, 'create'])->name('communities.create');
+    Route::post('/communities', [CommunityController::class, 'store'])->name('communities.store');
+    Route::get('/communities/{community}', [CommunityController::class, 'show'])->whereNumber('community')->name('communities.show');
+    Route::get('/communities/{community}/edit', [CommunityController::class, 'edit'])->whereNumber('community')->name('communities.edit');
+    Route::patch('/communities/{community}', [CommunityController::class, 'update'])->whereNumber('community')->name('communities.update');
+    Route::post('/communities/{community}/approve', [CommunityController::class, 'approve'])->whereNumber('community')->name('communities.approve');
+    Route::post('/communities/{community}/reject', [CommunityController::class, 'reject'])->whereNumber('community')->name('communities.reject');
+    Route::post('/communities/{community}/ctp', [CommunityController::class, 'assignCtp'])->whereNumber('community')->name('communities.ctp');
+    Route::post('/communities/{community}/ctp/{ctp}/remove', [CommunityController::class, 'removeCtp'])->whereNumber('community')->name('communities.ctp.remove');
+    Route::post('/communities/{community}/beneficiary', [CommunityController::class, 'storeBeneficiary'])->whereNumber('community')->name('communities.beneficiary');
+
+    // Needs assessment — the queue across every community
+    Route::get('/needs', [NeedController::class, 'index'])->name('needs.index');
+    Route::get('/needs/{need}/photo', [NeedController::class, 'photo'])->whereNumber('need')->name('needs.photo');
+    Route::post('/needs/{need}/priority', [NeedController::class, 'setPriority'])->whereNumber('need')->name('needs.priority');
+    Route::post('/needs/{need}/status', [NeedController::class, 'setStatus'])->whereNumber('need')->name('needs.status');
+    Route::post('/needs/{need}/convert', [NeedController::class, 'convert'])->whereNumber('need')->name('needs.convert');
+
+    // Beneficiaries — the people a project reached
+    Route::get('/beneficiaries', [CommunityController::class, 'beneficiaries'])->name('beneficiaries.index');
+    Route::delete('/beneficiaries/{beneficiary}', [CommunityController::class, 'destroyBeneficiary'])->name('beneficiaries.delete');
 });
 
 // Member portal — the member's own interface. Never staff, never public.
@@ -132,6 +158,9 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/training', [PortalController::class, 'training'])->name('training');
     Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
     Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
+    Route::post('/communities', [PortalController::class, 'storeCommunity'])->name('community.store');
+    Route::post('/communities/need', [PortalController::class, 'storeNeed'])->name('need.store');
+    Route::post('/communities/beneficiary', [PortalController::class, 'storeBeneficiary'])->name('beneficiary.store');
     Route::get('/projects', [PortalController::class, 'projects'])->name('projects');
     Route::get('/applications', [PortalController::class, 'applications'])->name('applications');
     Route::get('/projects/{project}', [PortalController::class, 'project'])->name('project');

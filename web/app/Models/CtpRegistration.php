@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -85,6 +86,23 @@ class CtpRegistration extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Communities this CTP looks after or has put forward (Module 3). */
+    public function communities(): BelongsToMany
+    {
+        return $this->belongsToMany(Community::class, 'community_ctp', 'ctp_id', 'community_id')
+            ->withPivot(['role', 'assigned_at'])->withTimestamps();
+    }
+
+    public function needsRecorded(): HasMany
+    {
+        return $this->hasMany(Need::class, 'assessed_by_ctp');
+    }
+
+    public function beneficiariesRegistered(): HasMany
+    {
+        return $this->hasMany(Beneficiary::class, 'created_by_ctp');
     }
 
     public function approvedBy(): BelongsTo

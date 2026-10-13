@@ -33,7 +33,8 @@
  <dl class="kv">
  <div><dt>Hirer</dt><dd>{{ $project->hirer->organisation ?: '—' }}@if ($project->hirer->contact_name)<div class="hint">{{ $project->hirer->contact_name }} · {{ $project->hirer->email }}</div>@endif</dd></div>
  <div><dt>Trade</dt><dd>{{ $project->trade ?: 'Any trade' }}</dd></div>
- <div><dt>Place</dt><dd>{{ collect([$project->county, $project->ward])->filter()->implode(', ') ?: '—' }}</dd></div>
+ <div><dt>Place</dt><dd>{{ collect([$project->county, $project->ward])->filter()->implode(', ') ?: '—' }}
+ @if ($project->community->exists)<div class="hint">Community <a href="{{ route('admin.communities.show', $project->community_id) }}">{{ $project->community->community_code ?: $project->community->name }}</a></div>@endif</dd></div>
  <div><dt>Budget</dt><dd>{{ $project->budget !== null ? 'KSh '.number_format((float) $project->budget, 2) : 'Not set' }}</dd></div>
  <div><dt>Duration</dt><dd>{{ $project->duration ?: '—' }}</dd></div>
  <div><dt>Deadline</dt><dd>{{ $project->deadline ? $project->deadline->format('d M Y') : 'Open until closed' }}</dd></div>

@@ -26,7 +26,8 @@
         <h3>At a glance</h3>
         <dl class="kv">
             <div><dt>Trade</dt><dd>{{ $project->trade ?: 'Any trade' }}</dd></div>
-            <div><dt>Place</dt><dd>{{ collect([$project->county, $project->ward])->filter()->implode(', ') ?: 'To be confirmed' }}</dd></div>
+            <div><dt>Place</dt><dd>{{ collect([$project->county, $project->ward])->filter()->implode(', ') ?: 'To be confirmed' }}
+                @if ($project->community->exists)<div class="hint">Community: {{ $project->community->name }}</div>@endif</dd></div>
             <div><dt>Budget</dt><dd>{{ $project->budget !== null ? 'KSh '.number_format((float) $project->budget, 2) : 'Discussed on award' }}</dd></div>
             <div><dt>Duration</dt><dd>{{ $project->duration ?: '—' }}</dd></div>
             <div><dt>Apply by</dt><dd>{{ $project->deadline ? $project->deadline->format('d M Y') : 'Open until assigned' }}</dd></div>

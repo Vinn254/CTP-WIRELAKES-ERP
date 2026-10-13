@@ -36,11 +36,16 @@ class Project extends Model
 
     protected $fillable = [
         'reference', 'hirer_id', 'title', 'description', 'materials', 'category', 'trade',
-        'county', 'ward', 'budget', 'duration', 'deadline', 'status',
+        'county', 'ward', 'community_id', 'budget', 'duration', 'deadline', 'status',
         'awarded_at', 'posted_by',
     ];
 
     protected $casts = ['deadline' => 'date', 'awarded_at' => 'datetime', 'budget' => 'decimal:2'];
+
+    public function community(): BelongsTo
+    {
+        return $this->belongsTo(Community::class)->withDefault();
+    }
 
     public function hirer(): BelongsTo
     {

@@ -201,7 +201,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--lime); bord
 input[type=file] { font: inherit; }
 fieldset { border: 1.5px solid var(--line); border-radius: 10px; padding: 16px; margin: 0 0 18px; }
 legend { font-weight: 800; color: var(--green); padding: 0 8px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+.form-grid, .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
 .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; }
 .help { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; }
@@ -230,6 +230,15 @@ table.data tr:hover td { background: #f4faf1; }
 .status.deployed { background: #dcf5e4; color: #0a5a2c; }
 .status.suspended { background: #f7e0d6; color: #8a3b12; }
 .status.rejected { background: #fdecea; color: var(--danger); }
+/* Module 3 — need and community states */
+.status.proposed { background: #fff3d6; color: var(--warn); }
+.status.prioritised { background: #d9f0ff; color: #0d5c86; }
+.status.converted { background: #dcf5e4; color: #0a5a2c; }
+.status.closed, .status.draft { background: #eef1f4; color: var(--muted); }
+html.dark .status.proposed { background: #3a2f14; color: #f7cf72; }
+html.dark .status.prioritised { background: #123044; color: #9fd6f7; }
+html.dark .status.converted { background: #123523; color: #93e6b3; }
+html.dark .status.closed, html.dark .status.draft { background: #262b2f; color: #a7b1b8; }
 html.dark .status.pending_payment { background: #2b2145; color: #cbb6ff; }
 html.dark .status.graduated { background: #123044; color: #9fd6f7; }
 html.dark .status.deployed { background: #123523; color: #93e6b3; }
@@ -452,7 +461,7 @@ html.dark .stat b { color: var(--lime); }
   .kv { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
-  .grid-3, .grid-4, .form-grid, .form-grid-3, .counters, .grid-2 { grid-template-columns: 1fr; }
+  .grid-3, .grid-4, .form-grid, .form-grid-2, .form-grid-3, .counters, .grid-2 { grid-template-columns: 1fr; }
 }
 
 /* Dark mode — every page responds */
@@ -585,6 +594,22 @@ html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .lifecycle .mini-form { margin-top: 0; }
 .repeat-input { display: block; width: 100%; margin-bottom: 8px; }
 .check-row { display: flex; gap: 9px; align-items: flex-start; margin: 10px 0; font-size: .92rem; }
+
+/* Module 3 — communities, needs pipeline and beneficiaries */
+.community-card { border-left: 4px solid var(--green); }
+.need-row { padding: 12px 0; border-top: 1px dashed var(--line); }
+.need-row:first-of-type { border-top: 0; }
+.need-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.need-actions .lifecycle { margin-top: 0; }
+.inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.inline-form select { width: auto; min-width: 130px; margin: 0; }
+.inline-form label { margin: 0; }
+details.convert, details.need-form { margin: 10px 0 4px; border: 1px dashed var(--line); border-radius: var(--radius); padding: 10px 12px; }
+details.convert > summary, details.need-form > summary { cursor: pointer; font-weight: 700; color: var(--green-dark); }
+details[open] > summary { margin-bottom: 10px; }
+.filter-note { margin: 0 0 12px; font-size: .9rem; }
+.select-sm { width: auto; min-width: 170px; margin: 0; }
+.doc-link { font-size: .84rem; font-weight: 700; }
 .check-row input { margin-top: 3px; }
 .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 

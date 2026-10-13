@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use App\Models\CtpRegistration;
+use App\Models\Community;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
+use App\Models\Need;
 use App\Models\Partner;
 use App\Models\ProjectApplication;
 
@@ -20,7 +22,7 @@ class Departments
         ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoter Management',
             'desc' => 'CTP profiles and IDs, tracks, mobilisation 15/30, suspension and deployment', 'live' => true],
         ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Community Management',
-            'desc' => 'Communities, beneficiaries, needs assessment', 'live' => false],
+            'desc' => 'Community profiles and IDs, needs assessment, beneficiaries, the CTP who looks after each place', 'live' => true],
         ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
             'desc' => 'Courses, cohorts, assessment, certificates', 'live' => false],
         ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Management',
@@ -59,6 +61,11 @@ class Departments
         'promoters' => [
             ['label' => 'CTP profiles', 'icon' => 'users', 'route' => ['admin.promoters.index'], 'badge' => 'promoters'],
         ],
+        'communities' => [
+            ['label' => 'Community register', 'icon' => 'globe', 'route' => ['admin.communities.index'], 'badge' => 'communities'],
+            ['label' => 'Needs assessment', 'icon' => 'check', 'route' => ['admin.needs.index'], 'badge' => 'needs'],
+            ['label' => 'Beneficiaries', 'icon' => 'users', 'route' => ['admin.beneficiaries.index']],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -72,6 +79,9 @@ class Departments
         'admin.donations.' => 'membership',
         'admin.staff.' => 'membership',
         'admin.promoters.' => 'promoters',
+        'admin.communities.' => 'communities',
+        'admin.needs.' => 'communities',
+        'admin.beneficiaries.' => 'communities',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -86,6 +96,9 @@ class Departments
         'admin.donations.index' => 'Every pledge made on the public donate page',
         'admin.staff.index' => 'Invite staff and set their roles',
         'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
+        'admin.communities.index' => 'Every community, its CTP, its needs and who benefited there',
+        'admin.needs.index' => 'Prioritise what CTPs flagged and turn a need into a project',
+        'admin.beneficiaries.index' => 'People, households and businesses a project reached',
     ];
 
     public static function all(): array
@@ -128,6 +141,8 @@ class Departments
             'applicants' => static::pendingApplications(),
             'promoters' => CtpRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
             'applications' => ProjectApplication::where('status', 'pending_review')->count(),
+            'communities' => Community::where('status', 'pending_review')->count(),
+            'needs' => Need::where('status', 'proposed')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
             default => 0,
         };

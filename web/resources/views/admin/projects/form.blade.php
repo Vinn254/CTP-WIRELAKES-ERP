@@ -85,6 +85,17 @@
  </div>
 
  <div class="field">
+ <label>Community</label>
+ <select name="community_id">
+ <option value="">Not tied to a community</option>
+ @foreach ($communities as $c)
+ <option value="{{ $c->id }}" @selected((int) old('community_id', $project->community_id) === $c->id)>{{ $c->community_code ?: $c->name }} — {{ $c->name }}, {{ $c->county }}</option>
+ @endforeach
+ </select>
+ <div class="help">Ties the project to a Module 3 community: it lands on that community&rsquo;s timeline and counts toward its investment value.</div>
+ </div>
+
+ <div class="field">
  <label>Duration</label>
  <input type="text" name="duration" maxlength="60" value="{{ old('duration', $project->duration) }}" placeholder="e.g. 3 weeks">
  </div>
