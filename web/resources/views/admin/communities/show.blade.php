@@ -64,12 +64,14 @@
         </div>
 
         <div class="card">
-            <h3>CTPs on this community ({{ $community->ctps->count() }})</h3>
+            <h3>CTPs mobilising here ({{ $community->ctps->count() }})</h3>
+            <p class="hint">An area is worked by as many CTPs as the county puts there — they all mobilise and all
+                get credit for the people they bring. One of them is named lead so the record has an owner.</p>
             @forelse ($community->ctps as $ctp)
                 <div class="row-line">
                     <a href="{{ route('admin.promoters.show', $ctp) }}"><b>{{ $ctp->full_name }}</b></a>
                     <span class="hint">{{ $ctp->ctp_code }} · {{ $ctp->county }}</span>
-                    <span class="fee-tag {{ $ctp->pivot->role === 'lead' ? 'paid' : '' }}">{{ Str::headline($ctp->pivot->role) }}</span>
+                    <span class="fee-tag {{ $ctp->pivot->role === 'lead' ? 'paid' : '' }}">{{ Community::ROLES[$ctp->pivot->role] ?? Str::headline($ctp->pivot->role) }}</span>
                     <form method="POST" action="{{ route('admin.communities.ctp.remove', [$community, $ctp]) }}" class="mini-form"
                           data-confirm="Remove {{ $ctp->full_name }} from {{ $community->name }}?" data-title="Remove CTP">
                         @csrf
@@ -77,7 +79,8 @@
                     </form>
                 </div>
             @empty
-                <p class="hint">Nobody is on the roster yet — the lead CTP is who Module 4 books a cohort through and Module 12 counts field work for.</p>
+                <p class="hint">Nobody is on the roster yet — this community is who Module 4 books a cohort through
+                    and Module 12 counts field work for.</p>
             @endforelse
 
             <form method="POST" action="{{ route('admin.communities.ctp', $community) }}" class="mini-form"
@@ -98,13 +101,29 @@
                     <div class="field">
                         <label>Role</label>
                         <select name="role">
-                            <option value="lead">Lead — looks after this community</option>
-                            <option value="support">Support</option>
+                            <option value="mobilizer">Mobilizer — brings people from this area</option>
+                            <option value="lead">Lead — owns this community record</option>
                         </select>
                     </div>
                 </div>
                 <button class="btn btn-sm btn-primary" type="submit">Add to roster</button>
             </form>
+        </div>
+
+        <div class="card">
+            <h3>People brought from this area <span class="tag gray">{{ $brought->count() }}</span></h3>
+            <p class="hint">Anyone a rostered CTP mobilised who then joined the programme here — as a trainee CTP or
+                a registered E-Fundi. This is what each CTP's 15 / 30 mobilisation credit is measured on.</p>
+            @forelse ($brought as $p)
+                <div class="row-line">
+                    <b>{{ $p['name'] }}</b>
+                    <span class="tag">{{ $p['kind'] }}</span>
+                    <span class="status {{ $p['status'] }}">{{ $p['label'] }}</span>
+                    <span class="hint">brought by {{ $p['mobiliser'] }} · {{ $p['on'] ? $p['on']->format('d M Y') : '—' }}</span>
+                </div>
+            @empty
+                <p class="hint">Nobody registered from this area through a rostered CTP yet.</p>
+            @endforelse
         </div>
 
         <div class="card">

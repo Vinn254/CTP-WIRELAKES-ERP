@@ -108,6 +108,20 @@ class Project extends Model
     }
 
     /**
+     * Can this member open the project at all? A CTP is a trainee: they read every
+     * posted project to learn what work exists in their area, but only apply where
+     * accepts() allows. An E-Fundi still sees only the levels they hold.
+     */
+    public function viewsTo(FundiRegistration|CtpRegistration|null $member): bool
+    {
+        if (! $member || $this->status === 'draft') {
+            return false;
+        }
+
+        return $member instanceof CtpRegistration || $this->accepts($member);
+    }
+
+    /**
      * Every approved member, for the worker pickers. 'tier' and 'ctp' drive
      * fits(), so a list page can flag a mismatch without loading the record.
      */

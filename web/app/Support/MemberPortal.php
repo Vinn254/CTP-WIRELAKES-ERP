@@ -22,7 +22,9 @@ class MemberPortal
     {
         return Project::with('hirer')
             ->where('status', 'open')
-            ->whereIn('category', Project::eligibleCategories($member))
+            // A CTP trainee sees every posted project; only the ones they may apply for say so.
+            ->when(! ($member instanceof CtpRegistration),
+                fn ($q) => $q->whereIn('category', Project::eligibleCategories($member)))
             ->where(fn ($q) => $q->whereNull('deadline')->orWhere('deadline', '>=', today()))
             ->latest()
             ->get();
@@ -56,7 +58,6 @@ class MemberPortal
                 'needs' => fn ($q) => $q->with('project:id,title,category,status')->latest('id'),
                 'ctps:id,ctp_code,full_name',
                 'beneficiaries.project:id,title,category,status',
-                'projects',
             ])
             ->orderBy('county')->orderBy('ward')->orderBy('name')
             ->get();

@@ -9,7 +9,7 @@ The operational centre of the ERP: the life of a Community Technology Promoter f
 | Applicant → CTP status machine | `pending payment` → `pending review` → `active` / `rejected` | membership (Module 2 views) |
 | CTP profile | personal, location, education, track, referral, CTP ID, auto-counts | membership |
 | Three parallel roles | Trainee / Mobilizer / Community Agent on one record | membership |
-| Mobilisation | referral code, 15 / 30 term discounts, verified-enrollment counting | membership |
+| Mobilisation | referral code, people brought, 15 / 30 term milestones, per-area attribution | membership |
 | Deployment | E-Fundi pool, internship / attachment, trainer opt-in | membership |
 | Field activity log | visits, needs assessments, beneficiaries, e-waste drives — GPS + photos | membership |
 
@@ -41,6 +41,19 @@ offers them. There is no staff preview of a member's screen: RBAC keeps staff ou
 members out of every `/admin/*` url (403), member routes take no id parameter, and project detail pages are
 reached only through the member's own eligible list.
 
-**Next — the mobilisation credit.** The interface already counts verified referrals inside the current term
+**Mobilisation is counted on people brought, not on clicks.** A CTP's term score is the registrations that
+actually converted into the programme *in the areas they mobilise*: trainee CTPs carrying their referral code,
+plus E-Fundi registrations that name them as `mobilised_by_ctp` and are already `active`. Both kinds are
+matched to the community's county / sub-county / ward and surfaced as one list (`CtpRegistration::broughtList()`,
+`Community::peopleBrought()`) so a promoter sees a trainee and a fundi in the same column. Many CTPs may mobilise
+one area — each is credited only for the people they personally brought. The score drives the 15 / 30 milestones
+against `CtpRegistration::currentTerm()`.
+
+**A CTP is a trainee first, so projects are read-only for them.** They see every published project
+(`Project::viewsTo()`), may read the detail page of one they cannot apply to, and may submit an application only
+to CTP attachment. Fundis keep the tighter rule: they see only the tiers they hold. Drafts are invisible to both
+(404, not 403) — an unpublished project does not exist for a member yet.
+
+**Next — the mobilisation credit.** The interface already counts people brought inside the current term
 (Jan–Apr / May–Aug / Sep–Dec) toward the 15 / 30 milestones; the discount a milestone earns is not yet issued
 as a credit against a fee.

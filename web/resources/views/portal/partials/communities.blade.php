@@ -8,8 +8,8 @@
     $openNeeds = $communities->sum(fn (Community $c) => $c->needs->whereIn('status', ['proposed', 'prioritised'])->count());
     $reached = $communities->sum(fn (Community $c) => $c->beneficiaries->count());
     $confirmed = $communities->where('status', 'active')->count();
-    // A CTP only opens a project that is published and matches their level — anything else is shown without a link.
-    $canOpen = fn ($project) => $project && $project->isOpen() && $project->accepts($member);
+    // A CTP is a trainee: they can read any published project, but a draft stays with the office.
+    $canOpen = fn ($project) => $project && $project->viewsTo($member);
 @endphp
 
 <div class="page-intro">
@@ -38,7 +38,7 @@
         $pending = $community->status === 'pending_review';
         $rejected = $community->status === 'rejected';
         $communityNeeds = $community->needs;
-        $communityProjects = $community->projects;
+        $withMe = $community->ctps->reject(fn ($t) => $t->id === $member->id);
     @endphp
 
     <div class="card community-card">
@@ -46,8 +46,13 @@
             <h3>{{ $community->name }}</h3>
             <span class="status {{ $community->status }}">{{ $community->statusLabel() }}</span>
             <span class="tag">{{ $community->community_code ?: 'COM ID on approval' }}</span>
-            @if ($myRole)<span class="fee-tag {{ $myRole === 'lead' ? 'paid' : '' }}">{{ $myRole === 'lead' ? 'You are the lead CTP' : 'You support this one' }}</span>@endif
+            @if ($myRole)<span class="fee-tag {{ $myRole === 'lead' ? 'paid' : '' }}">{{ $myRole === 'lead' ? 'You are the lead CTP here' : 'You mobilise here' }}</span>@endif
         </div>
+        @if ($withMe->isNotEmpty())
+            <p class="hint">Also mobilising in this area:
+                {{ $withMe->map(fn ($t) => $t->full_name.($t->pivot->role === 'lead' ? ' (lead)' : ''))->join(', ') }}
+                — everyone who brings people here is credited for their own.</p>
+        @endif
         <p class="hint">{{ collect([$community->village, $community->ward, $community->sub_county, $community->county])->filter()->join(' · ') }}
             @if ($community->hasPin())
                 · <a href="https://www.google.com/maps?q={{ $community->gps_lat }},{{ $community->gps_lng }}" target="_blank" rel="noopener">map pin ↗</a>
@@ -182,16 +187,9 @@
                             <label>Date they benefited <span class="req">*</span></label>
                             <input type="date" name="benefited_on" required value="{{ now()->toDateString() }}">
                         </div>
-                        <div class="field">
-                            <label>Which project reached them</label>
-                            <select name="project_id">
-                                <option value="">Not tied to a project</option>
-                                @foreach ($projectOptions as $p)
-                                    <option value="{{ $p->id }}">{{ $p->title }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                     </div>
+                    <p class="hint">The programme office links a beneficiary to the project that reached them — you
+                        just record who you mobilised and when.</p>
                     <label class="check-row">
                         <input type="checkbox" name="id_consent" value="1">
                         <span>They agreed to give their ID number for follow-up programmes</span>
@@ -207,19 +205,6 @@
             <p class="hint">Beneficiaries are counted once the office confirms this community.</p>
         @endif
 
-        <h4 class="dl-group">Projects here ({{ $communityProjects->count() }})</h4>
-        @forelse ($communityProjects as $p)
-            <div class="row-line">
-                @if ($canOpen($p))
-                    <a href="{{ route('portal.project', $p->id) }}"><b>{{ $p->title }}</b></a>
-                @else
-                    <b>{{ $p->title }}</b>
-                @endif
-                <span class="status {{ $p->status }}">{{ str_replace('_', ' ', $p->status) }}</span>
-            </div>
-        @empty
-            <p class="hint">None yet. Needs you flag here become project candidates.</p>
-        @endforelse
     </div>
 @endforeach
 

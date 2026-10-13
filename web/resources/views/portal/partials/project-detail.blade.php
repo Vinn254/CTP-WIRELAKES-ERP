@@ -49,6 +49,13 @@
                     </form>
                 @endif
             </div>
+        @elseif (! $project->accepts($member))
+            <p class="hint" style="margin-top:12px;">
+                <b>{{ Project::CATEGORIES[$project->category]['label'] }}</b> is posted for
+                {{ $member instanceof CtpRegistration ? 'E-Fundis at that level' : 'a different level' }}.
+                You can read what the programme is doing here, and apply once your own level matches —
+                your training path is under <b>My training</b>.
+            </p>
         @elseif ($isOpen)
             <form method="POST" action="{{ route('portal.apply', $project) }}" style="margin-top:14px;">
                 @csrf

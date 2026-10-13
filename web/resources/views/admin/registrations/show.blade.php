@@ -47,6 +47,10 @@
             <span><b>{{ $record->reference }}</b></span>
             @if ($place)<span>{{ $place }}</span>@endif
             @if ($memberCode)<span class="tag">{{ $memberCode }}</span>@endif
+            @if ($type === 'fundi' && $record->mobiliser)
+                <span>Mobilised by <b>{{ $record->mobiliser->ctp_code }}</b> · {{ $record->mobiliser->full_name }}
+                    — the credit for this registration is theirs</span>
+            @endif
             <span>Submitted {{ $record->created_at->format('d M Y') }}, {{ $record->created_at->format('H:i') }}</span>
         </p>
     </div>

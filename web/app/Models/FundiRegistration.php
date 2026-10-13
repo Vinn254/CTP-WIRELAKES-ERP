@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class FundiRegistration extends Model
@@ -21,7 +22,8 @@ class FundiRegistration extends Model
 
     protected $fillable = [
         'reference', 'full_name', 'national_id', 'phone', 'email', 'dob', 'gender',
-        'tier', 'business_name', 'business_reg_no', 'years_in_business',
+        'tier', 'county', 'sub_county', 'ward', 'mobilised_by_ctp',
+        'business_name', 'business_reg_no', 'years_in_business',
         'specialisations', 'service_counties', 'referee_name', 'referee_phone', 'referee_role',
         'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
         'status', 'user_id', 'rejection_reason', 'ef_code',
@@ -39,6 +41,22 @@ class FundiRegistration extends Model
     public static function tierLabel(?string $tier): string
     {
         return $tier ? trim(Str::before(trim(self::TIERS[$tier] ?? $tier), '—')) : '';
+    }
+
+    /** The CTP who brought this fundi into the programme — the credit belongs to them. */
+    public function mobiliser(): BelongsTo
+    {
+        return $this->belongsTo(CtpRegistration::class, 'mobilised_by_ctp');
+    }
+
+    public function placeLabel(): string
+    {
+        return collect([$this->ward, $this->sub_county, $this->county])->filter()->join(' · ');
+    }
+
+    public function statusLabel(): string
+    {
+        return Str::headline(str_replace('_', ' ', $this->status));
     }
 
     public static function nextCode(): string

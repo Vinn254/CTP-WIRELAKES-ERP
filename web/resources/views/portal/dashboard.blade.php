@@ -14,9 +14,9 @@
     $waiting = $applications->where('status', 'pending_review')->count();
     $won = $applications->where('status', 'approved')->count();
     $term = CtpRegistration::currentTerm();
-    $thisTerm = $isCtp ? $member->verifiedReferralsThisTerm() : 0;
+    $thisTerm = $isCtp ? $member->peopleBroughtThisTerm() : 0;
     $next = $isCtp ? ($member->nextMilestone() ?? 30) : 0;
-    $openLabel = $isCtp ? 'Open for you' : 'Available projects';
+    $openLabel = $isCtp ? 'Projects posted' : 'Available projects';
     $myCommunities = $communities;
     $openNeeds = $myCommunities->sum(fn ($c) => $c->needs->whereIn('status', ['proposed', 'prioritised'])->count());
 @endphp
@@ -74,14 +74,14 @@
         <p class="help">{{ $member->stageLabel() }} — your training path is under <b>My training</b>, and what you have
             mobilised this term is under <b>My mobilisation</b>.</p>
         <div class="milestone">
-            <div class="ms-top"><b>{{ $thisTerm }} of {{ $next }}</b><span class="hint">verified referrals this term</span></div>
+            <div class="ms-top"><b>{{ $thisTerm }} of {{ $next }}</b><span class="hint">people you brought this term</span></div>
             <div class="ms-bar"><i style="width: {{ $next ? min(100, round($thisTerm / $next * 100)) : 0 }}%"></i></div>
         </div>
         <p style="margin:14px 0 0;"><a class="btn btn-sm btn-outline" href="{{ route('portal.mobilisation') }}">Open my mobilisation</a></p>
     </div>
 @endif
 
-<h2 class="section-head">Open for you <span class="tag">{{ $projects->count() }}</span></h2>
+<h2 class="section-head">{{ $isCtp ? 'Projects posted' : 'Open for you' }} <span class="tag">{{ $projects->count() }}</span></h2>
 @include('portal.partials.project-list', ['limit' => 3])
 
 <h2 class="section-head" style="margin-top:28px;">My latest applications <span class="tag gray">{{ $applications->count() }}</span></h2>

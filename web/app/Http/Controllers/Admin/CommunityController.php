@@ -54,7 +54,7 @@ class CommunityController extends Controller
     public function show(Community $community)
     {
         $community->load([
-            'ctps' => fn ($q) => $q->orderByRaw("field(role,'lead','support')"),
+            'ctps' => fn ($q) => $q->orderByRaw("field(role,'lead','mobilizer')"),
             'needs.project:id,reference,title,status',
             'needs.reviewer:id,name',
             'needs.assessor:id,ctp_code,full_name',
@@ -69,6 +69,7 @@ class CommunityController extends Controller
             'needs' => $community->needs,
             'projects' => $community->projects,
             'beneficiaries' => $community->beneficiaries,
+            'brought' => $community->peopleBrought(),
             'candidates' => CtpRegistration::whereIn('status', CtpRegistration::WORKING)
                 ->orderBy('full_name')->get(['id', 'ctp_code', 'full_name', 'county']),
             'openProjects' => Project::where('status', '!=', 'closed')
@@ -157,12 +158,12 @@ class CommunityController extends Controller
         return back()->with('status', $community->name.' rejected as a duplicate or wrong place — the CTP who proposed it is told why.');
     }
 
-    /** One lead looks after a community; the rest support it. */
+    /** Every CTP on the roster mobilises this area; one of them is named lead for the record. */
     public function assignCtp(Request $request, Community $community)
     {
         $data = $request->validate([
             'ctp_id' => 'required|exists:ctp_registrations,id',
-            'role' => 'required|in:lead,support',
+            'role' => 'required|in:'.implode(',', array_keys(Community::ROLES)),
         ], [], ['ctp_id' => 'CTP']);
 
         $ctp = CtpRegistration::findOrFail($data['ctp_id']);
@@ -171,7 +172,7 @@ class CommunityController extends Controller
 
         if ($data['role'] === 'lead') {
             $community->ctps()->wherePivot('role', 'lead')->where('ctp_id', '!=', $ctp->id)
-                ->get()->each(fn (CtpRegistration $other) => $community->ctps()->updateExistingPivot($other->id, ['role' => 'support']));
+                ->get()->each(fn (CtpRegistration $other) => $community->ctps()->updateExistingPivot($other->id, ['role' => 'mobilizer']));
         }
 
         $community->ctps()->syncWithoutDetaching([
@@ -179,7 +180,7 @@ class CommunityController extends Controller
         ]);
 
         return back()->with('status', $ctp->full_name.' is now '
-            .($data['role'] === 'lead' ? 'the lead CTP for' : 'supporting').' '.$community->name.'.');
+            .($data['role'] === 'lead' ? 'the lead CTP for' : 'mobilising in').' '.$community->name.'.');
     }
 
     public function removeCtp(Community $community, CtpRegistration $ctp)

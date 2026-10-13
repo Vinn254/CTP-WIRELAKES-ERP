@@ -22,9 +22,12 @@
                     <div class="hint">{{ Str::limit($p->description, 130) }}</div>
                 </div>
                 <div class="proj-side">
+                    @if (! $p->accepts($member))
+                        <span class="tag gray">For fundis — you can read it</span>
+                    @endif
                     @if ($p->deadline)<div class="hint">Apply by {{ $p->deadline->format('d M Y') }}</div>@endif
-                    <a class="btn btn-sm {{ $applications->contains('project_id', $p->id) ? 'btn-ghost' : 'btn-lime' }}" href="{{ route('portal.project', $p) }}">
-                        {{ $applications->contains('project_id', $p->id) ? 'View / manage' : 'View & apply' }}
+                    <a class="btn btn-sm {{ ! $p->accepts($member) || $applications->contains('project_id', $p->id) ? 'btn-ghost' : 'btn-lime' }}" href="{{ route('portal.project', $p) }}">
+                        {{ ! $p->accepts($member) ? 'Read' : ($applications->contains('project_id', $p->id) ? 'View / manage' : 'View & apply') }}
                     </a>
                 </div>
             </div>
@@ -32,7 +35,7 @@
     </div>
     @isset($limit)
         @if ($projects->count() > $limit)
-            <p class="more"><a href="{{ route('portal.projects') }}">All {{ $projects->count() }} projects open for you &rarr;</a></p>
+            <p class="more"><a href="{{ route('portal.projects') }}">All {{ $projects->count() }} projects posted &rarr;</a></p>
         @endif
     @endisset
 @endif

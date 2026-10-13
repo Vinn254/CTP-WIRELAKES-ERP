@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class CtpRegistration extends Model
@@ -81,6 +82,12 @@ class CtpRegistration extends Model
     public function referrals(): HasMany
     {
         return $this->hasMany(self::class, 'referred_by');
+    }
+
+    /** E-Fundis who registered because this CTP mobilised them. */
+    public function mobilisedFundis(): HasMany
+    {
+        return $this->hasMany(FundiRegistration::class, 'mobilised_by_ctp');
     }
 
     public function user(): BelongsTo
@@ -164,6 +171,52 @@ class CtpRegistration extends Model
         return $this->termReferrals()->count();
     }
 
+    /**
+     * Mobilisation credit is measured on people, not on one registration type:
+     * a trainee who joined the programme or a fundi who registered counts the same.
+     */
+    public function peopleBrought(): int
+    {
+        return $this->verifiedReferrals() + $this->mobilisedFundis()->where('status', 'active')->count();
+    }
+
+    public function peopleBroughtThisTerm(): int
+    {
+        $since = self::currentTerm()['start'];
+
+        return $this->termReferrals()->count()
+            + $this->mobilisedFundis()->where('status', 'active')
+                ->where('created_at', '>=', $since)->count();
+    }
+
+    /** The same people as a list newest first, shaped the way Module 3 shows them. */
+    public function broughtList(): Collection
+    {
+        $trainees = $this->referrals()->with('referrer')->latest('id')->get()
+            ->map(fn (self $c) => self::asBrought($c));
+        $fundis = $this->mobilisedFundis()->with('mobiliser')->latest('id')->get()
+            ->map(fn (FundiRegistration $f) => self::asBrought($f));
+
+        return $trainees->concat($fundis)->sortByDesc('on')->values();
+    }
+
+    /** One shape for both kinds of person, so any screen can list them together. */
+    public static function asBrought(CtpRegistration|FundiRegistration $person): array
+    {
+        return $person instanceof CtpRegistration ? [
+            'name' => $person->full_name, 'code' => $person->ctp_code ?: $person->reference,
+            'kind' => 'CTP trainee', 'status' => $person->status, 'label' => $person->statusLabel(),
+            'place' => collect([$person->ward, $person->sub_county, $person->county])->filter()->join(' · '),
+            'mobiliser' => $person->referrer->full_name ?? '—', 'on' => $person->referred_at ?? $person->created_at,
+        ] : [
+            'name' => $person->full_name, 'code' => $person->ef_code ?: $person->reference,
+            'kind' => FundiRegistration::tierLabel($person->tier) ?: 'E-Fundi',
+            'status' => $person->status, 'label' => $person->statusLabel(),
+            'place' => $person->placeLabel(),
+            'mobiliser' => $person->mobiliser->full_name ?? '—', 'on' => $person->created_at,
+        ];
+    }
+
     public function referralLink(): string
     {
         return route('register.ctp').'?ref='.urlencode($this->ctp_code ?? $this->reference);
@@ -173,7 +226,7 @@ class CtpRegistration extends Model
     public function nextMilestone(): ?int
     {
         foreach (array_keys(self::MOBILISATION_TIERS) as $target) {
-            if ($this->verifiedReferrals() < $target) {
+            if ($this->peopleBrought() < $target) {
                 return $target;
             }
         }
@@ -181,10 +234,10 @@ class CtpRegistration extends Model
         return null;
     }
 
-    /** The reward earned by the referrals counted so far. */
+    /** The reward earned by the people mobilised so far. */
     public function discountLabel(): string
     {
-        $count = $this->verifiedReferrals();
+        $count = $this->peopleBrought();
         $earned = null;
 
         foreach (self::MOBILISATION_TIERS as $target => $reward) {
@@ -193,7 +246,7 @@ class CtpRegistration extends Model
             }
         }
 
-        return $earned ?? 'No term discount yet — '.$count.' verified referral'.($count === 1 ? '' : 's');
+        return $earned ?? 'No term discount yet — '.$count.' '.($count === 1 ? 'person brought' : 'people brought');
     }
 
     /** Kenyan programme terms — mobilisation credit is measured inside the current one. */

@@ -3,9 +3,9 @@
 
 @php
     use App\Models\CtpRegistration;
-    $paid = $ctp->verifiedReferrals();
+    $broughtCount = $ctp->peopleBrought();
     $target = $ctp->nextMilestone() ?? 30;
-    $share = round(min(100, $paid / $target * 100));
+    $share = round(min(100, $broughtCount / $target * 100));
     $place = collect([$ctp->ward, $ctp->sub_county, $ctp->county])->filter()->join(', ');
 @endphp
 
@@ -100,7 +100,7 @@
             <h3>Mobilisation</h3>
             <div class="milestone">
                 <div class="ms-top">
-                    <b>{{ $paid }} verified referral{{ $paid === 1 ? '' : 's' }}</b>
+                    <b>{{ $broughtCount }} people brought</b>
                     <span class="hint">toward {{ $target }}</span>
                 </div>
                 <div class="ms-bar"><i style="width: {{ $share }}%"></i></div>
@@ -119,15 +119,18 @@
                 <p class="help"><b>Code “{{ $ctp->referral_code }}”</b> matched no CTP — they may have mistyped it. Link the right mobiliser below.</p>
             @endif
 
-            <h4 class="dl-group">Brought into the programme</h4>
-            @forelse ($referrals as $r)
+            <h4 class="dl-group">People brought into the programme</h4>
+            <p class="hint">A trainee CTP or a registered E-Fundi who joined through this CTP — both count toward the
+                same 15 / 30 term credit.</p>
+            @forelse ($brought as $p)
                 <div class="row-line">
-                    <a href="{{ route('admin.promoters.show', $r) }}"><b>{{ $r->full_name }}</b></a>
-                    <span class="hint">{{ $r->ctp_code ?: 'no ID yet' }} · {{ $r->county }}</span>
-                    <span class="status {{ $r->status }}">{{ $r->statusLabel() }}</span>
+                    <b>{{ $p['name'] }}</b>
+                    <span class="tag">{{ $p['kind'] }}</span>
+                    <span class="hint">{{ $p['code'] }}{{ $p['place'] ? ' · '.$p['place'] : '' }}</span>
+                    <span class="status {{ $p['status'] }}">{{ $p['label'] }}</span>
                 </div>
             @empty
-                <p class="hint">Nobody yet. Only referrals that paid and were approved count.</p>
+                <p class="hint">Nobody yet. Only people who paid and were approved count.</p>
             @endforelse
 
             <form method="POST" action="{{ route('admin.promoters.referrer', $ctp) }}" class="mini-form"

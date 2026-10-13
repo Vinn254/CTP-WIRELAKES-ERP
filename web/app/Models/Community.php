@@ -21,6 +21,12 @@ class Community extends Model
         'rejected' => 'Rejected',
     ];
 
+    /** An area is mobilised by every CTP on its roster; one of them carries the record. */
+    public const ROLES = [
+        'lead' => 'Lead CTP',
+        'mobilizer' => 'Mobilizer',
+    ];
+
     protected $fillable = [
         'community_code', 'name', 'county', 'sub_county', 'ward', 'village',
         'gps_lat', 'gps_lng', 'population', 'households', 'summary',
@@ -127,11 +133,34 @@ class Community extends Model
         return $data;
     }
 
-
     public function lead(): ?CtpRegistration
     {
         return $this->ctps->firstWhere('pivot.role', 'lead')
             ?? $this->ctps()->wherePivot('role', 'lead')->first();
+    }
+
+    /**
+     * People a CTP on this roster brought into the programme from this exact area —
+     * new trainees and registered fundis. This is what mobilisation credit is measured on.
+     */
+    public function peopleBrought(): \Illuminate\Support\Collection
+    {
+        $roster = $this->ctps()->pluck('ctp_id');
+        if ($roster->isEmpty()) {
+            return collect();
+        }
+
+        $inArea = fn ($q) => $q->whereRaw('LOWER(county) = ?', [mb_strtolower($this->county)])
+            ->whereRaw('LOWER(sub_county) = ?', [mb_strtolower($this->sub_county)])
+            ->whereRaw('LOWER(ward) = ?', [mb_strtolower($this->ward)]);
+
+        $trainees = CtpRegistration::whereIn('referred_by', $roster)->where($inArea(...))->get()
+            ->map(fn (CtpRegistration $c) => CtpRegistration::asBrought($c));
+
+        $fundis = FundiRegistration::whereIn('mobilised_by_ctp', $roster)->where($inArea(...))->get()
+            ->map(fn (FundiRegistration $f) => CtpRegistration::asBrought($f));
+
+        return $trainees->concat($fundis)->sortByDesc('on')->values();
     }
 
     public function statusLabel(): string

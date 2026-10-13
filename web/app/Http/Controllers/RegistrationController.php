@@ -124,11 +124,12 @@ class RegistrationController extends Controller
         return $samePerson ? null : $referrer;
     }
 
-    public function fundiForm()
+    public function fundiForm(Request $request)
     {
         return view('register.fundi', $this->formData() + [
             'tiers' => $this->fundiTiers(),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
+            'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }
 
@@ -142,6 +143,10 @@ class RegistrationController extends Controller
             'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
             'gender' => 'required|in:male,female,other',
             'tier' => 'required|in:'.implode(',', array_keys($this->fundiTiers())),
+            'county' => 'required|string|max:100',
+            'sub_county' => 'required|string|max:100',
+            'ward' => 'required|string|max:100',
+            'mobiliser_code' => 'nullable|string|max:20',
             'business_name' => 'nullable|string|max:150',
             'business_reg_no' => 'nullable|string|max:60',
             'years_in_business' => 'nullable|integer|min:0|max:70',
@@ -160,12 +165,14 @@ class RegistrationController extends Controller
             'portfolio.*' => 'image|mimes:jpg,jpeg,png|max:3072',
         ], [], [
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
+            'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
         ]);
 
         $ref = $this->reference('EF');
         $files = ['id_scan', 'business_cert', 'trade_certs', 'portfolio'];
-        $record = collect($data)->except($files)->all();
+        $record = collect($data)->except(array_merge($files, ['mobiliser_code']))->all();
+        $record['mobilised_by_ctp'] = $this->resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;
         $record['reference'] = $ref;
         $record['specialisations'] = array_values(array_unique($data['specialisations']));
         $record['service_counties'] = array_values(array_unique($data['service_counties']));

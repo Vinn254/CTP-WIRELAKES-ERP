@@ -35,9 +35,7 @@ class PortalController extends Controller
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
 
-        return view('portal.dashboard', MemberPortal::board($member) + [
-            'referrals' => $member instanceof CtpRegistration ? $member->referrals()->latest()->limit(3)->get() : collect(),
-        ]);
+        return view('portal.dashboard', MemberPortal::board($member));
     }
 
     public function training()
@@ -50,20 +48,17 @@ class PortalController extends Controller
         $ctp = $this->ctp();
 
         return view('portal.mobilisation', MemberPortal::board($ctp) + [
-            'referrals' => $ctp->referrals()->latest()->get(),
+            'brought' => $ctp->broughtList(),
         ]);
     }
 
     public function communities()
     {
         $ctp = $this->ctp();
-        $board = MemberPortal::board($ctp);
 
-        return view('portal.communities', $board + [
+        return view('portal.communities', MemberPortal::board($ctp) + [
             'types' => Need::TYPES,
             'myNeeds' => $ctp->needsRecorded()->with('community:id,name,community_code,status')->latest('id')->limit(15)->get(),
-            'projectOptions' => Project::whereIn('community_id', $board['communities']->pluck('id'))
-                ->orderByDesc('created_at')->get(['id', 'reference', 'title']),
             'counties' => County::orderBy('name')->pluck('name'),
         ]);
     }
@@ -159,7 +154,9 @@ class PortalController extends Controller
     {
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found.');
-        abort_unless($project->accepts($member), 403, 'This project is for a different member level.');
+        // A draft is the office's own worksheet — it does not exist for a member yet.
+        abort_if($project->status === 'draft', 404);
+        abort_unless($project->viewsTo($member), 403, 'This project is for a different member level.');
 
         return view('portal.project', [
             'member' => $member,

@@ -53,7 +53,7 @@ class CtpProfileController extends Controller
         return view('admin.ctp.show', [
             'ctp' => $ctp,
             'docs' => $this->documents($ctp),
-            'referrals' => $ctp->referrals()->latest()->limit(25)->get(),
+            'brought' => $ctp->broughtList()->take(25),
             'projects' => ProjectApplication::where('applicant_type', 'ctp')
                 ->where('applicant_id', $ctp->id)
                 ->with('project:id,reference,title,status')

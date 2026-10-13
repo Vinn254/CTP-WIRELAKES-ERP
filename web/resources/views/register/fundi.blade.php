@@ -106,6 +106,36 @@
             </fieldset>
 
             <fieldset>
+                <legend>Where you work <span class="req">*</span></legend>
+                <p class="help">Your own area, not just the counties you travel to. The programme counts the work
+                    and the mobilisation credit in the community you registered in.</p>
+                <div class="form-grid-3">
+                    <div class="field">
+                        <label>County <span class="req">*</span></label>
+                        <input type="text" name="county" list="fundi-counties" value="{{ old('county') }}" required>
+                        <datalist id="fundi-counties">
+                            @foreach ($counties as $c)<option value="{{ $c }}"></option>@endforeach
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label>Sub-county <span class="req">*</span></label>
+                        <input type="text" name="sub_county" value="{{ old('sub_county') }}" required>
+                    </div>
+                    <div class="field">
+                        <label>Ward <span class="req">*</span></label>
+                        <input type="text" name="ward" value="{{ old('ward') }}" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>CTP code of the person who mobilised you
+                        <span class="hint">(optional — ask them for their code, e.g. CTP-0001)</span></label>
+                    <input type="text" name="mobiliser_code" value="{{ old('mobiliser_code', $refPrefill) }}" maxlength="20">
+                    <div class="hint">Whoever brought you into the programme is credited with your registration once
+                        the office approves it. Leave it empty if nobody mobilised you.</div>
+                </div>
+            </fieldset>
+
+            <fieldset>
                 <legend>Referee (recommendation) <span class="req">*</span></legend>
                 <p class="help">One credible person who can vouch for your skill and character — a previous employer, a senior fundi, a partner organisation or a community leader. Admins contact the referee before approval.</p>
                 <div class="form-grid-3">

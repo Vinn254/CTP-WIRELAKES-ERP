@@ -39,13 +39,16 @@
 <table class="data">
     <thead>
         <tr>
-            <th>COM ID</th><th>Community</th><th>Location</th><th>Lead CTP</th>
+            <th>COM ID</th><th>Community</th><th>Location</th><th>CTPs mobilising</th>
             <th>People</th><th>Needs</th><th>Beneficiaries</th><th>Projects</th><th>Status</th><th></th>
         </tr>
     </thead>
     <tbody>
         @forelse ($communities as $c)
-            @php $lead = $c->ctps->firstWhere('pivot.role', 'lead'); @endphp
+            @php
+                $lead = $c->ctps->firstWhere('pivot.role', 'lead');
+                $others = $c->ctps->reject(fn ($t) => $t->pivot->role === 'lead');
+            @endphp
             <tr>
                 <td><b>{{ $c->community_code ?: '—' }}</b>@if (! $c->community_code)<div class="hint">issued on approval</div>@endif</td>
                 <td>
@@ -56,9 +59,14 @@
                 <td>
                     @if ($lead)
                         <a href="{{ route('admin.promoters.show', $lead) }}">{{ $lead->full_name }}</a>
-                        <div class="hint">{{ $lead->ctp_code }}</div>
+                        <div class="hint">lead · {{ $lead->ctp_code }}</div>
+                    @elseif ($others->isNotEmpty())
+                        <span class="hint">no lead named</span>
                     @else
                         <span class="hint">not assigned</span>
+                    @endif
+                    @if ($others->isNotEmpty())
+                        <div class="hint">{{ $others->count() }} more mobilising</div>
                     @endif
                 </td>
                 <td>{{ $c->population ? number_format($c->population) : '—' }}<div class="hint">{{ $c->households ? number_format($c->households).' hh' : 'hh —' }}</div></td>
