@@ -11,7 +11,7 @@
 @section('content')
 <div class="page-intro">
     <p class="sub">A senior fundi can train CTPs and be paid for it. Your E-Fundi record stays yours — this page is
-        only the teaching role: the site you teach at, the skill families you take, the hours you give and the
+        only the teaching role: the site you teach at, which of the programme's trainings you take, the hours you give and the
         trainees you mark. Training never takes away your right to apply for open projects.</p>
     <div class="member-stats">
         <div class="stat"><small>Grade</small><b>{{ \Illuminate\Support\Str::limit(FundiRegistration::tierLabel($member->tier), 18) }}</b></div>
@@ -65,12 +65,12 @@
                 <div class="field" style="margin-top:12px;">
                     <label>What you can teach <span class="req">*</span></label>
                     <div style="display:flex;flex-wrap:wrap;gap:2px 18px;margin:8px 0;">
-                        @foreach ($families as $family)
-                            <label class="check-row" style="margin:0;"><input type="checkbox" name="teaches[]" value="{{ $family }}"
-                                @checked(in_array($family, (array) old('teaches', []), true))> {{ $family }}</label>
+                        @foreach ($trainings as $tr)
+                            <label class="check-row" style="margin:0 14px 0 0;"><input type="checkbox" name="trainings[]" value="{{ $tr->id }}"
+                                @checked(in_array($tr->id, array_map('intval', (array) old('trainings', [])), true))> {{ $tr->name }}</label>
                         @endforeach
                     </div>
-                    <div class="help">A cohort is only handed to a trainer listed for that family.</div>
+                    <div class="help">Pick the trainings you can actually deliver — a cohort is only handed to a trainer listed for it. Only the trainings the programme runs are on this list.</div>
                 </div>
                 <div class="field" style="margin-top:12px;">
                     <label>What you have actually built or fixed</label>
@@ -89,7 +89,7 @@
         </div>
         <dl class="kv">
             <dt>Teaching at</dt><dd>{{ $trainer->placeLabel() ?: '—' }}</dd>
-            <dt>Families you take</dt><dd>{{ collect((array) $trainer->teaches)->join(', ') ?: '—' }}</dd>
+            <dt>Trainings you take</dt><dd>{{ $trainer->teachingLabel() ?: '—' }}</dd>
             <dt>Hours a week</dt><dd>{{ $trainer->weekly_hours ?: 'Not set' }}</dd>
             <dt>Rate</dt><dd>{{ $trainer->rate_ksh > 0 ? 'KSH '.number_format((float) $trainer->rate_ksh, 2) : 'The office has not set your rate yet' }}</dd>
             <dt>Your note</dt><dd>{{ $trainer->note ?: '—' }}</dd>
@@ -107,8 +107,8 @@
         @forelse ($trainer->cohorts as $c)
             <div class="card">
                 <div class="section-head">
-                    <h3>{{ $c->course }}</h3>
-                    <span class="tag">{{ $c->family }}</span>
+                    <h3>{{ $c->courseLabel() }}</h3>
+                    <span class="tag">{{ $c->training?->name }}</span>
                     <span class="tag gold">{{ $c->reference }}</span>
                     <span class="status {{ $c->status === 'completed' ? 'closed' : 'active' }}">{{ $c->statusLabel() }}</span>
                 </div>

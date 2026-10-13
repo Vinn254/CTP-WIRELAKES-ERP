@@ -72,6 +72,7 @@ class Departments
         ],
         'training' => [
             ['label' => 'Cohorts', 'icon' => 'briefcase', 'route' => ['admin.cohorts.index'], 'badge' => 'seats'],
+            ['label' => 'Trainings on offer', 'icon' => 'award', 'route' => ['admin.trainings.index']],
             ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],
             ['label' => 'Fundi-trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
@@ -94,6 +95,7 @@ class Departments
         'admin.beneficiaries.' => 'communities',
         'admin.cohorts.' => 'training',
         'admin.enrollments.' => 'training',
+        'admin.trainings.' => 'training',
         'admin.venues.' => 'training',
         'admin.trainers.' => 'training',
         'admin.certification.' => 'training',
@@ -115,6 +117,7 @@ class Departments
         'admin.needs.index' => 'Prioritise what CTPs flagged and turn a need into a project',
         'admin.beneficiaries.index' => 'People, households and businesses a project reached',
         'admin.cohorts.index' => 'Open a training, take seats and track every trainee to certification',
+        'admin.trainings.index' => 'The trainings the programme runs — cohorts and trainers can only be set against these',
         'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
         'admin.trainers.index' => 'Senior fundis who applied to train CTPs, and what they are paid',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',

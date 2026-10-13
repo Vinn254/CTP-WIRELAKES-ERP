@@ -57,10 +57,10 @@ class Certification extends Model
         return $this->status === 'approved';
     }
 
-    /** e.g. CTP-0001-CERT-ICT-01 — one sequence per CTP per skill family. */
-    public static function nextCode(CtpRegistration $ctp, string $family): string
+    /** e.g. CTP-0001-CERT-ICT-01 — one sequence per CTP per training the programme runs. */
+    public static function nextCode(CtpRegistration $ctp, ?Training $training): string
     {
-        $stem = $ctp->ctp_code.'-CERT-'.Str::upper(str_replace([' ', '-', '/'], '', $family)).'-';
+        $stem = $ctp->ctp_code.'-CERT-'.($training?->code ?? 'GEN').'-';
         $count = self::where('certificate_code', 'like', $stem.'%')->count();
 
         return $stem.str_pad((string) ($count + 1), 2, '0', STR_PAD_LEFT);

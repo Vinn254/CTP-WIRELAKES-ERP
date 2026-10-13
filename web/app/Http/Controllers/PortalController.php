@@ -14,6 +14,7 @@ use App\Models\ProgressEntry;
 use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Models\Trainer;
+use App\Models\Training;
 use App\Models\TrainingVenue;
 use App\Support\MemberPortal;
 use Illuminate\Http\Request;
@@ -135,12 +136,13 @@ class PortalController extends Controller
         return view('portal.trainer', [
             'member' => $fundi,
             'trainer' => Trainer::with([
-                'venue:id,name,type',
+                'trainings:id,name',
+                'venue:id,name,type,county,sub_county,ward',
                 'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
                     ->with(['enrollments' => fn ($e) => $e->with(['ctp:id,full_name,ctp_code', 'entries'])->orderBy('id')])
                     ->orderByDesc('starts_on'),
             ])->where('fundi_id', $fundi->id)->first(),
-            'families' => Cohort::FAMILIES,
+            'trainings' => Training::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code']),
             'venues' => TrainingVenue::where('status', 'active')->orderBy('county')->orderBy('name')->get(['id', 'name', 'county']),
             'counties' => County::orderBy('name')->pluck('name'),
             'kinds' => ProgressEntry::KINDS,
@@ -159,7 +161,11 @@ class PortalController extends Controller
         abort_unless(in_array($fundi->tier, Trainer::TEACHING_TIERS, true), 422,
             'Only a junior or senior fundi can train CTPs — you are registered as '.FundiRegistration::tierLabel($fundi->tier).'.');
 
-        $trainer = Trainer::create($data + ['status' => 'applied']);
+        $columns = $data;
+        unset($columns['trainings']);
+
+        $trainer = Trainer::create($columns + ['status' => 'applied']);
+        $trainer->trainings()->sync($data['trainings']);
 
         return back()->with('status', 'Sent to the programme office. They approve a trainer before handing them a cohort.');
     }

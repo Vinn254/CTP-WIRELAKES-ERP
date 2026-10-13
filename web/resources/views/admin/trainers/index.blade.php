@@ -11,7 +11,7 @@
 <h1>Fundi-trainers</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
     A trainer stays a <b>Member &rsaquo; E-Fundi record</b> — this list only holds the teaching role: where they
-    teach, which skill families they can teach, the hours they give and the rate they are paid.
+    teach, which trainings they are licensed for, the hours they give and the rate they are paid.
     Only a <b>junior or senior fundi</b> can train CTPs, and only an <b>approved</b> trainer can be handed a cohort.
     A senior fundi can still apply for open projects — training does not take that away.
 </p>
@@ -82,16 +82,7 @@
                     <input type="number" name="rate_ksh" min="0" step="0.01" value="{{ old('rate_ksh') }}" placeholder="What they are paid for the training">
                 </div>
             </div>
-            <div class="field" style="margin-top:12px;">
-                <label>What they can teach <span class="req">*</span></label>
-                <div style="display:flex;flex-wrap:wrap;gap:2px 18px;margin:8px 0;">
-                    @foreach ($families as $family)
-                        <label class="check-row" style="margin:0 16px 0 0;"><input type="checkbox" name="teaches[]" value="{{ $family }}"
-                            @checked(in_array($family, (array) old('teaches', []), true))> {{ $family }}</label>
-                    @endforeach
-                </div>
-                <div class="help">A cohort can only be handed to a trainer who is approved <b>and</b> listed for that family.</div>
-            </div>
+            @include('admin.partials.teachings', ['chosen' => old('trainings', [])])
             <div class="field" style="margin-top:12px;">
                 <label>What you know of their work</label>
                 <textarea name="note" rows="3" maxlength="500">{{ old('note') }}</textarea>
@@ -117,7 +108,7 @@
                     <div class="hint">{{ $t->fundi->ef_code }} · {{ $t->fundi->phone }}</div>
                 </td>
                 <td>{{ \App\Models\FundiRegistration::tierLabel($t->fundi->tier) }}</td>
-                <td>{{ collect((array) $t->teaches)->join(', ') ?: '—' }}</td>
+                <td>{{ $t->teachingLabel() ?: '—' }}</td>
                 <td>{{ $t->placeLabel() }}</td>
                 <td>{{ $t->weekly_hours ?: '—' }}</td>
                 <td>{{ $t->rate_ksh > 0 ? 'KSH '.number_format((float) $t->rate_ksh, 2) : 'No rate set' }}</td>
@@ -179,15 +170,7 @@
                                 <div class="field"><label>Rate (KSH)</label>
                                     <input type="number" name="rate_ksh" min="0" step="0.01" value="{{ $t->rate_ksh ?: '' }}"></div>
                             </div>
-                            <div class="field" style="margin-top:12px;">
-                                <label>Can teach <span class="req">*</span></label>
-                                <div style="display:flex;flex-wrap:wrap;gap:2px 18px;margin:8px 0;">
-                                    @foreach ($families as $family)
-                                        <label class="check-row" style="margin:0;"><input type="checkbox" name="teaches[]" value="{{ $family }}"
-                                            @checked(in_array($family, (array) $t->teaches, true))> {{ $family }}</label>
-                                    @endforeach
-                                </div>
-                            </div>
+                            @include('admin.partials.teachings', ['chosen' => $t->trainings->pluck('id')->all()])
                             <div class="field" style="margin-top:12px;"><label>Note</label>
                                 <textarea name="note" rows="3" maxlength="500">{{ $t->note }}</textarea></div>
                             <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Save trainer</button>

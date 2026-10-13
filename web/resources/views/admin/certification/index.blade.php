@@ -46,7 +46,7 @@
                         <td><b>{{ $e->ctp->full_name }}</b></td>
                         <td>{{ $e->ctp->ctp_code }}</td>
                         <td><a href="{{ route('admin.cohorts.show', $e->cohort_id) }}">{{ $e->cohort->reference }}</a>
-                            <div class="hint">{{ $e->cohort->course }}</div></td>
+                            <div class="hint">{{ $e->cohort->courseLabel() }}</div></td>
                         <td>{{ $e->stageLabel() }}</td>
                         <td>
                             @if ($attendance === null)
@@ -95,7 +95,7 @@
                 <td>{{ $c->enrollment->ctp->full_name }}
                     <div class="hint">{{ $c->enrollment->ctp->ctp_code }}</div></td>
                 <td><a href="{{ route('admin.cohorts.show', $c->enrollment->cohort_id) }}">{{ $c->enrollment->cohort->reference }}</a>
-                    <div class="hint">{{ $c->enrollment->cohort->family }}</div></td>
+                    <div class="hint">{{ $c->enrollment->cohort->courseLabel() }}</div></td>
                 <td>{{ $c->attendance_pct !== null ? $c->attendance_pct.'%' : '—' }}</td>
                 <td>{{ $c->theory_score ?? '—' }}</td>
                 <td>{{ $c->practical_score ?? '—' }}</td>

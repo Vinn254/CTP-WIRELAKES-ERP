@@ -8,13 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-/** One run of a course at one place — the unit CTPs apply for and training is tracked on (§7.4). */
+/** One run of one of the programme's trainings at one place — the unit CTPs apply for (§7.4). */
 class Cohort extends Model
 {
-    public const FAMILIES = [
-        'ICT', 'Networking', 'Programming', 'Robotics', 'AI', 'Electrical', 'Construction', 'E-Waste',
-    ];
-
     public const STATUSES = [
         'draft' => 'Draft — not posted yet',
         'open' => 'Open for applications',
@@ -24,7 +20,7 @@ class Cohort extends Model
     ];
 
     protected $fillable = [
-        'reference', 'course', 'family', 'venue_id', 'trainer_id', 'community_id',
+        'reference', 'training_id', 'venue_id', 'trainer_id', 'community_id',
         'county', 'sub_county', 'ward', 'starts_on', 'ends_on', 'enrol_closes_on',
         'seats', 'theory_hours', 'practical_hours', 'fee_ksh', 'summary', 'status',
     ];
@@ -38,6 +34,11 @@ class Cohort extends Model
         'practical_hours' => 'integer',
         'fee_ksh' => 'decimal:2',
     ];
+
+    public function training(): BelongsTo
+    {
+        return $this->belongsTo(Training::class);
+    }
 
     public function venue(): BelongsTo
     {
@@ -108,6 +109,12 @@ class Cohort extends Model
         return self::STATUSES[$this->status] ?? Str::headline($this->status);
     }
 
+    /** The intake is named after the training it runs — there are no free-typed course names. */
+    public function courseLabel(): string
+    {
+        return $this->training?->name ?? 'Training';
+    }
+
     public function dateLabel(): string
     {
         return $this->starts_on->format('d M Y').' – '.$this->ends_on->format('d M Y');
@@ -117,7 +124,7 @@ class Cohort extends Model
     public function placeLabel(): string
     {
         if ($this->venue) {
-            return $this->venue->name.', '.$this->venue->placeLabel();
+            return trim($this->venue->name.' — '.$this->venue->placeLabel(), ' —');
         }
 
         if ($this->trainer) {

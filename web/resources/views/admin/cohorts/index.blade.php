@@ -11,7 +11,7 @@
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Cohorts</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
-    A cohort is one run of a course at one place. <b>Posted as open, CTPs apply for a seat</b> or the office puts a
+    A cohort is one intake of a training the programme runs, held at one place. <b>Posted as open, CTPs apply for a seat</b> or the office puts a
     CTP straight in; progress is recorded until the trainee is certified.
 </p>
 
@@ -51,8 +51,8 @@
             <tr>
                 <td><b>{{ $c->reference }}</b></td>
                 <td>
-                    <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->course }}</b></a>
-                    <div class="hint">{{ $c->family }} · {{ $c->hoursLabel() }}</div>
+                    <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->courseLabel() }}</b></a>
+                    <div class="hint">{{ $c->training?->name }} · {{ $c->hoursLabel() }}</div>
                 </td>
                 <td>{{ $c->venue?->name ?: ($c->trainer ? 'Trainer site' : 'Community site') }}
                     <div class="hint">{{ collect([$c->ward, $c->sub_county, $c->county])->filter()->join(', ') }}</div></td>

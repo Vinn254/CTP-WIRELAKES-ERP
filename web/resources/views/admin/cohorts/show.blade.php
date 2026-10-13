@@ -12,10 +12,10 @@
 <p class="back"><a href="{{ route('admin.cohorts.index') }}">&larr; Cohorts</a></p>
 <div class="head-row">
     <div>
-        <h1>{{ $cohort->course }} <span class="status {{ $cohort->status }}">{{ $cohort->statusLabel() }}</span></h1>
+        <h1>{{ $cohort->courseLabel() }} <span class="status {{ $cohort->status }}">{{ $cohort->statusLabel() }}</span></h1>
         <p class="ah-meta">
             <span><b>{{ $cohort->reference }}</b></span>
-            <span>{{ $cohort->family }}</span>
+            <span>{{ $cohort->training?->name }}</span>
             <span>{{ $cohort->dateLabel() }}</span>
             <span>{{ $cohort->placeLabel() }}</span>
             <span>{{ $seated->count() }} of {{ $cohort->seats }} seats held</span>

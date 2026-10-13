@@ -48,52 +48,31 @@
 @endif
 
 <div class="card">
-    <h3>Open training you can apply for ({{ $open->count() }})</h3>
-    @forelse ($open as $c)
-        @php $already = $appliedTo->contains($c->id); @endphp
-        <div class="community-card" style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px;">
-            <div class="section-head">
-                <h4 style="margin:0;">{{ $c->course }}</h4>
-                <span class="tag">{{ $c->family }}</span>
-                <span class="tag gold">{{ $c->reference }}</span>
-                @if ($c->seats > 0)
-                    <span class="fee-tag {{ $c->seatsLeft() > 0 ? '' : 'paid' }}">{{ $c->seatsLeft() }} of {{ $c->seats }} seats left</span>
-                @endif
-            </div>
-            <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }}
-                · {{ $c->placeLabel() }}
-                @if ($c->trainer?->fundi) · trainer {{ $c->trainer->fundi->full_name }} @endif
-                @if ((float) $c->fee_ksh > 0) · KSH {{ number_format((float) $c->fee_ksh, 2) }} @else · no training fee @endif
-            </p>
-            @if ($c->summary)<p class="hint">{{ $c->summary }}</p>@endif
-            @if ($c->enrol_closes_on)
-                <p class="hint">Applications close {{ $c->enrol_closes_on->format('d M Y') }}.</p>
-            @endif
-
-            @if ($already)
-                <p class="help">You have already put yourself forward for this intake — it is in “Your training” below.</p>
-            @elseif ($canWork)
-                <form method="POST" action="{{ route('portal.training.apply') }}"
-                      data-confirm="Apply for {{ $c->reference }} — {{ $c->course }}?" data-title="Apply for training">
-                    @csrf
-                    <input type="hidden" name="cohort_id" value="{{ $c->id }}">
-                    <div class="field">
-                        <label>Why you want this intake (optional)</label>
-                        <textarea name="note" rows="2" maxlength="1000"
-                                  placeholder="e.g. I have the tools and can attend every day at the school."></textarea>
-                    </div>
-                    <button class="btn btn-primary btn-sm" type="submit">Apply for a seat</button>
-                </form>
-            @else
-                <p class="hint">The office confirms seats for active CTPs.</p>
-            @endif
-        </div>
+    <h3>Trainings open in your area ({{ $nearby->count() }})</h3>
+    <p class="hint">You are in <b>{{ $member->county ?: 'an area that is not set on your record' }}</b>.
+        These are the intakes the programme is running there. Your job as a trainee is to bring the other CTPs in
+        your area to them — they apply here and the programme office confirms the seats.</p>
+    @forelse ($nearby as $c)
+        @include('portal.partials.intake-card', ['c' => $c, 'inArea' => true])
     @empty
-        <p class="hint">No intake is open for applications right now. The programme office posts cohorts under
-            Training &amp; Certification — including intakes run at a partner school or in your own community.</p>
+        <p class="hint">No intake is open in {{ $member->county ?: 'your county' }} right now. The office posts
+            cohorts under Training &amp; Certification — at a partner school or in a community it works with.</p>
     @endforelse
-    <p class="help">The office can also give you a seat directly — a cohort booked for your community arrives in
-        your list whether or not you applied for it.</p>
+</div>
+
+@if ($elsewhere->isNotEmpty())
+    <div class="card">
+        <h3>Open in other areas ({{ $elsewhere->count() }})</h3>
+        <p class="hint">The programme will move you only if the office says so — apply if you can travel there.</p>
+        @foreach ($elsewhere as $c)
+            @include('portal.partials.intake-card', ['c' => $c, 'inArea' => false])
+        @endforeach
+    </div>
+@endif
+
+<div class="card">
+    <p class="hint" style="margin:0;">The office can also give you a seat directly — a cohort booked for your
+        community arrives in your list whether or not you applied for it.</p>
 </div>
 
 @if ($mine->isNotEmpty())
@@ -105,7 +84,7 @@
         @endphp
         <div class="card">
             <div class="section-head">
-                <h3>{{ $c->course }}</h3>
+                <h3>{{ $c->courseLabel() }}</h3>
                 <span class="tag gold">{{ $c->reference }}</span>
                 <span class="status {{ $e->state === 'approved' ? 'active' : 'pending_review' }}">{{ $e->stateLabel() }}</span>
                 @if ($e->source === 'office')<span class="tag">seat given by the office</span>@endif
@@ -113,7 +92,7 @@
             <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · {{ $c->placeLabel() }}
                 @if ($c->trainer?->fundi) · trainer {{ $c->trainer->fundi->full_name }} @endif</p>
 
-            <h4 class="dl-group">Where you are in the {{ $c->family }} track</h4>
+            <h4 class="dl-group">Where you are in the {{ $c->training?->name ?? 'training' }} track</h4>
             @php $track = collect(Enrollment::STAGES)->except('failed'); $here = array_search($e->stage, array_keys($track->all()), true); @endphp
             <ol class="steps">
                 @foreach ($track as $stage => $label)
@@ -223,7 +202,7 @@
         <h3>Intakes you applied to or left</h3>
         @foreach ($history as $e)
             <div class="row-line">
-                <b>{{ $e->cohort->course ?? 'Cohort removed' }}</b>
+                <b>{{ $e->cohort?->courseLabel() ?? 'Cohort removed' }}</b>
                 <span class="tag gold">{{ $e->cohort->reference ?? '—' }}</span>
                 <span class="status {{ $e->state === 'declined' ? 'closed' : ($e->state === 'withdrawn' ? 'pending_review' : 'closed') }}">{{ $e->stateLabel() }}</span>
                 <span class="hint">{{ $e->stageLabel() }}</span>

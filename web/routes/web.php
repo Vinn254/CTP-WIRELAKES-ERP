@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\RecordsController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\TrainerController;
+use App\Http\Controllers\Admin\TrainingController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Auth\ActivateController;
 use App\Http\Controllers\Auth\InviteController;
@@ -154,6 +155,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // Beneficiaries — the people a project reached
     Route::get('/beneficiaries', [CommunityController::class, 'beneficiaries'])->name('beneficiaries.index');
     Route::delete('/beneficiaries/{beneficiary}', [CommunityController::class, 'destroyBeneficiary'])->name('beneficiaries.delete');
+
+    // Module 4 — the trainings the programme itself runs. Everything else on this module picks from this list.
+    Route::get('/trainings', [TrainingController::class, 'index'])->name('trainings.index');
+    Route::post('/trainings', [TrainingController::class, 'store'])->name('trainings.store');
+    Route::patch('/trainings/{training}', [TrainingController::class, 'update'])->whereNumber('training')->name('trainings.update');
+    Route::post('/trainings/{training}/toggle', [TrainingController::class, 'toggle'])->whereNumber('training')->name('trainings.toggle');
+    Route::delete('/trainings/{training}', [TrainingController::class, 'destroy'])->whereNumber('training')->name('trainings.delete');
 
     // Module 4 — Training & Certification. Where training happens, the cohorts CTPs apply for and the certificate queue.
     Route::get('/venues', [VenueController::class, 'index'])->name('venues.index');

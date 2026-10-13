@@ -19,12 +19,12 @@ class CertificationController extends Controller
 
         return view('admin.certification.index', [
             'certifications' => Certification::with([
-                'enrollment.ctp:id,full_name,ctp_code', 'enrollment.cohort:id,reference,course,family',
+                'enrollment.ctp:id,full_name,ctp_code', 'enrollment.cohort:id,reference,training_id', 'enrollment.cohort.training:id,name,code',
                 'recommender:id,name', 'approver:id,name',
             ])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->orderByDesc('id')->get(),
-            'ready' => Enrollment::with(['ctp:id,full_name,ctp_code,status', 'cohort:id,reference,course,family,status'])
+            'ready' => Enrollment::with(['ctp:id,full_name,ctp_code,status', 'cohort:id,reference,training_id,status', 'cohort.training:id,name,code'])
                 ->where('state', 'approved')->whereIn('stage', ['assessment', 'completed'])
                 ->whereDoesntHave('certification')->orderBy('id')->get(),
             'status' => $status,
@@ -69,7 +69,7 @@ class CertificationController extends Controller
 
         $certification->update([
             'certificate_code' => $certification->certificate_code
-                ?: Certification::nextCode($enrollment->ctp, $enrollment->cohort->family),
+                ?: Certification::nextCode($enrollment->ctp, $enrollment->cohort->training),
             'status' => 'approved',
             'approved_by' => auth()->id(),
             'approved_on' => today(),

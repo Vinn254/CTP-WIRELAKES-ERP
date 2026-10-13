@@ -8,10 +8,11 @@ use App\Models\CtpRegistration;
 use App\Models\Enrollment;
 use App\Models\ProgressEntry;
 use App\Models\Trainer;
+use App\Models\Training;
 use Illuminate\Http\Request;
 
 /**
- * Module 4 — a cohort is one run of a course at one place. The office posts it, takes seats,
+ * Module 4 — a cohort is one intake of one of the programme's trainings, at one place. The office posts it, takes seats,
  * records what happens to each trainee and carries them through to certification.
  */
 class CohortController extends Controller
@@ -21,7 +22,7 @@ class CohortController extends Controller
         $status = $request->input('status', 'all');
 
         return view('admin.cohorts.index', [
-            'cohorts' => Cohort::with(['venue:id,name,type', 'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
+            'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->orderByDesc('starts_on')->orderBy('id')->get(),
             'status' => $status,
@@ -54,7 +55,7 @@ class CohortController extends Controller
         $cohort = Cohort::create([...$data, 'reference' => Cohort::nextReference(), 'status' => 'draft']);
 
         return redirect()->route('admin.cohorts.show', $cohort)
-            ->with('status', $cohort->reference.' — '.$cohort->course.' created as a draft. Post it when you are ready for CTPs to apply.');
+            ->with('status', $cohort->reference.' — '.$cohort->courseLabel().' created as a draft. Post it when you are ready for CTPs to apply.');
     }
 
     public function update(Request $request, Cohort $cohort)
@@ -75,7 +76,7 @@ class CohortController extends Controller
         ]);
 
         if ($data['status'] !== 'draft') {
-            $this->guard($cohort->only(['venue_id', 'trainer_id', 'community_id']) + ['family' => $cohort->family]);
+            $this->guard($cohort->only(['venue_id', 'trainer_id', 'community_id', 'training_id']));
         }
 
         if ($data['status'] === 'open' && $cohort->enrollments()->where('state', 'approved')->exists()) {
@@ -90,7 +91,7 @@ class CohortController extends Controller
     /** The cohort page: the roster, the seat queue and every trainee's progress. */
     public function show(Cohort $cohort)
     {
-        $cohort->load(['venue', 'trainer.fundi', 'community']);
+        $cohort->load(['training', 'venue', 'trainer.fundi', 'trainer.trainings', 'community']);
 
         return view('admin.cohorts.show', [
             'cohort' => $cohort,
@@ -217,8 +218,7 @@ class CohortController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'course' => 'required|string|max:150',
-            'family' => 'required|in:'.implode(',', Cohort::FAMILIES),
+            'training_id' => 'required|integer|exists:trainings,id',
             'venue_id' => 'nullable|integer|exists:training_venues,id',
             'trainer_id' => 'nullable|integer|exists:trainers,id',
             'community_id' => 'nullable|integer|exists:communities,id',
@@ -234,14 +234,14 @@ class CohortController extends Controller
             'fee_ksh' => 'nullable|numeric|min:0|max:9999999',
             'summary' => 'nullable|string|max:2000',
         ], [], [
-            'course' => 'Course', 'family' => 'Skill family', 'venue_id' => 'Venue', 'trainer_id' => 'Trainer',
+            'training_id' => 'Training', 'venue_id' => 'Venue', 'trainer_id' => 'Trainer',
             'community_id' => 'Community', 'county' => 'County', 'sub_county' => 'Sub-county', 'seats' => 'Seats',
             'starts_on' => 'Start date', 'ends_on' => 'End date', 'enrol_closes_on' => 'Applications close',
             'fee_ksh' => 'Training fee',
         ]);
     }
 
-    /** A cohort must have somewhere to happen and a trainer who is allowed to teach that family. */
+    /** A cohort must have somewhere to happen and a trainer registered to teach that training. */
     private function guard(array $data): void
     {
         abort_if(empty($data['venue_id']) && empty($data['trainer_id']) && empty($data['community_id']), 422,
@@ -253,8 +253,8 @@ class CohortController extends Controller
             abort_unless($trainer->status === 'approved', 422,
                 $trainer->fundi->full_name.' is not an approved trainer yet — approve them under Fundi-trainers first.');
 
-            abort_unless($trainer->canTeach($data['family'] ?? ''), 422,
-                $trainer->fundi->full_name.' is not registered to teach '.$data['family'].' — add that family to their trainer record.');
+            abort_unless(! empty($data['training_id']) && $trainer->canTeach((int) $data['training_id']), 422,
+                $trainer->fundi->full_name.' is not registered to teach '.$this->trainingName($data).'. Add that training to their record first.');
         }
     }
 
@@ -275,12 +275,17 @@ class CohortController extends Controller
             $ctp->full_name.' is already on that cohort.');
     }
 
+    private function trainingName(array $data): string
+    {
+        return Training::find($data['training_id'] ?? null)?->name ?? 'that training';
+    }
+
     private function formData(): array
     {
         return [
-            'families' => Cohort::FAMILIES,
+            'trainings' => TrainingController::options(),
             'venues' => VenueController::options(),
-            'trainers' => Trainer::approved()->with('fundi:id,full_name,ef_code')->get(),
+            'trainers' => Trainer::approved()->with(['fundi:id,full_name,ef_code', 'trainings:id,name'])->get(),
             'communities' => \App\Models\Community::where('status', 'active')
                 ->orderBy('county')->orderBy('name')->get(['id', 'name', 'county', 'sub_county', 'ward']),
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),

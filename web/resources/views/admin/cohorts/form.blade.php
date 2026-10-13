@@ -8,29 +8,28 @@
 <h1>{{ $editing ? 'Edit '.$cohort->reference : 'Post a training' }}</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
     {{ $editing
-        ? 'The course, the place and the seats. Applications, progress and certification are worked on the cohort page.'
+        ? 'The training, the place and the seats. Applications, progress and certification are worked on the cohort page.'
         : 'Save it as a draft, check the venue and trainer, then open it — only an open cohort reaches the CTP portal.' }}
-    A cohort needs a venue, a trainer or a community to run in, and a trainer must be approved for that skill family.
+    A cohort is one intake of a training the programme already runs, so it is picked from that list and never typed in.
+    It needs a venue, a trainer or a community to run in, and a trainer must be registered for that training.
 </p>
 
 <form method="POST" action="{{ $editing ? route('admin.cohorts.update', $cohort) : route('admin.cohorts.store') }}" class="card">
     @csrf
     @if ($editing) @method('PATCH') @endif
 
-    <h3>Course &amp; skill</h3>
+    <h3>Training &amp; seats</h3>
     <div class="form-grid">
         <div class="field">
-            <label>Course name <span class="req">*</span></label>
-            <input type="text" name="course" value="{{ old('course', $cohort->course) }}" required maxlength="150"
-                   placeholder="e.g. ICT Fundamentals — Cohort 12">
-        </div>
-        <div class="field">
-            <label>Skill family <span class="req">*</span></label>
-            <select name="family" required>
-                @foreach ($families as $f)
-                    <option value="{{ $f }}" @selected(old('family', $cohort->family) === $f)>{{ $f }}</option>
+            <label>Training <span class="req">*</span></label>
+            <select name="training_id" required>
+                <option value="">Choose a training the programme runs</option>
+                @foreach ($trainings as $t)
+                    <option value="{{ $t->id }}" @selected((int) old('training_id', $cohort->training_id) === $t->id)>{{ $t->name }}</option>
                 @endforeach
             </select>
+            <div class="help">Running something new? Add it under
+                <a href="{{ route('admin.trainings.index') }}">Trainings on offer</a> first — it is not typed here.</div>
         </div>
         <div class="field">
             <label>Theory hours</label>
@@ -52,7 +51,7 @@
         </div>
     </div>
 
-    <h3 style="margin-top:20px;">Where it happens</h3>
+    <h3 style="margin-top:20px;">Where this intake happens</h3>
     <div class="form-grid">
         <div class="field">
             <label>Venue</label>
@@ -71,11 +70,11 @@
                 <option value="">No trainer assigned</option>
                 @foreach ($trainers as $t)
                     <option value="{{ $t->id }}" @selected(old('trainer_id', $cohort->trainer_id) == $t->id)>
-                        {{ $t->fundi->full_name }} — {{ collect((array) $t->teaches)->join(', ') ?: 'no families set' }}
+                        {{ $t->fundi->full_name }} — {{ $t->teachingLabel() ?: 'no trainings set' }}
                     </option>
                 @endforeach
             </select>
-            <div class="help">Only a fundi registered for that skill family can be handed the cohort.</div>
+            <div class="help">Only a fundi registered for the training you picked can be handed this cohort.</div>
         </div>
         <div class="field">
             <label>Community it serves</label>

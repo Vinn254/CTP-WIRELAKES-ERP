@@ -68,21 +68,33 @@ class MemberPortal
     public static function openCohorts()
     {
         return Cohort::openForEnrol()
-            ->with(['venue:id,name,type', 'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
+            ->with(['training:id,name,code,summary', 'venue:id,name,type,county,sub_county,ward',
+                'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
             ->orderBy('starts_on')->orderBy('id')->get();
+    }
+
+    /** An intake runs in the CTP's own area when the county matches (the training mobilises ward by ward). */
+    public static function isInCtpArea(Cohort $cohort, CtpRegistration $ctp): bool
+    {
+        return $ctp->county && $cohort->county && strcasecmp(trim($cohort->county), trim($ctp->county)) === 0;
     }
 
     /** Everything the My training screen needs about one CTP — open intakes, seats held and the record. */
     public static function training(CtpRegistration $ctp): array
     {
+        $open = static::openCohorts();
+        $nearby = $open->filter(fn (Cohort $c) => static::isInCtpArea($c, $ctp))->values();
+
         return [
-            'open' => static::openCohorts(),
+            'open' => $open,
+            'nearby' => $nearby,
+            'elsewhere' => $open->reject(fn (Cohort $c) => static::isInCtpArea($c, $ctp))->values(),
             'appliedTo' => $ctp->enrollments()->whereIn('state', ['pending', 'approved'])->pluck('cohort_id'),
             'mine' => $ctp->activeEnrollments()
-                ->with(['entries', 'certification', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
+                ->with(['entries', 'certification', 'cohort.training', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
                 ->get(),
             'history' => $ctp->enrollments()
-                ->with(['cohort:id,reference,course,family', 'certification'])
+                ->with(['cohort:id,reference,training_id', 'cohort.training:id,name,code', 'certification'])
                 ->whereNotIn('state', ['pending', 'approved'])->latest('id')->get(),
         ];
     }

@@ -251,8 +251,8 @@
             CTPs on this roster.</p>
             @forelse ($community->cohorts as $c)
                 <div class="row-line">
-                    <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->course }}</b></a>
-                    <span class="hint">{{ $c->reference }} · {{ $c->family }}</span>
+                    <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->courseLabel() }}</b></a>
+                    <span class="hint">{{ $c->reference }} · {{ $c->training?->name }}</span>
                     <span class="hint">{{ $c->dateLabel() }}</span>
                     <span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
                     <span class="hint">{{ $c->seatsUsed() }} of {{ $c->seats }} seats</span>
