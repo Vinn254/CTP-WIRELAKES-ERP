@@ -241,8 +241,25 @@
                     <span class="hint">{{ $p->budget ? 'KSh '.number_format((float) $p->budget) : 'no budget set' }}</span>
                 </div>
             @empty
-                <p class="hint">No projects here yet. Training cohorts and e-waste drives land on this timeline with
-                    <span class="soon">Module 4</span> and <span class="soon">Module 10</span>.</p>
+                <p class="hint">No projects here yet.</p>
+            @endforelse
+        </div>
+
+        <div class="card">
+            <h3>Training here</h3>
+            <p class="hint">Module 4 books a cohort into a community as its site — the people trained here are the
+            CTPs on this roster.</p>
+            @forelse ($community->cohorts as $c)
+                <div class="row-line">
+                    <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->course }}</b></a>
+                    <span class="hint">{{ $c->reference }} · {{ $c->family }}</span>
+                    <span class="hint">{{ $c->dateLabel() }}</span>
+                    <span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
+                    <span class="hint">{{ $c->seatsUsed() }} of {{ $c->seats }} seats</span>
+                </div>
+            @empty
+                <p class="hint">No cohort has been booked in this community yet. Prioritised needs are what the office
+                    uses to choose one — post it under <a href="{{ route('admin.cohorts.index') }}">Training &amp; Certification</a>.</p>
             @endforelse
         </div>
     </div>

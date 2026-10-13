@@ -12,7 +12,7 @@ needs, who has benefited there and what has been invested in it. Every field mod
 | Needs assessment | `needs` rows: type, priority, photo, GPS pin, status | communities |
 | Needs pipeline | `proposed → prioritised → converted / closed` | communities |
 | Beneficiaries | person / household / business reached by a project | communities |
-| Community timeline | projects here, investment value, cohorts and drives later | communities |
+| Community timeline | projects here, investment value, cohorts booked at this site (Module 4), drives later | communities |
 | Field entry | CTP proposes a community, logs needs and beneficiaries | member portal |
 
 ## Module boundary
@@ -63,6 +63,7 @@ stored only when consent is ticked, and is dropped when it is not.
 
 ## Next
 
-Cohorts and e-waste drives land on the community timeline when Modules 4 and 10 open — the slot and the
-`community_id` anchor are already in place. Beyond that: a per-community impact sheet for Module 12, and GPS import
-from the field app (Module 13) so a need's pin comes from the device rather than a typed coordinate.
+Cohorts are now read here — a Module 4 cohort booked at this community shows on its own card with dates, seats and
+status, linking to the cohort workspace. E-waste drives land on the timeline with Module 10. Beyond that: a
+per-community impact sheet for Module 12, and GPS import from the field app (Module 13) so a need's pin comes from
+the device rather than a typed coordinate.

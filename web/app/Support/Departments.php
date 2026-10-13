@@ -2,13 +2,17 @@
 
 namespace App\Support;
 
+use App\Models\Certification;
+use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Community;
+use App\Models\Enrollment;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Need;
 use App\Models\Partner;
 use App\Models\ProjectApplication;
+use App\Models\Trainer;
 
 /**
  * Every department (module) of the ERP, the screens that belong to it, and the
@@ -22,9 +26,9 @@ class Departments
         ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoter Management',
             'desc' => 'CTP profiles and IDs, tracks, mobilisation 15/30, suspension and deployment', 'live' => true],
         ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Community Management',
-            'desc' => 'Community profiles and IDs, needs assessment, beneficiaries, the CTP who looks after each place', 'live' => true],
+            'desc' => 'Community profiles and IDs, needs assessment, beneficiaries, the CTPs who mobilise each place', 'live' => true],
         ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
-            'desc' => 'Courses, cohorts, assessment, certificates', 'live' => false],
+            'desc' => 'Partner schools and sites, cohorts CTPs apply for, fundi-trainers, progress, certificates', 'live' => true],
         ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Management',
             'desc' => 'Fundi profiles, tiers, ratings, availability', 'live' => false],
         ['slug' => 'marketplace', 'tag' => 'Module 6', 'name' => 'Project Marketplace',
@@ -66,6 +70,12 @@ class Departments
             ['label' => 'Needs assessment', 'icon' => 'check', 'route' => ['admin.needs.index'], 'badge' => 'needs'],
             ['label' => 'Beneficiaries', 'icon' => 'users', 'route' => ['admin.beneficiaries.index']],
         ],
+        'training' => [
+            ['label' => 'Cohorts', 'icon' => 'briefcase', 'route' => ['admin.cohorts.index'], 'badge' => 'seats'],
+            ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],
+            ['label' => 'Fundi-trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
+            ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -82,6 +92,11 @@ class Departments
         'admin.communities.' => 'communities',
         'admin.needs.' => 'communities',
         'admin.beneficiaries.' => 'communities',
+        'admin.cohorts.' => 'training',
+        'admin.enrollments.' => 'training',
+        'admin.venues.' => 'training',
+        'admin.trainers.' => 'training',
+        'admin.certification.' => 'training',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -99,6 +114,10 @@ class Departments
         'admin.communities.index' => 'Every community, its CTP, its needs and who benefited there',
         'admin.needs.index' => 'Prioritise what CTPs flagged and turn a need into a project',
         'admin.beneficiaries.index' => 'People, households and businesses a project reached',
+        'admin.cohorts.index' => 'Open a training, take seats and track every trainee to certification',
+        'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
+        'admin.trainers.index' => 'Senior fundis who applied to train CTPs, and what they are paid',
+        'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
     ];
 
     public static function all(): array
@@ -144,6 +163,9 @@ class Departments
             'communities' => Community::where('status', 'pending_review')->count(),
             'needs' => Need::where('status', 'proposed')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
+            'seats' => Enrollment::where('state', 'pending')->count(),
+            'trainers' => Trainer::where('status', 'applied')->count(),
+            'certificates' => Certification::where('status', 'recommended')->count(),
             default => 0,
         };
     }

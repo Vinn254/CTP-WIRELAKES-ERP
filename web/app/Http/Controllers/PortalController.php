@@ -3,12 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Beneficiary;
+use App\Models\Cohort;
 use App\Models\Community;
 use App\Models\County;
 use App\Models\CtpRegistration;
+use App\Models\Enrollment;
+use App\Models\FundiRegistration;
 use App\Models\Need;
+use App\Models\ProgressEntry;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\Trainer;
+use App\Models\TrainingVenue;
 use App\Support\MemberPortal;
 use Illuminate\Http\Request;
 
@@ -38,9 +44,150 @@ class PortalController extends Controller
         return view('portal.dashboard', MemberPortal::board($member));
     }
 
+    /** Sections only an E-Fundi has — a CTP is refused here, and their sidebar never offers them. */
+    private function fundi(): FundiRegistration
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        abort_unless($member instanceof FundiRegistration, 403, 'That part of the portal is for E-Fundis.');
+
+        return $member;
+    }
+
     public function training()
     {
-        return view('portal.training', MemberPortal::board($this->ctp()));
+        $ctp = $this->ctp();
+
+        return view('portal.training', MemberPortal::board($ctp) + MemberPortal::training($ctp) + [
+            'stages' => Enrollment::STAGES,
+            'states' => Enrollment::STATES,
+        ]);
+    }
+
+    /** A CTP puts themselves forward for an open intake. The office confirms the seat and the placement. */
+    public function applyCohort(Request $request)
+    {
+        $ctp = $this->ctp();
+
+        $data = $request->validate([
+            'cohort_id' => 'required|integer|exists:cohorts,id',
+            'note' => 'nullable|string|max:1000',
+        ], [], ['cohort_id' => 'Training']);
+
+        $cohort = Cohort::findOrFail($data['cohort_id']);
+
+        abort_unless(in_array($ctp->status, CtpRegistration::WORKING, true), 422,
+            'Training seats go to a CTP once they are active — your status is '.$ctp->statusLabel().'.');
+
+        abort_unless($cohort->isOpenForEnrol(), 422,
+            $cohort->reference.' is not open for applications: '.$cohort->enrolClosedReason().'.');
+
+        $existing = $cohort->enrollments()->where('ctp_id', $ctp->id)->first();
+
+        abort_if($existing && in_array($existing->state, ['pending', 'approved'], true), 422,
+            'You have already put yourself forward for '.$cohort->reference.'.');
+
+        $message = $existing
+            ? 'Your application for '.$cohort->reference.' is back with the programme office.'
+            : 'Applied for '.$cohort->reference.' — the programme office confirms the seat and tells you where you are placed.';
+
+        if ($existing) {
+            // One record per CTP per cohort: applying again after a decline reopens it for the office to decide.
+            $existing->update([
+                'state' => 'pending',
+                'source' => 'self',
+                'note' => $data['note'] ?? $existing->note,
+                'reviewed_by' => null,
+                'approved_on' => null,
+            ]);
+        } else {
+            Enrollment::create([
+                'cohort_id' => $cohort->id,
+                'ctp_id' => $ctp->id,
+                'state' => 'pending',
+                'source' => 'self',
+                'note' => $data['note'] ?? null,
+            ]);
+        }
+
+        return back()->with('status', $message);
+    }
+
+    public function withdrawSeat(Enrollment $enrollment)
+    {
+        $ctp = $this->ctp();
+        abort_unless($enrollment->ctp_id === $ctp->id, 404);
+        abort_unless(in_array($enrollment->state, ['pending', 'approved'], true), 422,
+            'That seat is already '.$enrollment->stateLabel().'.');
+        abort_unless(! in_array($enrollment->stage, ['completed', 'failed'], true), 422,
+            'You have already completed '.$enrollment->cohort->reference.' — the record stays on your file.');
+
+        $enrollment->update(['state' => 'withdrawn']);
+
+        return back()->with('status', 'Withdrawn from '.$enrollment->cohort->reference.'.');
+    }
+
+    /** The E-Fundi's trainer surface: their own record, the cohorts they teach and the marks they put in. */
+    public function trainer()
+    {
+        $fundi = $this->fundi();
+
+        return view('portal.trainer', [
+            'member' => $fundi,
+            'trainer' => Trainer::with([
+                'venue:id,name,type',
+                'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
+                    ->with(['enrollments' => fn ($e) => $e->with(['ctp:id,full_name,ctp_code', 'entries'])->orderBy('id')])
+                    ->orderByDesc('starts_on'),
+            ])->where('fundi_id', $fundi->id)->first(),
+            'families' => Cohort::FAMILIES,
+            'venues' => TrainingVenue::where('status', 'active')->orderBy('county')->orderBy('name')->get(['id', 'name', 'county']),
+            'counties' => County::orderBy('name')->pluck('name'),
+            'kinds' => ProgressEntry::KINDS,
+        ]);
+    }
+
+    /** A senior fundi asks to train. The office approves before a cohort can be handed to them. */
+    public function applyTrainer(Request $request)
+    {
+        $fundi = $this->fundi();
+        abort_if((bool) $fundi->trainer, 422, 'You are already on the trainer list — the programme office holds your record.');
+
+        $request->merge(['fundi_id' => $fundi->id]);
+        $data = Trainer::dataFrom($request);
+
+        abort_unless(in_array($fundi->tier, Trainer::TEACHING_TIERS, true), 422,
+            'Only a junior or senior fundi can train CTPs — you are registered as '.FundiRegistration::tierLabel($fundi->tier).'.');
+
+        $trainer = Trainer::create($data + ['status' => 'applied']);
+
+        return back()->with('status', 'Sent to the programme office. They approve a trainer before handing them a cohort.');
+    }
+
+    /** A trainer marks their own trainee — the line lands on the CTP's record and the office sees it too. */
+    public function markProgress(Request $request)
+    {
+        $fundi = $this->fundi();
+        $trainer = Trainer::where('fundi_id', $fundi->id)->first();
+
+        abort_unless($trainer && $trainer->status === 'approved', 403,
+            'Only an approved trainer can record a trainee.');
+
+        $request->validate(['enrollment_id' => 'required|integer']);
+
+        $enrollment = Enrollment::with('cohort')->findOrFail($request->input('enrollment_id'));
+
+        // Only a trainee in a cohort this trainer teaches — anyone else's roster 404s and leaks nothing.
+        abort_unless($enrollment->cohort && $enrollment->cohort->trainer_id === $trainer->id, 404);
+        abort_unless($enrollment->state === 'approved', 422, 'This CTP does not hold a seat in your cohort.');
+
+        ProgressEntry::create([
+            ...ProgressEntry::dataFrom($request),
+            'enrollment_id' => $enrollment->id,
+            'recorded_by_fundi' => $fundi->id,
+        ]);
+
+        return back()->with('status', 'Recorded for '.$enrollment->ctp->full_name.'.');
     }
 
     public function mobilisation()

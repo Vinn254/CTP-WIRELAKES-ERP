@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class FundiRegistration extends Model
@@ -47,6 +48,12 @@ class FundiRegistration extends Model
     public function mobiliser(): BelongsTo
     {
         return $this->belongsTo(CtpRegistration::class, 'mobilised_by_ctp');
+    }
+
+    /** The trainer role a senior fundi applies for (Module 4). One fundi holds at most one. */
+    public function trainer(): HasOne
+    {
+        return $this->hasOne(Trainer::class, 'fundi_id');
     }
 
     public function placeLabel(): string

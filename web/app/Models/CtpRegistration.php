@@ -112,6 +112,21 @@ class CtpRegistration extends Model
         return $this->hasMany(Beneficiary::class, 'created_by_ctp');
     }
 
+    /** Training seats — applied for by the CTP or given by the office (Module 4). */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'ctp_id');
+    }
+
+    /** The CTP's live training: a seat they hold, with its cohort and any certificate on it. */
+    public function activeEnrollments()
+    {
+        return $this->enrollments()
+            ->whereIn('state', ['pending', 'approved'])
+            ->with(['cohort.venue:id,name,county,sub_county,ward', 'cohort.trainer.fundi:id,full_name', 'certification'])
+            ->latest('id');
+    }
+
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

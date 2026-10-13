@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\CertificationController;
+use App\Http\Controllers\Admin\CohortController;
 use App\Http\Controllers\Admin\CommunityController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
@@ -10,6 +12,8 @@ use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\TrainerController;
+use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Auth\ActivateController;
 use App\Http\Controllers\Auth\InviteController;
 use App\Http\Controllers\Auth\LoginController;
@@ -150,12 +154,49 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // Beneficiaries — the people a project reached
     Route::get('/beneficiaries', [CommunityController::class, 'beneficiaries'])->name('beneficiaries.index');
     Route::delete('/beneficiaries/{beneficiary}', [CommunityController::class, 'destroyBeneficiary'])->name('beneficiaries.delete');
+
+    // Module 4 — Training & Certification. Where training happens, the cohorts CTPs apply for and the certificate queue.
+    Route::get('/venues', [VenueController::class, 'index'])->name('venues.index');
+    Route::post('/venues', [VenueController::class, 'store'])->name('venues.store');
+    Route::patch('/venues/{venue}', [VenueController::class, 'update'])->whereNumber('venue')->name('venues.update');
+    Route::post('/venues/{venue}/toggle', [VenueController::class, 'toggle'])->whereNumber('venue')->name('venues.toggle');
+    Route::delete('/venues/{venue}', [VenueController::class, 'destroy'])->whereNumber('venue')->name('venues.delete');
+
+    Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
+    Route::post('/trainers', [TrainerController::class, 'store'])->name('trainers.store');
+    Route::patch('/trainers/{trainer}', [TrainerController::class, 'update'])->whereNumber('trainer')->name('trainers.update');
+    Route::post('/trainers/{trainer}/decision', [TrainerController::class, 'decide'])->whereNumber('trainer')->name('trainers.decide');
+
+    Route::get('/cohorts', [CohortController::class, 'index'])->name('cohorts.index');
+    Route::get('/cohorts/create', [CohortController::class, 'create'])->name('cohorts.create');
+    Route::post('/cohorts', [CohortController::class, 'store'])->name('cohorts.store');
+    Route::get('/cohorts/{cohort}', [CohortController::class, 'show'])->whereNumber('cohort')->name('cohorts.show');
+    Route::get('/cohorts/{cohort}/edit', [CohortController::class, 'edit'])->whereNumber('cohort')->name('cohorts.edit');
+    Route::patch('/cohorts/{cohort}', [CohortController::class, 'update'])->whereNumber('cohort')->name('cohorts.update');
+    Route::post('/cohorts/{cohort}/status', [CohortController::class, 'setStatus'])->whereNumber('cohort')->name('cohorts.status');
+    Route::post('/cohorts/{cohort}/enrol', [CohortController::class, 'enrol'])->whereNumber('cohort')->name('cohorts.enrol');
+
+    Route::post('/enrollments/{enrollment}/decision', [CohortController::class, 'decide'])->whereNumber('enrollment')->name('enrollments.decide');
+    Route::post('/enrollments/{enrollment}/stage', [CohortController::class, 'setStage'])->whereNumber('enrollment')->name('enrollments.stage');
+    Route::post('/enrollments/{enrollment}/progress', [CohortController::class, 'storeProgress'])->whereNumber('enrollment')->name('enrollments.progress');
+    Route::delete('/enrollments/{enrollment}', [CohortController::class, 'drop'])->whereNumber('enrollment')->name('enrollments.delete');
+
+    Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
+    Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');
+    Route::post('/certification/{certification}/approve', [CertificationController::class, 'approve'])->whereNumber('certification')->name('certification.approve');
+    Route::post('/certification/{certification}/decline', [CertificationController::class, 'decline'])->whereNumber('certification')->name('certification.decline');
+    Route::post('/certification/{certification}/revoke', [CertificationController::class, 'revoke'])->whereNumber('certification')->name('certification.revoke');
 });
 
 // Member portal — the member's own interface. Never staff, never public.
 Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(function () {
     Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/training', [PortalController::class, 'training'])->name('training');
+    Route::post('/training/apply', [PortalController::class, 'applyCohort'])->name('training.apply');
+    Route::post('/training/{enrollment}/withdraw', [PortalController::class, 'withdrawSeat'])->whereNumber('enrollment')->name('training.withdraw');
+    Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
+    Route::post('/trainer', [PortalController::class, 'applyTrainer'])->name('trainer.apply');
+    Route::post('/trainer/progress', [PortalController::class, 'markProgress'])->name('trainer.progress');
     Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
     Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
     Route::post('/communities', [PortalController::class, 'storeCommunity'])->name('community.store');

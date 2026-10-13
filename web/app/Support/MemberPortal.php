@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Community;
 use App\Models\FundiRegistration;
@@ -61,6 +62,29 @@ class MemberPortal
             ])
             ->orderBy('county')->orderBy('ward')->orderBy('name')
             ->get();
+    }
+
+    /** Trainings a CTP can put themselves forward for — posted, still in date and with room (§7.5 step 1). */
+    public static function openCohorts()
+    {
+        return Cohort::openForEnrol()
+            ->with(['venue:id,name,type', 'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
+            ->orderBy('starts_on')->orderBy('id')->get();
+    }
+
+    /** Everything the My training screen needs about one CTP — open intakes, seats held and the record. */
+    public static function training(CtpRegistration $ctp): array
+    {
+        return [
+            'open' => static::openCohorts(),
+            'appliedTo' => $ctp->enrollments()->whereIn('state', ['pending', 'approved'])->pluck('cohort_id'),
+            'mine' => $ctp->activeEnrollments()
+                ->with(['entries', 'certification', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
+                ->get(),
+            'history' => $ctp->enrollments()
+                ->with(['cohort:id,reference,course,family', 'certification'])
+                ->whereNotIn('state', ['pending', 'approved'])->latest('id')->get(),
+        ];
     }
 
     public static function resolve(User $user): ?Model
