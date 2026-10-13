@@ -174,9 +174,75 @@
                 @endif
                 <dt>CTP ID</dt><dd>{{ $ctp->ctp_code ?: 'Issued on approval' }}</dd>
             </dl>
-            @if ($ctp->fee_status === 'awaiting_payment' && $ctp->status === 'pending_payment')
-                <p class="hint">Online checkout (M-Pesa STK / bank) switches on in the finance phase. Until then, record the payment here when the money reaches us.</p>
-                <a class="btn btn-sm btn-lime" href="{{ route('admin.registrations.show', ['ctp', $ctp->id]) }}">Record the fee</a>
+            @if (! in_array($ctp->status, ['active', 'graduated', 'deployed', 'rejected', 'suspended'], true))
+                <p class="hint">Online checkout (M-Pesa STK / bank) switches on in the finance phase. Until then,
+                    record the payment here when the money reaches us — this stays inside Module 2.</p>
+                <form method="POST" action="{{ route('admin.promoters.fee', $ctp) }}" class="fee-form"
+                      data-confirm="Record this fee and move {{ $ctp->full_name }} into the review queue?" data-title="Membership fee">
+                    @csrf
+                    <div class="form-grid-2">
+                        <div class="field">
+                            <label>Fee <span class="req">*</span></label>
+                            <select name="fee_status" required>
+                                <option value="paid">Paid</option>
+                                <option value="waived">Waived — sponsored</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Paid through</label>
+                            <select name="fee_method">
+                                <option value="mpesa">M-Pesa</option>
+                                <option value="bank">Bank transfer</option>
+                                <option value="cash">Cash at office</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Amount (KSh)</label>
+                            <input type="number" step="0.01" min="0" name="fee_amount"
+                                   placeholder="{{ \App\Models\Setting::get('membership_fee_ctp', '500') }}">
+                        </div>
+                        <div class="field">
+                            <label>M-Pesa / transaction code</label>
+                            <input type="text" name="fee_reference" maxlength="60" placeholder="e.g. SLK4H29PQ1">
+                        </div>
+                    </div>
+                    <button class="btn btn-lime btn-block" type="submit">Record fee &amp; send to review</button>
+                </form>
+            @endif
+        </div>
+
+        <div class="card">
+            <h3>Application decision</h3>
+            @if ($ctp->status === 'pending_payment')
+                <p class="hint">Record the fee above and the application moves into the review queue, then you can
+                    approve it here.</p>
+            @elseif ($ctp->status === 'pending_review')
+                <form method="POST" action="{{ route('admin.promoters.approve', $ctp) }}"
+                      data-confirm="Approve {{ $ctp->full_name }}? Their CTP ID is issued for good and an activation link is created."
+                      data-title="Approve application">
+                    @csrf
+                    <button class="btn btn-lime btn-block" type="submit">Approve and issue CTP ID</button>
+                </form>
+                <form method="POST" action="{{ route('admin.promoters.reject', $ctp) }}" class="reject-form"
+                      data-confirm="Reject this application? The reason is sent to the applicant." data-title="Reject application">
+                    @csrf
+                    <div class="field">
+                        <label>Rejection reason (sent to applicant) <span class="req">*</span></label>
+                        <textarea name="rejection_reason" rows="2" required placeholder="e.g. National ID scan is unreadable — please re-upload."></textarea>
+                    </div>
+                    <button class="btn btn-danger btn-block" type="submit">Reject application</button>
+                </form>
+            @elseif ($ctp->status === 'rejected')
+                <p>Reason sent to the applicant:<br><em>&ldquo;{{ $ctp->rejection_reason }}&rdquo;</em></p>
+                <form method="POST" action="{{ route('admin.promoters.approve', $ctp) }}"
+                      data-confirm="Reverse the rejection and approve {{ $ctp->full_name }}?" data-title="Approve instead">
+                    @csrf
+                    <button class="btn btn-outline btn-sm" type="submit">Approve instead</button>
+                </form>
+            @else
+                <p class="hint">Approved on {{ $ctp->approved_at?->format('d M Y') ?? 'record approval' }} as
+                    <b>{{ $ctp->ctp_code }}</b>. Rejections are only open while the application is unpaid or waiting for review.</p>
             @endif
         </div>
 
@@ -205,7 +271,8 @@
                     @endif
                 @endforeach
             </div>
-            <p class="hint">Rejected applications are handled in Module 1 — Applicants.</p>
+            <p class="hint">Suspension locks their portal login at once; graduation and deployment decide which
+                projects they can see.</p>
         </div>
 
         <div class="card">
@@ -217,13 +284,26 @@
                 <dt>Available for mobilisation</dt><dd>{{ $ctp->available_for_mobilisation ? 'Yes' : 'No' }}</dd>
                 <dt>Opted in as Fundi-Trainer</dt><dd>{{ $ctp->trainer_opt_in ? 'Yes' : 'No' }}</dd>
             </dl>
-            <a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', ['ctp', $ctp->id]) }}">Application record &amp; documents</a>
+            <form method="POST" action="{{ route('admin.promoters.tier', $ctp) }}" class="mini-form"
+                  data-confirm="Change which projects {{ $ctp->full_name }} can see?" data-title="Project level">
+                @csrf
+                <div class="field">
+                    <label>Sees projects for</label>
+                    <select name="fundi_tier">
+                        <option value="">CTP attachment only</option>
+                        @foreach (\App\Models\Project::CTP_POOL_TIERS as $key => $desc)
+                            <option value="{{ $key }}" @selected($ctp->fundi_tier === $key)>{{ $desc }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button class="btn btn-sm btn-primary" type="submit">Save project level</button>
+            </form>
         </div>
 
         <div class="card">
             <h3>Documents ({{ count($docs) }})</h3>
             @forelse ($docs as $slot => $doc)
-                <a class="doc-card" href="{{ route('admin.registrations.file', ['ctp', $ctp->id, $slot]) }}" target="_blank">
+                <a class="doc-card" href="{{ route('admin.promoters.file', [$ctp, $slot]) }}" target="_blank">
                     <span class="dc-name">{{ $doc['label'] }}</span>
                     <span class="dc-open">Open {{ str_ends_with(strtolower($doc['path']), '.pdf') ? 'PDF' : 'image' }} ↗</span>
                 </a>
@@ -236,15 +316,22 @@
             <h3>Portal account</h3>
             @if ($ctp->user)
                 <p>{{ $ctp->user->name }} · {{ $ctp->user->email }}</p>
-                <div class="hint">Login is {{ $ctp->user->active ? 'active' : 'locked' }}.</div>
+                <div class="hint">Login is {{ $ctp->user->active ? 'active' : 'locked' }} — they see only their own trainee interface at <b>/portal</b>.</div>
             @elseif ($invite)
                 <div class="link-box">
                     <label class="hint">Activation link — send this to the CTP</label>
                     <input type="text" readonly value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                 </div>
+                @if ($invite->status === 'pending')
+                    <form method="POST" action="{{ route('admin.promoters.reissue', $ctp) }}" class="mini-form"
+                          data-confirm="Issue a fresh activation link? The old one stops working." data-title="New activation link">
+                        @csrf
+                        <button class="btn btn-sm btn-ghost" type="submit">New link</button>
+                    </form>
+                @endif
             @else
-                <p class="hint">No account yet — approve the application in Module 1 to issue the ID and activation link.</p>
+                <p class="hint">No account yet — approve this CTP above to issue the ID and an activation link.</p>
             @endif
         </div>
     </div>

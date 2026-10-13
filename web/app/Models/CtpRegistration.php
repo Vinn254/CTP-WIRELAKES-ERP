@@ -41,9 +41,6 @@ class CtpRegistration extends Model
         'postgraduate' => 'Postgraduate',
     ];
 
-    /** Tabs of the trainee interface — the three parallel roles plus their work board. */
-    public const PORTAL_TABS = ['training', 'mobilisation', 'communities', 'projects'];
-
     public const MOBILISATION_TIERS = [
         15 => '50% off the current term',
         30 => '100% off the current term (sponsorship credit)',

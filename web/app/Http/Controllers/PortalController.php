@@ -16,22 +16,53 @@ class PortalController extends Controller
         return MemberPortal::resolve(auth()->user());
     }
 
-    public function dashboard(Request $request)
+    /** Sections only a CTP has — an E-Fundi is refused here, and their sidebar never offers them. */
+    private function ctp(): CtpRegistration
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        abort_unless($member instanceof CtpRegistration, 403, 'That part of the portal is for CTPs.');
+
+        return $member;
+    }
+
+    public function dashboard()
     {
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
 
-        if ($member instanceof CtpRegistration) {
-            $tab = $request->query('tab', 'training');
-            abort_unless(in_array($tab, CtpRegistration::PORTAL_TABS, true), 404);
+        return view('portal.dashboard', MemberPortal::board($member) + [
+            'referrals' => $member instanceof CtpRegistration ? $member->referrals()->latest()->limit(3)->get() : collect(),
+        ]);
+    }
 
-            return view('portal.ctp', MemberPortal::board($member) + [
-                'referrals' => $member->referrals()->latest()->get(),
-                'tab' => $tab,
-            ]);
-        }
+    public function training()
+    {
+        return view('portal.training', MemberPortal::board($this->ctp()));
+    }
 
-        return view('portal.dashboard', MemberPortal::board($member));
+    public function mobilisation()
+    {
+        $ctp = $this->ctp();
+
+        return view('portal.mobilisation', MemberPortal::board($ctp) + [
+            'referrals' => $ctp->referrals()->latest()->get(),
+        ]);
+    }
+
+    public function communities()
+    {
+        return view('portal.communities', MemberPortal::board($this->ctp()));
+    }
+
+    public function projects()
+    {
+        return view('portal.projects', MemberPortal::board($this->member()));
+    }
+
+    public function applications()
+    {
+        return view('portal.applications', MemberPortal::board($this->member()));
     }
 
     public function project(Request $request, Project $project)

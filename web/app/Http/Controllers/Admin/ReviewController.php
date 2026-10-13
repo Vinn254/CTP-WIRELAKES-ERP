@@ -9,12 +9,10 @@ use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
-use App\Models\Setting;
+use App\Support\ReviewActions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReviewController extends Controller
 {
@@ -90,67 +88,28 @@ class ReviewController extends Controller
 
     public function approve(string $type, int $id)
     {
-        $model = $this->model($type);
-        $record = $model::findOrFail($id);
-        abort_unless($record->status === 'pending_review', 422, 'Only pending applications can be approved.');
+        $record = $this->model($type)::findOrFail($id);
 
-        $codeColumn = self::TYPES[$type]['code'];
-        DB::transaction(function () use ($model, $record, $codeColumn, $type) {
-            $record->status = 'active';
-            // A CTP ID is issued once and never re-issued, even if the record is later reopened.
-            $record->{$codeColumn} ??= $model::nextCode();
-            if ($type === 'ctp') {
-                $record->approved_by = auth()->id();
-                $record->approved_at = now();
-            }
-            $record->save();
-
-            if (in_array($type, ['ctp', 'fundi'], true)) {
-                AccountInvite::issueFor($record, auth()->id());
-            }
-        });
-
-        return back()->with('status', in_array($type, ['ctp', 'fundi'], true)
-            ? "Approved — {$record->{$codeColumn}} issued. Copy the activation link below and send it so they can set a password."
-            : "Approved — {$record->{$codeColumn}} issued.");
+        return back()->with('status', ReviewActions::approve(
+            $record, self::TYPES[$type]['code'], in_array($type, ['ctp', 'fundi'], true)
+        ));
     }
 
     /** Record a membership fee the applicant paid by M-Pesa bill, bank transfer or cash. */
     public function markFee(Request $request, string $type, int $id)
     {
         abort_unless($type === 'ctp', 404);
-        $record = CtpRegistration::findOrFail($id);
 
-        $data = $request->validate([
-            'fee_status' => 'required|in:paid,waived',
-            'fee_method' => 'nullable|required_if:fee_status,paid|in:mpesa,bank,cash,other',
-            'fee_amount' => 'nullable|numeric|min:0|max:999999',
-            'fee_reference' => 'nullable|string|max:60',
-        ]);
-
-        $record->update([
-            'fee_status' => $data['fee_status'],
-            'fee_method' => $data['fee_status'] === 'paid' ? $data['fee_method'] : null,
-            'fee_amount' => $data['fee_amount'] ?? Setting::get('membership_fee_ctp', null),
-            'fee_reference' => $data['fee_reference'] ?? null,
-            'fee_paid_at' => now(),
-            // The application only reaches the review queue once the fee is settled.
-            'status' => $record->status === 'pending_payment' ? 'pending_review' : $record->status,
-        ]);
-
-        return back()->with('status', $data['fee_status'] === 'paid'
-            ? 'Fee of KSh '.number_format((float) $record->fee_amount).' recorded — the application is now in the review queue.'
-            : 'Fee waived — the application is now in the review queue.');
+        return back()->with('status', ReviewActions::recordFee(
+            CtpRegistration::findOrFail($id), ReviewActions::feeFrom($request)
+        ));
     }
 
     public function reject(Request $request, string $type, int $id)
     {
         $record = $this->model($type)::findOrFail($id);
-        abort_unless(in_array($record->status, ['pending_payment', 'pending_review'], true), 422,
-            'Only applications that have not been approved can be rejected.');
-
         $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
-        $record->update(['status' => 'rejected', 'rejection_reason' => $data['rejection_reason']]);
+        ReviewActions::reject($record, $data['rejection_reason']);
 
         return back()->with('status', 'Application rejected; the reason will be shared with the applicant.');
     }
@@ -159,13 +118,8 @@ class ReviewController extends Controller
     public function reissue(string $type, int $id)
     {
         abort_unless(in_array($type, ['ctp', 'fundi'], true), 404);
-        $record = $this->model($type)::findOrFail($id);
-        abort_unless(in_array($record->status, ['active', 'graduated', 'deployed'], true), 422,
-            'Only approved members have activation links.');
 
-        AccountInvite::issueFor($record, auth()->id(), true);
-
-        return back()->with('status', 'New activation link ready — copy it below and send it.');
+        return back()->with('status', ReviewActions::reissue($this->model($type)::findOrFail($id)));
     }
 
     /** Move a CTP who finished the programme into the fundi pool. */
@@ -175,7 +129,7 @@ class ReviewController extends Controller
         $record = CtpRegistration::findOrFail($id);
 
         $data = $request->validate(['fundi_tier' => 'nullable|in:'.implode(',', array_keys(Project::CTP_POOL_TIERS))]);
-        $record->update(['fundi_tier' => $data['fundi_tier'] ?? null]);
+        ReviewActions::setPoolTier($record, $data['fundi_tier'] ?? null);
 
         return back()->with('status', $record->full_name.' can now see '
             .($record->fundi_tier ? Str::headline($record->fundi_tier).' projects' : 'only CTP attachment projects').'.');

@@ -549,11 +549,6 @@ html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .proj-item b a:hover { text-decoration: underline; }
 .proj-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .member-body { background: var(--bg); }
-.member-topbar { position: sticky; top: 0; justify-content: space-between; }
-.member-topbar .brand { flex: 1; min-width: 0; }
-.member-topbar .brand img { height: 40px; width: 40px; object-fit: contain; }
-html.dark .member-topbar .brand img { filter: brightness(0) invert(1); }
-.member-main { padding-top: 26px; padding-bottom: 48px; }
 .member-hero { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; background: linear-gradient(100deg, var(--green) 0%, #0b7f2c 58%, var(--lime) 100%); color: #fff; border-radius: var(--radius); padding: 22px 26px; margin-bottom: 22px; box-shadow: var(--shadow); }
 .member-hero h1 { color: #fff; margin: 6px 0 4px; }
 .member-hero .sub { color: rgba(255,255,255,.88); margin: 0; }
@@ -577,6 +572,8 @@ html.dark .gaps { background: #2a2413; }
 .row-line:first-of-type { border-top: 0; }
 .row-line .hint { flex: 1; }
 .fee-tag { padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 800; background: #ede4ff; color: #4c2d91; white-space: nowrap; }
+.fee-form { margin-top: 12px; }
+.reject-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .fee-tag.paid { background: var(--lime-soft); color: var(--green-dark); }
 .fee-tag.waived { background: #eef1f4; color: var(--muted); }
 html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
@@ -591,12 +588,12 @@ html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .check-row input { margin-top: 3px; }
 .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 
-/* CTP trainee interface (member portal + staff preview of it) */
-.preview-banner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #fff4e0; border-left: 4px solid #e08a1e; color: #7a4a08; padding: 11px 16px; border-radius: var(--radius); margin-bottom: 16px; font-size: .9rem; }
-.preview-banner a { font-weight: 700; color: #7a4a08; text-decoration: underline; }
-html.dark .preview-banner { background: #2a2113; color: #f0c685; }
+/* CTP trainee interface — the member's own portal */
 .ctp-hero .ctp-term { margin-top: 4px; font-size: .88rem; }
-.ctp-tabs { margin-bottom: 18px; }
+.page-intro { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--card, #fff); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: var(--radius); padding: 13px 18px; margin-bottom: 18px; font-size: .92rem; color: var(--muted); }
+.section-head { margin: 26px 0 12px; }
+.more { margin: 14px 0 0; font-weight: 700; }
+.callout { border-left: 4px solid #e08a1e; }
 .steps { list-style: none; margin: 6px 0 0; padding: 0; counter-reset: step; }
 .steps li { position: relative; padding: 10px 0 10px 40px; border-bottom: 1px dashed var(--line); counter-increment: step; }
 .steps li:last-child { border-bottom: 0; }

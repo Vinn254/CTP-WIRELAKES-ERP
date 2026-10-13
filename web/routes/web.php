@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
-use App\Http\Controllers\Admin\CtpTraineeController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -112,23 +111,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/staff/invites/{invite}/revoke', [StaffController::class, 'revoke'])->name('staff.invite.revoke');
     Route::post('/staff/users/{user}', [StaffController::class, 'updateRole'])->name('staff.users.update');
 
-    // Module 2 — CTP Promoter Management (profiles, lifecycle, mobilisation lineage)
+    // Module 2 — CTP Promoter Management. Everything a CTP needs is decided here, not in Module 1.
     Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');
     Route::get('/promoters/{ctp}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
+    Route::get('/promoters/{ctp}/file/{slot}', [CtpProfileController::class, 'file'])->whereNumber('ctp')->name('promoters.file');
     Route::get('/promoters/{ctp}/edit', [CtpProfileController::class, 'edit'])->whereNumber('ctp')->name('promoters.edit');
     Route::patch('/promoters/{ctp}', [CtpProfileController::class, 'update'])->whereNumber('ctp')->name('promoters.update');
     Route::post('/promoters/{ctp}/status', [CtpProfileController::class, 'setStatus'])->whereNumber('ctp')->name('promoters.status');
     Route::post('/promoters/{ctp}/referrer', [CtpProfileController::class, 'setReferrer'])->whereNumber('ctp')->name('promoters.referrer');
-
-    // Module 2 — the CTP trainee interface, previewed by staff on their own account
-    Route::get('/trainee', [CtpTraineeController::class, 'index'])->name('trainee.index');
-    Route::get('/trainee/{ctp}', [CtpTraineeController::class, 'show'])->whereNumber('ctp')->name('trainee.show');
-    Route::get('/trainee/{ctp}/project/{project}', [CtpTraineeController::class, 'project'])->whereNumber('ctp')->name('trainee.project');
+    Route::post('/promoters/{ctp}/fee', [CtpProfileController::class, 'markFee'])->whereNumber('ctp')->name('promoters.fee');
+    Route::post('/promoters/{ctp}/approve', [CtpProfileController::class, 'approve'])->whereNumber('ctp')->name('promoters.approve');
+    Route::post('/promoters/{ctp}/reject', [CtpProfileController::class, 'reject'])->whereNumber('ctp')->name('promoters.reject');
+    Route::post('/promoters/{ctp}/reissue', [CtpProfileController::class, 'reissue'])->whereNumber('ctp')->name('promoters.reissue');
+    Route::post('/promoters/{ctp}/tier', [CtpProfileController::class, 'setTier'])->whereNumber('ctp')->name('promoters.tier');
 });
 
-// Member portal — approved CTPs and E-Fundis (never public, never staff)
+// Member portal — the member's own interface. Never staff, never public.
 Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(function () {
     Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/training', [PortalController::class, 'training'])->name('training');
+    Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
+    Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
+    Route::get('/projects', [PortalController::class, 'projects'])->name('projects');
+    Route::get('/applications', [PortalController::class, 'applications'])->name('applications');
     Route::get('/projects/{project}', [PortalController::class, 'project'])->name('project');
     Route::post('/projects/{project}/apply', [PortalController::class, 'apply'])->name('apply');
     Route::post('/applications/{application}/withdraw', [PortalController::class, 'withdraw'])->name('withdraw');

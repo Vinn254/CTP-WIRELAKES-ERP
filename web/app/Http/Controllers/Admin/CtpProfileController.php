@@ -7,6 +7,7 @@ use App\Models\AccountInvite;
 use App\Models\CtpRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Support\ReviewActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -148,6 +149,47 @@ class CtpProfileController extends Controller
         });
     }
 
+    /**
+     * Module 2 settles the fee on its own screen — staff working a CTP are never sent out of the
+     * department to do it. Recording it moves the record into the review queue.
+     */
+    public function markFee(Request $request, CtpRegistration $ctp)
+    {
+        return back()->with('status', ReviewActions::recordFee($ctp, ReviewActions::feeFrom($request)));
+    }
+
+    /** Issue the CTP ID and open the portal account, without leaving Module 2. */
+    public function approve(CtpRegistration $ctp)
+    {
+        return back()->with('status', ReviewActions::approve($ctp, 'ctp_code', true));
+    }
+
+    public function reject(Request $request, CtpRegistration $ctp)
+    {
+        $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
+        ReviewActions::reject($ctp, $data['rejection_reason']);
+
+        return back()->with('status', $ctp->full_name.' rejected — the reason is shared with the applicant.');
+    }
+
+    public function reissue(CtpRegistration $ctp)
+    {
+        return back()->with('status', ReviewActions::reissue($ctp));
+    }
+
+    /** Documents are read here too, so a CTP file never needs a Module 1 url. */
+    public function file(CtpRegistration $ctp, string $slot, Request $request)
+    {
+        $docs = $this->documents($ctp);
+        abort_unless(isset($docs[$slot]), 404, 'Document not uploaded.');
+
+        if ($request->boolean('download')) {
+            return Storage::disk('local')->response($docs[$slot]['path']);
+        }
+
+        return response()->file(Storage::disk('local')->path($docs[$slot]['path']));
+    }
+
     /** Staff can fix the lineage when the applicant mistyped or the code did not match. */
     public function setReferrer(Request $request, CtpRegistration $ctp)
     {
@@ -167,6 +209,15 @@ class CtpProfileController extends Controller
         return back()->with('status', $referrer
             ? $ctp->full_name.' is now counted as a referral of '.$referrer->ctp_code.' · '.$referrer->full_name.'.'
             : 'Mobiliser unlinked — '.$ctp->full_name.' no longer counts toward anyone.');
+    }
+
+    /** Which projects this CTP can see once they enter the fundi pool. */
+    public function setTier(Request $request, CtpRegistration $ctp)
+    {
+        $data = $request->validate(['fundi_tier' => 'nullable|in:'.implode(',', array_keys(Project::CTP_POOL_TIERS))]);
+        ReviewActions::setPoolTier($ctp, $data['fundi_tier'] ?? null);
+
+        return back()->with('status', $ctp->full_name.' now sees '.$ctp->poolLabel().' projects.');
     }
 
     private function documents(CtpRegistration $ctp): array

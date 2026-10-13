@@ -9,7 +9,7 @@ use App\Models\ProjectApplication;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-/** The project board every member sees — shared by the member portal and the staff preview. */
+/** The project board a member sees — resolved from the signed-in account, never from a url. */
 class MemberPortal
 {
     public static function applicantType(Model $member): string
@@ -36,7 +36,7 @@ class MemberPortal
             ->get();
     }
 
-    /** Everything the interface needs about one member, for both sides of the RBAC line. */
+    /** Everything a member interface needs about one member. */
     public static function board(Model $member): array
     {
         return [

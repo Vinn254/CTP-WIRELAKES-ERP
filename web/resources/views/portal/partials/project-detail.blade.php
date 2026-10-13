@@ -1,7 +1,6 @@
 @php
     use App\Models\Project;
     $isOpen = $project->status === 'open';
-    $preview = ! empty($isPreview);
 @endphp
 
 <p class="back"><a href="{{ $backUrl }}">&larr; Back to projects</a></p>
@@ -43,15 +42,13 @@
                     @if ($application->rejection_reason)<p class="hint">{{ $application->rejection_reason }}</p>@endif
                 @else
                     <span class="status pending_review">Application under review</span>
-                    @unless ($preview)
-                        <form method="POST" action="{{ route('portal.withdraw', $application) }}" data-confirm="Withdraw your application for this project?" style="margin-top:10px;">
-                            @csrf
-                            <button class="btn btn-sm btn-ghost" type="submit">Withdraw application</button>
-                        </form>
-                    @endunless
+                    <form method="POST" action="{{ route('portal.withdraw', $application) }}" data-confirm="Withdraw your application for this project?" style="margin-top:10px;">
+                        @csrf
+                        <button class="btn btn-sm btn-ghost" type="submit">Withdraw application</button>
+                    </form>
                 @endif
             </div>
-        @elseif ($isOpen && ! $preview)
+        @elseif ($isOpen)
             <form method="POST" action="{{ route('portal.apply', $project) }}" style="margin-top:14px;">
                 @csrf
                 <div class="field">

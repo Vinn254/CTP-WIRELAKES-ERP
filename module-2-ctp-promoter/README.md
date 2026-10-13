@@ -20,20 +20,26 @@ training cohorts and certificates stay in Module 4, communities in Module 3, pay
 
 ## Status
 
-**Built — CTP profile and ID (`/admin/promoters`), and the CTP trainee interface (`/admin/trainee`).**
-Every CTP record now carries: identity, county / sub-county / ward / village + GPS pin, education level,
+**Built — CTP profiles (`/admin/promoters`) and the CTP's own trainee interface (`/portal`).**
+Every CTP record carries: identity, county / sub-county / ward / village + GPS pin, education level,
 year left school and certificates held, track, mobiliser lineage (`referred_by`), service counties,
 mobilisation availability, trainer opt-in, fee state, and the full lifecycle
 `pending_payment → pending_review → active → graduated → deployed` (plus `suspended`, `rejected`).
-The CTP ID is issued once on approval and never re-issued. Approving a CTP now requires the fee to be
-recorded first (paid or waived) in Module 1 — Applicants, which is where the payment checkout will plug in.
+The CTP ID is issued once on approval and never re-issued.
 
-The trainee side is the CTP's own four tabs — **My training / My mobilisation / My communities / My projects** —
-rendered from one partial (`web/resources/views/portal/partials/trainee.blade.php`) in two places: the member sees
-it at `/portal` after signing in, staff see the identical screen at `/admin/trainee/{ctp}` with a preview banner,
-preview-scoped project links and no apply/withdraw controls. `/admin/trainee` is its own department card beside
-CTP Promoter Management. RBAC is enforced on both sides: staff get 403 at `/portal`, a CTP gets 403 at every
-`/admin/*` URL, and member routes carry no id parameter, so one member cannot open another's screen.
+**Every CTP decision is made inside this department.** The profile page records or waives the fee,
+approves the CTP and issues the ID, rejects with a reason, re-issues the activation link, sets the
+project level, moves the lifecycle and opens the uploaded documents — all under
+`admin/promoters/{ctp}/…`. Staff are never bounced to Module 1 — Applicants to finish a CTP.
+The shared rules live in `App\Support\ReviewActions`, so Module 1's queue and Module 2's profile cannot
+drift apart.
+
+**The trainee interface belongs to the member alone.** `/portal` is a sidebar workspace with
+**Overview · My training · My mobilisation · My communities · My projects · My applications**, each its own
+url. An E-Fundi sees only Overview / My projects / My applications — the CTP pages 403 and the sidebar never
+offers them. There is no staff preview of a member's screen: RBAC keeps staff out of `/portal` (403) and
+members out of every `/admin/*` url (403), member routes take no id parameter, and project detail pages are
+reached only through the member's own eligible list.
 
 **Next — the mobilisation credit.** The interface already counts verified referrals inside the current term
 (Jan–Apr / May–Aug / Sep–Dec) toward the 15 / 30 milestones; the discount a milestone earns is not yet issued
