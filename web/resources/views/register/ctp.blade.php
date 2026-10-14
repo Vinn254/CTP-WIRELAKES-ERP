@@ -7,7 +7,7 @@
     <h1>Become a Community Technology Promoter</h1>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · Pay membership fee (M-Pesa — coming online)</span>
+        <span class="step">2 · KSh {{ number_format((int) $fee) }} membership fee (free if a partner sponsors you)</span>
         <span class="step">3 · Director/Admin review</span>
         <span class="step">4 · Get your CTP ID + portal login</span>
     </div>
@@ -106,6 +106,23 @@
                     @if (! empty($refPrefill))
                         <div class="help">Filled from the link you opened — the CTP who invited you.</div>
                     @endif
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Membership fee</legend>
+                <p class="help">A one-time fee of <b>KSh {{ number_format((int) $fee) }}</b> is due after you submit, before our
+                    team reviews your documents. Pay by M-Pesa or bank — our team will send the details.</p>
+                <div class="field">
+                    <label>Is a partner organisation sponsoring you?</label>
+                    <select name="sponsor_id">
+                        <option value="">No — I will pay the KSh {{ number_format((int) $fee) }} fee</option>
+                        @foreach ($partners as $p)
+                            <option value="{{ $p->id }}" @selected((int) old('sponsor_id') === $p->id)>{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="help">A CTP sponsored by one of our partners pays no membership fee — your application goes
+                        straight to review.</div>
                 </div>
             </fieldset>
 

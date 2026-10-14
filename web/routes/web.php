@@ -120,6 +120,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // Module 2 — CTP Promoter Management. Everything a CTP needs is decided here, not in Module 1.
     Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');
+    Route::get('/promoters/create', [CtpProfileController::class, 'create'])->name('promoters.create');
+    Route::post('/promoters', [CtpProfileController::class, 'store'])->name('promoters.store');
     Route::get('/promoters/{ctp}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
     Route::get('/promoters/{ctp}/file/{slot}', [CtpProfileController::class, 'file'])->whereNumber('ctp')->name('promoters.file');
     Route::get('/promoters/{ctp}/edit', [CtpProfileController::class, 'edit'])->whereNumber('ctp')->name('promoters.edit');
@@ -127,6 +129,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/promoters/{ctp}/status', [CtpProfileController::class, 'setStatus'])->whereNumber('ctp')->name('promoters.status');
     Route::post('/promoters/{ctp}/referrer', [CtpProfileController::class, 'setReferrer'])->whereNumber('ctp')->name('promoters.referrer');
     Route::post('/promoters/{ctp}/fee', [CtpProfileController::class, 'markFee'])->whereNumber('ctp')->name('promoters.fee');
+    Route::post('/promoters/{ctp}/sponsor', [CtpProfileController::class, 'setSponsor'])->whereNumber('ctp')->name('promoters.sponsor');
     Route::post('/promoters/{ctp}/approve', [CtpProfileController::class, 'approve'])->whereNumber('ctp')->name('promoters.approve');
     Route::post('/promoters/{ctp}/reject', [CtpProfileController::class, 'reject'])->whereNumber('ctp')->name('promoters.reject');
     Route::post('/promoters/{ctp}/reissue', [CtpProfileController::class, 'reissue'])->whereNumber('ctp')->name('promoters.reissue');

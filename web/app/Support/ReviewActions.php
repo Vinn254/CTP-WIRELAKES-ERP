@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Models\AccountInvite;
 use App\Models\CtpRegistration;
-use App\Models\Setting;
+use App\Models\FundiRegistration;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,20 +27,20 @@ class ReviewActions
     }
 
     /** Record a membership fee paid by M-Pesa bill, bank transfer or cash — or waive it. */
-    public static function recordFee(CtpRegistration $ctp, array $data): string
+    public static function recordFee(CtpRegistration|FundiRegistration $member, array $data): string
     {
-        $ctp->update([
+        $member->update([
             'fee_status' => $data['fee_status'],
             'fee_method' => $data['fee_status'] === 'paid' ? $data['fee_method'] : null,
-            'fee_amount' => $data['fee_amount'] ?? Setting::get('membership_fee_ctp', null),
+            'fee_amount' => $data['fee_amount'] ?? $member::feeAmount(),
             'fee_reference' => $data['fee_reference'] ?? null,
             'fee_paid_at' => now(),
             // The application only reaches the review queue once the fee is settled.
-            'status' => $ctp->status === 'pending_payment' ? 'pending_review' : $ctp->status,
+            'status' => $member->status === 'pending_payment' ? 'pending_review' : $member->status,
         ]);
 
         return $data['fee_status'] === 'paid'
-            ? 'Fee of KSh '.number_format((float) $ctp->fee_amount).' recorded — the application is now in the review queue.'
+            ? 'Fee of KSh '.number_format((float) $member->fee_amount).' recorded — the application is now in the review queue.'
             : 'Fee waived — the application is now in the review queue.';
     }
 

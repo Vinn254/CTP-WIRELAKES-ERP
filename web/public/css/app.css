@@ -585,6 +585,7 @@ html.dark .gaps { background: #2a2413; }
 .reject-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .fee-tag.paid { background: var(--lime-soft); color: var(--green-dark); }
 .fee-tag.waived { background: #eef1f4; color: var(--muted); }
+.fee-tag.sponsored { background: var(--gold-soft, #fff4d6); color: #7a5200; }
 html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .milestone { margin: 4px 0 12px; }
 .ms-top { display: flex; gap: 8px; align-items: baseline; }

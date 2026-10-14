@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
+use App\Models\Partner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -48,80 +49,24 @@ class RegistrationController extends Controller
     {
         return view('register.ctp', $this->formData() + [
             'tracks' => $this->ctpTracks(),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
+            'fee' => CtpRegistration::feeAmount(),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }
 
     public function storeCtp(Request $request)
     {
-        $data = $request->validate([
-            'full_name' => 'required|string|max:150',
-            'national_id' => ['required', 'max:20', ...$this->uniqueIn('ctp_registrations', 'national_id')],
-            'phone' => ['required', 'max:20', ...$this->uniqueIn('ctp_registrations', 'phone')],
-            'email' => ['required', 'email', ...$this->uniqueIn('ctp_registrations', 'email')],
-            'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
-            'gender' => 'required|in:male,female,other',
-            'county' => 'required|string|max:100',
-            'sub_county' => 'required|string|max:100',
-            'ward' => 'required|string|max:100',
-            'village' => 'required|string|max:100',
-            'education_level' => 'required|in:none,primary,secondary,certificate,diploma,degree,postgraduate',
-            'track' => 'required|in:'.implode(',', array_keys($this->ctpTracks())),
-            'referral_code' => 'nullable|string|max:20',
-            'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
-        ], [], [
-            'national_id' => 'National ID', 'id_scan' => 'National ID scan',
-            'passport_photo' => 'Passport photo', 'dob' => 'Date of birth',
-        ]);
+        $rules = CtpRegistration::applicationRules();
+        // The tracks on offer are CMS copy, so the form accepts whatever the office has published.
+        $rules['track'] = 'required|in:'.implode(',', array_keys($this->ctpTracks()));
 
-        $ref = $this->reference('CTP');
-        $referrer = $this->resolveReferrer($data['referral_code'] ?? null, $data);
+        $data = $request->validate($rules, [], CtpRegistration::applicationLabels());
 
-        $record = [
-            'reference' => $ref,
-            'status' => 'pending_payment',
-            'referred_by' => $referrer?->id,
-            'referred_at' => $referrer ? now() : null,
-            ...collect($data)->except(['id_scan', 'certificate', 'passport_photo'])->all(),
-        ];
+        $ctp = CtpRegistration::startApplication($data);
+        $ctp->storeFiles($request);
 
-        $ctp = CtpRegistration::create($record);
-        $this->attachFiles($ctp, $request, [
-            'id_scan' => 'id_scan_path',
-            'certificate' => 'certificate_path',
-            'passport_photo' => 'passport_photo_path',
-        ]);
-
-        return redirect()->route('register.success', ['type' => 'ctp', 'reference' => $ref]);
-    }
-
-    /**
-     * Match the typed referral code to an existing CTP. Self-referral is impossible here:
-     * a brand-new record has no code, and anyone re-registering under their own phone, ID or
-     * email is the same person, so the referral is dropped instead of counted.
-     */
-    private function resolveReferrer(?string $code, array $data): ?CtpRegistration
-    {
-        $code = Str::upper(trim((string) $code));
-        if ($code === '') {
-            return null;
-        }
-
-        $referrer = CtpRegistration::whereIn('status', CtpRegistration::WORKING)
-            ->where('ctp_code', $code)
-            ->first();
-
-        if (! $referrer) {
-            return null;
-        }
-
-        $samePerson = $referrer->national_id === $data['national_id']
-            || $referrer->phone === $data['phone']
-            || $referrer->email === $data['email'];
-
-        return $samePerson ? null : $referrer;
+        return redirect()->route('register.success', ['type' => 'ctp', 'reference' => $ctp->reference]);
     }
 
     public function fundiForm(Request $request)
@@ -172,8 +117,10 @@ class RegistrationController extends Controller
         $ref = $this->reference('EF');
         $files = ['id_scan', 'business_cert', 'trade_certs', 'portfolio'];
         $record = collect($data)->except(array_merge($files, ['mobiliser_code']))->all();
-        $record['mobilised_by_ctp'] = $this->resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;
+        $record['mobilised_by_ctp'] = CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;
         $record['reference'] = $ref;
+        // The application waits for the one-time membership fee before it is reviewed.
+        $record['status'] = 'pending_payment';
         $record['specialisations'] = array_values(array_unique($data['specialisations']));
         $record['service_counties'] = array_values(array_unique($data['service_counties']));
 
@@ -207,16 +154,5 @@ class RegistrationController extends Controller
     private function formData(): array
     {
         return ['counties' => \App\Models\County::orderBy('name')->pluck('name')];
-    }
-
-    private function attachFiles($model, Request $request, array $map): void
-    {
-        $dir = 'registrations/'.class_basename($model).'/'.$model->reference;
-        foreach ($map as $input => $column) {
-            if ($request->hasFile($input)) {
-                $model->{$column} = $request->file($input)->store($dir, 'local');
-            }
-        }
-        $model->save();
     }
 }

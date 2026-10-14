@@ -21,6 +21,12 @@
             <span>{{ $ctp->trackLabel() }}</span>
             @if ($place)<span>{{ $place }}</span>@endif
             <span>Applied {{ $ctp->created_at->format('d M Y') }}</span>
+            @if ($ctp->source === 'office')
+                <span>Added from the office by {{ $ctp->addedBy->name ?? 'a staff member' }}</span>
+            @endif
+            @if ($ctp->sponsor)
+                <span class="tag gold">Sponsored by {{ $ctp->sponsor->name }}</span>
+            @endif
             @if ($ctp->approved_at)<span>Approved {{ $ctp->approved_at->format('d M Y') }}</span>@endif
         </p>
     </div>
@@ -169,17 +175,21 @@
             <h3>Fee &amp; membership</h3>
             <dl class="kv">
                 <dt>Fee</dt><dd><span class="fee-tag {{ $ctp->fee_status }}">{{ CtpRegistration::FEE_STATUSES[$ctp->fee_status] ?? $ctp->fee_status }}</span></dd>
+                @if ($ctp->fee_status === 'sponsored')
+                    <dt>Covered by</dt><dd>{{ $ctp->sponsor->name ?? 'a partner' }}</dd>
+                @endif
                 @if ($ctp->fee_status !== 'awaiting_payment')
-                    <dt>Amount</dt><dd>KSh {{ number_format((float) $ctp->fee_amount) }}</dd>
+                    <dt>Amount</dt><dd>{{ $ctp->fee_amount ? 'KSh '.number_format((float) $ctp->fee_amount) : '—' }}</dd>
                     <dt>Method</dt><dd>{{ $ctp->fee_method ? Str::headline($ctp->fee_method) : '—' }}</dd>
                     @if ($ctp->fee_reference)<dt>Reference</dt><dd>{{ $ctp->fee_reference }}</dd>@endif
                     <dt>Recorded</dt><dd>{{ $ctp->fee_paid_at?->format('d M Y H:i') ?? '—' }}</dd>
                 @endif
                 <dt>CTP ID</dt><dd>{{ $ctp->ctp_code ?: 'Issued on approval' }}</dd>
             </dl>
-            @if (! in_array($ctp->status, ['active', 'graduated', 'deployed', 'rejected', 'suspended'], true))
+            @if ($ctp->fee_status === 'awaiting_payment' && ! in_array($ctp->status, ['rejected', 'suspended'], true))
                 <p class="hint">Online checkout (M-Pesa STK / bank) switches on in the finance phase. Until then,
-                    record the payment here when the money reaches us — this stays inside Module 2.</p>
+                    record the payment here when the money reaches us — this stays inside Module 2.
+                    A CTP a partner is sponsoring pays nothing: set the sponsor below instead.</p>
                 <form method="POST" action="{{ route('admin.promoters.fee', $ctp) }}" class="fee-form"
                       data-confirm="Record this fee and move {{ $ctp->full_name }} into the review queue?" data-title="Membership fee">
                     @csrf
@@ -188,7 +198,7 @@
                             <label>Fee <span class="req">*</span></label>
                             <select name="fee_status" required>
                                 <option value="paid">Paid</option>
-                                <option value="waived">Waived — sponsored</option>
+                                <option value="waived">Waived by the office</option>
                             </select>
                         </div>
                         <div class="field">
@@ -203,7 +213,7 @@
                         <div class="field">
                             <label>Amount (KSh)</label>
                             <input type="number" step="0.01" min="0" name="fee_amount"
-                                   placeholder="{{ \App\Models\Setting::get('membership_fee_ctp', '500') }}">
+                                   placeholder="{{ number_format($ctp::feeAmount(), 0) }}">
                         </div>
                         <div class="field">
                             <label>M-Pesa / transaction code</label>
@@ -213,6 +223,31 @@
                     <button class="btn btn-lime btn-block" type="submit">Record fee &amp; send to review</button>
                 </form>
             @endif
+        </div>
+
+        <div class="card">
+            <h3>Sponsorship</h3>
+            @if ($ctp->fee_status === 'paid')
+                <p class="hint">KSh {{ number_format((float) $ctp->fee_amount) }} was received{{ $ctp->fee_reference ? ' ('.$ctp->fee_reference.')' : '' }}
+                    on {{ $ctp->fee_paid_at?->format('d M Y') ?? 'record' }} — money in is never rewritten. A sponsor can still be
+                    recorded on the profile without changing the fee.</p>
+            @endif
+            <form method="POST" action="{{ route('admin.promoters.sponsor', $ctp) }}"
+                  data-confirm="Set the sponsoring partner for {{ $ctp->full_name }}?@if (! $ctp->feeSettled()) They will owe no membership fee and their application goes to the review queue.@endif"
+                  data-title="Sponsorship">
+                @csrf
+                <div class="field">
+                    <label>Partner covering the membership fee</label>
+                    <select name="sponsor_id">
+                        <option value="">No sponsor — they pay the KSh {{ number_format($ctp::feeAmount()) }} fee</option>
+                        @foreach ($partners as $p)
+                            <option value="{{ $p->id }}" @selected($ctp->sponsor_id === $p->id)>{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="help">Partners are kept in <b>Module 1 → Partners</b>; only the sponsorship link lives here.</div>
+                </div>
+                <button class="btn btn-outline btn-sm" type="submit">Save sponsorship</button>
+            </form>
         </div>
 
         <div class="card">

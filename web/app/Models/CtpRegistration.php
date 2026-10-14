@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CtpRegistration extends Model
 {
@@ -35,6 +37,13 @@ class CtpRegistration extends Model
         'awaiting_payment' => 'Awaiting payment',
         'paid' => 'Paid',
         'waived' => 'Waived',
+        'sponsored' => 'Sponsored — no fee',
+    ];
+
+    /** How the person got into the programme: their own application, or the office typing it in. */
+    public const SOURCES = [
+        'self' => 'Applied on the website',
+        'office' => 'Added from the office',
     ];
 
     public const EDUCATION_LEVELS = [
@@ -56,6 +65,7 @@ class CtpRegistration extends Model
         'id_scan_path', 'certificate_path', 'passport_photo_path',
         'service_counties', 'available_for_mobilisation', 'trainer_opt_in',
         'status', 'status_note', 'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
+        'sponsor_id', 'source', 'added_by',
         'user_id', 'approved_by', 'approved_at', 'rejection_reason', 'ctp_code',
     ];
 
@@ -93,6 +103,18 @@ class CtpRegistration extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** The partner that covers this CTP's membership fee — a sponsored promoter pays nothing. */
+    public function sponsor(): BelongsTo
+    {
+        return $this->belongsTo(Partner::class, 'sponsor_id');
+    }
+
+    /** The staff member who typed this application in at the office. */
+    public function addedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'added_by');
     }
 
     /** Communities this CTP looks after or has put forward (Module 3). */
@@ -139,6 +161,120 @@ class CtpRegistration extends Model
             ->value('n');
 
         return 'CTP-'.str_pad((string) ((int) $highest + 1), 4, '0', STR_PAD_LEFT);
+    }
+
+    /** The application number the person keeps — the CTP ID is only issued on approval. */
+    public static function newReference(): string
+    {
+        return 'CTP-APP-'.strtoupper(bin2hex(random_bytes(3)));
+    }
+
+    /** The papers an application carries, keyed by the form input that uploads them. */
+    public const DOCUMENTS = [
+        'id_scan' => 'id_scan_path',
+        'certificate' => 'certificate_path',
+        'passport_photo' => 'passport_photo_path',
+    ];
+
+    /** The one-time fee a CTP pays to join, from the membership settings. */
+    public static function feeAmount(): float
+    {
+        return (float) Setting::get('membership_fee_ctp', '1000');
+    }
+
+    /**
+     * The application questions, asked the same way whether the person fills the form themselves or
+     * an officer types it in at the office. An office entry can arrive without the papers — they are
+     * photographed at the counter and attached to the profile later.
+     */
+    public static function applicationRules(bool $fromOffice = false): array
+    {
+        return [
+            'full_name' => 'required|string|max:150',
+            'national_id' => ['required', 'max:20', Rule::unique('ctp_registrations', 'national_id')],
+            'phone' => ['required', 'max:20', Rule::unique('ctp_registrations', 'phone')],
+            'email' => ['required', 'email', Rule::unique('ctp_registrations', 'email')],
+            'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
+            'gender' => 'required|in:male,female,other',
+            'county' => 'required|string|max:100',
+            'sub_county' => 'required|string|max:100',
+            'ward' => 'required|string|max:100',
+            'village' => 'required|string|max:100',
+            'education_level' => 'required|in:'.implode(',', array_keys(self::EDUCATION_LEVELS)),
+            'track' => 'required|in:'.implode(',', array_keys(self::TRACKS)),
+            'referral_code' => 'nullable|string|max:20',
+            'sponsor_id' => 'nullable|integer|exists:partners,id',
+            'id_scan' => ($fromOffice ? 'nullable' : 'required').'|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'passport_photo' => ($fromOffice ? 'nullable' : 'required').'|image|mimes:jpg,jpeg,png|max:1024',
+        ];
+    }
+
+    public static function applicationLabels(): array
+    {
+        return [
+            'national_id' => 'National ID', 'id_scan' => 'National ID scan',
+            'passport_photo' => 'Passport photo', 'dob' => 'Date of birth',
+            'sub_county' => 'Sub-county', 'sponsor_id' => 'Sponsoring partner',
+        ];
+    }
+
+    /**
+     * Open a CTP application — from the public form or the office screen. A promoter a partner is
+     * sponsoring has no fee to pay, so the application starts in the review queue instead.
+     */
+    public static function startApplication(array $data, bool $fromOffice = false): self
+    {
+        $sponsored = ! empty($data['sponsor_id']);
+        $referrer = static::resolveReferrer($data['referral_code'] ?? null, $data);
+
+        return static::create([
+            'reference' => static::newReference(),
+            'status' => $sponsored ? 'pending_review' : 'pending_payment',
+            'fee_status' => $sponsored ? 'sponsored' : 'awaiting_payment',
+            'fee_paid_at' => $sponsored ? now() : null,
+            'referred_by' => $referrer?->id,
+            'referred_at' => $referrer ? now() : null,
+            'source' => $fromOffice ? 'office' : 'self',
+            'added_by' => $fromOffice ? auth()->id() : null,
+            ...collect($data)->except(array_keys(self::DOCUMENTS))->all(),
+        ]);
+    }
+
+    /** Store the uploaded papers under this application's own folder on the local disk. */
+    public function storeFiles(Request $request, array $map = self::DOCUMENTS): void
+    {
+        foreach ($map as $input => $column) {
+            if ($request->hasFile($input)) {
+                $this->{$column} = $request->file($input)->store('registrations/ctp/'.$this->reference, 'local');
+            }
+        }
+        $this->save();
+    }
+
+    /**
+     * Match the typed referral code to an existing CTP. Self-referral is impossible here:
+     * a brand-new record has no code, and anyone re-registering under their own phone, ID or
+     * email is the same person, so the referral is dropped instead of counted.
+     */
+    public static function resolveReferrer(?string $code, array $data): ?self
+    {
+        $code = Str::upper(trim((string) $code));
+        if ($code === '') {
+            return null;
+        }
+
+        $referrer = static::whereIn('status', self::WORKING)->where('ctp_code', $code)->first();
+
+        if (! $referrer) {
+            return null;
+        }
+
+        $samePerson = $referrer->national_id === ($data['national_id'] ?? null)
+            || $referrer->phone === ($data['phone'] ?? null)
+            || $referrer->email === ($data['email'] ?? null);
+
+        return $samePerson ? null : $referrer;
     }
 
     /** Which fundi projects this CTP can see after finishing the programme. */

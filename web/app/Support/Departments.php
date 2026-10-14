@@ -64,6 +64,7 @@ class Departments
         ],
         'promoters' => [
             ['label' => 'CTP profiles', 'icon' => 'users', 'route' => ['admin.promoters.index'], 'badge' => 'promoters'],
+            ['label' => 'Add CTP from office', 'icon' => 'plus', 'route' => ['admin.promoters.create']],
         ],
         'communities' => [
             ['label' => 'Community register', 'icon' => 'globe', 'route' => ['admin.communities.index'], 'badge' => 'communities'],
@@ -113,6 +114,7 @@ class Departments
         'admin.donations.index' => 'Every pledge made on the public donate page',
         'admin.staff.index' => 'Invite staff and set their roles',
         'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
+        'admin.promoters.create' => 'Open a CTP application on someone’s behalf when they cannot reach the website',
         'admin.communities.index' => 'Every community, its CTP, its needs and who benefited there',
         'admin.needs.index' => 'Prioritise what CTPs flagged and turn a need into a project',
         'admin.beneficiaries.index' => 'People, households and businesses a project reached',

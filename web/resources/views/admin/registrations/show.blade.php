@@ -30,6 +30,8 @@
         'business_cert' => 'Business certificate', 'trade_cert' => 'Trade certificate', 'portfolio' => 'Portfolio photo',
         'org_doc' => 'Organisation document'];
     $data = collect($record->toArray())->except($hidden);
+    $feeAmount = $type === 'fundi' ? \App\Models\FundiRegistration::feeAmount() : \App\Models\CtpRegistration::feeAmount();
+    $feeShown = (int) content('membership', 'fees', $type === 'fundi' ? 'fee_fundi' : 'fee_ctp', (string) $feeAmount);
     $personName = $record->full_name ?? $record->contact_name;
     $memberCode = $record->ctp_code ?? $record->ef_code ?? $record->hirer_code;
     $initials = collect(explode(' ', trim($personName)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
@@ -109,9 +111,13 @@
             <div class="card decision">
                 <h3>Awaiting membership fee</h3>
                 <p class="help">
-                    KSh {{ number_format((int) content('membership', 'fees', 'fee_ctp', App\Models\Setting::get('membership_fee_ctp', '500'))) }}
+                    KSh {{ number_format($feeShown) }}
                     one-time fee. Online checkout (M-Pesa STK / bank) arrives with the finance module — until then record it here
                     when the money reaches us, and the application moves into the review queue.
+                    @if ($type === 'ctp')
+                        A CTP a partner is sponsoring pays nothing — set the sponsor on their
+                        <a href="{{ route('admin.promoters.show', $record->id) }}">CTP profile</a>.
+                    @endif
                 </p>
                 <form method="POST" action="{{ route('admin.registrations.fee', [$type, $record->id]) }}"
                       data-confirm="Record this fee and move the application into the review queue?" data-title="Membership fee">
@@ -121,7 +127,7 @@
                             <label>Fee <span class="req">*</span></label>
                             <select name="fee_status" required>
                                 <option value="paid">Paid</option>
-                                <option value="waived">Waived — sponsored</option>
+                                <option value="waived">Waived by the office</option>
                             </select>
                         </div>
                         <div class="field">

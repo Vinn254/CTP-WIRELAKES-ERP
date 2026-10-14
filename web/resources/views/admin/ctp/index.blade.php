@@ -21,6 +21,13 @@
     <div class="stat"><small>Deployed</small><b>{{ ($counts['deployed'] ?? 0) + ($counts['graduated'] ?? 0) }}</b></div>
 </div>
 
+<p style="margin:0 0 14px;">
+    <a class="btn btn-lime btn-sm" href="{{ route('admin.promoters.create') }}">+ Add a CTP from the office</a>
+    <span class="hint" style="margin-left:10px;">
+        For someone who cannot reach the website — the same application, the same fee and review steps.
+    </span>
+</p>
+
 <form method="GET" class="filter-bar">
     <input type="search" name="q" value="{{ $search }}" placeholder="Search ID, name, phone or county">
     <button class="btn btn-sm btn-outline" type="submit">Search</button>

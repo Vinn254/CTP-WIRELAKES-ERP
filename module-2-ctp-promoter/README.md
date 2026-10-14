@@ -10,6 +10,8 @@ The operational centre of the ERP: the life of a Community Technology Promoter f
 | CTP profile | personal, location, education, track, referral, CTP ID, auto-counts | membership |
 | Three parallel roles | Trainee / Mobilizer / Community Agent on one record | membership |
 | Mobilisation | referral code, people brought, 15 / 30 term milestones, per-area attribution | membership |
+| Membership fee | KSh 1,000 one-time fee, recorded / waived by the office, sponsored CTPs pay nothing | membership |
+| Office entry | a CTP application typed in at the counter for someone who cannot reach the website | membership |
 | Deployment | E-Fundi pool, internship / attachment, trainer opt-in | membership |
 | Field activity log | visits, needs assessments, beneficiaries, e-waste drives — GPS + photos | membership |
 
@@ -34,6 +36,29 @@ project level, moves the lifecycle and opens the uploaded documents — all unde
 The shared rules live in `App\Support\ReviewActions`, so Module 1's queue and Module 2's profile cannot
 drift apart.
 
+**The membership fee is KSh 1,000, one time, and a sponsored promoter pays nothing.** The number lives in the
+membership settings (`membership_fee_ctp`, mirrored on the public fees page) and is read through
+`CtpRegistration::feeAmount()`, so no screen hard-codes it. An application that arrives without a sponsor waits in
+`pending_payment` until the office records the money on the profile — paid (M-Pesa / bank / cash / other) or waived —
+and only then enters the review queue. When a partner organisation covers it, the office names that partner on the
+profile (`sponsor_id` → the Module 1 partner register, linked but never edited here): the fee becomes `sponsored`,
+no money is asked for and the application goes straight to review. Removing a sponsor before approval puts the fee
+back as owing; a fee already **paid is never rewritten** by a later sponsorship, and an approved member's record is
+left alone. The public application asks the same question, so a sponsored applicant never sees a payment step.
+
+**E-Fundis pay the same kind of one-time fee (KSh 1,000) in Module 5's queue.** `fundi_registrations` carries the
+same five fee columns and the same `pending_payment → pending_review → active` opening, settled from
+`admin/registrations/fundi/{id}` by the same `ReviewActions::recordFee()` — the shared implementation means the CTP
+and E-Fundi fee rules cannot drift apart. Sponsorship is a CTP rule today; an E-Fundi who cannot pay is waived by
+the office with the reason in the note.
+
+**The office can open a CTP itself.** `/admin/promoters/create` (the *Add CTP from office* tile, and the button on
+the profile list) asks exactly the public application questions — identity, location, education, track, mobilising
+CTP code, sponsor — through the same validator (`CtpRegistration::applicationRules()`), and the record enters the
+same lifecycle: reference `CTP-APP-XXXXXX`, `pending_payment` unless sponsored, then review, then the CTP ID and an
+activation link. The only relaxations are practical: documents may be attached later at the counter, and the record
+keeps `source = office` plus `added_by` (the staff user) so a trainee typed in at the office is never mistaken for a
+website applicant. Nobody is approved straight into the programme from this screen.
 **The trainee interface belongs to the member alone.** `/portal` is a sidebar workspace with
 **Overview · My training · My mobilisation · My communities · My projects · My applications**, each its own
 url. An E-Fundi sees only Overview / My projects / My applications — the CTP pages 403 and the sidebar never

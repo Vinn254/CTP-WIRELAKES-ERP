@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AccountInvite;
 use App\Models\CtpRegistration;
+use App\Models\Partner;
 use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Support\ReviewActions;
@@ -48,11 +49,12 @@ class CtpProfileController extends Controller
 
     public function show(CtpRegistration $ctp)
     {
-        $ctp->load(['referrer:id,ctp_code,full_name,county', 'user:id,name,email,active']);
+        $ctp->load(['referrer:id,ctp_code,full_name,county', 'user:id,name,email,active', 'sponsor:id,name', 'addedBy:id,name']);
 
         return view('admin.ctp.show', [
             'ctp' => $ctp,
             'docs' => $this->documents($ctp),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
             'brought' => $ctp->broughtList()->take(25),
             'projects' => ProjectApplication::where('applicant_type', 'ctp')
                 ->where('applicant_id', $ctp->id)
@@ -72,6 +74,86 @@ class CtpProfileController extends Controller
             'ctp' => $ctp,
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),
         ]);
+    }
+
+    /**
+     * The office can open a CTP application itself — the same questions as the public form, typed in
+     * for someone who cannot reach the website. The record enters the same lifecycle: it waits for the
+     * fee (or is sponsored) and then goes through review like any other application.
+     */
+    public function create()
+    {
+        return view('admin.ctp.apply', $this->applicationData());
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate(
+            CtpRegistration::applicationRules(true),
+            [],
+            CtpRegistration::applicationLabels()
+        );
+
+        $ctp = CtpRegistration::startApplication($data, fromOffice: true);
+        $ctp->storeFiles($request);
+
+        return redirect()->route('admin.promoters.show', $ctp)->with('status', match (true) {
+            $ctp->fee_status === 'sponsored' => $ctp->full_name.' added from the office — sponsored by '
+                .$ctp->sponsor->name.', so there is no fee. The application is in the review queue.',
+            default => $ctp->full_name.' added from the office as '.$ctp->reference
+                .'. Record the KSh '.number_format($ctp::feeAmount()).' fee here, then review and approve.',
+        });
+    }
+
+    /** A partner covering the fee is recorded on the CTP's own profile — a sponsored promoter pays nothing. */
+    public function setSponsor(Request $request, CtpRegistration $ctp)
+    {
+        $data = $request->validate(['sponsor_id' => 'nullable|integer|exists:partners,id'],
+            [], ['sponsor_id' => 'Sponsoring partner']);
+
+        $sponsor = isset($data['sponsor_id']) ? Partner::findOrFail($data['sponsor_id']) : null;
+        $openApplication = in_array($ctp->status, ['pending_payment', 'pending_review'], true);
+        $owesFee = $ctp->fee_status === 'awaiting_payment';
+
+        if ($sponsor) {
+            $settlesFee = $openApplication && $owesFee;
+            $ctp->update($settlesFee
+                ? ['sponsor_id' => $sponsor->id, 'fee_status' => 'sponsored', 'fee_amount' => null,
+                    'fee_paid_at' => now(), 'status' => 'pending_review']
+                : ['sponsor_id' => $sponsor->id]);
+
+            return back()->with('status', $settlesFee
+                ? $ctp->full_name.' is sponsored by '.$sponsor->name.' — no membership fee, and the application is in the review queue.'
+                : $sponsor->name.' recorded as the sponsoring partner of '.$ctp->full_name.'; their settled fee stays as it is.');
+        }
+
+        $takesBackFee = $openApplication && $ctp->fee_status === 'sponsored';
+        $ctp->update([
+            'sponsor_id' => null,
+            'fee_status' => $takesBackFee ? 'awaiting_payment' : $ctp->fee_status,
+            'fee_amount' => $takesBackFee ? null : $ctp->fee_amount,
+            'fee_paid_at' => $takesBackFee ? null : $ctp->fee_paid_at,
+            'status' => $takesBackFee ? 'pending_payment' : $ctp->status,
+        ]);
+
+        return back()->with('status', $takesBackFee
+            ? 'Sponsorship removed — '.$ctp->full_name.' owes the KSh '.number_format($ctp::feeAmount()).' fee again before review.'
+            : 'Sponsor removed from '.$ctp->full_name.'.');
+    }
+
+    private function applicationData(): array
+    {
+        $tracks = collect(content_rows('membership', 'ctp_tracks'))
+            ->filter(fn ($r) => ! empty($r['code']))
+            ->mapWithKeys(fn ($r) => [$r['code'] => ['label' => $r['label'] ?? $r['code'], 'desc' => $r['desc'] ?? '']])
+            ->all();
+
+        return [
+            'counties' => \App\Models\County::orderBy('name')->pluck('name'),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
+            'fee' => CtpRegistration::feeAmount(),
+            'tracks' => $tracks ?: collect(CtpRegistration::TRACKS)->map(fn ($l) => ['label' => $l, 'desc' => ''])->all(),
+        ];
     }
 
     public function update(Request $request, CtpRegistration $ctp)

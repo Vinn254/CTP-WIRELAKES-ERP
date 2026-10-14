@@ -8,7 +8,7 @@
     <p class="sub">You do NOT need to have started as a CTP. Skilled workers apply directly. After approval you get a Fundi ID (e.g. EF-0001) and portal access to the project marketplace.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · Pay membership fee (M-Pesa — coming online)</span>
+        <span class="step">2 · KSh {{ number_format((int) \App\Models\FundiRegistration::feeAmount()) }} membership fee (M-Pesa or bank)</span>
         <span class="step">3 · Review + referee check</span>
         <span class="step">4 · Get your EF ID + portal login</span>
     </div>

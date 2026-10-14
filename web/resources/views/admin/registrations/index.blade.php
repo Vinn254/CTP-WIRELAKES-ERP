@@ -4,11 +4,14 @@
 @php
     use Illuminate\Support\Str;
     $types = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
-    // CTPs who have not paid yet are not reviewable, so they get their own tab; the rest of the
-    // CTP lifecycle (suspended, graduated, deployed) is managed in Module 2 — CTP profiles.
-    $statuses = $type === 'ctp'
-        ? ['pending_payment' => 'Awaiting fee', 'pending_review' => 'Pending', 'active' => 'Approved', 'all' => 'All']
-        : ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'];
+    // Applicants who have not paid the one-time fee yet are not reviewable, so they get their own tab;
+    // the rest of the CTP lifecycle (suspended, graduated, deployed) is managed in Module 2 — CTP profiles.
+    $waiting = ['pending_payment' => 'Awaiting fee'];
+    $statuses = match ($type) {
+        'ctp' => $waiting + ['pending_review' => 'Pending', 'active' => 'Approved', 'all' => 'All'],
+        'fundi' => $waiting + ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'],
+        default => ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'],
+    };
 @endphp
 
 @section('content')

@@ -42,11 +42,13 @@ class ReviewController extends Controller
     public function index(Request $request, string $type)
     {
         $model = $this->model($type);
-        $statuses = $type === 'ctp'
-            ? array_merge(array_keys(CtpRegistration::STATUSES), ['all'])
-            : ['pending_review', 'active', 'rejected', 'all'];
+        $statuses = match ($type) {
+            'ctp' => array_keys(CtpRegistration::STATUSES),
+            'fundi' => array_keys(FundiRegistration::STATUSES),
+            default => ['pending_review', 'active', 'rejected'],
+        };
         $status = $request->query('status', 'pending_review');
-        abort_unless(in_array($status, $statuses, true), 404);
+        abort_unless(in_array($status, [...$statuses, 'all'], true), 404);
 
         $records = $model::query()
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
@@ -98,10 +100,11 @@ class ReviewController extends Controller
     /** Record a membership fee the applicant paid by M-Pesa bill, bank transfer or cash. */
     public function markFee(Request $request, string $type, int $id)
     {
-        abort_unless($type === 'ctp', 404);
+        abort_unless(in_array($type, ['ctp', 'fundi'], true), 404, 'Only CTP and E-Fundi applications pay a membership fee.');
+        $model = $this->model($type);
 
         return back()->with('status', ReviewActions::recordFee(
-            CtpRegistration::findOrFail($id), ReviewActions::feeFrom($request)
+            $model::findOrFail($id), ReviewActions::feeFrom($request)
         ));
     }
 

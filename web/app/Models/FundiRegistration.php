@@ -21,13 +21,29 @@ class FundiRegistration extends Model
         'Programming', 'AI', 'E-Waste', 'Solar', 'Welding', 'Carpentry',
     ];
 
+    /** An E-Fundi pays the one-time membership fee before their application is reviewed. */
+    public const STATUSES = [
+        'pending_payment' => 'Pending payment',
+        'pending_review' => 'Pending review',
+        'active' => 'Active',
+        'rejected' => 'Rejected',
+    ];
+
+    public const FEE_STATUSES = [
+        'awaiting_payment' => 'Awaiting payment',
+        'paid' => 'Paid',
+        'waived' => 'Waived',
+        'sponsored' => 'Sponsored — no fee',
+    ];
+
     protected $fillable = [
         'reference', 'full_name', 'national_id', 'phone', 'email', 'dob', 'gender',
         'tier', 'county', 'sub_county', 'ward', 'mobilised_by_ctp',
         'business_name', 'business_reg_no', 'years_in_business',
         'specialisations', 'service_counties', 'referee_name', 'referee_phone', 'referee_role',
         'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
-        'status', 'user_id', 'rejection_reason', 'ef_code',
+        'status', 'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
+        'user_id', 'rejection_reason', 'ef_code',
     ];
 
     protected $casts = [
@@ -36,7 +52,20 @@ class FundiRegistration extends Model
         'service_counties' => 'array',
         'trade_cert_paths' => 'array',
         'portfolio_paths' => 'array',
+        'fee_amount' => 'float',
+        'fee_paid_at' => 'datetime',
     ];
+
+    /** The one-time fee an E-Fundi pays to join, from the membership settings. */
+    public static function feeAmount(): float
+    {
+        return (float) Setting::get('membership_fee_fundi', '1000');
+    }
+
+    public function feeSettled(): bool
+    {
+        return $this->fee_status !== 'awaiting_payment';
+    }
 
     /** Short name of a tier — the part before the description dash. */
     public static function tierLabel(?string $tier): string
@@ -63,7 +92,7 @@ class FundiRegistration extends Model
 
     public function statusLabel(): string
     {
-        return Str::headline(str_replace('_', ' ', $this->status));
+        return self::STATUSES[$this->status] ?? Str::headline(str_replace('_', ' ', $this->status));
     }
 
     public static function nextCode(): string

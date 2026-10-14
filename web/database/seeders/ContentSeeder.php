@@ -164,7 +164,7 @@ class ContentSeeder extends Seeder
         // ---------- membership settings ----------
         $this->put('membership', 'fees', 'Membership fees', 'single',
             ['fee_ctp' => ['CTP fee (KSh)', 'price'], 'fee_fundi' => ['Fundi fee (KSh)', 'price'], 'fee_hirer' => ['Hirer fee (KSh — 0 = free)', 'price'], 'payment_note' => ['Payment note on success page', 'textarea']],
-            [['fee_ctp' => '500', 'fee_fundi' => '1000', 'fee_hirer' => '0',
+            [['fee_ctp' => '1000', 'fee_fundi' => '1000', 'fee_hirer' => '0',
               'payment_note' => 'Membership fees are payable by M-Pesa or bank transfer. Online payment is being switched on in the next phase — our team will contact you with instructions.']]);
 
         $this->put('membership', 'ctp_tracks', 'CTP training tracks', 'repeater',

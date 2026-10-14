@@ -79,6 +79,13 @@
         </div>
         <p style="margin:14px 0 0;"><a class="btn btn-sm btn-outline" href="{{ route('portal.mobilisation') }}">Open my mobilisation</a></p>
     </div>
+@elseif ($member->status === 'pending_payment')
+    <div class="card callout">
+        <h3>Your membership fee is not recorded yet</h3>
+        <p class="help" style="margin:0;">Your Fundi ID and access to the project marketplace are issued once the programme
+            office confirms the one-time fee of KSh {{ number_format((int) \App\Models\FundiRegistration::feeAmount()) }}.
+            Pay through the checkout when it opens, or bring your receipt to your County Coordinator.</p>
+    </div>
 @endif
 
 <h2 class="section-head">{{ $isCtp ? 'Projects posted' : 'Open for you' }} <span class="tag">{{ $projects->count() }}</span></h2>

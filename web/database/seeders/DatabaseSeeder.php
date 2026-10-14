@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             County::create(['code' => $code, 'name' => $name]);
         }
 
-        Setting::updateOrCreate(['key' => 'membership_fee_ctp'], ['value' => '500']);
+        Setting::updateOrCreate(['key' => 'membership_fee_ctp'], ['value' => '1000']);
         Setting::updateOrCreate(['key' => 'membership_fee_fundi'], ['value' => '1000']);
         Setting::updateOrCreate(['key' => 'programme_email'], ['value' => 'info@ctp-wirelakes.ke']);
         Setting::updateOrCreate(['key' => 'programme_phone'], ['value' => '+254 700 000 000']);

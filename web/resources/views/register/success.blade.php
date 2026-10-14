@@ -4,9 +4,10 @@
 @php
     $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
     $fees = [
-        'ctp' => content('membership', 'fees', 'fee_ctp', App\Models\Setting::get('membership_fee_ctp', '500')),
-        'fundi' => content('membership', 'fees', 'fee_fundi', App\Models\Setting::get('membership_fee_fundi', '1000')),
+        'ctp' => content('membership', 'fees', 'fee_ctp', App\Models\CtpRegistration::feeAmount()),
+        'fundi' => content('membership', 'fees', 'fee_fundi', App\Models\FundiRegistration::feeAmount()),
     ];
+    $sponsor = $type === 'ctp' ? $record->sponsor : null;
 @endphp
 
 @section('content')
@@ -19,8 +20,13 @@
     <div class="card" style="text-align:left;margin-top:26px;">
         <h3>What happens next</h3>
         <ol>
-            <li>One-time membership fee: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong> via M-Pesa or bank.
-                <span class="tag gold">Payment checkout comes online in the next phase — your application is already saved.</span></li>
+            @if ($sponsor)
+                <li>No membership fee to pay — {{ $sponsor->name }} is sponsoring your membership.
+                    <span class="tag gold">Sponsored</span> Your application is already with the review team.</li>
+            @else
+                <li>One-time membership fee: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong> via M-Pesa or bank.
+                    <span class="tag gold">Payment checkout comes online in the next phase — your application is already saved.</span></li>
+            @endif
             <li>A Director/Admin reviews your documents.</li>
             @if ($type === 'fundi')
                 <li>The admin contacts your referee to confirm the recommendation.</li>
