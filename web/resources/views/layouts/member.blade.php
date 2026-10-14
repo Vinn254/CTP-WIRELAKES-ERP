@@ -20,7 +20,10 @@
         $nav[] = ['label' => 'My mobilisation', 'icon' => 'users', 'route' => 'portal.mobilisation', 'active' => ['portal.mobilisation']];
         $nav[] = ['label' => 'My communities', 'icon' => 'globe', 'route' => 'portal.communities', 'active' => ['portal.communities'], 'count' => ($communities ?? collect())->count()];
     } else {
-        $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
+        $nav[] = ['label' => 'My E-Fundi record', 'icon' => 'users', 'route' => 'portal.efundi', 'active' => ['portal.efundi']];
+        if (isset($member) && $member->canTrain()) {
+            $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
+        }
     }
     $nav[] = ['label' => 'My projects', 'icon' => 'briefcase', 'route' => 'portal.projects', 'active' => ['portal.projects', 'portal.project'], 'count' => ($projects ?? collect())->count()];
     $nav[] = ['label' => 'My applications', 'icon' => 'mail', 'route' => 'portal.applications', 'active' => ['portal.applications'], 'count' => ($applications ?? collect())->count()];

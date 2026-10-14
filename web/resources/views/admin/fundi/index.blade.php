@@ -1,0 +1,134 @@
+@extends('layouts.admin')
+@section('title', 'E-Fundi register')
+
+@php
+    use App\Models\FundiRegistration;
+    $tabs = ['all' => 'All'] + FundiRegistration::STATUSES;
+    $filters = ['tier' => $tier, 'availability' => $availability, 'county' => $county, 'skill' => $skill, 'q' => $search];
+@endphp
+
+@section('content')
+<p class="back"><a href="{{ route('admin.department', 'efundi') }}">&larr; E-Fundi Management</a></p>
+<h1>E-Fundi register</h1>
+<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+    The programme's technical workforce (§8). This is the record Modules 4, 6, 7 and 10 read:
+    <b>grade, trade skills, the counties they cover and whether they are free for work.</b>
+    A fundi keeps one row for life — a suspension is reopened, never deleted, and a new application never
+    makes a second copy of a person.
+</p>
+
+<div class="stat-row">
+    <div class="stat"><small>On the register</small><b>{{ $counts->sum() }}</b></div>
+    <div class="stat"><small>Available for work</small><b>{{ $availableNow }}</b></div>
+    <div class="stat"><small>Awaiting fee</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
+    <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
+    <div class="stat"><small>Blocked</small><b>{{ ($counts['suspended'] ?? 0) + ($counts['blacklisted'] ?? 0) }}</b></div>
+</div>
+
+<p style="margin:0 0 14px;">
+    <a class="btn btn-lime btn-sm" href="{{ route('admin.fundis.create') }}">+ Add an E-Fundi from the office</a>
+    <span class="hint" style="margin-left:10px;">
+        For someone who cannot reach the website — the same application, the same fee and review steps.
+        A person already on the register is reopened on their own record, never added a second time.
+    </span>
+</p>
+
+<form method="GET" class="filter-bar">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search EF ID, name, phone or business">
+    <button class="btn btn-sm btn-outline" type="submit">Filter</button>
+    @if (collect($filters)->filter(fn ($v) => $v !== 'all' && $v !== '')->isNotEmpty())
+        <a class="btn btn-sm btn-ghost" href="{{ route('admin.fundis.index', ['status' => $status]) }}">Clear</a>
+    @endif
+
+    <div class="form-grid-2" style="width:100%; gap:12px 18px;">
+        <div>
+            <label for="tier">Grade</label>
+            <select name="tier" id="tier">
+                <option value="all">Every grade</option>
+                @foreach ($tiers as $key => $label)
+                    <option value="{{ $key }}" @selected($tier === $key)>{{ \Illuminate\Support\Str::before($label, '—') }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="availability">Availability</label>
+            <select name="availability" id="availability">
+                <option value="all">Any availability</option>
+                @foreach ($availabilities as $key => $label)
+                    <option value="{{ $key }}" @selected($availability === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="skill">Trade skill</label>
+            <select name="skill" id="skill">
+                <option value="all">Any skill</option>
+                @foreach ($specialisations as $s)
+                    <option value="{{ $s }}" @selected($skill === $s)>{{ $s }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="county">County</label>
+            <select name="county" id="county">
+                <option value="all">Any county</option>
+                @foreach ($counties as $c)
+                    <option value="{{ $c }}" @selected($county === $c)>{{ $c }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+</form>
+
+<div class="tabs">
+    @foreach ($tabs as $s => $lbl)
+        <a class="tab {{ $status === $s ? 'on' : '' }}"
+           href="{{ route('admin.fundis.index', $filters + ['status' => $s]) }}">
+            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
+        </a>
+    @endforeach
+</div>
+
+<table class="data">
+    <thead>
+        <tr>
+            <th>E-Fundi ID</th><th>Fundi</th><th>Grade</th><th>Skills</th><th>Works in</th>
+            <th>Availability</th><th title="Sites this fundi is registered to train CTPs at (Module 4)">Training sites</th>
+            <th>Fee</th><th>Status</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($fundis as $f)
+            <tr>
+                <td><b>{{ $f->ef_code ?: '—' }}</b>@if (! $f->ef_code)<div class="hint">{{ $f->reference }}</div>@endif</td>
+                <td>
+                    <a href="{{ route('admin.fundis.show', $f) }}"><b>{{ $f->full_name }}</b></a>
+                    <div class="hint">{{ $f->business_name ?: $f->phone }}@if ($f->mobiliser) · brought by {{ $f->mobiliser->ctp_code }}@endif</div>
+                </td>
+                <td><span class="tag">{{ FundiRegistration::tierLabel($f->tier) }}</span></td>
+                <td>{{ collect($f->specialisations ?? [])->take(3)->join(', ') ?: '—' }}
+                    @if (count($f->specialisations ?? []) > 3)<span class="hint">+{{ count($f->specialisations) - 3 }}</span>@endif</td>
+                <td>{{ $f->county ?: '—' }}
+                    <div class="hint">{{ collect($f->service_counties ?? [])->take(2)->join(', ') }}</div></td>
+                <td><span class="status {{ $f->isMatchable() ? 'active' : 'pending_review' }}">{{ $f->availabilityLabel() }}</span></td>
+                <td>{{ $f->trainers_count ?: '—' }}</td>
+                <td><span class="fee-tag {{ $f->fee_status }}">{{ FundiRegistration::FEE_STATUSES[$f->fee_status] ?? $f->fee_status }}</span></td>
+                <td><span class="status {{ in_array($f->status, ['active'], true) ? 'active' : (in_array($f->status, ['pending_payment', 'pending_review'], true) ? 'pending_review' : 'closed') }}">{{ $f->statusLabel() }}</span></td>
+                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.fundis.show', $f) }}">Open record</a></td>
+            </tr>
+        @empty
+            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">
+                No E-Fundi matches this view. Fundis arrive here from the public E-Fundi application and from the CTPs who mobilise them.
+            </td></tr>
+        @endforelse
+    </tbody>
+</table>
+
+<div class="pagination">{{ $fundis->links() }}</div>
+
+<p class="hint" style="margin-top:14px;">
+    Availability is what the fundi says themselves on their own portal; the office can correct it here when someone
+    stops answering or finishes a job without telling us. Grade changes what they can be handed to train — see
+    <b>Training &amp; Certification &rsaquo; Fundi-trainers</b> for the site approvals themselves.
+</p>
+@endsection

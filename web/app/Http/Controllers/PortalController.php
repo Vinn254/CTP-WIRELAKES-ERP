@@ -60,6 +60,17 @@ class PortalController extends Controller
         return $member;
     }
 
+    /** The trainer surface belongs to a senior fundi only. Their trainee routes are closed to every other grade. */
+    private function teachingFundi(): FundiRegistration
+    {
+        $fundi = $this->fundi();
+        abort_unless($fundi->canTrain(), 403,
+            'Only a senior fundi trains CTPs. You are registered as '.FundiRegistration::tierLabel($fundi->tier)
+            .' — you work under a senior fundi on a job, and the programme office moves you up when you are ready to carry a cohort.');
+
+        return $fundi;
+    }
+
     public function training()
     {
         $ctp = $this->ctp();
@@ -68,6 +79,53 @@ class PortalController extends Controller
             'stages' => Enrollment::STAGES,
             'states' => Enrollment::STATES,
         ]);
+    }
+
+    /**
+     * The E-Fundi's own record (§8): the grade the office holds, the skills and counties they keep
+     * themselves, their availability, the sites they train at and the paperwork on file.
+     */
+    public function efundi()
+    {
+        $fundi = $this->fundi();
+
+        return view('portal.efundi', MemberPortal::board($fundi) + [
+            'sites' => $fundi->trainingSites(),
+            'docs' => $fundi->documents(),
+            'counties' => County::orderBy('name')->pluck('name'),
+            'specialisations' => FundiRegistration::SPECIALISATIONS,
+            'availabilities' => FundiRegistration::AVAILABILITY,
+            'tiers' => FundiRegistration::TIERS,
+        ]);
+    }
+
+    /** The paperwork on their own record. The slot comes from the record, never from the url alone. */
+    public function efundiFile(string $slot)
+    {
+        $fundi = $this->fundi();
+        $docs = $fundi->documents();
+        abort_unless(isset($docs[$slot]), 404, 'That file is not on your record.');
+
+        return Storage::disk('local')->response($docs[$slot]['path'], $docs[$slot]['label']);
+    }
+
+    /** Availability is the fundi's own call — the office can correct it, but nobody else sets it day to day. */
+    public function saveAvailability(Request $request)
+    {
+        $fundi = $this->fundi();
+        $fundi->update(FundiRegistration::availabilityFrom($request));
+
+        return back()->with('status', 'You are showing as '.$fundi->availabilityLabel().'.'
+            .($fundi->availability === 'available' ? ' The programme office and matching now see you in the work pool.' : ''));
+    }
+
+    /** The fundi keeps their own skills and the counties they will travel to. Both stay on the programme's list. */
+    public function saveSkills(Request $request)
+    {
+        $fundi = $this->fundi();
+        $fundi->update(FundiRegistration::skillsFrom($request));
+
+        return back()->with('status', 'Your skills are updated. The office reviews the record when a job is matched to you.');
     }
 
     /** A CTP puts themselves forward for an open intake. The office confirms the seat and the placement. */
@@ -133,14 +191,14 @@ class PortalController extends Controller
         return back()->with('status', 'Withdrawn from '.$enrollment->cohort->reference.'.');
     }
 
-    /** The E-Fundi's trainer surface: their own record, the cohorts they teach and the marks they put in. */
+    /** The E-Fundi's trainer surface: the sites they are approved at, the cohorts they teach and the marks they put in. */
     public function trainer()
     {
         $fundi = $this->fundi();
 
         return view('portal.trainer', [
             'member' => $fundi,
-            'trainer' => Trainer::with([
+            'trainers' => Trainer::with([
                 'trainings:id,name',
                 'venue:id,name,type,county,sub_county,ward',
                 'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
@@ -151,7 +209,7 @@ class PortalController extends Controller
                         ])->orderBy('id'),
                     ])
                     ->orderByDesc('starts_on'),
-            ])->where('fundi_id', $fundi->id)->first(),
+            ])->where('fundi_id', $fundi->id)->orderBy('id')->get(),
             'trainings' => Training::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code']),
             'venues' => TrainingVenue::where('status', 'active')->orderBy('county')->orderBy('name')->get(['id', 'name', 'county']),
             'counties' => County::orderBy('name')->pluck('name'),
@@ -160,25 +218,38 @@ class PortalController extends Controller
         ]);
     }
 
-    /** A senior fundi asks to train. The office approves before a cohort can be handed to them. */
+    /** A senior fundi asks to train AT ONE SITE. The office approves site by site before a cohort is handed over. */
     public function applyTrainer(Request $request)
     {
         $fundi = $this->fundi();
-        abort_if((bool) $fundi->trainer, 422, 'You are already on the trainer list — the programme office holds your record.');
+
+        abort_unless($fundi->canTrain(), 403,
+            'Only a senior fundi trains CTPs. You are registered as '.FundiRegistration::tierLabel($fundi->tier)
+            .' — the programme office moves a fundi up to senior grade when they are ready to carry a cohort.');
 
         $request->merge(['fundi_id' => $fundi->id]);
         $data = Trainer::dataFrom($request);
 
-        abort_unless(in_array($fundi->tier, Trainer::TEACHING_TIERS, true), 422,
-            'Only a junior or senior fundi can train CTPs — you are registered as '.FundiRegistration::tierLabel($fundi->tier).'.');
+        $held = Trainer::forSite($fundi->id, (int) $data['venue_id']);
+        abort_if($held && in_array($held->status, ['applied', 'approved'], true), 422,
+            'You are already '.$held->statusLabel().' at '.$held->venue->name.' — the programme office holds that record.');
 
         $columns = $data;
         unset($columns['trainings']);
 
-        $trainer = Trainer::create($columns + ['status' => 'applied']);
-        $trainer->trainings()->sync($data['trainings']);
+        if ($held) {
+            // One record per fundi per site: reapplying after a decline reopens that row rather than duplicating it.
+            $held->update($columns + ['status' => 'applied', 'reviewed_by' => null]);
+            $held->trainings()->sync($data['trainings']);
+            $trainer = $held;
+        } else {
+            $trainer = Trainer::create($columns + ['status' => 'applied']);
+            $trainer->trainings()->sync($data['trainings']);
+        }
+        $trainer->load('venue:id,name');
 
-        return back()->with('status', 'Sent to the programme office. They approve a trainer before handing them a cohort.');
+        return back()->with('status', 'Sent to the programme office for '.$trainer->venue->name.'. '
+            .'They approve a trainer site by site before handing them a cohort.');
     }
 
     /** A trainer marks their own trainee — the line lands on the CTP's record and the office sees it too. */
@@ -230,10 +301,11 @@ class PortalController extends Controller
      */
     private function theirTrainee(Request|Enrollment $request): Enrollment
     {
-        $fundi = $this->fundi();
-        $trainer = Trainer::where('fundi_id', $fundi->id)->first();
+        $fundi = $this->teachingFundi();
+        // A senior fundi may hold an approval at several sites; any of them can carry a cohort.
+        $myTrainerIds = Trainer::approved()->where('fundi_id', $fundi->id)->pluck('id');
 
-        abort_unless($trainer && $trainer->status === 'approved', 403, 'Only an approved trainer can record a trainee.');
+        abort_unless($myTrainerIds->isNotEmpty(), 403, 'Only an approved trainer can record a trainee.');
 
         $enrollment = $request instanceof Enrollment
             ? $request->load(['cohort', 'ctp'])
@@ -243,7 +315,7 @@ class PortalController extends Controller
                 return Enrollment::with(['cohort', 'ctp'])->findOrFail($r->input('enrollment_id'));
             })($request);
 
-        abort_unless($enrollment->cohort && $enrollment->cohort->trainer_id === $trainer->id, 404);
+        abort_unless($enrollment->cohort && $myTrainerIds->contains($enrollment->cohort->trainer_id), 404);
 
         return $enrollment;
     }

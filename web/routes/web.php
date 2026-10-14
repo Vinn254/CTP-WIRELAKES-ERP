@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CommunityController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -213,6 +214,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/certification/{certification}/approve', [CertificationController::class, 'approve'])->whereNumber('certification')->name('certification.approve');
     Route::post('/certification/{certification}/decline', [CertificationController::class, 'decline'])->whereNumber('certification')->name('certification.decline');
     Route::post('/certification/{certification}/revoke', [CertificationController::class, 'revoke'])->whereNumber('certification')->name('certification.revoke');
+
+    // Module 5 — E-Fundi Management. The workforce record: grade, skills, counties, availability, blocks.
+    Route::get('/fundis', [FundiController::class, 'index'])->name('fundis.index');
+    Route::get('/fundis/create', [FundiController::class, 'create'])->name('fundis.create');
+    Route::post('/fundis', [FundiController::class, 'store'])->name('fundis.store');
+    Route::get('/fundis/{fundi}', [FundiController::class, 'show'])->whereNumber('fundi')->name('fundis.show');
+    Route::get('/fundis/{fundi}/file/{slot}', [FundiController::class, 'file'])->whereNumber('fundi')->name('fundis.file');
+    Route::post('/fundis/{fundi}/tier', [FundiController::class, 'setTier'])->whereNumber('fundi')->name('fundis.tier');
+    Route::post('/fundis/{fundi}/availability', [FundiController::class, 'setAvailability'])->whereNumber('fundi')->name('fundis.availability');
+    Route::post('/fundis/{fundi}/skills', [FundiController::class, 'updateSkills'])->whereNumber('fundi')->name('fundis.skills');
+    Route::post('/fundis/{fundi}/place', [FundiController::class, 'updatePlace'])->whereNumber('fundi')->name('fundis.place');
+    Route::post('/fundis/{fundi}/fee', [FundiController::class, 'markFee'])->whereNumber('fundi')->name('fundis.fee');
+    Route::post('/fundis/{fundi}/approve', [FundiController::class, 'approve'])->whereNumber('fundi')->name('fundis.approve');
+    Route::post('/fundis/{fundi}/reject', [FundiController::class, 'reject'])->whereNumber('fundi')->name('fundis.reject');
+    Route::post('/fundis/{fundi}/reissue', [FundiController::class, 'reissue'])->whereNumber('fundi')->name('fundis.reissue');
+    Route::post('/fundis/{fundi}/block', [FundiController::class, 'block'])->whereNumber('fundi')->name('fundis.block');
+    Route::post('/fundis/{fundi}/reinstate', [FundiController::class, 'reinstate'])->whereNumber('fundi')->name('fundis.reinstate');
 });
 
 // Member portal — the member's own interface. Never staff, never public.
@@ -222,6 +240,11 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/training/apply', [PortalController::class, 'applyCohort'])->name('training.apply');
     Route::post('/training/{enrollment}/withdraw', [PortalController::class, 'withdrawSeat'])->whereNumber('enrollment')->name('training.withdraw');
     Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
+    // Module 5 — the E-Fundi's own record. They keep availability, skills and counties; the office keeps the grade.
+    Route::get('/efundi', [PortalController::class, 'efundi'])->name('efundi');
+    Route::post('/efundi/availability', [PortalController::class, 'saveAvailability'])->name('efundi.availability');
+    Route::post('/efundi/skills', [PortalController::class, 'saveSkills'])->name('efundi.skills');
+    Route::get('/efundi/file/{slot}', [PortalController::class, 'efundiFile'])->name('efundi.file');
     Route::post('/trainer', [PortalController::class, 'applyTrainer'])->name('trainer.apply');
     Route::post('/trainer/progress', [PortalController::class, 'markProgress'])->name('trainer.progress');
     Route::post('/trainer/{enrollment}/modules/{module}', [PortalController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('trainer.module.mark');

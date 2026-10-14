@@ -118,10 +118,11 @@ to the other CTPs they work with; a seat is still confirmed by the office either
 exactly one record per cohort — applying again after a decline reopens the same row rather than duplicating it.
 One CTP, one record, so a seat taken back can be given again without a second line appearing on the roll.
 
-**Trainers are paid and still workers.** Only a `junior_fundi` or `senior_fundi` may be added; the rate is recorded
-per trainer (`rate_ksh`) and their weekly hours. A cohort can only be handed to an **approved** trainer who is
-registered for that training — checked when the cohort is saved and again when its status is changed. Training
-does not remove a fundi's right to apply for open projects.
+**Trainers are paid and still workers.** Only a **senior fundi** may be added — a junior, an intern or an attachment
+applicant teaches nothing and works under a senior on a job (Module 5, `FundiRegistration::CAPABILITIES`). The rate is
+recorded per trainer (`rate_ksh`) and their weekly hours. A cohort can only be handed to an **approved** trainer who is
+registered for the training the intake runs **and approved at that cohort's venue**. Training does not remove a fundi's
+right to apply for open projects.
 
 **RBAC.** Every staff screen sits under `/admin/*` in the `training` department. In the portal, the trainee screens
 `abort_unless($member instanceof CtpRegistration, 403)` and the trainer screens require a `FundiRegistration`, so a
@@ -137,8 +138,9 @@ stay.
 The catalogue holds the eight trainings the programme runs, plus **Solar Installation** (`SOLAR`) added by the office
 to show how a new one arrives.
 
-Venue *Nyanda Technical School* (partner school, Kisumu, 40 places) · trainer *Mary Achieng* EF-0002 (junior fundi,
-approved, licensed for ICT + Networking + Solar Installation, 15 h/week, KSH 1,200) · *TRN-0001* — an **ICT** intake
+Venue *Nyanda Technical School* (partner school, Kisumu, 40 places) · trainer *Mary Achieng* EF-0002 (senior fundi,
+approved at that site, licensed for ICT + Networking + Solar Installation, 15 h/week, KSH 1,200) · *TRN-0001* — an
+**ICT** intake
 at Nyanda, 01 Oct 2026 – 29 Jan 2027, 5 seats, in progress · *TRN-0002* — a second **ICT** intake, 11 Jan – 30 Apr
 2027, open for applications · *Alice Testa* CTP-0001 self-applied to both, seat confirmed, certified
 `CTP-0001-CERT-ICT-01` at a 100 % track and then `CTP-0001-CERT-ICT-02` on the second intake · *Jane Odhiambo*

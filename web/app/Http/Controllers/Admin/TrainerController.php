@@ -32,10 +32,10 @@ class TrainerController extends Controller
                 ->get(['id', 'name', 'code', 'status']),
             'venues' => TrainingVenue::where('status', 'active')->orderBy('name')->get(['id', 'name']),
             'counties' => County::orderBy('name')->pluck('name'),
-            // A fundi is only offered up once, and only if they are working in the pool.
+            // Every working fundi of a teaching tier, with the sites they already hold marked on them.
             'fundis' => FundiRegistration::where('status', 'active')
                 ->whereIn('tier', Trainer::TEACHING_TIERS)
-                ->whereDoesntHave('trainer')
+                ->with(['trainers:id,fundi_id,venue_id,status', 'trainers.venue:id,name'])
                 ->orderBy('full_name')->get(['id', 'full_name', 'ef_code', 'tier', 'county']),
         ]);
     }
@@ -45,24 +45,31 @@ class TrainerController extends Controller
         $data = Trainer::dataFrom($request);
         $fundi = FundiRegistration::findOrFail($data['fundi_id']);
 
-        $this->guard($fundi, $data['fundi_id']);
+        $this->guardTier($fundi);
 
-        $trainer = Trainer::create($this->attributes($data) + ['status' => 'applied']);
-        $trainer->trainings()->sync($data['trainings']);
+        [$trainer, $again] = $this->open((int) $data['venue_id'], $fundi->id, $this->attributes($data), $data['trainings']);
 
-        return back()->with('status', $fundi->full_name.' is on the trainer list as '.$trainer->statusLabel().'.');
+        return back()->with('status', $fundi->full_name.' — '.($again
+            ? 'application for '.$trainer->venue->name.' is back in as '.$trainer->statusLabel().'.'
+            : 'applied to train at '.$trainer->venue->name.' and sits as '.$trainer->statusLabel().' until the office decides.'));
     }
 
     public function update(Request $request, Trainer $trainer)
     {
         $data = Trainer::dataFrom($request);
+
+        // Moving a trainer to a different site is a different approval, so it goes through a fresh application.
+        abort_if((int) $data['venue_id'] !== (int) $trainer->venue_id, 422,
+            'That changes which site this approval covers. This record is for '.$trainer->venue->name.' — '
+                .'take a separate application for '.(TrainingVenue::whereKey($data['venue_id'])->value('name') ?? 'the new site').'.');
+
         $trainer->update($this->attributes($data));
         $trainer->trainings()->sync($data['trainings']);
 
-        return back()->with('status', 'Trainer record for '.$trainer->fundi->full_name.' updated.');
+        return back()->with('status', 'Trainer record for '.$trainer->fundi->full_name.' at '.$trainer->venue->name.' updated.');
     }
 
-    /** Approve, decline or suspend — an approved trainer is the only one a cohort can be handed to. */
+    /** Approve, decline or suspend one SITE — a cohort can only be handed to a fundi approved for that venue. */
     public function decide(Request $request, Trainer $trainer)
     {
         $data = $request->validate([
@@ -76,7 +83,7 @@ class TrainerController extends Controller
             'reviewed_by' => auth()->id(),
         ]);
 
-        return back()->with('status', $trainer->fundi->full_name.' — '.$trainer->statusLabel().'.');
+        return back()->with('status', $trainer->fundi->full_name.' — '.$trainer->statusLabel().' at '.$trainer->venue->name.'.');
     }
 
     /** The pivot list is taken out of the column data before the record is saved. */
@@ -87,12 +94,38 @@ class TrainerController extends Controller
         return $data;
     }
 
-    private function guard(FundiRegistration $fundi, int $fundiId): void
+    private function guardTier(FundiRegistration $fundi): void
     {
-        abort_if(Trainer::where('fundi_id', $fundiId)->exists(), 422,
-            $fundi->full_name.' is already on the trainer list.');
-
         abort_unless(in_array($fundi->tier, Trainer::TEACHING_TIERS, true), 422,
-            $fundi->full_name.' is a '.FundiRegistration::tierLabel($fundi->tier).'. Only a junior or senior fundi can train CTPs.');
+            $fundi->full_name.' is a '.FundiRegistration::tierLabel($fundi->tier).'. Only a senior fundi can train CTPs.');
+    }
+
+    /**
+     * One application per fundi per site. A site they were declined at is reopened on a fresh
+     * application rather than given a second row, so the office history stays in one place.
+     *
+     * @return array{0: Trainer, 1: bool} the row and whether it was a reopening
+     */
+    private function open(int $venueId, int $fundiId, array $columns, array $trainings): array
+    {
+        $held = Trainer::forSite($fundiId, $venueId);
+
+        if ($held) {
+            abort_unless(in_array($held->status, ['declined', 'suspended'], true), 422,
+                $held->fundi->full_name.' is already '.$held->statusLabel().' at '.$held->venue->name
+                    .'. Nothing is added twice for one site.');
+
+            $held->update($columns + ['status' => 'applied', 'note' => null, 'reviewed_by' => null]);
+            $held->trainings()->sync($trainings);
+            $held->load('venue:id,name');
+
+            return [$held, true];
+        }
+
+        $trainer = Trainer::create($columns + ['status' => 'applied']);
+        $trainer->trainings()->sync($trainings);
+        $trainer->load('venue:id,name');
+
+        return [$trainer, false];
     }
 }

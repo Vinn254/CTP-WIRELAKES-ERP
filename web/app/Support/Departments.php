@@ -30,7 +30,7 @@ class Departments
         ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
             'desc' => 'Partner schools and sites, cohorts CTPs apply for, fundi-trainers, progress, certificates', 'live' => true],
         ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Management',
-            'desc' => 'Fundi profiles, tiers, ratings, availability', 'live' => false],
+            'desc' => 'E-Fundi profiles and IDs, grades, trade skills, counties, availability and standing', 'live' => true],
         ['slug' => 'marketplace', 'tag' => 'Module 6', 'name' => 'Project Marketplace',
             'desc' => 'Automated matching, bids and award recommendations', 'live' => false],
         ['slug' => 'execution', 'tag' => 'Module 7', 'name' => 'Project Execution & Payment',
@@ -79,6 +79,9 @@ class Departments
             ['label' => 'Fundi-trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
         ],
+        'efundi' => [
+            ['label' => 'E-Fundi register', 'icon' => 'users', 'route' => ['admin.fundis.index'], 'badge' => 'fundis'],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -102,6 +105,7 @@ class Departments
         'admin.venues.' => 'training',
         'admin.trainers.' => 'training',
         'admin.certification.' => 'training',
+        'admin.fundis.' => 'efundi',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -126,6 +130,7 @@ class Departments
         'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
         'admin.trainers.index' => 'Senior fundis who applied to train CTPs, and what they are paid',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
+        'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
     ];
 
     public static function all(): array
@@ -174,6 +179,7 @@ class Departments
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
+            'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
             default => 0,
         };
     }

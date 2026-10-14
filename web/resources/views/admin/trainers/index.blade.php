@@ -10,17 +10,18 @@
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Fundi-trainers</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
-    A trainer stays a <b>Member &rsaquo; E-Fundi record</b> — this list only holds the teaching role: where they
-    teach, which trainings they are licensed for, the hours they give and the rate they are paid.
-    Only a <b>junior or senior fundi</b> can train CTPs, and only an <b>approved</b> trainer can be handed a cohort.
+    A trainer stays a <b>Member &rsaquo; E-Fundi record</b> — this list only holds the teaching role, and it is held
+    <b>one row per site</b>: where they teach, which trainings they are licensed for, the hours they give and the rate
+    they are paid. Only a <b>senior fundi</b> can train CTPs, and a cohort is only handed to a fundi the office
+    <b>approved at the venue that cohort is booked at</b> — an approval at one site does not carry to another.
     A senior fundi can still apply for open projects — training does not take that away.
 </p>
 
 <div class="stat-row">
-    <div class="stat"><small>On the list</small><b>{{ $counts->sum() }}</b></div>
+    <div class="stat"><small>Site records</small><b>{{ $counts->sum() }}</b></div>
     <div class="stat"><small>Awaiting decision</small><b>{{ $counts['applied'] ?? 0 }}</b></div>
-    <div class="stat"><small>Approved</small><b>{{ $counts['approved'] ?? 0 }}</b></div>
-    <div class="stat"><small>Eligible fundis not yet here</small><b>{{ $fundis->count() }}</b></div>
+    <div class="stat"><small>Approved site records</small><b>{{ $counts['approved'] ?? 0 }}</b></div>
+    <div class="stat"><small>Eligible fundis in the pool</small><b>{{ $fundis->count() }}</b></div>
 </div>
 
 <div class="tabs">
@@ -32,30 +33,33 @@
 </div>
 
 <details class="card need-form" @if ($errors->any() && old('fundi_id')) open @endif>
-    <summary>Add a trainer — put a working fundi on the teaching list</summary>
+    <summary>Add a trainer — put a working fundi on the teaching list <b>for one site</b></summary>
     @if ($fundis->isEmpty())
-        <p class="hint" style="margin:10px 0 0;">Every junior or senior fundi in the pool is already on this list.
+        <p class="hint" style="margin:10px 0 0;">There is no active senior fundi in the pool to put forward.
             A fundi can also apply to train from their own portal, and lands here as “Applied”.</p>
     @else
         <form method="POST" action="{{ route('admin.trainers.store') }}" class="fee-form"
-              data-confirm="Add this fundi to the trainer list?" data-title="Add trainer">
+              data-confirm="Open a trainer application for this fundi at the site you chose?" data-title="Add trainer">
             @csrf
             <div class="form-grid">
                 <div class="field">
                     <label>Fundi <span class="req">*</span></label>
                     <select name="fundi_id" required>
-                        <option value="">Choose a junior or senior fundi</option>
+                        <option value="">Choose a senior fundi</option>
                         @foreach ($fundis as $f)
                             <option value="{{ $f->id }}" @selected(old('fundi_id') == $f->id)>
                                 {{ $f->full_name }} — {{ $f->ef_code }} ({{ \App\Models\FundiRegistration::tierLabel($f->tier) }})
+                                @if ($f->trainers->isNotEmpty())
+                                    · already at {{ $f->trainers->map(fn ($t) => ($t->venue->name ?? 'a site').': '.$t->statusLabel())->join(', ') }}
+                                @endif
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="field">
-                    <label>Posted at a venue</label>
-                    <select name="venue_id">
-                        <option value="">Not posted at a venue — teach in an area</option>
+                    <label>Site they would train at <span class="req">*</span></label>
+                    <select name="venue_id" required>
+                        <option value="">Choose the venue</option>
                         @foreach ($venues as $v)
                             <option value="{{ $v->id }}" @selected(old('venue_id') == $v->id)>{{ $v->name }}</option>
                         @endforeach
@@ -96,7 +100,7 @@
 <table class="data">
     <thead>
         <tr>
-            <th>Trainer</th><th>Grade</th><th>Can teach</th><th>Where</th>
+            <th>Trainer</th><th>Grade</th><th>Can teach</th><th>Site this record covers</th>
             <th>Hours / week</th><th>Rate</th><th>Cohorts</th><th>Status</th><th></th>
         </tr>
     </thead>
@@ -109,7 +113,8 @@
                 </td>
                 <td>{{ \App\Models\FundiRegistration::tierLabel($t->fundi->tier) }}</td>
                 <td>{{ $t->teachingLabel() ?: '—' }}</td>
-                <td>{{ $t->placeLabel() }}</td>
+                <td>{{ $t->venue->name ?? 'No venue named' }}
+                    <div class="hint">{{ collect([$t->ward, $t->sub_county, $t->county])->filter()->join(' · ') ?: '—' }}</div></td>
                 <td>{{ $t->weekly_hours ?: '—' }}</td>
                 <td>{{ $t->rate_ksh > 0 ? 'KSH '.number_format((float) $t->rate_ksh, 2) : 'No rate set' }}</td>
                 <td>{{ $t->cohorts->count() }}
@@ -151,14 +156,13 @@
                         <form method="POST" action="{{ route('admin.trainers.update', $t) }}" class="fee-form" style="text-align:left;">
                             @csrf @method('PATCH')
                             <input type="hidden" name="fundi_id" value="{{ $t->fundi_id }}">
+                            <input type="hidden" name="venue_id" value="{{ $t->venue_id }}">
                             <div class="form-grid">
-                                <div class="field"><label>Posted at a venue</label>
-                                    <select name="venue_id">
-                                        <option value="">Not posted at a venue — teach in an area</option>
-                                        @foreach ($venues as $v)
-                                            <option value="{{ $v->id }}" @selected($t->venue_id === $v->id)>{{ $v->name }}</option>
-                                        @endforeach
-                                    </select></div>
+                                <div class="field"><label>Site this record covers</label>
+                                    <input type="text" value="{{ $t->venue->name ?? '—' }}" readonly
+                                        title="A site is its own approval. To train elsewhere, add a new record for that venue.">
+                                    <span class="help">This record is an approval for one site only. Moving the trainer to
+                                        another venue would change what the approval covers, so add a separate record instead.</span></div>
                                 <div class="field"><label>County <span class="req">*</span></label>
                                     <input type="text" name="county" value="{{ $t->county }}" list="trainer-counties" required></div>
                                 <div class="field"><label>Sub-county</label>
@@ -180,7 +184,7 @@
             </tr>
         @empty
             <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">
-                No trainers in this view. A fundi must be junior or senior grade before they can train CTPs.
+                No trainer records in this view. Only a senior fundi can train CTPs.
             </td></tr>
         @endforelse
     </tbody>

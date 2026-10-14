@@ -4,9 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
+/**
+ * Module 5 — an E-Fundi: the programme's technical workforce (§8). The person and their skill record
+ * live here and nowhere else; the teaching role (Module 4), the job applications (Module 6) and the
+ * money (Module 11) are separate rows that point back at this one.
+ */
 class FundiRegistration extends Model
 {
     public const TIERS = [
@@ -27,6 +37,42 @@ class FundiRegistration extends Model
         'pending_review' => 'Pending review',
         'active' => 'Active',
         'rejected' => 'Rejected',
+        'suspended' => 'Suspended',
+        'blacklisted' => 'Blacklisted',
+    ];
+
+    /**
+     * §8.4 — a fundi who is blocked is reopened, never deleted. Only a Director (a programme
+     * executive) lifts a suspension or a blacklist, and the reason stays on the record.
+     */
+    public const BLOCKING = ['suspended', 'blacklisted'];
+
+    /** §8.3 availability. The fundi sets it themselves; a job assignment moves it through Module 7. */
+    public const AVAILABILITY = [
+        'available' => 'Available for work',
+        'on_job' => 'On a job',
+        'on_leave' => 'On leave',
+    ];
+
+    /**
+     * What each grade is allowed to do in the programme (§8.2). A senior fundi carries the trade and is
+     * the only grade that can train CTPs; a junior, an intern or an attachment applicant works under a
+     * senior — they apply for the jobs their grade covers, mobilise in their area and collect e-waste.
+     */
+    public const CAPABILITIES = [
+        'senior_fundi' => ['projects', 'supervise', 'mobilise', 'waste', 'train'],
+        'junior_fundi' => ['projects', 'mobilise', 'waste'],
+        'fundi_intern' => ['projects', 'mobilise', 'waste'],
+        'attachment' => ['projects', 'waste'],
+    ];
+
+    /** The card a fundi's own interface is built from: what the ability is and what it opens. */
+    public const CAPABILITY_LABELS = [
+        'projects' => ['Apply for projects', 'Open jobs your grade covers, from My projects.'],
+        'supervise' => ['Take on fundis under you', 'Junior fundis, interns and attachment applicants work under a senior fundi on a job.'],
+        'mobilise' => ['Mobilise your area', 'Put households and communities forward and log what you see in the field.'],
+        'waste' => ['Collect e-waste', 'Register what you collected and its condition, and hand it to the programme office.'],
+        'train' => ['Train CTPs at a site', 'Apply for a site, get the office approval, then mark the CTPs you train.'],
     ];
 
     public const FEE_STATUSES = [
@@ -36,13 +82,22 @@ class FundiRegistration extends Model
         'sponsored' => 'Sponsored — no fee',
     ];
 
+    /** The paperwork on an application: form input name => the column that holds the path. */
+    public const DOCUMENTS = [
+        'id_scan' => 'id_scan_path',
+        'business_cert' => 'business_cert_path',
+        'trade_certs' => 'trade_cert_paths',
+        'portfolio' => 'portfolio_paths',
+    ];
+
     protected $fillable = [
         'reference', 'full_name', 'national_id', 'phone', 'email', 'dob', 'gender',
         'tier', 'county', 'sub_county', 'ward', 'mobilised_by_ctp',
         'business_name', 'business_reg_no', 'years_in_business',
         'specialisations', 'service_counties', 'referee_name', 'referee_phone', 'referee_role',
         'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
-        'status', 'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
+        'status', 'availability', 'availability_note',
+        'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
         'user_id', 'rejection_reason', 'ef_code',
     ];
 
@@ -79,10 +134,25 @@ class FundiRegistration extends Model
         return $this->belongsTo(CtpRegistration::class, 'mobilised_by_ctp');
     }
 
-    /** The trainer role a senior fundi applies for (Module 4). One fundi holds at most one. */
-    public function trainer(): HasOne
+    /** The member account the office opened once the fundi was approved. */
+    public function user(): BelongsTo
     {
-        return $this->hasOne(Trainer::class, 'fundi_id');
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The teaching roles this fundi holds (Module 4). One row per SITE — §7.8 has a fundi training in
+     * their own workshop or a community site, so being approved at Nyanda says nothing about Chemelod.
+     */
+    public function trainers(): HasMany
+    {
+        return $this->hasMany(Trainer::class, 'fundi_id');
+    }
+
+    /** Projects this fundi has applied to. The project screens themselves stay in Module 6. */
+    public function applications(): MorphMany
+    {
+        return $this->morphMany(ProjectApplication::class, 'applicant', 'applicant_type', 'applicant_id');
     }
 
     public function placeLabel(): string
@@ -90,9 +160,192 @@ class FundiRegistration extends Model
         return collect([$this->ward, $this->sub_county, $this->county])->filter()->join(' · ');
     }
 
+    /**
+     * The availability form, validated the same way on the office screen and on the fundi's own portal,
+     * so the two can never disagree about what "on a job" means.
+     */
+    public static function availabilityFrom(Request $request): array
+    {
+        $data = $request->validate([
+            'availability' => 'required|in:'.implode(',', array_keys(self::AVAILABILITY)),
+            'availability_note' => 'nullable|string|max:300',
+        ], [], ['availability' => 'Availability', 'availability_note' => 'Note']);
+
+        return [
+            'availability' => $data['availability'],
+            'availability_note' => $data['availability_note'] ?? null,
+        ];
+    }
+
+    /** The skill form, shared the same way. Skills only come from the programme's own trade list. */
+    public static function skillsFrom(Request $request): array
+    {
+        $data = $request->validate([
+            'specialisations' => 'required|array|min:1|max:12',
+            'specialisations.*' => 'in:'.implode(',', self::SPECIALISATIONS),
+            'service_counties' => 'nullable|array|max:47',
+            'service_counties.*' => 'string|max:100',
+        ], [], [
+            'specialisations' => 'Skills', 'service_counties' => 'Counties covered',
+        ]);
+
+        return [
+            'specialisations' => array_values(array_unique($data['specialisations'])),
+            'service_counties' => array_values(array_unique($data['service_counties'] ?? [])),
+        ];
+    }
+
+    /**
+     * The same application a person fills online, typed in at the counter for someone who cannot reach
+     * the website. It enters the same lifecycle — fee, review, E-Fundi ID, portal login — and the same
+     * person can never be added twice: ID, phone and email are unique on this register.
+     *
+     * @return array<string, mixed> columns ready for create()
+     */
+    public static function officeApplicationFrom(Request $request): array
+    {
+        $data = $request->validate([
+            'full_name' => 'required|string|max:150',
+            'national_id' => ['required', 'max:20', Rule::unique('fundi_registrations', 'national_id')],
+            'phone' => ['required', 'max:20', Rule::unique('fundi_registrations', 'phone')],
+            'email' => ['required', 'email', Rule::unique('fundi_registrations', 'email')],
+            'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
+            'gender' => 'required|in:male,female,other',
+            'tier' => 'required|in:'.implode(',', array_keys(self::TIERS)),
+            'county' => 'required|string|max:100',
+            'sub_county' => 'nullable|string|max:100',
+            'ward' => 'nullable|string|max:120',
+            'mobiliser_code' => 'nullable|string|max:20',
+            'business_name' => 'nullable|string|max:160',
+            'business_reg_no' => 'nullable|string|max:60',
+            'years_in_business' => 'nullable|integer|min:0|max:80',
+            'specialisations' => 'required|array|min:1|max:12',
+            'specialisations.*' => 'in:'.implode(',', self::SPECIALISATIONS),
+            'service_counties' => 'required|array|min:1|max:47',
+            'service_counties.*' => 'string|max:100',
+            'referee_name' => 'required|string|max:150',
+            'referee_phone' => 'required|string|max:20',
+            'referee_role' => 'required|string|max:150',
+            'id_scan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'business_cert' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'trade_certs' => 'nullable|array|max:6',
+            'trade_certs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'portfolio' => 'nullable|array|max:6',
+            'portfolio.*' => 'image|mimes:jpg,jpeg,png|max:3072',
+        ], [
+            'national_id.unique' => 'That National ID is already on the E-Fundi register — open that record and reopen it, do not add the person twice.',
+            'phone.unique' => 'That phone number is already on the E-Fundi register — open that record instead of adding the person twice.',
+            'email.unique' => 'That email is already on the E-Fundi register — open that record instead of adding the person twice.',
+        ], [
+            'national_id' => 'National ID', 'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
+            'years_in_business' => 'Years trading', 'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
+        ]);
+
+        return [
+            'reference' => 'EF-APP-'.strtoupper(bin2hex(random_bytes(3))),
+            'status' => 'pending_payment',
+            'fee_status' => 'awaiting_payment',
+            'availability' => 'available',
+            'mobilised_by_ctp' => CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id,
+            ...collect($data)->except(array_merge(array_keys(self::DOCUMENTS), ['mobiliser_code']))->all(),
+            'specialisations' => array_values(array_unique($data['specialisations'])),
+            'service_counties' => array_values(array_unique($data['service_counties'])),
+        ];
+    }
+
+    /** Attach the papers handed to the office, under this application's own folder on the private disk. */
+    public function storeFiles(Request $request): void
+    {
+        $dir = 'registrations/fundi/'.$this->reference;
+
+        foreach (['id_scan' => 'id_scan_path', 'business_cert' => 'business_cert_path'] as $input => $column) {
+            if ($request->hasFile($input)) {
+                $this->{$column} = $request->file($input)->store($dir, 'local');
+            }
+        }
+
+        foreach (['trade_certs' => 'trade_cert_paths', 'portfolio' => 'portfolio_paths'] as $input => $column) {
+            $files = collect($request->file($input, []))->filter()->map(fn ($f) => $f->store($dir, 'local'))->values()->all();
+            if ($files) {
+                $this->{$column} = array_merge((array) $this->{$column}, $files);
+            }
+        }
+
+        $this->save();
+    }
+
     public function statusLabel(): string
     {
         return self::STATUSES[$this->status] ?? Str::headline(str_replace('_', ' ', $this->status));
+    }
+
+    public function availabilityLabel(): string
+    {
+        return self::AVAILABILITY[$this->availability] ?? Str::headline(str_replace('_', ' ', (string) $this->availability));
+    }
+
+    /** Does this grade carry the ability? The single test every portal screen and route gates on. */
+    public function can(string $ability): bool
+    {
+        return in_array($ability, self::CAPABILITIES[$this->tier] ?? [], true);
+    }
+
+    /** The abilities of this grade, in the order the interface lists them. */
+    public function capabilities(): array
+    {
+        return self::CAPABILITIES[$this->tier] ?? [];
+    }
+
+    /** A senior fundi is the only grade the programme hands a training cohort to. */
+    public function canTrain(): bool
+    {
+        return $this->can('train');
+    }
+
+    /** Only a verified fundi who says they are free can be matched or handed a job. */
+    public function isMatchable(): bool
+    {
+        return $this->status === 'active' && $this->availability === 'available';
+    }
+
+    /** The sites this fundi trains CTPs at, with the office decision on each one. */
+    public function trainingSites(): Collection
+    {
+        return $this->trainers()->with(['venue:id,name,type', 'trainings'])->get();
+    }
+
+    /**
+     * The paperwork held on this record, in the order the office reads it. The paths are private —
+     * they only open through the fundi's own file route, never from a url.
+     *
+     * @return array<string, array{label: string, path: string}>
+     */
+    public function documents(): array
+    {
+        $slots = [
+            'id_scan' => ['id_scan_path', 'National ID scan'],
+            'business_cert' => ['business_cert_path', 'Business registration'],
+        ];
+
+        $out = [];
+        foreach ($slots as $key => [$column, $label]) {
+            $path = $this->{$column};
+            if ($path && Storage::disk('local')->exists($path)) {
+                $out[$key] = ['label' => $label, 'path' => $path];
+            }
+        }
+
+        foreach (['trade_cert_paths' => 'Trade certificate', 'portfolio_paths' => 'Portfolio'] as $column => $label) {
+            $n = 1;
+            foreach ((array) $this->{$column} as $path) {
+                if ($path && Storage::disk('local')->exists($path)) {
+                    $out[$column.'-'.$n] = ['label' => $label.' '.$n, 'path' => $path];
+                }
+                $n++;
+            }
+        }
+
+        return $out;
     }
 
     public static function nextCode(): string

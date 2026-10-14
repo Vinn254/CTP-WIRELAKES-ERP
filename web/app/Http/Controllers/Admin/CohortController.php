@@ -12,6 +12,7 @@ use App\Models\Trainer;
 use App\Models\Training;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
+use App\Models\TrainingVenue;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -272,7 +273,7 @@ class CohortController extends Controller
         ]);
     }
 
-    /** A cohort must have somewhere to happen and a trainer registered to teach that training. */
+    /** A cohort must have somewhere to happen and a trainer approved to teach that training at that site. */
     private function guard(array $data): void
     {
         abort_if(empty($data['venue_id']) && empty($data['trainer_id']) && empty($data['community_id']), 422,
@@ -282,11 +283,25 @@ class CohortController extends Controller
             $trainer = Trainer::with('fundi:id,full_name,status')->findOrFail($data['trainer_id']);
 
             abort_unless($trainer->status === 'approved', 422,
-                $trainer->fundi->full_name.' is not an approved trainer yet — approve them under Fundi-trainers first.');
+                $trainer->fundi->full_name.' is not an approved trainer for '.$this->siteName($data).' — approve that site under Fundi-trainers first.');
+
+            // A trainer is approved site by site (§7.8), so an approval held at another venue does not carry over.
+            if (! empty($data['venue_id'])) {
+                abort_unless((int) $trainer->venue_id === (int) $data['venue_id'], 422,
+                    $trainer->fundi->full_name.' is approved at '.$trainer->placeLabel().', not at '.$this->siteName($data).'. '
+                        .'Hand them a cohort at the site the office approved, or take their application for '.$this->siteName($data).'.');
+            }
 
             abort_unless(! empty($data['training_id']) && $trainer->canTeach((int) $data['training_id']), 422,
                 $trainer->fundi->full_name.' is not registered to teach '.$this->trainingName($data).'. Add that training to their record first.');
         }
+    }
+
+    private function siteName(array $data): string
+    {
+        return empty($data['venue_id'])
+            ? 'this cohort'
+            : (TrainingVenue::whereKey($data['venue_id'])->value('name') ?? 'this site');
     }
 
     /** Who may hold a seat: an approved CTP who is in the programme, and room left in the cohort. */
