@@ -9,15 +9,20 @@ use App\Models\County;
 use App\Models\CtpRegistration;
 use App\Models\Enrollment;
 use App\Models\FundiRegistration;
+use App\Models\ModuleCompletion;
 use App\Models\Need;
 use App\Models\ProgressEntry;
 use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Models\Trainer;
 use App\Models\Training;
+use App\Models\TrainingDocument;
+use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
 use App\Support\MemberPortal;
+use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PortalController extends Controller
 {
@@ -139,13 +144,19 @@ class PortalController extends Controller
                 'trainings:id,name',
                 'venue:id,name,type,county,sub_county,ward',
                 'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
-                    ->with(['enrollments' => fn ($e) => $e->with(['ctp:id,full_name,ctp_code', 'entries'])->orderBy('id')])
+                    ->with([
+                        'training.modules',
+                        'enrollments' => fn ($e) => $e->with([
+                            'ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'documents', 'certification',
+                        ])->orderBy('id'),
+                    ])
                     ->orderByDesc('starts_on'),
             ])->where('fundi_id', $fundi->id)->first(),
             'trainings' => Training::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code']),
             'venues' => TrainingVenue::where('status', 'active')->orderBy('county')->orderBy('name')->get(['id', 'name', 'county']),
             'counties' => County::orderBy('name')->pluck('name'),
             'kinds' => ProgressEntry::KINDS,
+            'documentKinds' => TrainingDocument::KINDS,
         ]);
     }
 
@@ -173,27 +184,68 @@ class PortalController extends Controller
     /** A trainer marks their own trainee — the line lands on the CTP's record and the office sees it too. */
     public function markProgress(Request $request)
     {
+        $enrollment = $this->theirTrainee($request);
+
+        return back()->with('status', TrainingTrack::recordProgress(
+            $enrollment, $request, ['recorded_by_fundi' => $this->fundi()->id]));
+    }
+
+    /** The trainer marks a module as delivered and got through, on their own roll. */
+    public function markModule(Request $request, Enrollment $enrollment, TrainingModule $module)
+    {
+        $their = $this->theirTrainee($enrollment);
+
+        return back()->with('status', TrainingTrack::markModule(
+            $their, $module, ModuleCompletion::dataFrom($request), ['recorded_by_fundi' => $this->fundi()->id]));
+    }
+
+    public function unmarkModule(Enrollment $enrollment, TrainingModule $module)
+    {
+        $their = $this->theirTrainee($enrollment);
+
+        return back()->with('status', TrainingTrack::unmarkModule($their, $module));
+    }
+
+    /** A trainer can put the evidence on the record too — what they covered, a photo of the work. */
+    public function storeDocument(Request $request, Enrollment $enrollment)
+    {
+        $their = $this->theirTrainee($enrollment);
+
+        return back()->with('status', TrainingTrack::storeDocument(
+            $their, $request, ['uploaded_by_fundi' => $this->fundi()->id]));
+    }
+
+    public function document(Enrollment $enrollment, TrainingDocument $document)
+    {
+        $their = $this->theirTrainee($enrollment);
+        abort_unless($document->enrollment_id === $their->id, 404);
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'That file is no longer on record.');
+
+        return Storage::disk('local')->response($document->file_path, $document->file_name ?: $document->title);
+    }
+
+    /**
+     * Only a trainee in a cohort this trainer teaches — anyone else's roster 404s and leaks nothing.
+     * The seat id comes from the url, so it is always resolved through the trainer's own record.
+     */
+    private function theirTrainee(Request|Enrollment $request): Enrollment
+    {
         $fundi = $this->fundi();
         $trainer = Trainer::where('fundi_id', $fundi->id)->first();
 
-        abort_unless($trainer && $trainer->status === 'approved', 403,
-            'Only an approved trainer can record a trainee.');
+        abort_unless($trainer && $trainer->status === 'approved', 403, 'Only an approved trainer can record a trainee.');
 
-        $request->validate(['enrollment_id' => 'required|integer']);
+        $enrollment = $request instanceof Enrollment
+            ? $request->load(['cohort', 'ctp'])
+            : (function (Request $r) {
+                $r->validate(['enrollment_id' => 'required|integer']);
 
-        $enrollment = Enrollment::with('cohort')->findOrFail($request->input('enrollment_id'));
+                return Enrollment::with(['cohort', 'ctp'])->findOrFail($r->input('enrollment_id'));
+            })($request);
 
-        // Only a trainee in a cohort this trainer teaches — anyone else's roster 404s and leaks nothing.
         abort_unless($enrollment->cohort && $enrollment->cohort->trainer_id === $trainer->id, 404);
-        abort_unless($enrollment->state === 'approved', 422, 'This CTP does not hold a seat in your cohort.');
 
-        ProgressEntry::create([
-            ...ProgressEntry::dataFrom($request),
-            'enrollment_id' => $enrollment->id,
-            'recorded_by_fundi' => $fundi->id,
-        ]);
-
-        return back()->with('status', 'Recorded for '.$enrollment->ctp->full_name.'.');
+        return $enrollment;
     }
 
     public function mobilisation()

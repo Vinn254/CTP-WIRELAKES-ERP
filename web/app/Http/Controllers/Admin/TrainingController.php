@@ -4,18 +4,20 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Training;
+use App\Models\TrainingModule;
 use Illuminate\Http\Request;
 
 /**
  * Module 4 — the trainings the programme itself runs. This list is the only thing a cohort can be an intake
- * of and the only thing a fundi can be registered to teach, so anything new starts here.
+ * of and the only thing a fundi can be registered to teach, so anything new starts here. The modules that
+ * have to be got through under each training are set on the same screen.
  */
 class TrainingController extends Controller
 {
     public function index(Request $request)
     {
         return view('admin.trainings.index', [
-            'trainings' => Training::withCount(['cohorts', 'trainers'])->orderBy('status')->orderBy('name')->get(),
+            'trainings' => Training::withCount(['cohorts', 'trainers', 'modules'])->with('modules')->orderBy('status')->orderBy('name')->get(),
             'statuses' => Training::STATUSES,
             'search' => trim((string) $request->input('q')),
         ]);
@@ -46,7 +48,7 @@ class TrainingController extends Controller
     {
         $training->update(['status' => $training->status === 'active' ? 'inactive' : 'active']);
 
-        return back()->with('status', $training->name.' is now '.($training->status === 'active' ? 'on offer.' : 'off the list for new cohorts.'));
+        return back()->with('status', $training->name.' is now '.($training->status === 'active' ? 'listed — a cohort can be posted for it.' : 'off the list for new cohorts.'));
     }
 
     public function destroy(Training $training)
@@ -57,6 +59,59 @@ class TrainingController extends Controller
         $training->delete();
 
         return back()->with('status', 'Training removed from the list.');
+    }
+
+    /** As many modules as the office typed in one go, put under the training in that order. */
+    public function storeModule(Request $request, Training $training)
+    {
+        $rows = TrainingModule::rowsFrom($request);
+
+        if ($rows->isEmpty()) {
+            return redirect()->route('admin.trainings.index')
+                ->withErrors(['modules.0.title' => 'Type the name of the module to add, or close the rows you did not mean to fill.'])
+                ->withInput();
+        }
+
+        $position = TrainingModule::nextPosition($training->id);
+        $titles = [];
+
+        foreach ($rows as $row) {
+            $module = TrainingModule::create([
+                ...$row,
+                'training_id' => $training->id,
+                'position' => $position++,
+            ]);
+            $titles[] = $module->title;
+        }
+
+        $listed = collect($titles);
+        $list = $listed->take(3)->join(', ').($listed->count() > 3 ? ' +'.($listed->count() - 3).' more' : '');
+
+        return back()->with('status', $list.' now expected under '.$training->name
+            .'. The trainer sees them as what they deliver and the trainee sees them on their record.');
+    }
+
+    public function updateModule(Request $request, Training $training, TrainingModule $module)
+    {
+        abort_unless($module->training_id === $training->id, 404);
+
+        $module->update(TrainingModule::dataFrom($request));
+
+        return back()->with('status', $module->title.' updated — every roll for '.$training->name.' shows the change.');
+    }
+
+    /** A module nobody has been marked against can come off; one that is on a trainee's record stays. */
+    public function destroyModule(Training $training, TrainingModule $module)
+    {
+        abort_unless($module->training_id === $training->id, 404);
+
+        abort_if($module->completions()->exists(), 422,
+            $module->title.' has been marked on '.$module->completions()->count()
+            .' trainee record(s). Take those marks off first — a mark that is on someone’s file cannot lose the module it was made against.');
+
+        $module->delete();
+
+        return back()->with('status', $module->title.' removed from '.$training->name.'.');
     }
 
     /** The trainings a cohort or trainer form may offer: active ones, plus any already chosen. */

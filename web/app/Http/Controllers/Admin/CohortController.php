@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Enrollment;
+use App\Models\ModuleCompletion;
 use App\Models\ProgressEntry;
 use App\Models\Trainer;
 use App\Models\Training;
+use App\Models\TrainingDocument;
+use App\Models\TrainingModule;
+use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Module 4 — a cohort is one intake of one of the programme's trainings, at one place. The office posts it, takes seats,
@@ -96,9 +101,12 @@ class CohortController extends Controller
         return view('admin.cohorts.show', [
             'cohort' => $cohort,
             'enrollments' => $cohort->enrollments()
-                ->with(['ctp:id,full_name,ctp_code,status,county,sub_county,ward', 'entries', 'certification'])
+                ->with(['ctp:id,full_name,ctp_code,status,county,sub_county,ward', 'entries', 'certification',
+                    'moduleMarks', 'documents'])
                 ->orderByRaw("case state when 'pending' then 0 when 'approved' then 1 else 2 end")
                 ->orderBy('id')->get(),
+            'modules' => $cohort->training?->modules ?? collect(),
+            'documentKinds' => TrainingDocument::KINDS,
             'candidates' => CtpRegistration::whereIn('status', CtpRegistration::WORKING)
                 ->whereNotIn('id', $cohort->enrollments()->pluck('ctp_id'))
                 ->orderBy('county')->orderBy('full_name')->get(['id', 'full_name', 'ctp_code', 'county', 'sub_county', 'ward', 'status']),
@@ -187,21 +195,44 @@ class CohortController extends Controller
 
         $enrollment->update($data);
 
+        TrainingTrack::syncCertification($enrollment, auth()->id());
+
         return back()->with('status', $enrollment->ctp->full_name.' is now at the '.strtolower($data['stage']).' stage.');
     }
 
-    /** The office records what happened — including a report a partner school sent in. */
-    public function storeProgress(Request $request, Enrollment $enrollment)
+    /** The office marks a module got through — the same row the trainer writes from their own screen. */
+    public function markModule(Request $request, Enrollment $enrollment, TrainingModule $module)
     {
-        abort_unless($enrollment->state === 'approved', 422, 'This CTP does not hold a seat in the cohort.');
+        $enrollment->load(['cohort', 'ctp']);
 
-        ProgressEntry::create([
-            ...ProgressEntry::dataFrom($request),
-            'enrollment_id' => $enrollment->id,
-            'recorded_by_user' => auth()->id(),
-        ]);
+        return back()->with('status', TrainingTrack::markModule(
+            $enrollment, $module, ModuleCompletion::dataFrom($request), ['recorded_by_user' => auth()->id()]));
+    }
 
-        return back()->with('status', 'Progress recorded for '.$enrollment->ctp->full_name.'.');
+    public function unmarkModule(Enrollment $enrollment, TrainingModule $module)
+    {
+        $enrollment->load(['cohort', 'ctp']);
+
+        return back()->with('status', TrainingTrack::unmarkModule($enrollment, $module));
+    }
+
+    /** Uploading the report a partner school sent is how a placed CTP's paper gets on the record. */
+    public function storeDocument(Request $request, Enrollment $enrollment)
+    {
+        $enrollment->load(['cohort', 'ctp']);
+
+        return back()->with('status', TrainingTrack::storeDocument(
+            $enrollment, $request, ['uploaded_by_user' => auth()->id()]));
+    }
+
+    /** Documents are private: only someone who can open the cohort page can open the file. */
+    public function document(Enrollment $enrollment, TrainingDocument $document)
+    {
+        abort_unless($document->enrollment_id === $enrollment->id, 404);
+
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'That file is no longer on record.');
+
+        return Storage::disk('local')->response($document->file_path, $document->file_name ?: $document->title);
     }
 
     /** A mistaken application can be removed; a seat that was filled is declined instead, so the history stays. */

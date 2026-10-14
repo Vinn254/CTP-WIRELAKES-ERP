@@ -17,8 +17,8 @@ use Illuminate\Support\Str;
 class Training extends Model
 {
     public const STATUSES = [
-        'active' => 'On offer',
-        'inactive' => 'Not on offer right now',
+        'active' => 'Listed — cohorts and trainers can be set against it',
+        'inactive' => 'Not listed for new cohorts',
     ];
 
     protected $fillable = ['name', 'code', 'summary', 'status'];
@@ -26,6 +26,12 @@ class Training extends Model
     public function cohorts(): HasMany
     {
         return $this->hasMany(Cohort::class);
+    }
+
+    /** What has to be got through under this training. The office may leave a training with none. */
+    public function modules(): HasMany
+    {
+        return $this->hasMany(TrainingModule::class)->ordered();
     }
 
     public function trainers(): BelongsToMany

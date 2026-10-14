@@ -24,9 +24,12 @@ class CertificationController extends Controller
             ])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->orderByDesc('id')->get(),
-            'ready' => Enrollment::with(['ctp:id,full_name,ctp_code,status', 'cohort:id,reference,training_id,status', 'cohort.training:id,name,code'])
-                ->where('state', 'approved')->whereIn('stage', ['assessment', 'completed'])
-                ->whereDoesntHave('certification')->orderBy('id')->get(),
+            'ready' => Enrollment::with([
+                'ctp:id,full_name,ctp_code,status', 'cohort:id,reference,training_id,status,venue_id',
+                'cohort.training:id,name,code', 'cohort.venue:id,name,type', 'moduleMarks', 'documents',
+            ])
+                ->where('state', 'approved')->whereDoesntHave('certification')->orderBy('id')->get()
+                ->filter(fn (Enrollment $e) => $e->trackPct() >= 100)->values(),
             'status' => $status,
             'statuses' => Certification::STATUSES,
             'counts' => Certification::selectRaw('status, count(*) n')->groupBy('status')->pluck('n', 'status'),
@@ -37,8 +40,15 @@ class CertificationController extends Controller
     /** Put a trainee forward on the strength of what has been recorded about them. */
     public function recommend(Enrollment $enrollment)
     {
-        abort_unless($enrollment->canBeCertified(), 422,
-            $enrollment->ctp->full_name.' is not ready — a seat must be held and the trainee at assessment or completed.');
+        abort_unless($enrollment->state === 'approved', 422, 'A seat must be held before anyone is put forward.');
+
+        $missing = $enrollment->trackMissing();
+        abort_if($missing->isNotEmpty(), 422,
+            $enrollment->ctp->full_name.'’s track is at '.$enrollment->trackPct().'%. Still short: '
+            .$missing->map(fn ($p) => $p['label'].' ('.$p['detail'].')')->join(', ').'.');
+
+        abort_unless(! $enrollment->certification, 422,
+            $enrollment->ctp->full_name.' is already in the certification queue — '.$enrollment->certification->statusLabel().'.');
 
         $attendance = $enrollment->attendancePct();
 

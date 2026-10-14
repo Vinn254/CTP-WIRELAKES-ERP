@@ -122,18 +122,16 @@
                     about the days you missed.</p>
             @endif
 
-            <h4 class="dl-group">Training record ({{ $e->entries->count() }})</h4>
-            @forelse ($e->entries->take(20) as $entry)
-                <div class="row-line">
-                    <b>{{ $entry->kindLabel() }}</b>
-                    <span class="hint">{{ $entry->entry_date->format('d M Y') }}</span>
-                    @if ($entry->resultLabel() !== '')<span class="tag">{{ $entry->resultLabel() }}</span>@endif
-                    <span class="hint">{{ $entry->recorderLabel() }}</span>
-                    @if ($entry->note)<span class="hint">{{ $entry->note }}</span>@endif
-                </div>
-            @empty
-                <p class="hint">Nothing has been recorded on you yet. Your trainer's first mark appears here the day it is entered.</p>
-            @endforelse
+            <h4 class="dl-group">Your track to 100%</h4>
+            <p class="hint">This is what is counted on you while the training runs. When it reaches 100% the
+                record goes to the certification queue by itself — the office verifies it and a programme
+                executive signs the certificate.</p>
+            @include('partials.track', ['enrollment' => $e])
+
+            @include('partials.modules', ['enrollment' => $e])
+            @include('partials.documents', ['enrollment' => $e, 'modules' => $c?->training?->modules ?? collect()])
+
+            @include('partials.progress', ['enrollment' => $e])
 
             @if ($e->certification)
                 @php $cert = $e->certification; @endphp

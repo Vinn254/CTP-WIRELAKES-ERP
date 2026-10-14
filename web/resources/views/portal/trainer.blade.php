@@ -115,6 +115,19 @@
                 <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · {{ $c->placeLabel() }}
                     · {{ $c->enrollments->count() }} on the roll</p>
 
+                @if ($c->training && $c->training->modules->isNotEmpty())
+                    <h4 class="dl-group">What you are expected to deliver — {{ $c->training->name }}</h4>
+                    @foreach ($c->training->modules as $m)
+                        <div class="row-line">
+                            <b>{{ $m->position }}. {{ $m->title }}</b>
+                            <span class="hint">{{ $m->hoursLabel() }}</span>
+                            @if ($m->outcome)<span class="hint">{{ $m->outcome }}</span>@endif
+                        </div>
+                    @endforeach
+                    <p class="hint">The office set these. Mark each one on a trainee below as they get through it —
+                        that mark is what moves their track, and the office sees the same line you enter.</p>
+                @endif
+
                 <h4 class="dl-group">Mark what happened</h4>
                 @forelse ($c->enrollments as $e)
                     @php $attendance = $e->attendancePct(); @endphp
@@ -126,45 +139,19 @@
                         <span class="hint">{{ $attendance === null ? 'no marks yet' : $attendance.'% attendance' }}</span>
                     </div>
                     @if ($e->state === 'approved')
-                        <details class="need-form">
-                            <summary>Record a session or mark for {{ $e->ctp->full_name }}</summary>
-                            <form method="POST" action="{{ route('portal.trainer.progress') }}" class="fee-form"
-                                  data-confirm="Send this record to the trainee's file?" data-title="Record progress">
-                                @csrf
-                                <input type="hidden" name="enrollment_id" value="{{ $e->id }}">
-                                <div class="form-grid-2">
-                                    <div class="field">
-                                        <label>What happened <span class="req">*</span></label>
-                                        <select name="kind" required>
-                                            @foreach ($kinds as $key => $label)
-                                                <option value="{{ $key }}">{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="field">
-                                        <label>Date <span class="req">*</span></label>
-                                        <input type="date" name="entry_date" required max="{{ now()->toDateString() }}" value="{{ now()->toDateString() }}">
-                                    </div>
-                                    <div class="field">
-                                        <label>Score out of 100 (theory, practical or assessment)</label>
-                                        <input type="number" name="score" min="0" max="100" step="0.5">
-                                    </div>
-                                    <div class="field">
-                                        <label>Hours covered</label>
-                                        <input type="number" name="hours" min="0" max="400" placeholder="e.g. 4">
-                                    </div>
-                                </div>
-                                <label class="check-row">
-                                    <input type="checkbox" name="present" value="1" checked>
-                                    <span>They were present (only used for an attendance mark)</span>
-                                </label>
-                                <div class="field">
-                                    <label>What you saw</label>
-                                    <textarea name="note" rows="2" maxlength="1000" placeholder="Wiring was neat; needs work on soldering joints."></textarea>
-                                </div>
-                                <button class="btn btn-lime btn-sm" type="submit">Save to their record</button>
-                            </form>
-                        </details>
+                        @include('partials.progress', ['enrollment' => $e, 'mode' => 'trainer'])
+
+                        <h4 class="dl-group" style="margin-top:14px;">Their track</h4>
+                        @include('partials.track', ['enrollment' => $e])
+
+                        @include('partials.modules', ['enrollment' => $e, 'mode' => 'trainer'])
+
+                        @include('partials.documents', [
+                            'enrollment' => $e,
+                            'mode' => 'trainer',
+                            'modules' => $c->training?->modules ?? collect(),
+                            'documentKinds' => $documentKinds,
+                        ])
                     @else
                         <p class="hint">Their seat is not confirmed yet — the office has to approve it before you can mark them.</p>
                     @endif

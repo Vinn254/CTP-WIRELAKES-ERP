@@ -91,7 +91,7 @@ class MemberPortal
             'elsewhere' => $open->reject(fn (Cohort $c) => static::isInCtpArea($c, $ctp))->values(),
             'appliedTo' => $ctp->enrollments()->whereIn('state', ['pending', 'approved'])->pluck('cohort_id'),
             'mine' => $ctp->activeEnrollments()
-                ->with(['entries', 'certification', 'cohort.training', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
+                ->with(['entries', 'certification', 'moduleMarks', 'documents', 'cohort.training.modules', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
                 ->get(),
             'history' => $ctp->enrollments()
                 ->with(['cohort:id,reference,training_id', 'cohort.training:id,name,code', 'certification'])

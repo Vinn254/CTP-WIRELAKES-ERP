@@ -74,6 +74,16 @@ class ProgressEntry extends Model
         return self::KINDS[$this->kind] ?? Str::headline($this->kind);
     }
 
+    /** Which part of the track this line feeds and what that part is worth, so the record shows the flow and not bare marks. */
+    public function countsToward(): string
+    {
+        $weight = Enrollment::TRACK_WEIGHTS[$this->kind] ?? null;
+
+        return $weight === null
+            ? 'not counted — kept on the record'
+            : Str::headline($this->kind).' · '.$weight.'% of the track';
+    }
+
     /** Who put the line in — a trainer's own mark or the office recording a school's report. */
     public function recorderLabel(): string
     {

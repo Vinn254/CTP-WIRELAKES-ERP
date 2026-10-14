@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\TrackController;
 use App\Http\Controllers\Admin\TrainerController;
 use App\Http\Controllers\Admin\TrainingController;
 use App\Http\Controllers\Admin\VenueController;
@@ -166,6 +167,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/trainings/{training}/toggle', [TrainingController::class, 'toggle'])->whereNumber('training')->name('trainings.toggle');
     Route::delete('/trainings/{training}', [TrainingController::class, 'destroy'])->whereNumber('training')->name('trainings.delete');
 
+    // The modules the office puts under a training — what the trainer delivers and the trainee must get through.
+    Route::post('/trainings/{training}/modules', [TrainingController::class, 'storeModule'])->whereNumber('training')->name('trainings.modules.store');
+    Route::patch('/trainings/{training}/modules/{module}', [TrainingController::class, 'updateModule'])->whereNumber('training')->whereNumber('module')->name('trainings.modules.update');
+    Route::delete('/trainings/{training}/modules/{module}', [TrainingController::class, 'destroyModule'])->whereNumber('training')->whereNumber('module')->name('trainings.modules.delete');
+
     // Module 4 — Training & Certification. Where training happens, the cohorts CTPs apply for and the certificate queue.
     Route::get('/venues', [VenueController::class, 'index'])->name('venues.index');
     Route::post('/venues', [VenueController::class, 'store'])->name('venues.store');
@@ -189,8 +195,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     Route::post('/enrollments/{enrollment}/decision', [CohortController::class, 'decide'])->whereNumber('enrollment')->name('enrollments.decide');
     Route::post('/enrollments/{enrollment}/stage', [CohortController::class, 'setStage'])->whereNumber('enrollment')->name('enrollments.stage');
-    Route::post('/enrollments/{enrollment}/progress', [CohortController::class, 'storeProgress'])->whereNumber('enrollment')->name('enrollments.progress');
     Route::delete('/enrollments/{enrollment}', [CohortController::class, 'drop'])->whereNumber('enrollment')->name('enrollments.delete');
+
+    // One module marked on one seat, and the paperwork a partner school or a trainer sends in.
+    Route::post('/enrollments/{enrollment}/modules/{module}', [CohortController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('enrollments.module.mark');
+    Route::delete('/enrollments/{enrollment}/modules/{module}', [CohortController::class, 'unmarkModule'])->whereNumber('enrollment')->whereNumber('module')->name('enrollments.module.unmark');
+    Route::post('/enrollments/{enrollment}/documents', [CohortController::class, 'storeDocument'])->whereNumber('enrollment')->name('enrollments.document.store');
+    Route::get('/enrollments/{enrollment}/documents/{document}', [CohortController::class, 'document'])->whereNumber('enrollment')->whereNumber('document')->name('enrollments.document.show');
+
+    // Module 4 — the track page. How each CTP is actually getting on, and what is left before certification.
+    Route::get('/track', [TrackController::class, 'index'])->name('track.index');
+    Route::get('/track/{enrollment}', [TrackController::class, 'show'])->whereNumber('enrollment')->name('track.show');
+    Route::post('/track/{enrollment}/progress', [TrackController::class, 'storeProgress'])->whereNumber('enrollment')->name('track.progress');
 
     Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
     Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');
@@ -208,6 +224,10 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
     Route::post('/trainer', [PortalController::class, 'applyTrainer'])->name('trainer.apply');
     Route::post('/trainer/progress', [PortalController::class, 'markProgress'])->name('trainer.progress');
+    Route::post('/trainer/{enrollment}/modules/{module}', [PortalController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('trainer.module.mark');
+    Route::delete('/trainer/{enrollment}/modules/{module}', [PortalController::class, 'unmarkModule'])->whereNumber('enrollment')->whereNumber('module')->name('trainer.module.unmark');
+    Route::post('/trainer/{enrollment}/documents', [PortalController::class, 'storeDocument'])->whereNumber('enrollment')->name('trainer.document.store');
+    Route::get('/trainer/{enrollment}/documents/{document}', [PortalController::class, 'document'])->whereNumber('enrollment')->whereNumber('document')->name('trainer.document.show');
     Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
     Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
     Route::post('/communities', [PortalController::class, 'storeCommunity'])->name('community.store');

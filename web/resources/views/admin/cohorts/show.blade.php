@@ -128,15 +128,18 @@
     @php
         $attendance = $e->attendancePct();
         $cert = $e->certification;
+        $pct = $e->trackPct();
     @endphp
     <div class="card" style="margin-bottom:14px;">
         <h3>{{ $e->ctp->full_name }}
             <span class="tag">{{ $e->ctp->ctp_code }}</span>
             <span class="status {{ $e->stage }}">{{ $e->stageLabel() }}</span>
+            <span class="fee-tag {{ $pct >= 100 ? 'paid' : 'waived' }}">track {{ $pct }}%</span>
             @if ($attendance !== null)
                 <span class="tag {{ $e->isBelowAttendance() ? 'gold' : 'gray' }}">{{ $attendance }}% attendance</span>
             @endif
             @if ($cert)<span class="status {{ $cert->status }}">{{ $cert->statusLabel() }}</span>@endif
+            <a class="btn btn-sm btn-ghost" href="{{ route('admin.track.show', $e) }}">Open track</a>
         </h3>
         <p class="help" style="margin:0 0 10px;">
             {{ $e->ctp->county }}@if ($e->ctp->ward) · {{ $e->ctp->ward }}@endif
@@ -176,64 +179,16 @@
                     <a class="btn btn-sm btn-ghost" href="{{ route('admin.certification.index') }}">Certification queue</a>
                 </div>
             @endif
-
-            <details class="need-form">
-                <summary>Record what happened</summary>
-                <form method="POST" action="{{ route('admin.enrollments.progress', $e) }}" class="fee-form"
-                      data-confirm="Record this for {{ $e->ctp->full_name }}?" data-title="Record progress">
-                    @csrf
-                    <div class="form-grid-2">
-                        <div class="field">
-                            <label>What happened <span class="req">*</span></label>
-                            <select name="kind" required>
-                                @foreach ($kinds as $key => $label)
-                                    <option value="{{ $key }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Date <span class="req">*</span></label>
-                            <input type="date" name="entry_date" required value="{{ now()->toDateString() }}">
-                        </div>
-                        <div class="field">
-                            <label>Came in?</label>
-                            <select name="present">
-                                <option value="">Only for an attendance mark</option>
-                                <option value="1">Yes — present</option>
-                                <option value="0">No — absent</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Score /100</label>
-                            <input type="number" name="score" min="0" max="100" step="0.5">
-                        </div>
-                        <div class="field">
-                            <label>Hours covered</label>
-                            <input type="number" name="hours" min="0" max="400">
-                        </div>
-                    </div>
-                    <div class="field" style="margin-top:10px;">
-                        <label>What they did</label>
-                        <input type="text" name="note" maxlength="1000" placeholder="e.g. Wired the training board end to end">
-                    </div>
-                    <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Record</button>
-                    <p class="hint">Use this when the school or the trainer sends you their report — it is the same record.</p>
-                </form>
-            </details>
         </div>
 
-        <h4 class="dl-group" style="margin-top:16px;">Progress ({{ $e->entries->count() }})</h4>
-        @forelse ($e->entries as $p)
-            <div class="row-line">
-                <span class="hint">{{ $p->entry_date->format('d M Y') }}</span>
-                <span class="tag gray">{{ $p->kindLabel() }}</span>
-                <b>{{ $p->resultLabel() }}</b>
-                @if ($p->note)<span class="hint">{{ $p->note }}</span>@endif
-                <span class="hint">— {{ $p->recorderLabel() }}</span>
-            </div>
-        @empty
-            <p class="hint">Nothing recorded yet. A trainer marks it in their portal, or you record it here.</p>
-        @endforelse
+        <h4 class="dl-group" style="margin-top:16px;">Track</h4>
+        @include('partials.track', ['enrollment' => $e])
+
+        @include('partials.modules', ['enrollment' => $e, 'mode' => 'admin'])
+
+        @include('partials.documents', ['enrollment' => $e, 'mode' => 'admin', 'modules' => $modules, 'documentKinds' => $documentKinds])
+
+        @include('partials.progress', ['enrollment' => $e, 'mode' => 'admin'])
 
         @unless (in_array($e->stage, ['completed', 'failed'], true))
             <form method="POST" action="{{ route('admin.enrollments.decide', $e) }}" class="mini-form" style="margin-top:12px;"

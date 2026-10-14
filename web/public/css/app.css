@@ -292,7 +292,7 @@ html.dark .profile .who b { color: #eaf6e2; }
 html.dark .profile .who small { color: #93b58c; }
 html.dark .profile .avatar { background: var(--lime); color: #083d0d; }
 html.dark .btn-logout:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
-.admin-content { padding: 26px; max-width: 1150px; }
+.admin-content { padding: 26px 26px 40px; min-width: 0; }
 
 /* Monochrome icons */
 .ico { width: 18px; height: 18px; flex-shrink: 0; }
@@ -640,3 +640,18 @@ html.dark .soon { background: #26333c; color: #9fb4bd; }
 .ref-code-box .link-box, .ref-code-box input { margin: 0; }
 .ref-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .level-card { margin-bottom: 16px; }
+
+/* Module 4 — training modules, the track and its paperwork */
+.sub-row td { background: var(--soft, #f4f7f5); border-top: 0; }
+html.dark .sub-row td { background: #131c16; }
+.module-rows { margin-top: 6px; }
+.module-row { padding: 10px 0 2px; border-top: 1px dashed var(--line); align-items: start; }
+.module-row:first-of-type { border-top: 0; padding-top: 0; }
+.module-drop { align-self: end; margin: 0 0 16px; }
+.module-foot { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.record-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin: 18px 0 10px; }
+details.add-record { margin: 0; padding: 0; border: 0; }
+details.add-record > summary { list-style: none; cursor: pointer; }
+details.add-record > summary::-webkit-details-marker { display: none; }
+details.add-record[open] > summary { margin-bottom: 0; }
+details.add-record form { border: 1px dashed var(--line); border-radius: var(--radius); padding: 14px; margin-top: 12px; background: var(--card, #fff); }

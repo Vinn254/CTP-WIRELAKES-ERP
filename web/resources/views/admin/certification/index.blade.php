@@ -11,13 +11,14 @@
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Certification</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
-    The last step of Module 4 §7.5. The office puts a trainee forward on the strength of what was recorded
-    during training; <b>only a programme executive approves a certificate and issues its code</b>. A certificate
-    that is revoked keeps its record — it is never deleted.
+    The last step of Module 4 §7.5. A trainee reaches this queue from their <a href="{{ route('admin.track.index') }}">track</a>:
+    when the marks, sessions, modules and paperwork add up to <b>100%</b> the record lands here for the office to
+    verify — <b>only a programme executive approves a certificate and issues its code</b>. A certificate that is
+    revoked keeps its record — it is never deleted.
 </p>
 
 <div class="stat-row">
-    <div class="stat"><small>Ready to put forward</small><b>{{ $ready->count() }}</b></div>
+    <div class="stat"><small>At 100%, not queued yet</small><b>{{ $ready->count() }}</b></div>
     <div class="stat"><small>Awaiting an executive</small><b>{{ $counts['recommended'] ?? 0 }}</b></div>
     <div class="stat"><small>Issued</small><b>{{ $counts['approved'] ?? 0 }}</b></div>
     <div class="stat"><small>Revoked</small><b>{{ $counts['revoked'] ?? 0 }}</b></div>
@@ -32,8 +33,10 @@
 
 @if ($ready->isNotEmpty())
     <div class="card">
-        <h3>At assessment or completed with no recommendation yet</h3>
-        <p class="hint">Putting someone forward snapshots their theory score, practical score and attendance.
+        <h3>Their track is at 100% and nothing is waiting on an executive</h3>
+        <p class="hint">A track that reaches 100% normally queues the trainee here by itself. These are the ones
+            that need the office to put forward — a recommendation that was declined, or a record the office is
+            re-opening. Putting them forward snapshots their theory score, practical score and attendance.
             The {{ Enrollment::ATTENDANCE_MINIMUM }}% attendance rule is enforced here.</p>
         <table class="data">
             <thead>
@@ -43,7 +46,8 @@
                 @foreach ($ready as $e)
                     @php $attendance = $e->attendancePct(); @endphp
                     <tr>
-                        <td><b>{{ $e->ctp->full_name }}</b></td>
+                        <td><b>{{ $e->ctp->full_name }}</b>
+                            <div class="hint"><a href="{{ route('admin.track.show', $e) }}">track {{ $e->trackPct() }}%</a></div></td>
                         <td>{{ $e->ctp->ctp_code }}</td>
                         <td><a href="{{ route('admin.cohorts.show', $e->cohort_id) }}">{{ $e->cohort->reference }}</a>
                             <div class="hint">{{ $e->cohort->courseLabel() }}</div></td>
@@ -83,7 +87,7 @@
 <table class="data">
     <thead>
         <tr>
-            <th>Certificate</th><th>Trainee</th><th>Cohort</th><th>Attendance</th>
+            <th>Certificate</th><th>Trainee</th><th>Cohort</th><th>Track now</th><th>Attendance</th>
             <th>Theory</th><th>Practical</th><th>Put forward by</th><th>Status</th><th></th>
         </tr>
     </thead>
@@ -96,6 +100,8 @@
                     <div class="hint">{{ $c->enrollment->ctp->ctp_code }}</div></td>
                 <td><a href="{{ route('admin.cohorts.show', $c->enrollment->cohort_id) }}">{{ $c->enrollment->cohort->reference }}</a>
                     <div class="hint">{{ $c->enrollment->cohort->courseLabel() }}</div></td>
+                <td><a class="fee-tag {{ $c->enrollment->trackPct() >= 100 ? 'paid' : 'waived' }}"
+                       href="{{ route('admin.track.show', $c->enrollment) }}">{{ $c->enrollment->trackPct() }}%</a></td>
                 <td>{{ $c->attendance_pct !== null ? $c->attendance_pct.'%' : '—' }}</td>
                 <td>{{ $c->theory_score ?? '—' }}</td>
                 <td>{{ $c->practical_score ?? '—' }}</td>
@@ -139,8 +145,9 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">
-                Nothing has been put forward yet. A trainee reaches this queue from their cohort page once they are at assessment.
+            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">
+                Nothing has been put forward yet. A trainee reaches this queue from their
+                <a href="{{ route('admin.track.index') }}">track</a> the moment it reaches 100%.
             </td></tr>
         @endforelse
     </tbody>

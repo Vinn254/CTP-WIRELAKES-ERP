@@ -29,7 +29,7 @@
                 @endforeach
             </select>
             <div class="help">Running something new? Add it under
-                <a href="{{ route('admin.trainings.index') }}">Trainings on offer</a> first — it is not typed here.</div>
+                <a href="{{ route('admin.trainings.index') }}">Training</a> first — it is not typed here.</div>
         </div>
         <div class="field">
             <label>Theory hours</label>
