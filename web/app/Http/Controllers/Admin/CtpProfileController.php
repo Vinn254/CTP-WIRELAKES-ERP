@@ -293,6 +293,21 @@ class CtpProfileController extends Controller
             : 'Mobiliser unlinked — '.$ctp->full_name.' no longer counts toward anyone.');
     }
 
+    /**
+     * Capture or replace the face on this profile. Everyone who joins is expected to have one, and an
+     * application that came in without it is completed here rather than left blank.
+     */
+    public function storePhoto(Request $request, CtpRegistration $ctp)
+    {
+        $request->validate([
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+        ], [], ['passport_photo' => 'Profile photo']);
+
+        $ctp->attachPhoto($request);
+
+        return back()->with('status', $ctp->full_name.' now has a profile photo — it shows on their profile and in their portal.');
+    }
+
     /** Which projects this CTP can see once they enter the fundi pool. */
     public function setTier(Request $request, CtpRegistration $ctp)
     {
@@ -307,7 +322,7 @@ class CtpProfileController extends Controller
         $slots = [
             'id_scan' => ['id_scan_path', 'National ID scan'],
             'certificate' => ['certificate_path', 'School / college certificate'],
-            'passport' => ['passport_photo_path', 'Passport photo'],
+            'passport' => ['passport_photo_path', 'Profile photo'],
         ];
 
         $out = [];

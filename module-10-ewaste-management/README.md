@@ -66,7 +66,7 @@ numbers it earlier on purpose — a photo and a note sent from a village without
 | `ctp_id` / `fundi_id` | who registered it — exactly one of the two |
 | `forwarded_by_fundi`, `forwarded_on`, `forward_note` | who carried it and what they reported |
 | `received_by_user`, `received_on` | the office that weighed it in |
-| `photo_path`, `photo_name`, `photo_size` | the picture, kept on the private disk and opened only from the record |
+| `photo_path`, `photo_name`, `photo_size` | the picture, kept on the private disk and opened only from the record — on both screens it is a thumbnail that opens in the zoom viewer (`data-zoom`), so a pile of cables can be inspected without leaving the register |
 
 `EWasteCollection::dataFrom()` is the **one validator** the member form and any office entry share, so the two sides
 cannot drift. A validation miss returns exactly what was written and re-opens the form.

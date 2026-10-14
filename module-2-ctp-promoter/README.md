@@ -59,6 +59,17 @@ same lifecycle: reference `CTP-APP-XXXXXX`, `pending_payment` unless sponsored, 
 activation link. The only relaxations are practical: documents may be attached later at the counter, and the record
 keeps `source = office` plus `added_by` (the staff user) so a trainee typed in at the office is never mistaken for a
 website applicant. Nobody is approved straight into the programme from this screen.
+
+**Every member joins with a face on their profile.** The public CTP application requires a profile photo
+(`passport_photo`, jpg/png up to 1 MB) and the office screen can capture it at the counter. The picture is stored on the
+private `local` disk under the application's own folder and is never a public url: it opens through
+`admin/promoters/{ctp}/file/passport` for staff and `portal/photo` for the member. `partials/avatar` is the one markup
+every screen includes — the photo when the record carries one, initials when it does not — so a CTP looks the same on
+their own portal topbar and overview, on the office profile, and in the Module 1 review queue. A member who joined
+without one, or whose face has changed, puts their own up on **Overview → Your profile photo**
+(`portal/photo`); staff can capture or replace it on the profile (`admin/promoters/{ctp}/photo`). Replacing deletes the
+old file — one face per profile, never two. Every image link marked `data-zoom` (including the profile photo) opens in
+the zoom viewer rather than a new tab.
 **The trainee interface belongs to the member alone.** `/portal` is a sidebar workspace with
 **Overview · My training · My mobilisation · My communities · My projects · My applications**, each its own
 url. An E-Fundi sees only Overview / My projects / My applications — the CTP pages 403 and the sidebar never

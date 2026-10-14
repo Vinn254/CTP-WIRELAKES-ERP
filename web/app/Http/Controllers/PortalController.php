@@ -100,6 +100,37 @@ class PortalController extends Controller
         ]);
     }
 
+    /** The member's own profile photo — the picture they uploaded when they joined, shown on their profile. */
+    public function photo()
+    {
+        $member = $this->member();
+        abort_if(! $member, 403);
+
+        $path = $member->photoPath();
+        abort_unless($path && Storage::disk('local')->exists($path), 404,
+            'No profile photo is on your record yet. Ask the programme office to capture one.');
+
+        return response()->file(Storage::disk('local')->path($path));
+    }
+
+    /** A member who joined without a photo — or whose face has changed — puts their own up. */
+    public function storePhoto(Request $request)
+    {
+        $member = $this->member();
+        abort_if(! $member, 403);
+
+        $request->validate([
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+        ], [
+            'passport_photo.required' => 'Choose the photo to put on your profile.',
+            'passport_photo.image' => 'A profile photo is a picture — jpg or png.',
+        ], ['passport_photo' => 'Profile photo']);
+
+        $member->attachPhoto($request);
+
+        return back()->with('status', 'Your profile photo is up. The programme office sees the same picture you do.');
+    }
+
     /** The paperwork on their own record. The slot comes from the record, never from the url alone. */
     public function efundiFile(string $slot)
     {

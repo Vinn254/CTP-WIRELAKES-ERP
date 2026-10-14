@@ -13,7 +13,7 @@
 <p class="back"><a href="{{ route('admin.promoters.index') }}">&larr; CTP profiles</a></p>
 
 <div class="applicant-head card">
-    <span class="avatar-lg">{{ $ctp->initials() }}</span>
+    @include('partials.avatar', ['member' => $ctp, 'src' => route('admin.promoters.file', [$ctp, 'passport'])])
     <div class="ah-main">
         <h1>{{ $ctp->full_name }} <span class="status {{ $ctp->status }}">{{ $ctp->statusLabel() }}</span></h1>
         <p class="ah-meta">
@@ -340,8 +340,19 @@
 
         <div class="card">
             <h3>Documents ({{ count($docs) }})</h3>
+            <form method="POST" action="{{ route('admin.promoters.photo', $ctp) }}" enctype="multipart/form-data" class="photo-form">
+                @csrf
+                <div class="field">
+                    <label>Profile photo</label>
+                    <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+                </div>
+                <button class="btn btn-sm btn-lime" type="submit">{{ $ctp->photoPath() ? 'Replace photo' : 'Capture photo' }}</button>
+                <p class="help">The picture shown on this profile and in their portal. Take it at the counter when the
+                    application came in without one.</p>
+            </form>
             @forelse ($docs as $slot => $doc)
-                <a class="doc-card" href="{{ route('admin.promoters.file', [$ctp, $slot]) }}" target="_blank">
+                <a class="doc-card" href="{{ route('admin.promoters.file', [$ctp, $slot]) }}" target="_blank"
+                    @if (! str_ends_with(strtolower($doc['path']), '.pdf')) data-zoom @endif>
                     <span class="dc-name">{{ $doc['label'] }}</span>
                     <span class="dc-open">Open {{ str_ends_with(strtolower($doc['path']), '.pdf') ? 'PDF' : 'image' }} ↗</span>
                 </a>

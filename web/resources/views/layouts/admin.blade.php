@@ -94,5 +94,6 @@
 </div>
 <script src="{{ asset('js/theme.js') }}"></script>
 <script src="{{ asset('js/admin.js') }}"></script>
+<script src="{{ asset('js/lightbox.js') }}"></script>
 </body>
 </html>

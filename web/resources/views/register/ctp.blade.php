@@ -138,8 +138,9 @@
                         <input type="file" name="certificate" accept=".jpg,.jpeg,.png,.pdf">
                     </div>
                     <div class="field">
-                        <label>Passport photo <span class="req">*</span></label>
+                        <label>Profile photo <span class="req">*</span></label>
                         <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+                        <p class="help">A clear front photo of your face — it goes on your CTP profile and is what the office and your sites identify you by.</p>
                     </div>
                 </div>
                 <p class="help">Files are stored securely and are visible only to programme Directors and Admins.</p>

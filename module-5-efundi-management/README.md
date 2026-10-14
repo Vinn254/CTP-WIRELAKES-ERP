@@ -14,7 +14,7 @@ they cover, whether they are free for work, and the sites they are approved to t
 | Trade skills and the counties they work in | `specialisations`, `service_counties` | efundi |
 | Membership fee, approval, EF ID issue, rejection and reissue | `admin/fundis/{id}` | efundi |
 | Suspend / blacklist / reinstate | `admin/fundis/{id}` (executive only) | efundi |
-| Papers on file (ID, business registration, trade certificates, portfolio) | private `local` disk, streamed per record | efundi |
+| Papers on file (profile photo, ID, business registration, trade certificates, portfolio) | private `local` disk, streamed per record | efundi |
 | The office typing in an application for someone who cannot reach the website | `admin/fundis/create` | efundi |
 | Fundi's own portal: record, availability, skills, projects, sites they train at | `/portal/efundi` | member portal |
 
@@ -62,6 +62,18 @@ record, the executive signs it.
 
 Documents are private: the paths never leave the disk as a url, they stream through
 `admin/fundis/{fundi}/file/{slot}` and `portal.efundi.file`, each behind an ownership check on the record it belongs to.
+
+## An E-Fundi is a face, not a row
+
+**Every member joins with a profile photo.** The public E-Fundi application requires it (`passport_photo`, jpg/png up to
+1 MB, `fundi_registrations.passport_photo_path` — the same column name and the same rule a CTP uses), the office screen
+can capture it at the counter, and the fundi can put their own up from **Overview → Your profile photo** in the portal.
+Nothing is public: the picture is on the private `local` disk under the application's own folder and opens only through
+`admin/fundis/{fundi}/file/passport_photo` (staff), `admin/registrations/fundi/{id}/file/passport_photo` (the review
+queue) or `portal/photo` (the member, their own file only). `partials/avatar` is the single markup — photo when the
+record carries one, initials when it does not — so the same face appears in the portal topbar, on the fundi's own
+record, on the office record and on the application a reviewer is deciding, and `data-zoom` lets any of them be
+enlarged. Replacing a photo deletes the file it replaces: one face per profile.
 
 ## Validation lives on the model
 

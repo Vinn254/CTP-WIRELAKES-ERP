@@ -26,6 +26,7 @@ class ReviewController extends Controller
     public const DOCS = [
         'ctp' => ['id_scan' => 'id_scan_path', 'certificate' => 'certificate_path', 'passport' => 'passport_photo_path'],
         'fundi' => [
+            'passport_photo' => 'passport_photo_path',
             'id_scan' => 'id_scan_path', 'business_cert' => 'business_cert_path',
             'trade_cert' => 'trade_cert_paths', 'portfolio' => 'portfolio_paths',
         ],

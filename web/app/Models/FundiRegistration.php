@@ -84,6 +84,7 @@ class FundiRegistration extends Model
 
     /** The paperwork on an application: form input name => the column that holds the path. */
     public const DOCUMENTS = [
+        'passport_photo' => 'passport_photo_path',
         'id_scan' => 'id_scan_path',
         'business_cert' => 'business_cert_path',
         'trade_certs' => 'trade_cert_paths',
@@ -95,7 +96,7 @@ class FundiRegistration extends Model
         'tier', 'county', 'sub_county', 'ward', 'mobilised_by_ctp',
         'business_name', 'business_reg_no', 'years_in_business',
         'specialisations', 'service_counties', 'referee_name', 'referee_phone', 'referee_role',
-        'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
+        'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'passport_photo_path',
         'status', 'availability', 'availability_note',
         'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
         'user_id', 'rejection_reason', 'ef_code',
@@ -158,6 +159,12 @@ class FundiRegistration extends Model
     public function placeLabel(): string
     {
         return collect([$this->ward, $this->sub_county, $this->county])->filter()->join(' · ');
+    }
+
+    /** The picture this member uploaded when they joined — the same column name a CTP uses. */
+    public function photoPath(): ?string
+    {
+        return $this->passport_photo_path;
     }
 
     /**
@@ -227,6 +234,7 @@ class FundiRegistration extends Model
             'referee_phone' => 'required|string|max:20',
             'referee_role' => 'required|string|max:150',
             'id_scan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'passport_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
             'business_cert' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'trade_certs' => 'nullable|array|max:6',
             'trade_certs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
@@ -239,6 +247,7 @@ class FundiRegistration extends Model
         ], [
             'national_id' => 'National ID', 'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'years_in_business' => 'Years trading', 'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
+            'passport_photo' => 'Profile photo',
         ]);
 
         return [
@@ -258,7 +267,7 @@ class FundiRegistration extends Model
     {
         $dir = 'registrations/fundi/'.$this->reference;
 
-        foreach (['id_scan' => 'id_scan_path', 'business_cert' => 'business_cert_path'] as $input => $column) {
+        foreach (['id_scan' => 'id_scan_path', 'business_cert' => 'business_cert_path', 'passport_photo' => 'passport_photo_path'] as $input => $column) {
             if ($request->hasFile($input)) {
                 $this->{$column} = $request->file($input)->store($dir, 'local');
             }
@@ -272,6 +281,21 @@ class FundiRegistration extends Model
         }
 
         $this->save();
+    }
+
+    /**
+     * The profile photo, taken or replaced at the counter. It is the picture every screen shows for
+     * this member, so the old file goes with it — one face per profile.
+     */
+    public function attachPhoto(Request $request, string $input = 'passport_photo'): void
+    {
+        $old = $this->passport_photo_path;
+        $this->update(['passport_photo_path' => $request->file($input)
+            ->store('registrations/fundi/'.$this->reference, 'local')]);
+
+        if ($old && $old !== $this->passport_photo_path) {
+            Storage::disk('local')->delete($old);
+        }
     }
 
     public function statusLabel(): string
@@ -323,6 +347,7 @@ class FundiRegistration extends Model
     public function documents(): array
     {
         $slots = [
+            'passport_photo' => ['passport_photo_path', 'Profile photo'],
             'id_scan' => ['id_scan_path', 'National ID scan'],
             'business_cert' => ['business_cert_path', 'Business registration'],
         ];

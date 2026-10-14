@@ -158,6 +158,11 @@
                 <legend>Documents &amp; portfolio</legend>
                 <div class="form-grid">
                     <div class="field">
+                        <label>Profile photo <span class="req">*</span></label>
+                        <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+                        <p class="help">A clear front photo of your face — it goes on your E-Fundi profile and is what sites and the office identify you by.</p>
+                    </div>
+                    <div class="field">
                         <label>National ID scan <span class="req">*</span></label>
                         <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf" required>
                     </div>

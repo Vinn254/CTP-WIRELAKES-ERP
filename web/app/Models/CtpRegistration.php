@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -214,7 +215,7 @@ class CtpRegistration extends Model
     {
         return [
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
-            'passport_photo' => 'Passport photo', 'dob' => 'Date of birth',
+            'passport_photo' => 'Profile photo', 'dob' => 'Date of birth',
             'sub_county' => 'Sub-county', 'sponsor_id' => 'Sponsoring partner',
         ];
     }
@@ -250,6 +251,21 @@ class CtpRegistration extends Model
             }
         }
         $this->save();
+    }
+
+    /**
+     * The profile photo, taken or replaced at the counter. It is the picture every screen shows for
+     * this member, so the old file is removed with it — one face per profile.
+     */
+    public function attachPhoto(Request $request, string $input = 'passport_photo'): void
+    {
+        $old = $this->passport_photo_path;
+        $this->update(['passport_photo_path' => $request->file($input)
+            ->store('registrations/ctp/'.$this->reference, 'local')]);
+
+        if ($old && $old !== $this->passport_photo_path) {
+            Storage::disk('local')->delete($old);
+        }
     }
 
     /**
@@ -433,6 +449,12 @@ class CtpRegistration extends Model
     public function locationLabel(): string
     {
         return collect([$this->county, $this->sub_county, $this->ward, $this->village])->filter()->join(' · ');
+    }
+
+    /** The picture this member uploaded when they joined — shown on their profile everywhere. */
+    public function photoPath(): ?string
+    {
+        return $this->passport_photo_path;
     }
 
     public function initials(): string

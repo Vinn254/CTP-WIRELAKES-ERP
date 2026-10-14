@@ -116,6 +116,21 @@ class FundiController extends Controller
         ]);
     }
 
+    /**
+     * Capture or replace the face on this record. An E-Fundi who joined without a photo is completed
+     * here — the picture is what sites and the office identify them by.
+     */
+    public function storePhoto(Request $request, FundiRegistration $fundi)
+    {
+        $request->validate([
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+        ], [], ['passport_photo' => 'Profile photo']);
+
+        $fundi->attachPhoto($request);
+
+        return back()->with('status', $fundi->full_name.' now has a profile photo — it shows on their record and in their portal.');
+    }
+
     /** Grade moves the whole record: what a fundi can be handed and whether they may train CTPs (§8.2). */
     public function setTier(Request $request, FundiRegistration $fundi)
     {

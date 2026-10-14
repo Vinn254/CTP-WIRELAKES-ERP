@@ -73,7 +73,9 @@
             <tr>
                 <td><b>{{ $col->reference }}</b>
                     @if ($col->photo_path)
-                        <a class="btn btn-sm btn-ghost" href="{{ route('admin.ewaste.photo', $col) }}">Photo</a>
+                        <a class="photo-thumb" href="{{ route('admin.ewaste.photo', $col) }}" data-zoom
+                            data-zoom-label="{{ $col->reference }} — {{ $col->quantity }} × {{ $col->itemTypeLabel() }}, {{ $col->conditionLabel() }}"
+                            aria-label="Zoom the photo on {{ $col->reference }}"><img src="{{ route('admin.ewaste.photo', $col) }}" alt="{{ $col->reference }} photo"></a>
                     @endif
                 </td>
                 <td>{{ $col->collected_on->format('d M Y') }}</td>

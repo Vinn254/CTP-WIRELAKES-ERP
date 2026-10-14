@@ -123,7 +123,7 @@
             <input type="file" name="certificate" accept=".jpg,.jpeg,.png,.pdf">
         </div>
         <div class="field">
-            <label>Passport photo</label>
+            <label>Profile photo</label>
             <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png">
         </div>
     </div>

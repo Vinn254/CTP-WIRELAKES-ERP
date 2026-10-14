@@ -103,6 +103,7 @@ class RegistrationController extends Controller
             'referee_phone' => 'required|string|max:20',
             'referee_role' => 'required|string|max:150',
             'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
             'business_cert' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'trade_certs' => 'nullable|array|max:6',
             'trade_certs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
@@ -112,10 +113,11 @@ class RegistrationController extends Controller
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
+            'passport_photo' => 'Profile photo',
         ]);
 
         $ref = $this->reference('EF');
-        $files = ['id_scan', 'business_cert', 'trade_certs', 'portfolio'];
+        $files = ['id_scan', 'business_cert', 'trade_certs', 'portfolio', 'passport_photo'];
         $record = collect($data)->except(array_merge($files, ['mobiliser_code']))->all();
         $record['mobilised_by_ctp'] = CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;
         $record['reference'] = $ref;
@@ -128,6 +130,9 @@ class RegistrationController extends Controller
 
         $dir = 'registrations/fundi/'.$ref;
         $store = fn ($f) => $f->store($dir, 'local');
+        if ($request->hasFile('passport_photo')) {
+            $fundi->passport_photo_path = $store($request->file('passport_photo'));
+        }
         if ($request->hasFile('id_scan')) {
             $fundi->id_scan_path = $store($request->file('id_scan'));
         }

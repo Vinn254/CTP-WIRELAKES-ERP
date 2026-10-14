@@ -141,7 +141,11 @@
     </div>
 
     <h3 style="margin-top:20px;">Documents</h3>
-    <div class="form-grid-2">
+    <div class="form-grid-3">
+        <div class="field">
+            <label>Profile photo</label>
+            <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png">
+        </div>
         <div class="field">
             <label>National ID scan</label>
             <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf">
@@ -160,7 +164,7 @@
         </div>
     </div>
     <p class="help">All optional here — attach what is in hand now and finish the file on the record. A public
-        application cannot be submitted without the ID scan.</p>
+        application cannot be submitted without the ID scan and a profile photo.</p>
 
     <div class="form-actions">
         <button class="btn btn-primary" type="submit">Add E-Fundi application</button>

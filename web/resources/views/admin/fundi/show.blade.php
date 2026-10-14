@@ -16,7 +16,7 @@
 <p class="back"><a href="{{ route('admin.fundis.index') }}">&larr; E-Fundi register</a></p>
 
 <div class="applicant-head card">
-    <span class="avatar-lg">{{ $initials }}</span>
+    @include('partials.avatar', ['member' => $fundi, 'src' => route('admin.fundis.file', [$fundi, 'passport_photo'])])
     <div class="ah-main">
         <h1>{{ $fundi->full_name }}
             <span class="status {{ $fundi->status === 'active' ? 'active' : ($openApplication ? 'pending_review' : 'closed') }}">{{ $fundi->statusLabel() }}</span>
@@ -346,8 +346,19 @@
 
         <div class="card">
             <h3>Documents ({{ count($docs) }})</h3>
+            <form method="POST" action="{{ route('admin.fundis.photo', $fundi) }}" enctype="multipart/form-data" class="photo-form">
+                @csrf
+                <div class="field">
+                    <label>Profile photo</label>
+                    <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+                </div>
+                <button class="btn btn-sm btn-lime" type="submit">{{ $fundi->photoPath() ? 'Replace photo' : 'Capture photo' }}</button>
+                <p class="help">The picture shown on this record and in their portal. Take it at the counter when the
+                    application came in without one.</p>
+            </form>
             @forelse ($docs as $slot => $doc)
-                <a class="doc-card" href="{{ route('admin.fundis.file', [$fundi, $slot]) }}" target="_blank">
+                <a class="doc-card" href="{{ route('admin.fundis.file', [$fundi, $slot]) }}" target="_blank"
+                    @if (! str_ends_with(strtolower($doc['path']), '.pdf')) data-zoom @endif>
                     <span class="dc-name">{{ $doc['label'] }}</span>
                     <span class="dc-open">Open {{ str_ends_with(strtolower($doc['path']), '.pdf') ? 'PDF' : 'image' }} ↗</span>
                 </a>

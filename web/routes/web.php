@@ -127,6 +127,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/promoters', [CtpProfileController::class, 'store'])->name('promoters.store');
     Route::get('/promoters/{ctp}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
     Route::get('/promoters/{ctp}/file/{slot}', [CtpProfileController::class, 'file'])->whereNumber('ctp')->name('promoters.file');
+    Route::post('/promoters/{ctp}/photo', [CtpProfileController::class, 'storePhoto'])->whereNumber('ctp')->name('promoters.photo');
     Route::get('/promoters/{ctp}/edit', [CtpProfileController::class, 'edit'])->whereNumber('ctp')->name('promoters.edit');
     Route::patch('/promoters/{ctp}', [CtpProfileController::class, 'update'])->whereNumber('ctp')->name('promoters.update');
     Route::post('/promoters/{ctp}/status', [CtpProfileController::class, 'setStatus'])->whereNumber('ctp')->name('promoters.status');
@@ -222,6 +223,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/fundis', [FundiController::class, 'store'])->name('fundis.store');
     Route::get('/fundis/{fundi}', [FundiController::class, 'show'])->whereNumber('fundi')->name('fundis.show');
     Route::get('/fundis/{fundi}/file/{slot}', [FundiController::class, 'file'])->whereNumber('fundi')->name('fundis.file');
+    Route::post('/fundis/{fundi}/photo', [FundiController::class, 'storePhoto'])->whereNumber('fundi')->name('fundis.photo');
     Route::post('/fundis/{fundi}/tier', [FundiController::class, 'setTier'])->whereNumber('fundi')->name('fundis.tier');
     Route::post('/fundis/{fundi}/availability', [FundiController::class, 'setAvailability'])->whereNumber('fundi')->name('fundis.availability');
     Route::post('/fundis/{fundi}/skills', [FundiController::class, 'updateSkills'])->whereNumber('fundi')->name('fundis.skills');
@@ -251,6 +253,9 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/efundi/availability', [PortalController::class, 'saveAvailability'])->name('efundi.availability');
     Route::post('/efundi/skills', [PortalController::class, 'saveSkills'])->name('efundi.skills');
     Route::get('/efundi/file/{slot}', [PortalController::class, 'efundiFile'])->name('efundi.file');
+    // The face on their own profile — a CTP and an E-Fundi are served the same way.
+    Route::get('/photo', [PortalController::class, 'photo'])->name('photo');
+    Route::post('/photo', [PortalController::class, 'storePhoto'])->name('photo.store');
     Route::get('/trainer/{enrollment}', [PortalController::class, 'trainee'])->whereNumber('enrollment')->name('trainer.trainee');
     Route::post('/trainer', [PortalController::class, 'applyTrainer'])->name('trainer.apply');
     Route::post('/trainer/progress', [PortalController::class, 'markProgress'])->name('trainer.progress');

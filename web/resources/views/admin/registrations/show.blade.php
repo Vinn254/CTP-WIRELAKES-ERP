@@ -26,7 +26,8 @@
     ];
     $hidden = ['id', 'created_at', 'updated_at', 'id_scan_path', 'certificate_path', 'passport_photo_path',
         'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'org_doc_path'];
-    $docNames = ['id_scan' => 'National ID scan', 'certificate' => 'School certificate', 'passport' => 'Passport photo',
+    $docNames = ['id_scan' => 'National ID scan', 'certificate' => 'School certificate',
+        'passport' => 'Profile photo', 'passport_photo' => 'Profile photo',
         'business_cert' => 'Business certificate', 'trade_cert' => 'Trade certificate', 'portfolio' => 'Portfolio photo',
         'org_doc' => 'Organisation document'];
     $data = collect($record->toArray())->except($hidden);
@@ -35,6 +36,10 @@
     $personName = $record->full_name ?? $record->contact_name;
     $memberCode = $record->ctp_code ?? $record->ef_code ?? $record->hirer_code;
     $initials = collect(explode(' ', trim($personName)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
+    // The face they registered with, when the application carries one — the first thing a reviewer checks.
+    $photoSlot = $type === 'ctp' ? 'passport' : ($type === 'fundi' ? 'passport_photo' : null);
+    $photoUrl = $photoSlot && isset($docs[$photoSlot])
+        ? route('admin.registrations.file', [$type, $record->id, $photoSlot]) : null;
     $place = collect([$record->county ?? null, $record->sub_county ?? null, $record->ward ?? null])->filter()->join(' · ');
 @endphp
 
@@ -42,7 +47,11 @@
 <a class="back" href="{{ route('admin.registrations.index', $type) }}">Back to {{ $label }}</a>
 
 <div class="applicant-head card">
-    <span class="avatar-lg">{{ $initials }}</span>
+    <span class="avatar-lg{{ $photoUrl ? ' has-photo' : '' }}">
+        @if ($photoUrl)
+            <a href="{{ $photoUrl }}" data-zoom aria-label="Open the profile photo"><img src="{{ $photoUrl }}" alt="{{ $personName }} — profile photo"></a>
+        @else{{ $initials }}@endif
+    </span>
     <div class="ah-main">
         <h1>{{ $personName }} <span class="status {{ $record->status }}">{{ str_replace('_', ' ', $record->status) }}</span></h1>
         <p class="ah-meta">

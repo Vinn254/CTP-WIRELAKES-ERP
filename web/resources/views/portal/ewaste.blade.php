@@ -127,7 +127,9 @@
                             @endif
                         </td>
                         <td>@if ($col->photo_path)
-                                <a class="btn btn-sm btn-outline" href="{{ route('portal.ewaste.photo', $col) }}">Photo</a>
+                                <a class="photo-thumb" href="{{ route('portal.ewaste.photo', $col) }}" data-zoom
+                                    data-zoom-label="{{ $col->reference }} · {{ $col->itemTypeLabel() }} · {{ $col->conditionLabel() }}"
+                                    aria-label="Zoom the photo"><img src="{{ route('portal.ewaste.photo', $col) }}" alt="Photo of {{ $col->reference }}"></a>
                             @else
                                 <span class="hint">no photo</span>
                             @endif</td>
@@ -158,7 +160,9 @@
                 <span class="hint">{{ $col->weightLabel() }}</span>
                 <span class="hint">by {{ $col->collectorLabel() }} · {{ $col->collected_on->format('d M Y') }}</span>
                 @if ($col->photo_path)
-                    <a class="btn btn-sm btn-ghost" href="{{ route('portal.ewaste.photo', $col) }}">Photo</a>
+                    <a class="photo-thumb" href="{{ route('portal.ewaste.photo', $col) }}" data-zoom
+                        data-zoom-label="{{ $col->reference }} · {{ $col->collectorLabel() }}"
+                        aria-label="Zoom the photo"><img src="{{ route('portal.ewaste.photo', $col) }}" alt="Photo of {{ $col->reference }}"></a>
                 @endif
             </div>
             <details class="need-form">

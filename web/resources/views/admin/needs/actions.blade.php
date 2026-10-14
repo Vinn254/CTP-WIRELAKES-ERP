@@ -110,6 +110,6 @@
     @endif
 
     @if ($need->photo_path)
-        <a class="doc-link" href="{{ route('admin.needs.photo', $need) }}" target="_blank" rel="noopener">Site photo ↗</a>
+        <a class="doc-link" href="{{ route('admin.needs.photo', $need) }}" target="_blank" rel="noopener" data-zoom data-zoom-label="{{ $need->title ?: $need->reference ?: 'Site photo' }}">Site photo ↗</a>
     @endif
 </div>

@@ -23,9 +23,14 @@
 
 @section('content')
 <div class="member-hero ctp-hero">
+    <div class="hero-id">
+        @include('partials.avatar', ['member' => $member, 'src' => route('portal.photo'), 'initials' => $initials ?? null])
+        <div>
+            <span class="tag">{{ $isCtp ? 'CTP' : 'E-Fundi' }}@if ($code) · {{ $code }}@endif</span>
+            <h1>Hello, {{ Str::before($member->full_name, ' ') }}.</h1>
+        </div>
+    </div>
     <div>
-        <span class="tag">{{ $isCtp ? 'CTP' : 'E-Fundi' }}@if ($code) · {{ $code }}@endif</span>
-        <h1>Hello, {{ Str::before($member->full_name, ' ') }}.</h1>
         <p class="sub">{{ $isCtp ? $member->stageLabel() : 'Registered as '.$level }}</p>
         <p class="sub ctp-term">
             @if ($isCtp)
@@ -45,6 +50,23 @@
         @endif
         <div class="stat"><small>Awarded</small><b>{{ $won }}</b></div>
     </div>
+</div>
+
+<div class="card photo-card">
+    <div class="section-head">
+        <h3>Your profile photo</h3>
+        <span class="tag">{{ $member->photoPath() ? 'On your profile' : 'Not on your profile yet' }}</span>
+    </div>
+    <p class="hint">This is the picture the programme office, your sites and the people you work with see on your
+        profile. It is the one you uploaded when you joined — replace it here whenever it no longer looks like you.</p>
+    <form method="POST" action="{{ route('portal.photo.store') }}" enctype="multipart/form-data" class="photo-form">
+        @csrf
+        <div class="field">
+            <label>Profile photo <span class="req">*</span></label>
+            <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+        </div>
+        <button class="btn btn-lime" type="submit">Save photo</button>
+    </form>
 </div>
 
 @if ($isCtp && $myCommunities->isNotEmpty())

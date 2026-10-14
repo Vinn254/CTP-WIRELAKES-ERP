@@ -11,6 +11,8 @@
         ? route('admin.enrollments.document.show', [$enrollment, $d])
         : route('portal.trainer.document.show', [$enrollment, $d]);
     $modules = $modules ?? collect();
+    // Only a picture can be zoomed; a PDF or a document still opens in its own tab.
+    $isImage = fn (string $name) => in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
 @endphp
 
 <h4 class="dl-group">Documents on the record ({{ $docs->count() }})</h4>
@@ -21,7 +23,9 @@
         <span class="hint">{{ $d->dated_on->format('d M Y') }} · {{ $d->sizeLabel() }}</span>
         @if ($d->module)<span class="tag">{{ $d->module->title }}</span>@endif
         @if ($canOpen)
-            <a class="btn btn-sm btn-outline" href="{{ $open($mode, $d) }}">Open</a>
+            <a class="btn btn-sm btn-outline" href="{{ $open($mode, $d) }}"
+                @if ($isImage($d->file_name)) data-zoom data-zoom-label="{{ $d->title }} — {{ $enrollment->ctp->full_name }}" @endif
+                title="{{ $isImage($d->file_name) ? 'Zoom the photo' : 'Open the file' }}">Open</a>
         @else
             <span class="hint">{{ $d->file_name }}</span>
         @endif

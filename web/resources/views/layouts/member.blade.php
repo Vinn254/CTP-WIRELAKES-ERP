@@ -10,6 +10,8 @@
     $code = isset($member) ? ($isCtp ? $member->ctp_code : $member->ef_code) : null;
     $initials = collect(explode(' ', trim($me->name)))->filter()->take(2)
         ->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
+    // The photo they uploaded when they joined, if the record carries one.
+    $photo = isset($member) && $member->photoPath();
 
     // Every item the member's own role is entitled to — this sidebar is the whole interface.
     $nav = [
@@ -74,7 +76,9 @@
             <div class="topbar-right">
                 @include('partials.theme-toggle')
                 <span class="profile">
-                    <span class="avatar">{{ $initials }}</span>
+                    <span class="avatar{{ $photo ? ' has-photo' : '' }}">
+                        @if ($photo)<img src="{{ route('portal.photo') }}" alt="{{ $me->name }} — profile photo">@else{{ $initials }}@endif
+                    </span>
                     <span class="who"><b>{{ $me->name }}</b><small>{{ $isCtp ? 'CTP trainee' : 'E-Fundi' }}</small></span>
                 </span>
                 <form method="POST" action="{{ route('logout') }}">
@@ -93,5 +97,6 @@
 </div>
 <script src="{{ asset('js/theme.js') }}"></script>
 <script src="{{ asset('js/admin.js') }}"></script>
+<script src="{{ asset('js/lightbox.js') }}"></script>
 </body>
 </html>

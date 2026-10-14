@@ -207,7 +207,8 @@
             @forelse ($docs as $slot => $doc)
                 <div class="row-line">
                     <b>{{ $doc['label'] }}</b>
-                    <a class="btn btn-sm btn-outline" href="{{ route('portal.efundi.file', $slot) }}" target="_blank">Open</a>
+                    <a class="btn btn-sm btn-outline" href="{{ route('portal.efundi.file', $slot) }}" target="_blank"
+                        @if (! str_ends_with(strtolower($doc['path']), '.pdf')) data-zoom data-zoom-label="{{ $doc['label'] }}" @endif>Open</a>
                 </div>
             @empty
                 <p class="hint">Nothing was uploaded with your application. Ask the programme office to add a trade
