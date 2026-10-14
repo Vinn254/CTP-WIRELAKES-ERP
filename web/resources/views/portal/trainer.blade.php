@@ -123,6 +123,7 @@
 
 @forelse ($trainers->where('status', 'approved') as $t)
     @forelse ($t->cohorts as $c)
+        @php $roll = $c->enrollments; @endphp
         <div class="card">
             <div class="section-head">
                 <h3>{{ $c->courseLabel() }}</h3>
@@ -131,53 +132,60 @@
                 <span class="status {{ $c->status === 'completed' ? 'closed' : 'active' }}">{{ $c->statusLabel() }}</span>
             </div>
             <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · teaching at {{ $t->venue->name ?? $c->placeLabel() }}
-                · {{ $c->enrollments->count() }} on the roll</p>
+                · {{ $roll->count() }} on the roll, {{ $roll->where('state', 'approved')->count() }} holding a seat</p>
+
+            <h4 class="dl-group">Your students — open one to record their performance</h4>
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>CTP</th><th>Seat</th><th>Stage</th><th>Attendance</th><th>Modules</th>
+                        <th>Track</th><th>Records</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($roll as $e)
+                        @php
+                            $attendance = $e->attendancePct();
+                            $board = $e->moduleBoard();
+                        @endphp
+                        <tr>
+                            <td><b>{{ $e->ctp->full_name }}</b><div class="hint">{{ $e->ctp->ctp_code }}</div></td>
+                            <td><span class="status {{ $e->state === 'approved' ? 'active' : 'pending_review' }}">{{ $e->stateLabel() }}</span></td>
+                            <td><span class="tag">{{ $e->stageLabel() }}</span></td>
+                            <td>{{ $attendance === null ? 'not marked' : $attendance.'%' }}</td>
+                            <td>{{ $board['modules']->isEmpty() ? '—' : $board['marked']->count().' of '.$board['modules']->count() }}</td>
+                            <td><b>{{ $e->trackPct() }}%</b></td>
+                            <td>{{ $e->entries->count() }}</td>
+                            <td><a class="btn btn-sm btn-outline" href="{{ route('portal.trainer.trainee', $e) }}">Open</a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
+                            Nobody is on this cohort’s roll yet. The office places CTPs into an intake, or a CTP applies for a seat themselves.
+                        </td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <p class="hint">Open a student to add their sessions, mark the modules they got through and upload their work.
+                Attendance under {{ \App\Models\Enrollment::ATTENDANCE_MINIMUM }}% keeps a trainee out of certification, so mark the days.</p>
 
             @if ($c->training && $c->training->modules->isNotEmpty())
                 <h4 class="dl-group">What you are expected to deliver — {{ $c->training->name }}</h4>
-                @foreach ($c->training->modules as $m)
-                    <div class="row-line">
-                        <b>{{ $m->position }}. {{ $m->title }}</b>
-                        <span class="hint">{{ $m->hoursLabel() }}</span>
-                        @if ($m->outcome)<span class="hint">{{ $m->outcome }}</span>@endif
-                    </div>
-                @endforeach
-                <p class="hint">The office set these. Mark each one on a trainee below as they get through it —
+                <table class="data">
+                    <thead><tr><th>#</th><th>Module</th><th>Hours</th><th>What the trainee ends up able to do</th></tr></thead>
+                    <tbody>
+                        @foreach ($c->training->modules as $m)
+                            <tr>
+                                <td>{{ $m->position }}</td>
+                                <td><b>{{ $m->title }}</b></td>
+                                <td>{{ $m->hoursLabel() }}</td>
+                                <td class="hint">{{ $m->outcome ?: '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <p class="hint">The office set these. Tick each one on a student’s own page as they get through it —
                     that mark is what moves their track, and the office sees the same line you enter.</p>
             @endif
-
-            <h4 class="dl-group">Mark what happened</h4>
-            @forelse ($c->enrollments as $e)
-                @php $attendance = $e->attendancePct(); @endphp
-                <div class="row-line">
-                    <b>{{ $e->ctp->full_name }}</b>
-                    <span class="hint">{{ $e->ctp->ctp_code }}</span>
-                    <span class="status {{ $e->state === 'approved' ? 'active' : 'pending_review' }}">{{ $e->stateLabel() }}</span>
-                    <span class="tag">{{ $e->stageLabel() }}</span>
-                    <span class="hint">{{ $attendance === null ? 'no marks yet' : $attendance.'% attendance' }}</span>
-                </div>
-                @if ($e->state === 'approved')
-                    @include('partials.progress', ['enrollment' => $e, 'mode' => 'trainer'])
-
-                    <h4 class="dl-group" style="margin-top:14px;">Their track</h4>
-                    @include('partials.track', ['enrollment' => $e])
-
-                    @include('partials.modules', ['enrollment' => $e, 'mode' => 'trainer'])
-
-                    @include('partials.documents', [
-                        'enrollment' => $e,
-                        'mode' => 'trainer',
-                        'modules' => $c->training?->modules ?? collect(),
-                        'documentKinds' => $documentKinds,
-                    ])
-                @else
-                    <p class="hint">Their seat is not confirmed yet — the office has to approve it before you can mark them.</p>
-                @endif
-            @empty
-                <p class="hint">Nobody is on this cohort’s roll yet.</p>
-            @endforelse
-            <p class="help">Everything you record here goes straight on the CTP’s training page. The office sees the
-                same lines, and uses them when they put a trainee forward for a certificate.</p>
         </div>
     @empty
         <div class="card">

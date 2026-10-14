@@ -6,13 +6,24 @@
     $action = $mode === 'admin' ? route('admin.track.progress', $enrollment) : route('portal.trainer.progress');
     $days = ($entries ?? $enrollment->entries)->sortBy([['entry_date', 'asc'], ['id', 'asc']]);
     $attendance = $days->where('kind', 'attendance');
+
+    // A record must fall inside the cohort period, so the form never opens with a date the guard will refuse.
+    $starts = $enrollment->cohort?->starts_on;
+    $ends = $enrollment->cohort?->ends_on;
+    $defaultDate = now()->toDateString();
+    if ($starts && $defaultDate < $starts->toDateString()) {
+        $defaultDate = $starts->toDateString();
+    } elseif ($ends && $defaultDate > $ends->toDateString()) {
+        $defaultDate = $ends->toDateString();
+    }
+    $outsideWindow = $defaultDate !== now()->toDateString();
 @endphp
 
 <div class="section-head record-head">
     <h4 class="dl-group" style="margin:0;">Training record ({{ $days->count() }})</h4>
     @if ($canRecord)
         <details class="need-form add-record" @if (($open ?? false) && $errors->any()) open @endif>
-            <summary class="btn btn-sm btn-lime">+ Add a record</summary>
+            <summary class="btn btn-sm btn-lime">+ Add a record for {{ $enrollment->ctp->full_name }}</summary>
             <form method="POST" action="{{ $action }}" class="fee-form"
                   data-confirm="Record this on {{ $enrollment->ctp->full_name }}'s track?" data-title="Record progress">
                 @csrf
@@ -29,9 +40,9 @@
                     <div class="field">
                         <label>Date <span class="req">*</span></label>
                         <input type="date" name="entry_date" required
-                               min="{{ $enrollment->cohort?->starts_on?->toDateString() }}"
-                               max="{{ $enrollment->cohort?->ends_on?->toDateString() }}"
-                               value="{{ now()->toDateString() }}">
+                               min="{{ $starts?->toDateString() }}"
+                               max="{{ $ends?->toDateString() }}"
+                               value="{{ old('entry_date', $defaultDate) }}">
                     </div>
                     <div class="field">
                         <label>Came in? (attendance only)</label>
@@ -56,6 +67,9 @@
                     </div>
                 </div>
                 <p class="hint">Inside the cohort period only — {{ $enrollment->cohort?->dateLabel() }}.
+                    @if ($outsideWindow)
+                        Today is outside that period, so the date is set to the nearest day the record allows.
+                    @endif
                     {{ $mode === 'trainer' ? 'What you record goes straight on the CTP’s track and the office sees it the same moment.' : 'Use this for the marks a partner school sent in — the office records them on the school’s behalf.' }}</p>
                 <button class="btn btn-lime btn-block" type="submit" style="margin-top:10px;">
                     {{ $mode === 'trainer' ? 'Record and send to the office' : 'Record on the track' }}

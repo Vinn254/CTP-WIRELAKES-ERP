@@ -102,6 +102,7 @@ Dev app: **127.0.0.1:8001** — this project never uses 8000, that is tich-erp.
 
 ## Next
 
-* E-waste collection intake on the fundi and CTP screens, forwarded to the office (Module 10 owns the register).
+* The e-waste intake on both member screens is **built in Module 10** (`portal/ewaste`) — a fundi of every grade
+  registers what they collect and a senior forwards it to the office. Nothing about the register lives here.
 * Taking a junior, an intern or an attachment applicant onto a job **under** the senior who supervises them (Module 7).
 * Rating and job history on the fundi record once assignments exist (Module 7/12).

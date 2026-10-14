@@ -94,6 +94,13 @@ is refused — and the office is told which period is allowed rather than being 
 links out: no *Cohort page* and no *CTP profile* button. Reading one trainee's progress should not walk you into
 another department's screens.
 
+**The trainer works one student at a time.** `/portal/trainer` is the roster: each cohort the trainer teaches lists
+**every student on the roll in a table** — name and CTP ID, seat, stage, attendance, modules marked, track %, how many
+records exist — with an **Open** button. `GET /portal/trainer/{enrollment}` is the per-student record page: the shared
+record table with **+ Add a record for (name)** already open, the track, the module ticks and the upload form. Nobody
+expands three trainees inside one card any more, and a mark cannot land on the wrong seat because two intakes carry
+the same person. A seat that is not confirmed opens read-only; a student outside the trainer's own cohorts is a 404.
+
 **Modules are expected, and typed in in one go.** A training lists the modules it must cover
 (`training_modules`, ordered by `position`), and `/admin/trainings` has a **+ Add another module** repeater — several
 rows, one submit, numbered in the order typed, a blank row simply not added and a validation miss returning exactly
@@ -140,14 +147,16 @@ to show how a new one arrives.
 
 Venue *Nyanda Technical School* (partner school, Kisumu, 40 places) · trainer *Mary Achieng* EF-0002 (senior fundi,
 approved at that site, licensed for ICT + Networking + Solar Installation, 15 h/week, KSH 1,200) · *TRN-0001* — an
-**ICT** intake
-at Nyanda, 01 Oct 2026 – 29 Jan 2027, 5 seats, in progress · *TRN-0002* — a second **ICT** intake, 11 Jan – 30 Apr
-2027, open for applications · *Alice Testa* CTP-0001 self-applied to both, seat confirmed, certified
-`CTP-0001-CERT-ICT-01` at a 100 % track and then `CTP-0001-CERT-ICT-02` on the second intake · *Jane Odhiambo*
-CTP-0002 placed by the office, at a 100 % track with a partner-school report uploaded — her record went into the
-certification queue on its own the moment the last mark was recorded, and the executive signed it · *Peter Otieno*
-CTP-0003 at 70 % (assessment recorded by the trainer, the school's practical sheet entered by the office) with a
-certificate that was issued and then **revoked**, the reason still on the record.
+**ICT** intake at Nyanda, 01 Oct 2026 – 29 Jan 2027, 5 seats, in progress and closed out — Alice, Jane and Peter are
+all through it · *TRN-0002* — a second **ICT** intake at the same venue, **05 Oct 2026 – 05 Feb 2027**, 5 seats, in
+progress and the run a trainer marks today. On its roll: *Alice Testa* CTP-0001 (seat confirmed, at **Theory** with
+one session the trainer recorded), *Peter Otieno* CTP-0003 (placed by the office to retake the training after his
+certificate was revoked, nothing marked yet) and *Sam Kiplagat* CTP-0004 (applied from the portal, seat still awaiting
+the office, so his row opens read-only) · *Alice Testa* also holds `CTP-0001-CERT-ICT-01` from the first intake at a
+100 % track · *Jane Odhiambo* CTP-0002 placed by the office, at a 100 % track with a partner-school report uploaded —
+her record went into the certification queue on its own the moment the last mark was recorded, and the executive
+signed it · *Peter Otieno* at 70 % on the first intake with a certificate that was issued and then **revoked**, the
+reason still on the record.
 
 Trying the guard: hand *TRN-0001* an Electrical trainer, or tick only Solar on a trainer and post an ICT cohort for
 them — both are refused until the trainer is registered for the training the intake runs. So is a mark dated outside

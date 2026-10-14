@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CommunityController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\NeedController;
@@ -231,6 +232,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/fundis/{fundi}/reissue', [FundiController::class, 'reissue'])->whereNumber('fundi')->name('fundis.reissue');
     Route::post('/fundis/{fundi}/block', [FundiController::class, 'block'])->whereNumber('fundi')->name('fundis.block');
     Route::post('/fundis/{fundi}/reinstate', [FundiController::class, 'reinstate'])->whereNumber('fundi')->name('fundis.reinstate');
+
+    // Module 10 — E-Waste Management. The field registers, an E-Fundi forwards, the office weighs it in.
+    Route::get('/ewaste', [EwasteController::class, 'index'])->name('ewaste.index');
+    Route::post('/ewaste/{collection}/receive', [EwasteController::class, 'receive'])->whereNumber('collection')->name('ewaste.receive');
+    Route::get('/ewaste/{collection}/photo', [EwasteController::class, 'photo'])->whereNumber('collection')->name('ewaste.photo');
 });
 
 // Member portal — the member's own interface. Never staff, never public.
@@ -245,12 +251,18 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/efundi/availability', [PortalController::class, 'saveAvailability'])->name('efundi.availability');
     Route::post('/efundi/skills', [PortalController::class, 'saveSkills'])->name('efundi.skills');
     Route::get('/efundi/file/{slot}', [PortalController::class, 'efundiFile'])->name('efundi.file');
+    Route::get('/trainer/{enrollment}', [PortalController::class, 'trainee'])->whereNumber('enrollment')->name('trainer.trainee');
     Route::post('/trainer', [PortalController::class, 'applyTrainer'])->name('trainer.apply');
     Route::post('/trainer/progress', [PortalController::class, 'markProgress'])->name('trainer.progress');
     Route::post('/trainer/{enrollment}/modules/{module}', [PortalController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('trainer.module.mark');
     Route::delete('/trainer/{enrollment}/modules/{module}', [PortalController::class, 'unmarkModule'])->whereNumber('enrollment')->whereNumber('module')->name('trainer.module.unmark');
     Route::post('/trainer/{enrollment}/documents', [PortalController::class, 'storeDocument'])->whereNumber('enrollment')->name('trainer.document.store');
     Route::get('/trainer/{enrollment}/documents/{document}', [PortalController::class, 'document'])->whereNumber('enrollment')->whereNumber('document')->name('trainer.document.show');
+    // Module 10 — both members register e-waste in the field; an E-Fundi also forwards what a CTP logged.
+    Route::get('/ewaste', [PortalController::class, 'ewaste'])->name('ewaste');
+    Route::post('/ewaste', [PortalController::class, 'storeEwaste'])->name('ewaste.store');
+    Route::post('/ewaste/{collection}/forward', [PortalController::class, 'forwardEwaste'])->whereNumber('collection')->name('ewaste.forward');
+    Route::get('/ewaste/{collection}/photo', [PortalController::class, 'ewastePhoto'])->whereNumber('collection')->name('ewaste.photo');
     Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
     Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
     Route::post('/communities', [PortalController::class, 'storeCommunity'])->name('community.store');

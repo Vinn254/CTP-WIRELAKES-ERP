@@ -54,10 +54,18 @@
                 </div>
                 <div class="field">
                     <label>Date it covers <span class="req">*</span></label>
+                    @php
+                        $starts = $enrollment->cohort?->starts_on;
+                        $ends = $enrollment->cohort?->ends_on;
+                        $today = now()->toDateString();
+                        $defaultDate = $starts && $today < $starts->toDateString()
+                            ? $starts->toDateString()
+                            : ($ends && $today > $ends->toDateString() ? $ends->toDateString() : $today);
+                    @endphp
                     <input type="date" name="dated_on" required
-                           min="{{ $enrollment->cohort?->starts_on?->toDateString() }}"
-                           max="{{ $enrollment->cohort?->ends_on?->toDateString() }}"
-                           value="{{ now()->toDateString() }}">
+                           min="{{ $starts?->toDateString() }}"
+                           max="{{ $ends?->toDateString() }}"
+                           value="{{ old('dated_on', $defaultDate) }}">
                 </div>
                 <div class="field">
                     <label>Module it belongs to</label>

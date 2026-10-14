@@ -7,6 +7,7 @@ use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Community;
 use App\Models\Enrollment;
+use App\Models\EWasteCollection;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Need;
@@ -40,7 +41,7 @@ class Departments
         ['slug' => 'technology', 'tag' => 'Module 9', 'name' => 'Technology Services',
             'desc' => 'ICT, Networking, Robotics, Programming, AI', 'live' => false],
         ['slug' => 'ewaste', 'tag' => 'Module 10', 'name' => 'E-Waste Management',
-            'desc' => 'Collection, weighing, refurbish, disposal', 'live' => false],
+            'desc' => 'Collection, weighing, refurbish, disposal', 'live' => true],
         ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance, Procurement & Inventory',
             'desc' => 'Budgets, procurement, payments, stock', 'live' => false],
         ['slug' => 'me_gis', 'tag' => 'Module 12', 'name' => 'M&E, GIS, Reports',
@@ -82,6 +83,9 @@ class Departments
         'efundi' => [
             ['label' => 'E-Fundi register', 'icon' => 'users', 'route' => ['admin.fundis.index'], 'badge' => 'fundis'],
         ],
+        'ewaste' => [
+            ['label' => 'E-Waste register', 'icon' => 'globe', 'route' => ['admin.ewaste.index'], 'badge' => 'collections'],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -106,6 +110,7 @@ class Departments
         'admin.trainers.' => 'training',
         'admin.certification.' => 'training',
         'admin.fundis.' => 'efundi',
+        'admin.ewaste.' => 'ewaste',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -131,6 +136,7 @@ class Departments
         'admin.trainers.index' => 'Senior fundis who applied to train CTPs, and what they are paid',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
+        'admin.ewaste.index' => 'What the field collected, what it weighed in at and what condition it is in',
     ];
 
     public static function all(): array
@@ -180,6 +186,7 @@ class Departments
             'trainers' => Trainer::where('status', 'applied')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
+            'collections' => EWasteCollection::whereIn('status', ['submitted', 'forwarded'])->count(),
             default => 0,
         };
     }

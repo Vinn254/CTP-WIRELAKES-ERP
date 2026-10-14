@@ -7,6 +7,7 @@ use App\Models\Cohort;
 use App\Models\Community;
 use App\Models\County;
 use App\Models\CtpRegistration;
+use App\Models\EWasteCollection;
 use App\Models\Enrollment;
 use App\Models\FundiRegistration;
 use App\Models\ModuleCompletion;
@@ -218,6 +219,25 @@ class PortalController extends Controller
         ]);
     }
 
+    /**
+     * One trainee on the trainer's own roll — the per-student record page the roster opens.
+     * Anyone outside a cohort this trainer teaches 404s, so no roster is leaked.
+     */
+    public function trainee(Enrollment $enrollment)
+    {
+        $their = $this->theirTrainee($enrollment);
+
+        $their->load([
+            'ctp', 'cohort.training.modules', 'cohort.venue', 'entries', 'moduleMarks', 'documents', 'certification',
+        ]);
+
+        return view('portal.trainer-trainee', [
+            'member' => $this->fundi(),
+            'enrollment' => $their,
+            'documentKinds' => TrainingDocument::KINDS,
+        ]);
+    }
+
     /** A senior fundi asks to train AT ONE SITE. The office approves site by site before a cohort is handed over. */
     public function applyTrainer(Request $request)
     {
@@ -293,6 +313,114 @@ class PortalController extends Controller
         abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'That file is no longer on record.');
 
         return Storage::disk('local')->response($document->file_path, $document->file_name ?: $document->title);
+    }
+
+    /**
+     * Module 10, field side. A CTP or an E-Fundi registers the e-waste they picked up — what it is, how much,
+     * in what condition and a photo. The register itself, the weighing and the routing belong to the office.
+     */
+    public function ewaste()
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        $isCtp = $member instanceof CtpRegistration;
+
+        $mine = EWasteCollection::ordered()
+            ->where($isCtp ? 'ctp_id' : 'fundi_id', $member->id)
+            ->with(['community:id,name', 'forwarder:id,full_name,ef_code', 'receiver:id,name'])
+            ->get();
+
+        // An E-Fundi carries what the CTPs registered to a collection point, so they see the ones waiting near them.
+        $waiting = $isCtp ? collect() : EWasteCollection::ordered()
+            ->where('status', 'submitted')->whereNull('fundi_id')
+            ->where(fn ($q) => $q->where('county', $member->county)->orWhereNull('county'))
+            ->where(fn ($q) => $q->where('ctp_id', '!=', $member->id)->orWhereNull('ctp_id'))
+            ->with(['ctp:id,full_name,ctp_code', 'community:id,name'])
+            ->get();
+
+        return view('portal.ewaste', MemberPortal::board($member) + [
+            'isCtp' => $isCtp,
+            'mine' => $mine,
+            'waiting' => $waiting,
+            'itemTypes' => EWasteCollection::ITEM_TYPES,
+            'conditions' => EWasteCollection::CONDITIONS,
+            'counties' => County::orderBy('name')->pluck('name'),
+            'communities' => Community::orderBy('name')->get(['id', 'name', 'county']),
+            'totals' => [
+                'lines' => $mine->count(),
+                'items' => $mine->sum('quantity'),
+                'estimated' => round((float) $mine->sum('estimated_weight_kg'), 1),
+                'weighed' => round((float) $mine->sum('weighed_weight_kg'), 1),
+                'waiting' => $waiting->count(),
+            ],
+        ]);
+    }
+
+    public function storeEwaste(Request $request)
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        $isCtp = $member instanceof CtpRegistration;
+
+        $data = EWasteCollection::dataFrom($request);
+
+        $collection = EWasteCollection::create([
+            ...$data,
+            'reference' => EWasteCollection::nextReference(),
+            'status' => 'submitted',
+            'ctp_id' => $isCtp ? $member->id : null,
+            'fundi_id' => $isCtp ? null : $member->id,
+        ]);
+        $collection->storePhoto($request);
+
+        return back()->with('status', $collection->reference.' registered — '.$collection->quantity
+            .' × '.$collection->itemTypeLabel().', '.$collection->conditionLabel().'. '
+            .($isCtp
+                ? 'An E-Fundi or the office takes it to a collection point, where it is weighed in.'
+                : 'Weigh it in at the collection point and the office records the actual weight.'));
+    }
+
+    /** An E-Fundi takes a CTP's registered collection to a collection point and sends its condition to the office. */
+    public function forwardEwaste(Request $request, EWasteCollection $collection)
+    {
+        $fundi = $this->fundi();
+
+        abort_if($collection->status !== 'submitted', 422,
+            $collection->reference.' is already '.$collection->statusLabel().' — the office holds that part of the record.');
+
+        $data = $request->validate([
+            'condition' => 'required|in:'.implode(',', array_keys(EWasteCollection::CONDITIONS)),
+            'note' => 'nullable|string|max:1000',
+        ], [], ['condition' => 'Condition', 'note' => 'What you saw']);
+
+        $collection->update([
+            'status' => 'forwarded',
+            'condition' => $data['condition'],
+            'forwarded_by_fundi' => $fundi->id,
+            'forwarded_on' => now(),
+            'forward_note' => $data['note'] ?? null,
+        ]);
+
+        return back()->with('status', $collection->reference.' forwarded to the programme office as '
+            .EWasteCollection::CONDITIONS[$data['condition']].'. They weigh it in and route it to repair, '
+            .'refurbishment, recycling or disposal.');
+    }
+
+    /** The photo on a collection line. Only the one who registered it, or the E-Fundi who carried it, opens it. */
+    public function ewastePhoto(EWasteCollection $collection)
+    {
+        $member = $this->member();
+        abort_if(! $member, 403);
+
+        $theirLine = $member instanceof CtpRegistration
+            ? $collection->ctp_id === $member->id
+            : in_array($member->id, array_filter([$collection->fundi_id, $collection->forwarded_by_fundi]), true);
+
+        abort_unless($theirLine, 404);
+        abort_unless($collection->photo_path && Storage::disk('local')->exists($collection->photo_path), 404,
+            'That photo is no longer on record.');
+
+        return Storage::disk('local')->response($collection->photo_path, $collection->photo_name ?: $collection->reference.'.jpg');
     }
 
     /**
