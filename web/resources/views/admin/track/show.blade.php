@@ -24,7 +24,7 @@
         </p>
     </div>
 <div class="ah-contact">
-    <span class="tag gray">{{ $enrollment->stateLabel() }} seat</span>
+    <span class="tag gray">{{ $enrollment->stateLabel() }}</span>
     @if ($cohort?->trainer?->fundi)<span class="tag">trainer {{ $cohort->trainer->fundi->full_name }}</span>@endif
 </div>
 </div>

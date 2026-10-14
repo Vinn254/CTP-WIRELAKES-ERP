@@ -81,6 +81,10 @@ own record form — a school report, an assessment paper or a competency sheet, 
 hours. The trainer's button says **Record and send to the office**: the same fields, the same `progress_entries` row,
 no separate queue to reconcile.
 
+**The track tabs follow the marks, not the stage word.** On `/admin/track`, *Track not complete* and *At 100%* count
+what `trackPct()` says for every confirmed seat — a run the office closed early, or one whose certificate was revoked,
+is still short of 100% and must show up. Only *Still training* uses the stage.
+
 **A record only lands inside the cohort's own dates.** `App\Support\TrainingTrack` is the single implementation both
 sides call (period guard, module mark/unmark, progress record, document store, the auto-recommendation at 100 %). A
 date outside the intake, a mark on a seat that is not confirmed, or a trainer touching a trainee outside their cohort

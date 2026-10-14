@@ -87,13 +87,13 @@ class TrackController extends Controller
     {
         $closed = ['completed', 'failed'];
 
+        // "Track not complete" and "At 100%" follow the marks, not the stage word — a seat that reached
+        // completed can still be short of 100% (a revoked certificate, a run closed out early).
         return [
             'open' => fn ($r) => in_array($r['e']->state, ['pending', 'approved'], true)
                 && ! in_array($r['e']->stage, $closed, true),
-            'short' => fn ($r) => $r['e']->state === 'approved' && $r['pct'] < 100
-                && ! in_array($r['e']->stage, $closed, true),
-            'complete' => fn ($r) => $r['e']->state === 'approved' && $r['pct'] >= 100
-                && ! in_array($r['e']->stage, $closed, true),
+            'short' => fn ($r) => $r['e']->state === 'approved' && $r['pct'] < 100,
+            'complete' => fn ($r) => $r['e']->state === 'approved' && $r['pct'] >= 100,
             'certified' => fn ($r) => $r['e']->certification
                 && in_array($r['e']->certification->status, ['recommended', 'approved'], true),
         ];
