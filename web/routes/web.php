@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\BudgetController;
 use App\Http\Controllers\Admin\CertificationController;
 use App\Http\Controllers\Admin\CohortController;
@@ -12,11 +13,14 @@ use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\HirerController;
+use App\Http\Controllers\Admin\MeGisController;
 use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\ProgrammeController;
 use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -292,6 +296,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/finance/payouts/{payout}/hold', [PayoutController::class, 'hold'])->whereNumber('payout')->name('payouts.hold');
     Route::post('/finance/payouts/{payout}/resume', [PayoutController::class, 'resume'])->whereNumber('payout')->name('payouts.resume');
     Route::post('/finance/payouts/{payout}/reject', [PayoutController::class, 'reject'])->whereNumber('payout')->name('payouts.reject');
+
+    // Module 12 — M&E, GIS and reports (§15). Read-only views of the other modules' registers, plus the trail and the programme switches.
+    Route::get('/impacts', [MeGisController::class, 'index'])->name('impacts.index');
+    Route::get('/gis', [MeGisController::class, 'map'])->name('gis.map');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::get('/reports/{report}/export', [ReportController::class, 'csv'])->name('reports.export');
+
+    Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+    Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
+    Route::post('/programme', [ProgrammeController::class, 'update'])->name('settings.update');
 });
 
 // Member portal — the member's own interface. Never staff, never public.

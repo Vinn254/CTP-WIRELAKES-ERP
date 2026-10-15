@@ -169,6 +169,11 @@ class FinanceEntry extends Model
         return $this->belongsTo(Cohort::class)->withDefault();
     }
 
+    public function community()
+    {
+        return $this->belongsTo(Community::class)->withDefault();
+    }
+
     public function fundi()
     {
         return $this->belongsTo(FundiRegistration::class, 'fundi_id')->withDefault();

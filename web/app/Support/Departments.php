@@ -51,7 +51,7 @@ class Departments
         ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance, Procurement & Inventory',
             'desc' => 'Budgets, the money register, purchases, stock and the two payout streams', 'live' => true],
         ['slug' => 'me_gis', 'tag' => 'Module 12', 'name' => 'M&E, GIS, Reports',
-            'desc' => 'Impact metrics, maps, per-role reports', 'live' => false],
+            'desc' => 'The impact dashboard, the county map, a report per role, the trail and the programme switches', 'live' => true],
         ['slug' => 'mobile', 'tag' => 'Module 13', 'name' => 'Mobile App',
             'desc' => 'Field app for CTPs and Fundis', 'live' => false],
     ];
@@ -101,6 +101,13 @@ class Departments
             ['label' => 'Inventory', 'icon' => 'grid', 'route' => ['admin.inventory.index'], 'badge' => 'lowstock'],
             ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
         ],
+        'me_gis' => [
+            ['label' => 'Impact dashboard', 'icon' => 'grid', 'route' => ['admin.impacts.index']],
+            ['label' => 'Programme map', 'icon' => 'globe', 'route' => ['admin.gis.map']],
+            ['label' => 'Reports', 'icon' => 'briefcase', 'route' => ['admin.reports.index']],
+            ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.activity.index']],
+            ['label' => 'Programme settings', 'icon' => 'sliders', 'route' => ['admin.programme.index']],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -132,6 +139,12 @@ class Departments
         'admin.suppliers.' => 'finance',
         'admin.inventory.' => 'finance',
         'admin.payouts.' => 'finance',
+        'admin.impacts.' => 'me_gis',
+        'admin.gis.' => 'me_gis',
+        'admin.reports.' => 'me_gis',
+        'admin.activity.' => 'me_gis',
+        'admin.programme.' => 'me_gis',
+        'admin.settings.' => 'me_gis',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -164,6 +177,11 @@ class Departments
         'admin.suppliers.index' => 'The suppliers quotations are taken from, and who has already been paid',
         'admin.inventory.index' => 'Stock cards by SKU, what is on the shelf, what is below its reorder level and what left the store',
         'admin.payouts.index' => 'Project income and training income, kept on two separate release paths (§14.6)',
+        'admin.impacts.index' => 'The five things the programme measures, counted from the registers the other modules write (§15.2)',
+        'admin.gis.map' => 'One square per county, shaded by the layer you pick, opening the records held there (§15.4)',
+        'admin.reports.index' => 'The report each role works from, printed or exported as a file (§15.5, §15.6)',
+        'admin.activity.index' => 'Who changed what, when — written by the records themselves, never typed in (§15.6)',
+        'admin.programme.index' => 'The membership fees and contact details the code reads; an executive changes them (§15.6)',
     ];
 
     public static function all(): array
