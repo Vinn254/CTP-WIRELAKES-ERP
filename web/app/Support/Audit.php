@@ -16,6 +16,7 @@ use App\Models\InventoryItem;
 use App\Models\Need;
 use App\Models\Payout;
 use App\Models\Project;
+use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
 use App\Models\Setting;
@@ -34,7 +35,7 @@ class Audit
     public const WATCHED = [
         CtpRegistration::class, FundiRegistration::class, HirerRegistration::class,
         Community::class, Project::class, Need::class, Cohort::class,
-        Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
+        ProjectMatch::class, Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
         InventoryItem::class, StockMovement::class, Setting::class,
     ];
@@ -81,6 +82,11 @@ class Audit
     {
         if ($subject instanceof Setting) {
             return $subject->label();
+        }
+
+        if ($subject instanceof ProjectMatch) {
+            return 'round '.$subject->round.' — '.($subject->fundi->full_name ?? 'an E-Fundi')
+                .' for '.($subject->project->title ?? 'a project');
         }
 
         foreach (['full_name', 'name', 'title', 'organisation', 'reference', 'item_name', 'sku'] as $field) {

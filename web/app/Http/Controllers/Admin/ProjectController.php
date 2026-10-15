@@ -233,22 +233,10 @@ class ProjectController extends Controller
     {
         abort_unless($application->project_id === $project->id, 404);
 
-        $project->load('award');
-        $reassigning = $project->award && $project->award->id !== $application->id;
-        if ($reassigning) {
-            $previous = $project->award;
-            $previous->update([
-                'status' => 'rejected',
-                'rejection_reason' => 'The project was reassigned to another member.',
-                'reviewed_by' => auth()->id(),
-            ]);
-        }
+        $previous = $project->award;
+        $reassigning = $previous && $previous->id !== $application->id;
 
-        $project->applications()->where('id', '!=', $application->id)->where('status', 'pending_review')
-            ->update(['status' => 'rejected', 'rejection_reason' => 'Another applicant was awarded this project.', 'reviewed_by' => auth()->id()]);
-
-        $application->update(['status' => 'approved', 'reviewed_by' => auth()->id(), 'rejection_reason' => null]);
-        $project->update(['status' => 'awarded', 'awarded_at' => now()]);
+        $project->awardTo($application);
 
         return back()->with('status', $project->reference.' awarded to '.$application->full_name.'.'
             .($reassigning ? ' '.$previous->full_name.' has been told they were not selected.' : ''));

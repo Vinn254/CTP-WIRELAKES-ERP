@@ -19,6 +19,7 @@ use App\Models\Payout;
 use App\Models\ProgressEntry;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\ProjectMatch;
 use App\Models\PurchaseRequest;
 use App\Models\Trainer;
 use App\Models\Training;
@@ -26,6 +27,7 @@ use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
 use App\Support\MemberPortal;
+use App\Support\Marketplace;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -752,5 +754,51 @@ class PortalController extends Controller
                 'lines' => $payouts->count(),
             ],
         ]);
+    }
+
+    /**
+     * Module 6, member side (§9.4 step 4). The projects the matching desk has put to this E-Fundi, what the search
+     * found in their own record that led to the ask, and the 48 hours to answer it. A CTP is refused here and their
+     * sidebar never offers it — CTPs mobilise the programme, they do not take the work.
+     */
+    public function invitations()
+    {
+        $fundi = $this->fundi();
+        Marketplace::closeExpiredFor($fundi);
+
+        $invites = ProjectMatch::for($fundi)->with(['project.hirer', 'project.providedMaterials'])
+            ->orderByRaw("case status when 'invited' then 0 when 'accepted' then 1 when 'awarded' then 2 else 3 end")
+            ->orderByDesc('id')->get();
+
+        return view('portal.invitations', MemberPortal::board($fundi) + [
+            'invites' => $invites,
+            'counts' => [
+                'outstanding' => $invites->where('status', 'invited')->count(),
+                'accepted' => $invites->where('status', 'accepted')->count(),
+                'awarded' => $invites->where('status', 'awarded')->count(),
+                'closed' => $invites->whereIn('status', ['declined', 'no_reply'])->count(),
+            ],
+            'window' => ProjectMatch::WINDOW_HOURS,
+        ]);
+    }
+
+    /** Taking a project or turning it down, inside the window. The office awards it afterwards (§9.4 step 5). */
+    public function respondInvite(Request $request, ProjectMatch $match)
+    {
+        $fundi = $this->fundi();
+        abort_unless((int) $match->fundi_id === (int) $fundi->id, 403, 'That invite was not put to you.');
+
+        $data = $request->validate(
+            ['answer' => 'required|in:accept,decline', 'note' => 'nullable|string|max:200'],
+            [],
+            ['answer' => 'Your answer', 'note' => 'Note'],
+        );
+
+        $match = Marketplace::respond($match, $data['answer'], $data['note'] ?? null);
+
+        return back()->with('status', $data['answer'] === 'accept'
+            ? $match->project->reference.' taken. The programme office now assigns it to you — watch My projects for the award, and the work order comes from the office. '
+                .ProjectMatch::WINDOW_HOURS.' hours was the window and you answered inside it.'
+            : 'Declined, and the office can see it was your answer rather than silence. Say when you are free again under My E-Fundi record.');
     }
 }

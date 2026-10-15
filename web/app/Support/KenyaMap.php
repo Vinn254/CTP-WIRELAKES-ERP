@@ -64,4 +64,38 @@ class KenyaMap
             default => 1,
         };
     }
+
+    /**
+     * The counties sitting beside one on the board — §9.6 widening a search to neighbouring counties. The geography
+     * is read off the same tile positions the map draws, so the two can never disagree about what borders what.
+     *
+     * @return list<string>
+     */
+    public static function neighbours(?string $county, int $ring = 1): array
+    {
+        $here = static::tileFor($county);
+
+        if (! $here) {
+            return [];
+        }
+
+        return collect(self::TILES)
+            ->filter(fn (array $pos, string $name) => $name !== $here['name']
+                && max(abs($pos[0] - $here['col']), abs($pos[1] - $here['row'])) <= $ring)
+            ->keys()->sort()->values()->all();
+    }
+
+    /** The square a county name points at, however it was spelled on the record. */
+    public static function tileFor(?string $county): ?array
+    {
+        $word = trim((string) $county);
+
+        if ($word === '') {
+            return null;
+        }
+
+        $name = collect(self::TILES)->keys()->first(fn (string $k) => strcasecmp($k, $word) === 0);
+
+        return $name ? ['name' => $name, 'col' => self::TILES[$name][0], 'row' => self::TILES[$name][1]] : null;
+    }
 }

@@ -1,0 +1,85 @@
+@extends('layouts.admin')
+@section('title', 'Matching desk')
+
+@section('content')
+@php use App\Support\Marketplace; @endphp
+<p class="back"><a href="{{ route('admin.department', 'marketplace') }}">&larr; Project Marketplace</a></p>
+<h1>Matching desk</h1>
+<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+    Where demand meets supply (§9.4). A project is posted on <a href="{{ route('admin.projects.index') }}">Projects</a>,
+    members apply there too, and this desk does the other half: it reads the E-Fundi register, puts the project to the
+    fundis who fit, waits for their answer inside 48 hours, and hands the work to one of them. The materials list stays
+    on the project, the work order is Module 7 and the money is Module 11.
+</p>
+
+<div class="stat-row">
+    <div class="stat"><small>Open projects with no search yet</small><b>{{ $queues['unmatched'] }}</b></div>
+    <div class="stat"><small>Asked, waiting for an answer</small><b>{{ $queues['waiting'] }}</b></div>
+    <div class="stat"><small>Taken by the fundi</small><b>{{ $queues['accepted'] }}</b></div>
+    <div class="stat"><small>Nobody answered in time</small><b>{{ $queues['quiet'] }}</b></div>
+</div>
+
+<div class="tabs">
+    @foreach (['all' => 'Every open project', 'unmatched' => 'Needs a search', 'waiting' => 'Answers outstanding', 'answered' => 'Someone took it'] as $key => $label)
+        <a class="tab {{ $tab === $key ? 'on' : '' }}"
+           href="{{ route('admin.marketplace.index', array_filter(['tab' => $key, 'county' => $county])) }}">{{ $label }}</a>
+    @endforeach
+</div>
+
+<form method="GET" action="{{ route('admin.marketplace.index') }}" class="filter-bar">
+    <input type="hidden" name="tab" value="{{ $tab }}">
+    <div>
+        <label for="county">County</label>
+        <select name="county" id="county">
+            <option value="">Every county</option>
+            @foreach ($counties as $c)
+                <option value="{{ $c }}" @selected($county === $c)>{{ $c }}</option>
+            @endforeach
+        </select>
+    </div>
+    <button class="btn btn-sm btn-outline" type="submit">Filter</button>
+    @if ($county)<a class="btn btn-sm btn-ghost" href="{{ route('admin.marketplace.index', ['tab' => $tab]) }}">Clear county</a>@endif
+    <span class="hint">Ordered by the deadline it has to be done by.</span>
+</form>
+
+<div class="card">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Reference</th><th>Project</th><th>Trade typed</th><th>County</th><th>Deadline</th>
+                <th>Applied</th><th>Shortlisted</th><th>Asked</th><th>Took it</th><th>No answer</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($projects as $p)
+                <tr>
+                    <td><a href="{{ route('admin.marketplace.show', $p) }}"><b>{{ $p->reference }}</b></a></td>
+                    <td>
+                        <a href="{{ route('admin.marketplace.show', $p) }}">{{ $p->title }}</a>
+                        <div class="hint">{{ $p->categoryLabel() }}</div>
+                    </td>
+                    <td>{{ $p->trade ?: '—' }}</td>
+                    <td>{{ $p->county ?: '—' }}</td>
+                    <td>{{ $p->deadline?->format('d M Y') ?? 'No date' }}</td>
+                    <td>{{ $p->applications_count }}</td>
+                    <td>{{ $p->matches_count }}</td>
+                    <td>@if ($p->invited_count) <span class="tag">{{ $p->invited_count }} outstanding</span> @else 0 @endif</td>
+                    <td>@if ($p->accepted_count) <b>{{ $p->accepted_count }}</b> @else 0 @endif</td>
+                    <td>{{ $p->quiet_count ?: '—' }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:22px;">
+                    No open project in this state. A project reaches this desk when it is posted and set to
+                    <b>Open for applications</b>.
+                </td></tr>
+            @endforelse
+        </tbody>
+    </table>
+    <p class="hint">
+        The search scores a fundi out of 100 on the skills the trade names (40), the county the work is in (25), their
+        own availability (15), years in trade (10) and projects already done (10). {{ $bar }}% is the standing bar;
+        going below it, or widening to neighbouring counties, is written on every round it was used for.
+        The top {{ Marketplace::INVITE_TOP }} of a round are the ones asked (§9.4 step 3).
+    </p>
+</div>
+@endsection

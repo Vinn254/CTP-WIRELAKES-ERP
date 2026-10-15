@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\LedgerController;
+use App\Http\Controllers\Admin\MarketplaceController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\MeGisController;
 use App\Http\Controllers\Admin\NeedController;
@@ -250,6 +251,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/fundis/{fundi}/block', [FundiController::class, 'block'])->whereNumber('fundi')->name('fundis.block');
     Route::post('/fundis/{fundi}/reinstate', [FundiController::class, 'reinstate'])->whereNumber('fundi')->name('fundis.reinstate');
 
+    // Module 6 — the marketplace (§9). Posting and applications stay on the project; this desk finds the right fundi and records their answer.
+    Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
+    Route::get('/marketplace/{project}', [MarketplaceController::class, 'show'])->whereNumber('project')->name('marketplace.show');
+    Route::post('/marketplace/{project}/run', [MarketplaceController::class, 'run'])->whereNumber('project')->name('marketplace.run');
+    Route::post('/marketplace/{project}/invite', [MarketplaceController::class, 'invite'])->whereNumber('project')->name('marketplace.invite');
+    Route::post('/marketplace/{project}/hand-pick', [MarketplaceController::class, 'handPick'])->whereNumber('project')->name('marketplace.handpick');
+    Route::post('/marketplace/{project}/award/{match}', [MarketplaceController::class, 'award'])->whereNumber('project')->whereNumber('match')->name('marketplace.award');
+    Route::post('/marketplace/{project}/auto-award', [MarketplaceController::class, 'autoAward'])->whereNumber('project')->name('marketplace.autoaward');
+
     // Module 10 — E-Waste Management. The field registers, an E-Fundi forwards, the office weighs it in.
     Route::get('/ewaste', [EwasteController::class, 'index'])->name('ewaste.index');
     Route::post('/ewaste/{collection}/receive', [EwasteController::class, 'receive'])->whereNumber('collection')->name('ewaste.receive');
@@ -348,6 +358,9 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/communities/beneficiary', [PortalController::class, 'storeBeneficiary'])->name('beneficiary.store');
     Route::get('/projects', [PortalController::class, 'projects'])->name('projects');
     Route::get('/applications', [PortalController::class, 'applications'])->name('applications');
+    // Module 6 — the matching desk puts a project to a fundi, and they answer here (§9.4 step 4).
+    Route::get('/invitations', [PortalController::class, 'invitations'])->name('invitations');
+    Route::post('/invitations/{match}/respond', [PortalController::class, 'respondInvite'])->whereNumber('match')->name('invite.respond');
     Route::get('/projects/{project}', [PortalController::class, 'project'])->name('project');
     Route::post('/projects/{project}/apply', [PortalController::class, 'apply'])->name('apply');
     Route::post('/applications/{application}/withdraw', [PortalController::class, 'withdraw'])->name('withdraw');

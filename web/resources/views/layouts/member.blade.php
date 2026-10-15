@@ -23,6 +23,8 @@
         $nav[] = ['label' => 'My communities', 'icon' => 'globe', 'route' => 'portal.communities', 'active' => ['portal.communities'], 'count' => ($communities ?? collect())->count()];
     } else {
         $nav[] = ['label' => 'My E-Fundi record', 'icon' => 'users', 'route' => 'portal.efundi', 'active' => ['portal.efundi']];
+        // §9.4 — the desk puts projects to an E-Fundi; a CTP is never offered this screen.
+        $nav[] = ['label' => 'Invited to you', 'icon' => 'mail', 'route' => 'portal.invitations', 'active' => ['portal.invitations'], 'count' => ($inviteCount ?? 0)];
         if (isset($member) && $member->canTrain()) {
             $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
         }

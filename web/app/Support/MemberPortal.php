@@ -8,6 +8,7 @@ use App\Models\Community;
 use App\Models\FundiRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\ProjectMatch;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -48,6 +49,10 @@ class MemberPortal
             'projects' => static::projects($member),
             'applications' => static::applications($member),
             'communities' => $member instanceof CtpRegistration ? static::communities($member) : collect(),
+            // §9.4 — an E-Fundi's sidebar carries the asks waiting on their answer; a CTP never has one.
+            'inviteCount' => $member instanceof FundiRegistration
+                ? ProjectMatch::for($member)->awaiting()->count()
+                : 0,
         ];
     }
 

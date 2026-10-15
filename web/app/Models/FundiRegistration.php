@@ -156,6 +156,12 @@ class FundiRegistration extends Model
         return $this->morphMany(ProjectApplication::class, 'applicant', 'applicant_type', 'applicant_id');
     }
 
+    /** Module 6 §9.4 — the times the matching desk put a project to this fundi, and what they answered. */
+    public function invites(): HasMany
+    {
+        return $this->hasMany(ProjectMatch::class, 'fundi_id');
+    }
+
     public function placeLabel(): string
     {
         return collect([$this->ward, $this->sub_county, $this->county])->filter()->join(' · ');

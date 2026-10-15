@@ -17,6 +17,7 @@ use App\Models\Need;
 use App\Models\Partner;
 use App\Models\Payout;
 use App\Models\ProjectApplication;
+use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
 use App\Models\Trainer;
@@ -39,7 +40,7 @@ class Departments
         ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Management',
             'desc' => 'E-Fundi profiles and IDs, grades, trade skills, counties, availability and standing', 'live' => true],
         ['slug' => 'marketplace', 'tag' => 'Module 6', 'name' => 'Project Marketplace',
-            'desc' => 'Automated matching, bids and award recommendations', 'live' => false],
+            'desc' => 'Match a posted project to the right E-Fundi, ask them, and award the one who takes it', 'live' => true],
         ['slug' => 'execution', 'tag' => 'Module 7', 'name' => 'Project Execution & Payment',
             'desc' => 'Work orders, progress, payments', 'live' => false],
         ['slug' => 'construction', 'tag' => 'Module 8', 'name' => 'Construction & Infrastructure',
@@ -90,6 +91,9 @@ class Departments
         'efundi' => [
             ['label' => 'E-Fundi register', 'icon' => 'users', 'route' => ['admin.fundis.index'], 'badge' => 'fundis'],
         ],
+        'marketplace' => [
+            ['label' => 'Matching desk', 'icon' => 'briefcase', 'route' => ['admin.marketplace.index'], 'badge' => 'invites'],
+        ],
         'ewaste' => [
             ['label' => 'E-Waste register', 'icon' => 'globe', 'route' => ['admin.ewaste.index'], 'badge' => 'collections'],
         ],
@@ -132,6 +136,7 @@ class Departments
         'admin.trainers.' => 'training',
         'admin.certification.' => 'training',
         'admin.fundis.' => 'efundi',
+        'admin.marketplace.' => 'marketplace',
         'admin.ewaste.' => 'ewaste',
         'admin.budget.' => 'finance',
         'admin.ledger.' => 'finance',
@@ -170,6 +175,7 @@ class Departments
         'admin.trainers.index' => 'Senior fundis who applied to train CTPs, and what they are paid',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
+        'admin.marketplace.index' => 'Run the search, put the project to the top of the shortlist, and award it to a fundi who took it (§9.4)',
         'admin.ewaste.index' => 'What the field collected, what it weighed in at and what condition it is in',
         'admin.budget.index' => 'What each programme category was given this year, and what has been charged against it',
         'admin.ledger.index' => 'Every shilling in and out, with the budget line it sits on',
@@ -231,6 +237,7 @@ class Departments
             'trainers' => Trainer::where('status', 'applied')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
+            'invites' => ProjectMatch::where('status', 'invited')->count(),
             'collections' => EWasteCollection::whereIn('status', ['submitted', 'forwarded'])->count(),
             'requests' => PurchaseRequest::whereIn('status', ['submitted', 'quoted'])->count(),
             'orders' => PurchaseOrder::whereIn('status', ['received', 'matched'])->count(),

@@ -62,6 +62,12 @@ class Project extends Model
         return $this->hasMany(ProjectApplication::class);
     }
 
+    /** The matching desk's rounds for this project (Module 6 §9.4). */
+    public function matches(): HasMany
+    {
+        return $this->hasMany(ProjectMatch::class);
+    }
+
     public function award(): HasOne
     {
         return $this->hasOne(ProjectApplication::class)->where('status', 'approved');
@@ -183,5 +189,34 @@ class Project extends Model
         return $member['ctp']
             ? ($rule['ctp'] || ($member['tier'] && in_array($member['tier'], $rule['tiers'], true)))
             : in_array($member['tier'], $rule['tiers'], true);
+    }
+
+    /**
+     * The one way a project is given to a member, whichever screen reached it — an applicant the office picked on
+     * the project page, or a fundi who accepted an invite on the matching desk (§9.4 step 6). Anyone else waiting on
+     * this project is declined with the reason, and reassigning tells the previous member instead of losing them.
+     */
+    public function awardTo(ProjectApplication $application): ProjectApplication
+    {
+        $this->load('award');
+        $previous = $this->award && $this->award->id !== $application->id ? $this->award : null;
+
+        $previous?->update([
+            'status' => 'rejected',
+            'rejection_reason' => 'The project was reassigned to another member.',
+            'reviewed_by' => auth()->id(),
+        ]);
+
+        $this->applications()->where('id', '!=', $application->id)->where('status', 'pending_review')
+            ->update([
+                'status' => 'rejected',
+                'rejection_reason' => 'Another member was awarded this project.',
+                'reviewed_by' => auth()->id(),
+            ]);
+
+        $application->update(['status' => 'approved', 'reviewed_by' => auth()->id(), 'rejection_reason' => null]);
+        $this->update(['status' => 'awarded', 'awarded_at' => now()]);
+
+        return $application;
     }
 }

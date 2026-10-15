@@ -35,6 +35,7 @@ class ActivityLog extends Model
         HirerRegistration::class => 'Hirer application',
         Community::class => 'Community',
         Project::class => 'Project',
+        ProjectMatch::class => 'Marketplace match',
         Need::class => 'Community need',
         Cohort::class => 'Cohort',
         Enrollment::class => 'Seat on a cohort',
