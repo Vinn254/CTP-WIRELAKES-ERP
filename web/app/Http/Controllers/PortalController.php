@@ -224,7 +224,7 @@ class PortalController extends Controller
     }
 
     /** The E-Fundi's trainer surface: the sites they are approved at, the cohorts they teach and the marks they put in. */
-    public function trainer()
+    public function trainer(Request $request)
     {
         $fundi = $this->fundi();
 
@@ -247,6 +247,8 @@ class PortalController extends Controller
             'counties' => County::orderBy('name')->pluck('name'),
             'kinds' => ProgressEntry::KINDS,
             'documentKinds' => TrainingDocument::KINDS,
+            // The cohort the trainer chose to read results for; nothing chosen means every cohort they teach.
+            'chosenCohort' => (int) $request->input('cohort'),
         ]);
     }
 

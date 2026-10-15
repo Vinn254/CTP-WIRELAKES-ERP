@@ -188,6 +188,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/trainers/{trainer}/decision', [TrainerController::class, 'decide'])->whereNumber('trainer')->name('trainers.decide');
 
     Route::get('/cohorts', [CohortController::class, 'index'])->name('cohorts.index');
+    Route::get('/cohorts/results', [CohortController::class, 'results'])->name('cohorts.results');
     Route::get('/cohorts/create', [CohortController::class, 'create'])->name('cohorts.create');
     Route::post('/cohorts', [CohortController::class, 'store'])->name('cohorts.store');
     Route::get('/cohorts/{cohort}', [CohortController::class, 'show'])->whereNumber('cohort')->name('cohorts.show');

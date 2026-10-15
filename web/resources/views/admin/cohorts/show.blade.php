@@ -16,12 +16,14 @@
         <p class="ah-meta">
             <span><b>{{ $cohort->reference }}</b></span>
             <span>{{ $cohort->training?->name }}</span>
+            <span><b>{{ $cohort->periodLabel() }}</b></span>
             <span>{{ $cohort->dateLabel() }}</span>
             <span>{{ $cohort->placeLabel() }}</span>
             <span>{{ $seated->count() }} of {{ $cohort->seats }} seats held</span>
         </p>
     </div>
     <div class="ah-contact">
+        <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.results', ['cohort' => $cohort->id]) }}">Results table</a>
         <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>
     </div>
 </div>
@@ -124,6 +126,28 @@
 </div>
 
 <h2 class="section-head" style="margin-top:26px;">Trainees ({{ $seated->count() }})</h2>
+
+<div class="card" style="margin-bottom:18px;">
+    <div class="section-head">
+        <h3>Results on one table</h3>
+        <span class="hint">attendance · modules · scores · track · certificate</span>
+    </div>
+    @include('partials.results', [
+        'enrollments' => $enrollments,
+        'open' => fn ($e) => route('admin.track.show', $e),
+        'whoMarks' => 'Open a trainee below to record their sessions, mark the modules and upload their work.',
+    ])
+</div>
+
+@include('partials.runs', [
+    'runs' => $runs,
+    'current' => $cohort,
+    'title' => 'Every run of '.$cohort->courseLabel(),
+    'url' => fn ($r) => route('admin.cohorts.show', $r),
+    'note' => 'The same course runs again next term and next year — each run keeps its own roll and its own results, '
+        .'and a CTP who trained in an earlier run keeps that record on their file.',
+])
+
 @forelse ($seated as $e)
     @php
         $attendance = $e->attendancePct();

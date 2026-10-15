@@ -8,6 +8,14 @@
     $canTeach = in_array($member->tier, Trainer::TEACHING_TIERS, true);
     $cohorts = $trainers->flatMap(fn ($t) => $t->cohorts);
     $heldSites = $trainers->pluck('venue_id')->map(fn ($v) => (int) $v);
+
+    // Each cohort carries the trainer record it sits on, so one list can be filtered to the cohort chosen above.
+    $taught = $trainers->where('status', 'approved')
+        ->flatMap(fn ($t) => $t->cohorts->map(fn ($c) => ['trainer' => $t, 'cohort' => $c]))
+        ->sortByDesc(fn ($p) => $p['cohort']->starts_on)
+        ->values();
+    $picked = $taught->first(fn ($p) => $p['cohort']->id === $chosenCohort);
+    $shown = $picked ? collect([$picked]) : $taught;
 @endphp
 
 @section('content')
@@ -121,81 +129,88 @@
     </details>
 @endif
 
-@forelse ($trainers->where('status', 'approved') as $t)
-    @forelse ($t->cohorts as $c)
-        @php $roll = $c->enrollments; @endphp
-        <div class="card">
-            <div class="section-head">
-                <h3>{{ $c->courseLabel() }}</h3>
-                <span class="tag">{{ $c->training?->name }}</span>
-                <span class="tag gold">{{ $c->reference }}</span>
-                <span class="status {{ $c->status === 'completed' ? 'closed' : 'active' }}">{{ $c->statusLabel() }}</span>
-            </div>
-            <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · teaching at {{ $t->venue->name ?? $c->placeLabel() }}
-                · {{ $roll->count() }} on the roll, {{ $roll->where('state', 'approved')->count() }} holding a seat</p>
+@if ($taught->isNotEmpty())
+    <div class="card cohort-chooser">
+        <div class="section-head">
+            <h3>Choose a cohort and read its results</h3>
+            <span class="hint">{{ $taught->count() }} cohort{{ $taught->count() === 1 ? '' : 's' }} you teach
+                across {{ $taught->pluck('cohort.academic_year')->filter()->unique()->count() }} academic year{{ $taught->pluck('cohort.academic_year')->filter()->unique()->count() === 1 ? '' : 's' }}</span>
+        </div>
+        <div class="tabs">
+            <a class="tab {{ $picked ? '' : 'on' }}" href="{{ route('portal.trainer') }}">All cohorts</a>
+            @foreach ($taught as $p)
+                @php $cc = $p['cohort']; @endphp
+                <a class="tab {{ $picked && $picked['cohort']->id === $cc->id ? 'on' : '' }}"
+                   href="{{ route('portal.trainer', ['cohort' => $cc->id]) }}">
+                    {{ $cc->yearLabel() }} {{ $cc->termLabel() }} · {{ $cc->reference }}
+                    <span class="n">{{ $cc->enrollments->where('state', 'approved')->count() }}</span></a>
+            @endforeach
+        </div>
+        <p class="hint">One cohort at a time gives you its students on their own table, with the marks as they stand.
+            The programme office reads the same results from their side.</p>
+    </div>
+@endif
 
-            <h4 class="dl-group">Your students — open one to record their performance</h4>
+@forelse ($shown as $p)
+    @php $t = $p['trainer']; $c = $p['cohort']; $roll = $c->enrollments; @endphp
+    <div class="card">
+        <div class="section-head">
+            <h3>{{ $c->courseLabel() }}</h3>
+            <span class="tag">{{ $c->training?->name }}</span>
+            <span class="tag">{{ $c->periodLabel() }}</span>
+            <span class="tag gold">{{ $c->reference }}</span>
+            <span class="status {{ $c->status === 'completed' ? 'closed' : 'active' }}">{{ $c->statusLabel() }}</span>
+        </div>
+        <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · teaching at {{ $t->venue->name ?? $c->placeLabel() }}
+            · {{ $roll->count() }} on the roll, {{ $roll->where('state', 'approved')->count() }} holding a seat</p>
+
+        @php $runsOfCourse = $t->cohorts->where('training_id', $c->training_id); @endphp
+        @if ($runsOfCourse->count() > 1)
+            <p class="hint">You have taught this course in
+                <span class="chips">@foreach ($runsOfCourse as $r)
+                        <span class="chip{{ $r->id === $c->id ? ' on' : '' }}">{{ $r->yearLabel() }} {{ $r->termLabel() }} · {{ $r->reference }}
+                            ({{ $r->enrollments->where('state', 'approved')->count() }} seated)</span>
+                    @endforeach</span>
+                — each run keeps its own roll, so a CTP you trained last term still has that record.</p>
+        @endif
+
+        <h4 class="dl-group">Your students — open one to record their performance</h4>
+        @include('partials.results', [
+            'enrollments' => $roll,
+            'open' => fn ($e) => route('portal.trainer.trainee', $e),
+            'whoMarks' => 'Open a student to add their sessions, mark the modules they got through and upload their work.
+                Attendance under '.\App\Models\Enrollment::ATTENDANCE_MINIMUM.'% keeps a trainee out of certification, so mark the days.',
+        ])
+
+        @if ($c->training && $c->training->modules->isNotEmpty() && ($picked || $shown->count() === 1))
+            <h4 class="dl-group">What you are expected to deliver — {{ $c->training->name }}</h4>
             <table class="data">
-                <thead>
-                    <tr>
-                        <th>CTP</th><th>Seat</th><th>Stage</th><th>Attendance</th><th>Modules</th>
-                        <th>Track</th><th>Records</th><th></th>
-                    </tr>
-                </thead>
+                <thead><tr><th>#</th><th>Module</th><th>Hours</th><th>What the trainee ends up able to do</th></tr></thead>
                 <tbody>
-                    @forelse ($roll as $e)
-                        @php
-                            $attendance = $e->attendancePct();
-                            $board = $e->moduleBoard();
-                        @endphp
+                    @foreach ($c->training->modules as $m)
                         <tr>
-                            <td><b>{{ $e->ctp->full_name }}</b><div class="hint">{{ $e->ctp->ctp_code }}</div></td>
-                            <td><span class="status {{ $e->state === 'approved' ? 'active' : 'pending_review' }}">{{ $e->stateLabel() }}</span></td>
-                            <td><span class="tag">{{ $e->stageLabel() }}</span></td>
-                            <td>{{ $attendance === null ? 'not marked' : $attendance.'%' }}</td>
-                            <td>{{ $board['modules']->isEmpty() ? '—' : $board['marked']->count().' of '.$board['modules']->count() }}</td>
-                            <td><b>{{ $e->trackPct() }}%</b></td>
-                            <td>{{ $e->entries->count() }}</td>
-                            <td><a class="btn btn-sm btn-outline" href="{{ route('portal.trainer.trainee', $e) }}">Open</a></td>
+                            <td>{{ $m->position }}</td>
+                            <td><b>{{ $m->title }}</b></td>
+                            <td>{{ $m->hoursLabel() }}</td>
+                            <td class="hint">{{ $m->outcome ?: '—' }}</td>
                         </tr>
-                    @empty
-                        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
-                            Nobody is on this cohort’s roll yet. The office places CTPs into an intake, or a CTP applies for a seat themselves.
-                        </td></tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
-            <p class="hint">Open a student to add their sessions, mark the modules they got through and upload their work.
-                Attendance under {{ \App\Models\Enrollment::ATTENDANCE_MINIMUM }}% keeps a trainee out of certification, so mark the days.</p>
-
-            @if ($c->training && $c->training->modules->isNotEmpty())
-                <h4 class="dl-group">What you are expected to deliver — {{ $c->training->name }}</h4>
-                <table class="data">
-                    <thead><tr><th>#</th><th>Module</th><th>Hours</th><th>What the trainee ends up able to do</th></tr></thead>
-                    <tbody>
-                        @foreach ($c->training->modules as $m)
-                            <tr>
-                                <td>{{ $m->position }}</td>
-                                <td><b>{{ $m->title }}</b></td>
-                                <td>{{ $m->hoursLabel() }}</td>
-                                <td class="hint">{{ $m->outcome ?: '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <p class="hint">The office set these. Tick each one on a student’s own page as they get through it —
-                    that mark is what moves their track, and the office sees the same line you enter.</p>
-            @endif
-        </div>
-    @empty
-        <div class="card">
-            <h3>No cohort at {{ $t->venue->name ?? 'your site' }} yet</h3>
-            <p class="help">You are approved for this site. The programme office posts a cohort and names its trainer —
-                until then your record sits here ready, and you can still apply for open projects under My projects.</p>
-        </div>
-    @endforelse
+            <p class="hint">The office set these. Tick each one on a student’s own page as they get through it —
+                that mark is what moves their track, and the office sees the same line you enter.</p>
+        @endif
+    </div>
 @empty
-    @if ($canTeach)
+    @if ($trainers->where('status', 'approved')->isNotEmpty())
+        <div class="card">
+            <h3>No cohort handed to you yet</h3>
+            <p class="help">You are approved at
+                {{ $trainers->where('status', 'approved')->pluck('venue.name')->filter()->join(', ') ?: 'your site' }}.
+                The programme office posts a cohort and names its trainer — until then your record sits here ready, and
+                you can still apply for open projects under My projects.</p>
+        </div>
+    @elseif ($canTeach)
         <div class="card">
             <h3>You are not on the trainer list yet</h3>
             <p class="help">Pick a site above and send it in. The office approves a trainer for that site, and only then

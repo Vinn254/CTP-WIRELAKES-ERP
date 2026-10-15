@@ -17,7 +17,10 @@ class TrainingController extends Controller
     public function index(Request $request)
     {
         return view('admin.trainings.index', [
-            'trainings' => Training::withCount(['cohorts', 'trainers', 'modules'])->with('modules')->orderBy('status')->orderBy('name')->get(),
+            'trainings' => Training::withCount(['cohorts', 'trainers', 'modules'])
+                ->with(['modules', 'cohorts' => fn ($q) => $q->select('id', 'training_id', 'reference', 'academic_year', 'term', 'status', 'starts_on', 'ends_on')
+                    ->orderByDesc('academic_year')->orderByDesc('starts_on')])
+                ->orderBy('status')->orderBy('name')->get(),
             'statuses' => Training::STATUSES,
             'search' => trim((string) $request->input('q')),
         ]);

@@ -684,3 +684,21 @@ body.zooming { overflow: hidden; }
 .lb-bar .lb-one { width: auto; padding: 0 10px; font-size: .74rem; letter-spacing: .06em; }
 .lb-bar .lb-close { font-size: 1.1rem; }
 .lb-bar button:hover { background: var(--lime); color: #083d0d; border-color: var(--lime); }
+
+/* Cohort results — one table the office and the trainer both read. */
+.result-table td { white-space: nowrap; }
+.result-table td:first-child { white-space: normal; min-width: 170px; }
+.result-table .flag-bad { color: #b3261e; font-weight: 700; }
+.result-table .flag-good { color: #0d7a3f; font-weight: 700; }
+.result-table .flag-partial { color: var(--muted); }
+.result-stats { margin-bottom: 14px; }
+.cohort-chooser .tabs { margin-top: 10px; }
+
+/* A course running across terms and years — the run history and the year filter. */
+.year-tabs { margin-top: -6px; }
+.run-history .runs-table { margin-bottom: 12px; }
+.run-history .runs-table td { white-space: nowrap; }
+.runs-table tr.run-current { background: rgba(132, 204, 22, .12); }
+.runs-chips { margin-top: 6px; }
+.runs-chips .chip { cursor: pointer; }
+.chip.on { background: var(--lime); color: #083d0d; border-color: var(--lime); }

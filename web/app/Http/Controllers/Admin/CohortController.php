@@ -26,12 +26,16 @@ class CohortController extends Controller
     public function index(Request $request)
     {
         $status = $request->input('status', 'all');
+        $year = (int) $request->input('year');
 
         return view('admin.cohorts.index', [
             'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+                ->when($year, fn ($q) => $q->where('academic_year', $year))
                 ->orderByDesc('starts_on')->orderBy('id')->get(),
             'status' => $status,
+            'year' => $year,
+            'years' => Cohort::whereNotNull('academic_year')->distinct()->orderByDesc('academic_year')->pluck('academic_year'),
             'counts' => Cohort::selectRaw('status, count(*) n')->groupBy('status')->pluck('n', 'status'),
             'pendingSeats' => Enrollment::where('state', 'pending')->count(),
         ]);
@@ -94,6 +98,33 @@ class CohortController extends Controller
         return back()->with('status', $cohort->reference.' is now '.strtolower(Cohort::STATUSES[$data['status']]).'.');
     }
 
+    /** Every cohort's results on one table — the office picks a cohort and reads the trainees in it. */
+    public function results(Request $request)
+    {
+        $cohorts = Cohort::where('status', '!=', 'draft')
+            ->with(['training:id,name,code', 'venue:id,name,county', 'trainer.fundi:id,full_name',
+                'enrollments:id,cohort_id,state'])
+            ->orderByDesc('academic_year')->orderByDesc('starts_on')->orderBy('id')->get();
+
+        $cohort = $cohorts->firstWhere('id', (int) $request->input('cohort')) ?: $cohorts->first();
+
+        $enrollments = $cohort
+            ? $cohort->enrollments()
+                ->with(['ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'certification', 'cohort.training.modules'])
+                ->orderByRaw("case state when 'approved' then 0 when 'pending' then 1 else 2 end")
+                ->get()
+                ->sortBy(fn ($e) => mb_strtolower($e->ctp->full_name ?? ''))
+                ->values()
+            : collect();
+
+        return view('admin.cohorts.results', [
+            'cohorts' => $cohorts,
+            'cohort' => $cohort,
+            'enrollments' => $enrollments,
+            'runs' => $cohort ? $this->runsOf($cohort) : collect(),
+        ]);
+    }
+
     /** The cohort page: the roster, the seat queue and every trainee's progress. */
     public function show(Cohort $cohort)
     {
@@ -114,6 +145,7 @@ class CohortController extends Controller
             'kinds' => ProgressEntry::KINDS,
             'stages' => Enrollment::STAGES,
             'states' => Enrollment::STATES,
+            'runs' => $this->runsOf($cohort),
         ]);
     }
 
@@ -247,6 +279,15 @@ class CohortController extends Controller
         return back()->with('status', 'Application removed.');
     }
 
+    /** Every run of the same course, newest academic year first — a course is expected to run again. */
+    private function runsOf(Cohort $cohort)
+    {
+        return Cohort::where('training_id', $cohort->training_id)
+            ->with(['trainer.fundi:id,full_name', 'venue:id,name',
+                'enrollments' => fn ($q) => $q->select('id', 'cohort_id', 'state', 'stage')])
+            ->orderByDesc('academic_year')->orderByDesc('starts_on')->orderBy('id')->get();
+    }
+
     private function validated(Request $request): array
     {
         return $request->validate([
@@ -259,6 +300,8 @@ class CohortController extends Controller
             'ward' => 'nullable|string|max:120',
             'starts_on' => 'required|date',
             'ends_on' => 'required|date|after_or_equal:starts_on',
+            'academic_year' => 'nullable|integer|min:2000|max:2100',
+            'term' => 'nullable|in:'.implode(',', array_keys(Cohort::TERMS)),
             'enrol_closes_on' => 'nullable|date|before_or_equal:starts_on',
             'seats' => 'required|integer|min:1|max:500',
             'theory_hours' => 'nullable|integer|min:0|max:2000',
@@ -269,6 +312,7 @@ class CohortController extends Controller
             'training_id' => 'Training', 'venue_id' => 'Venue', 'trainer_id' => 'Trainer',
             'community_id' => 'Community', 'county' => 'County', 'sub_county' => 'Sub-county', 'seats' => 'Seats',
             'starts_on' => 'Start date', 'ends_on' => 'End date', 'enrol_closes_on' => 'Applications close',
+            'academic_year' => 'Academic year', 'term' => 'Term or semester',
             'fee_ksh' => 'Training fee',
         ]);
     }

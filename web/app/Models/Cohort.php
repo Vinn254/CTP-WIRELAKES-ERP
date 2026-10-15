@@ -19,9 +19,19 @@ class Cohort extends Model
         'cancelled' => 'Cancelled',
     ];
 
+    /** When in the academic calendar a run sits — a course is expected to run in more than one. */
+    public const TERMS = [
+        'term_1' => 'Term 1',
+        'term_2' => 'Term 2',
+        'term_3' => 'Term 3',
+        'semester_1' => 'Semester 1',
+        'semester_2' => 'Semester 2',
+        'annual' => 'Full year',
+    ];
+
     protected $fillable = [
         'reference', 'training_id', 'venue_id', 'trainer_id', 'community_id',
-        'county', 'sub_county', 'ward', 'starts_on', 'ends_on', 'enrol_closes_on',
+        'county', 'sub_county', 'ward', 'starts_on', 'ends_on', 'academic_year', 'term', 'enrol_closes_on',
         'seats', 'theory_hours', 'practical_hours', 'fee_ksh', 'summary', 'status',
     ];
 
@@ -29,11 +39,35 @@ class Cohort extends Model
         'starts_on' => 'date',
         'ends_on' => 'date',
         'enrol_closes_on' => 'date',
+        'academic_year' => 'integer',
         'seats' => 'integer',
         'theory_hours' => 'integer',
         'practical_hours' => 'integer',
         'fee_ksh' => 'decimal:2',
     ];
+
+    /** The office sets a term when it matters; a cohort always lands in the year and term its dates fall in. */
+    protected static function booted(): void
+    {
+        static::saving(function (self $cohort) {
+            if (! $cohort->starts_on) {
+                return;
+            }
+
+            $cohort->academic_year ??= (int) $cohort->starts_on->year;
+            $cohort->term ??= self::guessTerm($cohort->starts_on);
+        });
+    }
+
+    /** The three-term calendar the programme's intake dates fall into. */
+    public static function guessTerm($date): string
+    {
+        return match (true) {
+            (int) $date->month <= 4 => 'term_1',
+            (int) $date->month <= 8 => 'term_2',
+            default => 'term_3',
+        };
+    }
 
     public function training(): BelongsTo
     {
@@ -113,6 +147,22 @@ class Cohort extends Model
     public function courseLabel(): string
     {
         return $this->training?->name ?? 'Training';
+    }
+
+    public function termLabel(): ?string
+    {
+        return self::TERMS[$this->term] ?? null;
+    }
+
+    public function yearLabel(): ?string
+    {
+        return (string) ($this->academic_year ?: $this->starts_on?->year);
+    }
+
+    /** Where this run sits in the history of the course — 2026 · Term 3. */
+    public function periodLabel(): string
+    {
+        return collect([$this->yearLabel(), $this->termLabel()])->filter()->join(' · ') ?: 'period not set';
     }
 
     public function dateLabel(): string

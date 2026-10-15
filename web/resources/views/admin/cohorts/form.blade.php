@@ -117,6 +117,21 @@
             <input type="date" name="enrol_closes_on" value="{{ old('enrol_closes_on', $cohort->enrol_closes_on?->toDateString()) }}">
             <div class="help">Leave empty to keep the intake open until you close it here.</div>
         </div>
+        <div class="field">
+            <label>Academic year</label>
+            <input type="number" name="academic_year" min="2000" max="2100" step="1"
+                   value="{{ old('academic_year', $cohort->academic_year ?: $cohort->starts_on?->year) }}">
+            <div class="help">The year this run belongs to — a course that runs for years is read back year by year.</div>
+        </div>
+        <div class="field">
+            <label>Term or semester</label>
+            <select name="term">
+                @foreach (\App\Models\Cohort::TERMS as $key => $label)
+                    <option value="{{ $key }}" @selected((old('term', $cohort->term ?: \App\Models\Cohort::guessTerm($cohort->starts_on ?? today())) === $key))>{{ $label }}</option>
+                @endforeach
+            </select>
+            <div class="help">Taken from the start date if you leave it — change it when the intake sits elsewhere in the calendar.</div>
+        </div>
     </div>
 
     <div class="field" style="margin-top:18px;">

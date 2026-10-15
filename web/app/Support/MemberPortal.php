@@ -94,7 +94,8 @@ class MemberPortal
                 ->with(['entries', 'certification', 'moduleMarks', 'documents', 'cohort.training.modules', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
                 ->get(),
             'history' => $ctp->enrollments()
-                ->with(['cohort:id,reference,training_id', 'cohort.training:id,name,code', 'certification'])
+                ->with(['cohort:id,reference,training_id,venue_id,trainer_id,academic_year,term,starts_on,ends_on',
+                    'cohort.training:id,name,code', 'certification'])
                 ->whereNotIn('state', ['pending', 'approved'])->latest('id')->get(),
         ];
     }

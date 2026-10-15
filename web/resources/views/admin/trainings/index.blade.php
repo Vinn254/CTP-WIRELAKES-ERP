@@ -72,8 +72,17 @@
                     <div class="hint"><a href="#modules-{{ $t->id }}">Set the modules</a></div>
                 </td>
                 <td>{{ $t->cohorts_count }}
+                    @if ($t->cohorts->count() > 1)
+                        <div class="chips runs-chips">
+                            @foreach ($t->cohorts as $r)
+                                <a class="chip" href="{{ route('admin.cohorts.results', ['cohort' => $r->id]) }}"
+                                   title="{{ $r->reference }} — {{ $r->dateLabel() }}">{{ $r->yearLabel() }} {{ $r->termLabel() }}</a>
+                            @endforeach
+                        </div>
+                    @endif
                     <div class="hint">
-                        <a href="{{ route('admin.cohorts.index') }}">Cohorts</a>
+                        <a href="{{ route('admin.cohorts.index') }}">Cohorts</a> ·
+                        <a href="{{ route('admin.cohorts.results') }}">Results</a>
                     </div>
                 </td>
                 <td>{{ $t->trainers_count }}

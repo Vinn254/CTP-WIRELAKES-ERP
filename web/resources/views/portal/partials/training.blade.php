@@ -75,6 +75,39 @@
         community arrives in your list whether or not you applied for it.</p>
 </div>
 
+@php $myRuns = $mine->concat($history)->filter(fn ($e) => $e->cohort); @endphp
+@if ($myRuns->isNotEmpty())
+    <div class="card">
+        <div class="section-head">
+            <h3>Your training, term by term</h3>
+            <span class="hint">{{ $myRuns->count() }} intake{{ $myRuns->count() === 1 ? '' : 's' }}
+                across {{ $myRuns->pluck('cohort.academic_year')->filter()->unique()->count() }} academic year{{ $myRuns->pluck('cohort.academic_year')->filter()->unique()->count() === 1 ? '' : 's' }}</span>
+        </div>
+        <table class="data">
+            <thead>
+                <tr><th>Year</th><th>Term</th><th>Course</th><th>Intake</th><th>Where</th><th>Seat</th><th>Stage</th><th>Certificate</th></tr>
+            </thead>
+            <tbody>
+                @foreach ($myRuns->sortByDesc(fn ($e) => (($e->cohort->academic_year ?: $e->cohort->starts_on?->year) ?: 0).'.'.($e->cohort->term ?: '')) as $e)
+                    @php $c = $e->cohort; @endphp
+                    <tr>
+                        <td><b>{{ $c->yearLabel() ?: '—' }}</b></td>
+                        <td>{{ $c->termLabel() ?: '—' }}</td>
+                        <td>{{ $c->courseLabel() }}<div class="hint">{{ $c->dateLabel() }}</div></td>
+                        <td>{{ $c->reference }}</td>
+                        <td>{{ $c->venue?->name ?: ($c->trainer?->fundi?->full_name ? $c->trainer->fundi->full_name.'’s site' : '—') }}</td>
+                        <td><span class="status {{ $e->state === 'approved' ? 'active' : ($e->state === 'pending' ? 'pending_review' : 'closed') }}">{{ $e->stateLabel() }}</span></td>
+                        <td><span class="tag">{{ $e->stageLabel() }}</span></td>
+                        <td>{{ $e->certification?->certificate_code ?: ($e->certification ? $e->certification->statusLabel() : '—') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <p class="hint">Every run stays on your file — taking a course again in a later term does not overwrite what you
+            already completed. The office and your trainer see the same lines.</p>
+    </div>
+@endif
+
 @if ($mine->isNotEmpty())
     @foreach ($mine as $e)
         @php
@@ -85,6 +118,7 @@
         <div class="card">
             <div class="section-head">
                 <h3>{{ $c->courseLabel() }}</h3>
+                <span class="tag">{{ $c->periodLabel() }}</span>
                 <span class="tag gold">{{ $c->reference }}</span>
                 <span class="status {{ $e->state === 'approved' ? 'active' : 'pending_review' }}">{{ $e->stateLabel() }}</span>
                 @if ($e->source === 'office')<span class="tag">seat given by the office</span>@endif

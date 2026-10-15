@@ -74,6 +74,7 @@ class Departments
         ],
         'training' => [
             ['label' => 'Cohorts', 'icon' => 'briefcase', 'route' => ['admin.cohorts.index'], 'badge' => 'seats'],
+            ['label' => 'Cohort results', 'icon' => 'grid', 'route' => ['admin.cohorts.results']],
             ['label' => 'Track', 'icon' => 'check', 'route' => ['admin.track.index']],
             ['label' => 'Training', 'icon' => 'award', 'route' => ['admin.trainings.index']],
             ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],

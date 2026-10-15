@@ -24,21 +24,32 @@
 
 <form method="GET" class="filter-bar">
     <button class="btn btn-sm btn-primary" type="button" onclick="location.href='{{ route('admin.cohorts.create') }}'">Post a training</button>
+    <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.results') }}">Cohort results</a>
     <span class="hint" style="margin-left:8px;">A cohort starts as a draft — only an open one reaches the CTP portal.</span>
 </form>
 
 <div class="tabs">
     @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.cohorts.index', ['status' => $s]) }}">
+        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.cohorts.index', ['status' => $s, 'year' => $year ?: null]) }}">
             {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
         </a>
     @endforeach
 </div>
 
+@if ($years->count() > 1 || $year)
+    <div class="tabs year-tabs">
+        <a class="tab {{ $year ? '' : 'on' }}" href="{{ route('admin.cohorts.index', ['status' => $status]) }}">Every year</a>
+        @foreach ($years as $y)
+            <a class="tab {{ $year === (int) $y ? 'on' : '' }}"
+               href="{{ route('admin.cohorts.index', ['status' => $status, 'year' => $y]) }}">{{ $y }}</a>
+        @endforeach
+    </div>
+@endif
+
 <table class="data">
     <thead>
         <tr>
-            <th>Ref</th><th>Course</th><th>Where</th><th>Trainer</th><th>When</th>
+            <th>Ref</th><th>Course</th><th>Period</th><th>Where</th><th>Trainer</th><th>When</th>
             <th>Seats</th><th>Trainees</th><th>Status</th><th></th>
         </tr>
     </thead>
@@ -54,6 +65,7 @@
                     <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->courseLabel() }}</b></a>
                     <div class="hint">{{ $c->training?->name }} · {{ $c->hoursLabel() }}</div>
                 </td>
+                <td><span class="tag">{{ $c->periodLabel() }}</span></td>
                 <td>{{ $c->venue?->name ?: ($c->trainer ? 'Trainer site' : 'Community site') }}
                     <div class="hint">{{ collect([$c->ward, $c->sub_county, $c->county])->filter()->join(', ') }}</div></td>
                 <td>{{ $c->trainer?->fundi?->full_name ?: '—' }}
@@ -69,7 +81,7 @@
                 <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a></td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">
                 No cohorts in this view yet. Post a training, then open it for CTPs to apply.
             </td></tr>
         @endforelse

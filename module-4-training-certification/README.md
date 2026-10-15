@@ -101,6 +101,22 @@ record table with **+ Add a record for (name)** already open, the track, the mod
 expands three trainees inside one card any more, and a mark cannot land on the wrong seat because two intakes carry
 the same person. A seat that is not confirmed opens read-only; a student outside the trainer's own cohorts is a 404.
 
+**Results are read per cohort — and a cohort is placed in a term.** `GET /admin/cohorts/results` (**Cohort results**
+on the cohorts screen) takes one cohort in a picker grouped by academic year and puts **every trainee's result on one
+table**: attendance, modules marked, theory / practical / assessment averages, the track %, the certificate state and
+**Open**. The office cohort page carries the same table (`partials/results`), and `/portal/trainer` shows it to the
+trainer for the cohorts they teach — the same numbers, one record, nothing retyped. A trainer with more than one intake
+gets a **cohort chooser** (tabs: one per cohort, labelled `2026 Term 3 · TRN-0002`) and the chosen cohort alone is
+rendered, so the course's deliverables table appears once, not once per intake.
+
+A run carries its place in the calendar: `cohorts.academic_year` + `cohorts.term` (`Cohort::TERMS` — three terms, two
+semesters, full year). Both are set on the cohort form and, if left alone, derived from the start date, so a run always
+lands in a year and a term. That makes a course that has run for years readable as history:
+`partials/runs` lists **every run of the same course grouped by academic year** on the cohort page, the results page and
+the trainer's card; the training catalogue shows a chip per run; and the CTP's own portal has
+**Your training, term by term** — year, term, course, intake, seat, stage and the certificate code from every run they
+were part of, earlier runs never overwritten.
+
 **Modules are expected, and typed in in one go.** A training lists the modules it must cover
 (`training_modules`, ordered by `position`), and `/admin/trainings` has a **+ Add another module** repeater — several
 rows, one submit, numbered in the order typed, a blank row simply not added and a validation miss returning exactly
