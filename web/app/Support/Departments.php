@@ -2,17 +2,23 @@
 
 namespace App\Support;
 
+use App\Models\BudgetLine;
 use App\Models\Certification;
 use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Community;
 use App\Models\Enrollment;
 use App\Models\EWasteCollection;
+use App\Models\FinanceEntry;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
+use App\Models\InventoryItem;
 use App\Models\Need;
 use App\Models\Partner;
+use App\Models\Payout;
 use App\Models\ProjectApplication;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseRequest;
 use App\Models\Trainer;
 
 /**
@@ -43,7 +49,7 @@ class Departments
         ['slug' => 'ewaste', 'tag' => 'Module 10', 'name' => 'E-Waste Management',
             'desc' => 'Collection, weighing, refurbish, disposal', 'live' => true],
         ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance, Procurement & Inventory',
-            'desc' => 'Budgets, procurement, payments, stock', 'live' => false],
+            'desc' => 'Budgets, the money register, purchases, stock and the two payout streams', 'live' => true],
         ['slug' => 'me_gis', 'tag' => 'Module 12', 'name' => 'M&E, GIS, Reports',
             'desc' => 'Impact metrics, maps, per-role reports', 'live' => false],
         ['slug' => 'mobile', 'tag' => 'Module 13', 'name' => 'Mobile App',
@@ -87,6 +93,14 @@ class Departments
         'ewaste' => [
             ['label' => 'E-Waste register', 'icon' => 'globe', 'route' => ['admin.ewaste.index'], 'badge' => 'collections'],
         ],
+        'finance' => [
+            ['label' => 'Programme budget', 'icon' => 'sliders', 'route' => ['admin.budget.index'], 'badge' => 'overbudget'],
+            ['label' => 'Money register', 'icon' => 'briefcase', 'route' => ['admin.ledger.index']],
+            ['label' => 'Purchases', 'icon' => 'link', 'route' => ['admin.procurement.index'], 'badge' => 'requests'],
+            ['label' => 'Suppliers', 'icon' => 'building', 'route' => ['admin.suppliers.index']],
+            ['label' => 'Inventory', 'icon' => 'grid', 'route' => ['admin.inventory.index'], 'badge' => 'lowstock'],
+            ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
+        ],
     ];
 
     /** Which department owns a route name prefix. */
@@ -112,6 +126,12 @@ class Departments
         'admin.certification.' => 'training',
         'admin.fundis.' => 'efundi',
         'admin.ewaste.' => 'ewaste',
+        'admin.budget.' => 'finance',
+        'admin.ledger.' => 'finance',
+        'admin.procurement.' => 'finance',
+        'admin.suppliers.' => 'finance',
+        'admin.inventory.' => 'finance',
+        'admin.payouts.' => 'finance',
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -138,6 +158,12 @@ class Departments
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
         'admin.ewaste.index' => 'What the field collected, what it weighed in at and what condition it is in',
+        'admin.budget.index' => 'What each programme category was given this year, and what has been charged against it',
+        'admin.ledger.index' => 'Every shilling in and out, with the budget line it sits on',
+        'admin.procurement.index' => 'Requests, quotations, purchase orders, deliveries and payments — one path per request',
+        'admin.suppliers.index' => 'The suppliers quotations are taken from, and who has already been paid',
+        'admin.inventory.index' => 'Stock cards by SKU, what is on the shelf, what is below its reorder level and what left the store',
+        'admin.payouts.index' => 'Project income and training income, kept on two separate release paths (§14.6)',
     ];
 
     public static function all(): array
@@ -188,6 +214,12 @@ class Departments
             'certificates' => Certification::where('status', 'recommended')->count(),
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
             'collections' => EWasteCollection::whereIn('status', ['submitted', 'forwarded'])->count(),
+            'requests' => PurchaseRequest::whereIn('status', ['submitted', 'quoted'])->count(),
+            'orders' => PurchaseOrder::whereIn('status', ['received', 'matched'])->count(),
+            'lowstock' => InventoryItem::where('status', 'active')->whereColumn('reorder_level', '>', 'qty_on_hand')->count(),
+            'overbudget' => BudgetLine::where('fiscal_year', now()->year)->where('amount_ksh', '>', 0)->get()
+                ->filter(fn (BudgetLine $line) => FinanceEntry::spent($line->fiscal_year, $line->category) > (float) $line->amount_ksh)->count(),
+            'payouts' => Payout::whereIn('stage', ['queued', 'approved'])->count(),
             default => 0,
         };
     }

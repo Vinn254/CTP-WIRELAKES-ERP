@@ -33,9 +33,41 @@ class Enrollment extends Model
 
     protected $fillable = [
         'cohort_id', 'ctp_id', 'state', 'stage', 'source', 'note', 'reviewed_by', 'approved_on',
+        'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at', 'fee_recorded_by',
     ];
 
-    protected $casts = ['approved_on' => 'date'];
+    protected $casts = ['approved_on' => 'date', 'fee_paid_at' => 'datetime', 'fee_amount' => 'decimal:2'];
+
+    /** What the course fee costs for this seat — the cohort's own fee, or nothing when the cohort is free. */
+    public function feeDueKsh(): float
+    {
+        return (float) ($this->fee_amount ?: $this->cohort->fee_ksh ?: 0);
+    }
+
+    public function feePaid(): bool
+    {
+        return $this->fee_status === 'paid';
+    }
+
+    public function feeLabel(): string
+    {
+        return match ($this->fee_status) {
+            'paid' => 'Fee paid',
+            'waived' => 'Fee waived',
+            default => $this->feeDueKsh() > 0 ? 'Fee not paid yet' : 'No fee on this course',
+        };
+    }
+
+    /** The seat fee form, validated the same way wherever it is shown. */
+    public static function feeFrom(Request $request): array
+    {
+        return $request->validate([
+            'fee_status' => 'required|in:paid,waived',
+            'fee_method' => 'nullable|required_if:fee_status,paid|in:mpesa,bank,cash,cheque,other',
+            'fee_amount' => 'nullable|numeric|min:0|max:999999',
+            'fee_reference' => 'nullable|string|max:60',
+        ], [], ['fee_method' => 'payment method', 'fee_amount' => 'amount', 'fee_reference' => 'reference']);
+    }
 
     /** The form every seat-taking screen uses — the CTP's application and the office's enrolment. */
     public static function dataFrom(Request $request): array
@@ -58,6 +90,11 @@ class Enrollment extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function feeRecorder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'fee_recorded_by');
     }
 
     public function entries(): HasMany

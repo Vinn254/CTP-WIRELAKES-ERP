@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BudgetController;
 use App\Http\Controllers\Admin\CertificationController;
 use App\Http\Controllers\Admin\CohortController;
 use App\Http\Controllers\Admin\CommunityController;
@@ -8,12 +9,17 @@ use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
+use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\NeedController;
+use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\TrackController;
 use App\Http\Controllers\Admin\TrainerController;
 use App\Http\Controllers\Admin\TrainingController;
@@ -106,6 +112,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/projects/{project}/assign', [ProjectController::class, 'assignMember'])->name('projects.assign');
     Route::post('/projects/{project}/decline/{application}', [ProjectController::class, 'decline'])->name('projects.decline');
     Route::post('/projects/{project}/release', [ProjectController::class, 'releaseAward'])->name('projects.release');
+    Route::post('/projects/{project}/materials', [ProjectController::class, 'storeMaterial'])->whereNumber('project')->name('projects.materials.store');
+    Route::post('/projects/materials/{material}/supply', [ProjectController::class, 'supplyMaterial'])->whereNumber('material')->name('projects.materials.supply');
+    Route::patch('/projects/materials/{material}', [ProjectController::class, 'updateMaterial'])->whereNumber('material')->name('projects.materials.update');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.delete');
 
     // Hirers (organisations recorded by staff)
@@ -198,6 +207,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/cohorts/{cohort}/enrol', [CohortController::class, 'enrol'])->whereNumber('cohort')->name('cohorts.enrol');
 
     Route::post('/enrollments/{enrollment}/decision', [CohortController::class, 'decide'])->whereNumber('enrollment')->name('enrollments.decide');
+    Route::post('/enrollments/{enrollment}/fee', [CohortController::class, 'fee'])->whereNumber('enrollment')->name('enrollments.fee');
     Route::post('/enrollments/{enrollment}/stage', [CohortController::class, 'setStage'])->whereNumber('enrollment')->name('enrollments.stage');
     Route::delete('/enrollments/{enrollment}', [CohortController::class, 'drop'])->whereNumber('enrollment')->name('enrollments.delete');
 
@@ -240,6 +250,48 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/ewaste', [EwasteController::class, 'index'])->name('ewaste.index');
     Route::post('/ewaste/{collection}/receive', [EwasteController::class, 'receive'])->whereNumber('collection')->name('ewaste.receive');
     Route::get('/ewaste/{collection}/photo', [EwasteController::class, 'photo'])->whereNumber('collection')->name('ewaste.photo');
+
+    // Module 11 — Finance, Procurement & Inventory. The plan, the ledger, the purchase path, the store and the two payout streams.
+    Route::get('/finance/budget', [BudgetController::class, 'index'])->name('budget.index');
+    Route::post('/finance/budget', [BudgetController::class, 'save'])->name('budget.save');
+
+    Route::get('/finance/ledger', [LedgerController::class, 'index'])->name('ledger.index');
+    Route::post('/finance/ledger', [LedgerController::class, 'store'])->name('ledger.store');
+
+    Route::get('/finance/procurement', [ProcurementController::class, 'index'])->name('procurement.index');
+    Route::post('/finance/procurement', [ProcurementController::class, 'store'])->name('procurement.store');
+    Route::get('/finance/procurement/{purchaseRequest}', [ProcurementController::class, 'show'])->whereNumber('purchaseRequest')->name('procurement.show');
+    Route::post('/finance/procurement/{purchaseRequest}/decide', [ProcurementController::class, 'decide'])->whereNumber('purchaseRequest')->name('procurement.decide');
+    Route::post('/finance/procurement/{purchaseRequest}/quote', [ProcurementController::class, 'quote'])->whereNumber('purchaseRequest')->name('procurement.quote');
+    Route::post('/finance/procurement/{purchaseRequest}/order', [ProcurementController::class, 'raiseOrder'])->whereNumber('purchaseRequest')->name('procurement.order');
+    Route::delete('/finance/quotation/{quotation}', [ProcurementController::class, 'dropQuotation'])->whereNumber('quotation')->name('procurement.quotation.delete');
+    Route::post('/finance/quotation/{quotation}/select', [ProcurementController::class, 'selectQuotation'])->whereNumber('quotation')->name('procurement.quotation.select');
+    Route::post('/finance/order/{order}/issue', [ProcurementController::class, 'issueOrder'])->whereNumber('order')->name('procurement.order.issue');
+    Route::post('/finance/order/{order}/receive', [ProcurementController::class, 'receiveOrder'])->whereNumber('order')->name('procurement.order.receive');
+    Route::post('/finance/order/{order}/match', [ProcurementController::class, 'matchOrder'])->whereNumber('order')->name('procurement.order.match');
+    Route::post('/finance/order/{order}/pay', [ProcurementController::class, 'payOrder'])->whereNumber('order')->name('procurement.order.pay');
+
+    Route::get('/finance/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+    Route::post('/finance/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+    Route::patch('/finance/suppliers/{supplier}', [SupplierController::class, 'update'])->whereNumber('supplier')->name('suppliers.update');
+    Route::post('/finance/suppliers/{supplier}/status', [SupplierController::class, 'setStatus'])->whereNumber('supplier')->name('suppliers.status');
+
+    Route::get('/finance/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/finance/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+    Route::get('/finance/inventory/{item}', [InventoryController::class, 'show'])->whereNumber('item')->name('inventory.show');
+    Route::post('/finance/inventory/{item}/move', [InventoryController::class, 'move'])->whereNumber('item')->name('inventory.move');
+    Route::post('/finance/inventory/{item}/reorder', [InventoryController::class, 'reorder'])->whereNumber('item')->name('inventory.reorder');
+
+    Route::get('/finance/payouts', [PayoutController::class, 'index'])->name('payouts.index');
+    Route::post('/finance/payouts', [PayoutController::class, 'store'])->name('payouts.store');
+    Route::get('/finance/payouts/{payout}', [PayoutController::class, 'show'])->whereNumber('payout')->name('payouts.show');
+    Route::post('/finance/payouts/{payout}/hirer-payment', [PayoutController::class, 'confirmHirerPayment'])->whereNumber('payout')->name('payouts.hirer');
+    Route::post('/finance/payouts/{payout}/report', [PayoutController::class, 'confirmReport'])->whereNumber('payout')->name('payouts.report');
+    Route::post('/finance/payouts/{payout}/approve', [PayoutController::class, 'approve'])->whereNumber('payout')->name('payouts.approve');
+    Route::post('/finance/payouts/{payout}/release', [PayoutController::class, 'release'])->whereNumber('payout')->name('payouts.release');
+    Route::post('/finance/payouts/{payout}/hold', [PayoutController::class, 'hold'])->whereNumber('payout')->name('payouts.hold');
+    Route::post('/finance/payouts/{payout}/resume', [PayoutController::class, 'resume'])->whereNumber('payout')->name('payouts.resume');
+    Route::post('/finance/payouts/{payout}/reject', [PayoutController::class, 'reject'])->whereNumber('payout')->name('payouts.reject');
 });
 
 // Member portal — the member's own interface. Never staff, never public.
@@ -269,6 +321,10 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/ewaste', [PortalController::class, 'storeEwaste'])->name('ewaste.store');
     Route::post('/ewaste/{collection}/forward', [PortalController::class, 'forwardEwaste'])->whereNumber('collection')->name('ewaste.forward');
     Route::get('/ewaste/{collection}/photo', [PortalController::class, 'ewastePhoto'])->whereNumber('collection')->name('ewaste.photo');
+    // Module 11 — a member raises a purchase request (§14.4 step 1) and an E-Fundi reads their two income streams (§14.6).
+    Route::get('/procurement', [PortalController::class, 'procurement'])->name('procurement');
+    Route::post('/procurement', [PortalController::class, 'storeProcurement'])->name('procurement.store');
+    Route::get('/earnings', [PortalController::class, 'earnings'])->name('earnings');
     Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
     Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
     Route::post('/communities', [PortalController::class, 'storeCommunity'])->name('community.store');

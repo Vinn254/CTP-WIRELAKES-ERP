@@ -38,6 +38,40 @@
  <div class="hint">Shown to members on the project page, so they know what the job comes with.</div>
  </div>
 
+ @if (! $project->exists)
+ <div class="field" style="grid-column:1 / -1;">
+ <label>Materials the programme provides — and what each costs</label>
+ <div class="help">Put a quantity and a cost on every item the organisation is handing over for this job. The fundi sees this list, and the total of what is actually given is deducted from their payout (§14.6 step 6). Anything the job needs that the fundi brings themselves is not listed here.</div>
+ <table class="data">
+ <thead>
+ <tr><th>Material</th><th style="width:120px;">Quantity</th><th style="width:150px;">Unit</th><th style="width:170px;">Cost each (KSh)</th></tr>
+ </thead>
+ <tbody>
+ @foreach (range(0, 4) as $i)
+ <tr>
+ <td><input type="text" name="material[{{ $i }}][name]" maxlength="190" placeholder="e.g. Cable, 2.5 mm single core (coil)" value="{{ old('material.'.$i.'.name') }}"></td>
+ <td><input type="number" name="material[{{ $i }}][quantity]" step="0.01" min="0" placeholder="0" value="{{ old('material.'.$i.'.quantity') }}"></td>
+ <td>
+ <select name="material[{{ $i }}][unit]">
+ @foreach (\App\Models\InventoryItem::UNITS as $key => $label)
+ <option value="{{ $key }}">{{ $label }}</option>
+ @endforeach
+ </select>
+ </td>
+ <td><input type="number" name="material[{{ $i }}][cost]" step="0.01" min="0" placeholder="0" value="{{ old('material.'.$i.'.cost') }}"></td>
+ </tr>
+ @endforeach
+ </tbody>
+ </table>
+ <div class="hint">Leave the rows you do not need empty. Lines can be added, or taken from a stock card, on the project page after posting.</div>
+ </div>
+ @else
+ <div class="field" style="grid-column:1 / -1;">
+ <label>Materials the programme provides</label>
+ <div class="help">{{ $project->providedMaterials()->count() }} line(s) on {{ $project->reference }}, worth {{ \App\Support\Finance::ksh($project->materialsPlannedKsh()) }} planned and {{ \App\Support\Finance::ksh($project->materialsSuppliedKsh()) }} handed over. Add, cost or hand over a line on <a href="{{ route('admin.projects.show', $project) }}">the project page</a> — the fundi sees the same table.</div>
+ </div>
+ @endif
+
  <div class="field">
  <label>Who can apply <span class="req">*</span></label>
  <select name="category" required>

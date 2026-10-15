@@ -96,6 +96,110 @@
  </div>
 </div>
 
+<h2 style="margin-top:26px;">Materials the programme provides <span class="tag">{{ $project->providedMaterials->count() }}</span></h2>
+
+<div class="card">
+ <p class="help">What the organisation hands over for this job, with a cost on every line. The fundi sees exactly this table on the project. Once a line is recorded as handed over, its value is what the payout deducts (§14.6 step 6) — so the worker is never paid the full agreed amount for a job whose materials the programme bought.</p>
+
+ @if ($project->providedMaterials->isEmpty())
+ <p class="hint">Nothing is listed yet. Add the cable, boards and fittings the programme is supplying before the work starts.</p>
+ @else
+ <table class="data">
+ <thead>
+ <tr><th>Material</th><th>From the store</th><th>Quantity</th><th>Cost each</th><th>Value</th><th>Handed over</th><th></th></tr>
+ </thead>
+ <tbody>
+ @foreach ($project->providedMaterials as $m)
+ <tr>
+ <td><b>{{ $m->name }}</b>@if ($m->note)<div class="hint">{{ $m->note }}</div>@endif</td>
+ <td>@if ($m->item->exists)<a class="hint" href="{{ route('admin.inventory.show', $m->item) }}">{{ $m->item->sku }}</a>@else <span class="hint">bought for the job</span>@endif</td>
+ <td>{{ $m->quantityLabel() }}</td>
+ <td>{{ $m->unitCostLabel() }}</td>
+ <td><b>{{ $m->totalLabel() }}</b></td>
+ <td>
+ @if ($m->isSupplied())
+ <span class="status active">Handed over {{ $m->supplied_on->format('d M Y') }}</span>
+ <div class="hint">by {{ $m->provider->name ?: 'the office' }}</div>
+ @else
+ <span class="status pending_review">Not yet given</span>
+ @endif
+ </td>
+ <td>
+ @unless ($m->isSupplied())
+ <details class="need-form">
+ <summary>Hand over / correct</summary>
+ <form method="POST" action="{{ route('admin.projects.materials.supply', $m) }}" class="fee-form"
+  data-confirm="Record {{ $m->name }} as handed over on this date?" data-title="Hand over material">
+  @csrf
+  <div class="field"><label>Handed over on <span class="req">*</span></label>
+   <input type="date" name="supplied_on" value="{{ now()->toDateString() }}" required></div>
+  <div class="field"><label>What to note about it</label>
+   <input type="text" name="note" maxlength="1000" placeholder="e.g. Two coils left at the site store with the caretaker."></div>
+  <button class="btn btn-lime btn-block" type="submit">Record as handed over</button>
+ </form>
+ <form method="POST" action="{{ route('admin.projects.materials.update', $m) }}" class="fee-form"
+  data-confirm="Correct this line?" data-title="Correct the line">
+  @csrf @method('PATCH')
+  <div class="form-grid-2">
+   <div class="field"><label>Quantity</label><input type="number" name="quantity" step="0.01" min="0.01" value="{{ $m->quantity }}"></div>
+   <div class="field"><label>Cost each (KSh)</label><input type="number" name="unit_cost_ksh" step="0.01" min="0" value="{{ $m->unit_cost_ksh }}"></div>
+  </div>
+  <div class="field"><label>Note</label><input type="text" name="note" maxlength="1000" value="{{ $m->note }}"></div>
+  <button class="btn btn-outline btn-block" type="submit">Save the correction</button>
+ </form>
+ </details>
+ @endunless
+ </td>
+ </tr>
+ @endforeach
+ </tbody>
+ <tfoot>
+ <tr>
+ <td colspan="4"><b>Planned {{ \App\Support\Finance::ksh($project->materialsPlannedKsh()) }} · handed over {{ \App\Support\Finance::ksh($project->materialsSuppliedKsh()) }}</b></td>
+ <td colspan="3" class="hint">The handed-over figure is the deduction the payout screen uses.</td>
+ </tr>
+ </tfoot>
+ </table>
+ @endif
+
+ <div class="two-col" style="margin-top:14px;">
+ <details class="need-form">
+ <summary>Add a material the programme is supplying</summary>
+ <form method="POST" action="{{ route('admin.projects.materials.store', $project) }}" class="fee-form" data-title="Add material">
+  @csrf
+  <div class="field"><label>Material <span class="req">*</span></label>
+   <input type="text" name="name" maxlength="190" required placeholder="e.g. Cable, 2.5 mm single core — 90 m coil"></div>
+  <div class="form-grid-2">
+   <div class="field"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
+   <div class="field"><label>Unit</label>
+    <select name="unit">@foreach ($units as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select></div>
+  </div>
+  <div class="field"><label>Cost each (KSh) <span class="req">*</span></label><input type="number" name="unit_cost_ksh" step="0.01" min="0" required></div>
+  <div class="field"><label>Note</label><input type="text" name="note" maxlength="1000" placeholder="Where it comes from, who fits it."></div>
+  <button class="btn btn-primary btn-block" type="submit">Add the line</button>
+ </form>
+ </details>
+
+ <details class="need-form">
+ <summary>Take it from a stock card</summary>
+ <form method="POST" action="{{ route('admin.projects.materials.store', $project) }}" class="fee-form" data-title="Issue from the store">
+  @csrf
+  <div class="field"><label>Stock card <span class="req">*</span></label>
+   <select name="inventory_item_id" required>
+    <option value="">Select a card</option>
+    @foreach ($cards as $c)<option value="{{ $c->id }}">{{ $c->sku }} — {{ $c->name }} ({{ \App\Support\Finance::ksh((float) $c->unit_cost_ksh) }} each)</option>@endforeach
+   </select>
+   <div class="help">The name, unit and cost come off the card. Booking the goods out on the card itself is what moves the store quantity (§14.5) — this line only says the job was given it.</div>
+  </div>
+  <div class="field"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
+  <div class="field"><label>Cost each (KSh)</label><input type="number" name="unit_cost_ksh" step="0.01" min="0" placeholder="Leave empty to use the card's cost"></div>
+  <div class="field"><label>Note</label><input type="text" name="note" maxlength="1000"></div>
+  <button class="btn btn-lime btn-block" type="submit">Add from the store</button>
+ </form>
+ </details>
+ </div>
+</div>
+
 <h2 style="margin-top:26px;">Applications <span class="tag">{{ $project->applications->count() }}</span>@if ($pending->count()) <span class="nav-badge">{{ $pending->count() }}</span>@endif</h2>
 
 @forelse ($project->applications as $app)

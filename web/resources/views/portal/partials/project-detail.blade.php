@@ -73,3 +73,40 @@
         @endif
     </div>
 </div>
+
+@if ($project->providedMaterials()->exists())
+    @php $lines = $project->providedMaterials()->orderBy('id')->get(); @endphp
+    <div class="card">
+        <div class="section-head"><h3>Materials the programme provides ({{ $lines->count() }})</h3></div>
+        <p class="hint">Every line is something the organisation supplies for this job, with what it costs.
+            Whatever is recorded as handed over is <b>deducted from the payout</b> — you are paid the agreed amount
+            less what you were given, never twice for the same cable (§14.6 step 6).</p>
+        <table class="data money-table">
+            <thead>
+                <tr><th>Material</th><th>Quantity</th><th>Cost each</th><th>Value</th><th>Given out</th></tr>
+            </thead>
+            <tbody>
+                @foreach ($lines as $m)
+                    <tr>
+                        <td><b>{{ $m->name }}</b>@if ($m->note)<div class="hint">{{ $m->note }}</div>@endif</td>
+                        <td>{{ $m->quantityLabel() }}</td>
+                        <td>{{ $m->unitCostLabel() }}</td>
+                        <td><b>{{ $m->totalLabel() }}</b></td>
+                        <td>@if ($m->isSupplied())
+                                <span class="status active">{{ $m->supplied_on->format('d M Y') }}</span>
+                            @else
+                                <span class="hint">not yet</span>
+                            @endif</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><b>Listed for the job</b></td>
+                    <td><b>{{ \App\Support\Finance::ksh($lines->sum(fn ($l) => $l->totalKsh())) }}</b></td>
+                    <td class="hint">{{ \App\Support\Finance::ksh($lines->filter->isSupplied()->sum(fn ($l) => $l->totalKsh())) }} already handed over</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+@endif

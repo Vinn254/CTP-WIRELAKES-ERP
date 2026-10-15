@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Enrollment;
+use App\Models\FinanceEntry;
 use App\Models\ModuleCompletion;
 use App\Models\ProgressEntry;
 use App\Models\Trainer;
@@ -13,6 +14,7 @@ use App\Models\Training;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
+use App\Support\Finance;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -133,7 +135,7 @@ class CohortController extends Controller
         return view('admin.cohorts.show', [
             'cohort' => $cohort,
             'enrollments' => $cohort->enrollments()
-                ->with(['ctp:id,full_name,ctp_code,status,county,sub_county,ward', 'entries', 'certification',
+                ->with(['cohort', 'ctp:id,full_name,ctp_code,status,county,sub_county,ward', 'entries', 'certification',
                     'moduleMarks', 'documents'])
                 ->orderByRaw("case state when 'pending' then 0 when 'approved' then 1 else 2 end")
                 ->orderBy('id')->get(),
@@ -215,6 +217,47 @@ class CohortController extends Controller
         return back()->with('status', $enrollment->ctp->full_name.' '.($data['decision'] === 'approved'
             ? 'has a seat in '.$enrollment->cohort->reference.'.'
             : 'is not taken into '.$enrollment->cohort->reference.'.'));
+    }
+
+    /**
+     * The trainee's course fee is money in (§14.3). Recorded on the seat, and the ledger gets its line —
+     * the cohort only carries one fee per trainee, so a seat can pay it once.
+     */
+    public function fee(Request $request, Enrollment $enrollment)
+    {
+        $data = Enrollment::feeFrom($request);
+        $amount = (float) ($data['fee_amount'] ?: $enrollment->feeDueKsh());
+
+        abort_unless($enrollment->state === 'approved', 422, 'Only a trainee holding a seat has a fee to record.');
+        abort_if($amount <= 0, 422, $enrollment->cohort->reference.' carries no course fee, so there is nothing to record.');
+
+        $already = FinanceEntry::where('kind', 'training_fee')
+            ->where('cohort_id', $enrollment->cohort_id)->where('ctp_id', $enrollment->ctp_id)->exists();
+
+        $enrollment->update([
+            'fee_status' => $data['fee_status'],
+            'fee_method' => $data['fee_status'] === 'paid' ? $data['fee_method'] : null,
+            'fee_amount' => $amount,
+            'fee_reference' => $data['fee_reference'] ?? null,
+            'fee_paid_at' => now(),
+            'fee_recorded_by' => auth()->id(),
+        ]);
+
+        if ($data['fee_status'] === 'paid' && ! $already) {
+            FinanceEntry::post('training_fee', 'Course fee — '.$enrollment->ctp->full_name.' · '.$enrollment->cohort->reference,
+                $amount, [
+                    'method' => $data['fee_method'] ?: 'other',
+                    'cohort_id' => $enrollment->cohort_id,
+                    'ctp_id' => $enrollment->ctp_id,
+                    'source_type' => Enrollment::class,
+                    'source_id' => $enrollment->id,
+                    'note' => 'Recorded on the seat'.($data['fee_reference'] ?? null ? ' under '.$data['fee_reference'] : '.'),
+                ]);
+        }
+
+        return back()->with('status', $enrollment->ctp->full_name.': '.($data['fee_status'] === 'paid'
+            ? 'course fee of '.Finance::ksh($amount).' recorded for '.$enrollment->cohort->reference.' — it is on the ledger.'
+            : 'course fee waived for '.$enrollment->cohort->reference.'.'));
     }
 
     /** How far through the cohort a trainee has come (§7.5 steps 2-5). */

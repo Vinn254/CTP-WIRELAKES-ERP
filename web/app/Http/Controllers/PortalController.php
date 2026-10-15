@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Beneficiary;
+use App\Models\BudgetLine;
 use App\Models\Cohort;
 use App\Models\Community;
 use App\Models\County;
 use App\Models\CtpRegistration;
 use App\Models\EWasteCollection;
 use App\Models\Enrollment;
+use App\Models\FinanceEntry;
 use App\Models\FundiRegistration;
+use App\Models\InventoryItem;
 use App\Models\ModuleCompletion;
 use App\Models\Need;
+use App\Models\Payout;
 use App\Models\ProgressEntry;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\PurchaseRequest;
 use App\Models\Trainer;
 use App\Models\Training;
 use App\Models\TrainingDocument;
@@ -645,5 +650,107 @@ class PortalController extends Controller
         $application->delete();
 
         return back()->with('status', 'Application withdrawn.');
+    }
+
+    /**
+     * Module 11, field side (§14.4 step 1). Anyone on the programme can raise a purchase request — the item, the
+     * quantity, why it is needed and the project it is charged to. Deciding, quoting, ordering, receiving and paying
+     * are the office's steps; the member reads where their request got to on the same path.
+     */
+    public function procurement()
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found.');
+        $isCtp = $member instanceof CtpRegistration;
+
+        $mine = PurchaseRequest::ordered()
+            ->where($isCtp ? 'ctp_id' : 'fundi_id', $member->id)
+            ->with(['project:id,title', 'cohort:id,reference', 'item:id,sku,name,unit,qty_on_hand',
+                'orders:id,purchase_request_id,reference,status,amount_ksh',
+                'quotations:id,purchase_request_id,supplier_id,amount_ksh', 'quotations.supplier:id,name'])
+            ->get();
+
+        return view('portal.procurement', MemberPortal::board($member) + [
+            'mine' => $mine,
+            'isCtp' => $isCtp,
+            'units' => InventoryItem::UNITS,
+            'categories' => BudgetLine::CATEGORIES,
+            'statuses' => PurchaseRequest::STATUSES,
+            'path' => PurchaseRequest::PATH,
+            'awarded' => Project::whereHas('applications', fn ($q) => $q
+                ->where('applicant_type', MemberPortal::applicantType($member))
+                ->where('applicant_id', $member->id)->where('status', 'approved'))
+                ->orderByDesc('id')->get(['id', 'title', 'reference', 'status']),
+            'totals' => [
+                'lines' => $mine->count(),
+                'waiting' => $mine->whereIn('status', ['submitted', 'approved'])->count(),
+                'moving' => $mine->whereIn('status', ['quoted', 'ordered', 'received', 'matched'])->count(),
+                'filled' => $mine->where('status', 'paid')->count(),
+            ],
+        ]);
+    }
+
+    public function storeProcurement(Request $request)
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found.');
+        $isCtp = $member instanceof CtpRegistration;
+
+        $data = PurchaseRequest::dataFrom($request);
+
+        if (! empty($data['project_id'])) {
+            $theirs = ProjectApplication::where('project_id', $data['project_id'])
+                ->where('applicant_type', MemberPortal::applicantType($member))
+                ->where('applicant_id', $member->id)->exists();
+            abort_unless($theirs, 403,
+                'You can only charge a purchase to a project you were awarded or applied for — otherwise raise it as a general programme need.');
+        }
+
+        $pr = PurchaseRequest::create([
+            ...$data,
+            'reference' => PurchaseRequest::nextReference(),
+            'county' => $data['county'] ?? $member->county,
+            'raised_by_user' => $member->user_id,
+            'ctp_id' => $isCtp ? $member->id : null,
+            'fundi_id' => $isCtp ? null : $member->id,
+            'status' => 'submitted',
+        ]);
+
+        return back()->with('status', $pr->reference.' is raised for '.$pr->item_name.' ('.$pr->quantityLabel()
+            .'), charged to '.$pr->budgetLabel()
+            .'. The Programme Manager decides first (§14.4 step 2) — you will see the answer on this screen.');
+    }
+
+    /**
+     * Module 11, §14.6. The E-Fundi's own money: project payouts and training payouts kept apart, each with what
+     * was deducted, what the payout was calculated at and where the payment went. Read-only — releasing money is the
+     * Finance Officer's step, and the payout ID here is what a payment is traced by.
+     */
+    public function earnings()
+    {
+        $fundi = $this->fundi();
+
+        $payouts = Payout::with(['project:id,title', 'project.providedMaterials', 'cohort:id,reference', 'cohort.training:id,name',
+            'trainer.fundi:id,full_name', 'approver:id,name', 'releaser:id,name'])
+            ->where('fundi_id', $fundi->id)
+            ->orderByRaw("case stage when 'released' then 0 when 'approved' then 1 when 'queued' then 2
+                when 'held' then 3 when 'awaiting_hirer_payment' then 4 when 'awaiting_report' then 4 else 5 end")
+            ->orderByDesc('id')->get();
+
+        $isTrainer = $fundi->canTrain();
+
+        return view('portal.earnings', MemberPortal::board($fundi) + [
+            'payouts' => $payouts,
+            'isTrainer' => $isTrainer,
+            'stages' => Payout::STAGES,
+            'ledger' => FinanceEntry::where('fundi_id', $fundi->id)
+                ->orderByDesc('happened_on')->limit(25)->get(),
+            'totals' => [
+                'project' => (float) $payouts->where('stream', 'project')->where('stage', 'released')->sum('net_ksh'),
+                'training' => (float) $payouts->where('stream', 'training')->where('stage', 'released')->sum('net_ksh'),
+                'waiting' => (float) $payouts->whereNotIn('stage', ['released', 'rejected'])->sum('net_ksh'),
+                'lines' => $payouts->count(),
+            ],
+        ]);
     }
 }

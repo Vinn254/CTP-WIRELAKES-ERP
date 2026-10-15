@@ -585,6 +585,7 @@ html.dark .gaps { background: #2a2413; }
 .reject-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .fee-tag.paid { background: var(--lime-soft); color: var(--green-dark); }
 .fee-tag.waived { background: #eef1f4; color: var(--muted); }
+.fee-tag.unpaid { background: #fdecec; color: #9b1c1c; }
 .fee-tag.sponsored { background: var(--gold-soft, #fff4d6); color: #7a5200; }
 html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .milestone { margin: 4px 0 12px; }
@@ -702,3 +703,17 @@ body.zooming { overflow: hidden; }
 .runs-chips { margin-top: 6px; }
 .runs-chips .chip { cursor: pointer; }
 .chip.on { background: var(--lime); color: #083d0d; border-color: var(--lime); }
+
+/* Module 11 — money screens: a share of a budget, two forms side by side, a figure that is good or bad. */
+.bar { height: 9px; border-radius: 999px; background: var(--soft, #eef2f0); overflow: hidden; margin: 6px 0 4px; min-width: 90px; }
+.bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--lime)); }
+.bar.over i { background: #b3261e; }
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; margin: 18px 0; }
+.two-col > .card { margin: 0; }
+.flag-bad { color: #b3261e; font-weight: 700; }
+.flag-good { color: #0d7a3f; font-weight: 700; }
+html.dark .flag-bad { color: #ff6b61; }
+html.dark .flag-good { color: var(--lime); }
+.money-table td { white-space: nowrap; }
+.money-table td:nth-child(2) { white-space: normal; min-width: 200px; }
+.calc-line { background: var(--soft, #f2f5f3); border-left: 3px solid var(--green); padding: 10px 12px; border-radius: 6px; margin: 10px 0; font-weight: 700; }

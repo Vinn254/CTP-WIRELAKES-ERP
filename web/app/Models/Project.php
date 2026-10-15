@@ -67,6 +67,23 @@ class Project extends Model
         return $this->hasOne(ProjectApplication::class)->where('status', 'approved');
     }
 
+    /** What the programme provides for this job (§14.5). Listed when the project is posted, deducted when the fundi is paid.
+     *  Named apart from the `materials` text column, which is the office's plain-word description of the same list. */
+    public function providedMaterials(): HasMany
+    {
+        return $this->hasMany(ProjectMaterial::class);
+    }
+
+    public function materialsPlannedKsh(): float
+    {
+        return round($this->providedMaterials->sum(fn ($m) => $m->totalKsh()), 2);
+    }
+
+    public function materialsSuppliedKsh(): float
+    {
+        return round($this->providedMaterials->where('supplied_on', '!=', null)->sum(fn ($m) => $m->totalKsh()), 2);
+    }
+
     public static function nextCode(): string
     {
         return 'PRJ-'.strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));

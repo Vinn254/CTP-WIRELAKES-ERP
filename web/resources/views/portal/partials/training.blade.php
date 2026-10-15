@@ -126,6 +126,24 @@
             <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · {{ $c->placeLabel() }}
                 @if ($c->trainer?->fundi) · trainer {{ $c->trainer->fundi->full_name }} @endif</p>
 
+            <h4 class="dl-group">Course fee</h4>
+            <div class="row-line">
+                <span class="fee-tag {{ ['paid' => 'paid', 'waived' => 'waived', 'awaiting_payment' => 'unpaid'][$e->fee_status] ?? 'unpaid' }}">{{ $e->feeLabel() }}</span>
+                @if ($e->feePaid())
+                    <b>{{ number_format((float) $e->fee_amount, 2) }}</b> KSH
+                    received {{ $e->fee_paid_at?->format('d M Y') ?? 'date not recorded' }}
+                    <span class="hint">by {{ \App\Models\FinanceEntry::METHODS[$e->fee_method] ?? 'another route' }}
+                        @if ($e->fee_reference) · reference {{ $e->fee_reference }}@endif</span>
+                @elseif ($e->fee_status !== 'waived' && $e->feeDueKsh() > 0)
+                    <span class="hint">{{ number_format($e->feeDueKsh(), 2) }} KSH for this intake. The programme
+                        office records the payment when the money reaches them — it then appears on the programme's
+                        money register under {{ $c->reference }}. Never pay a fee to an individual; ask the office for
+                        the receipt if you have paid and this still says otherwise.</span>
+                @else
+                    <span class="hint">This intake carries no course fee.</span>
+                @endif
+            </div>
+
             <h4 class="dl-group">Where you are in the {{ $c->training?->name ?? 'training' }} track</h4>
             @php $track = collect(Enrollment::STAGES)->except('failed'); $here = array_search($e->stage, array_keys($track->all()), true); @endphp
             <ol class="steps">

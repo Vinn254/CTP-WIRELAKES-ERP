@@ -8,9 +8,12 @@ use App\Models\County;
 use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
+use App\Models\InventoryItem;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\ProjectMaterial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
@@ -72,16 +75,119 @@ class ProjectController extends Controller
             'posted_by' => auth()->id(),
         ]);
 
+        $rows = $this->materialRows($request);
+        foreach ($rows as $row) {
+            $project->providedMaterials()->create($row);
+        }
+
         return redirect()
             ->route('admin.projects.show', $project)
-            ->with('status', $project->reference.' posted. Members whose level matches can now see it.');
+            ->with('status', $project->reference.' posted with '.count($rows)
+                .' material line'.(count($rows) === 1 ? '' : 's').'. Members whose level matches can now see it.');
+    }
+
+    /**
+     * The materials block on the posting form. A row with no name is left blank and ignored; a row that gives
+     * a quantity without naming the material is a mistake, so it is reported rather than silently dropped.
+     */
+    private function materialRows(Request $request): array
+    {
+        $clean = collect($request->input('material', []))
+            ->map(fn ($row) => array_intersect_key((array) $row, array_flip(['name', 'quantity', 'unit', 'cost'])))
+            ->filter(fn ($row): bool => trim((string) ($row['name'] ?? '')) !== '')
+            ->values();
+
+        $stray = collect($request->input('material', []))
+            ->contains(fn ($row) => trim((string) (($row['name'] ?? ''))) === '' && ! empty($row['quantity']));
+
+        if ($stray && $clean->isEmpty()) {
+            abort(422, 'A material line needs its name — quantity alone cannot be shown to the fundi.');
+        }
+
+        return $clean->map(fn ($row) => [
+            'name' => Str::limit(trim($row['name']), 190, ''),
+            'quantity' => max(0.01, (float) ($row['quantity'] ?? 1)),
+            'unit' => array_key_exists($row['unit'] ?? '', InventoryItem::UNITS) ? $row['unit'] : 'pcs',
+            'unit_cost_ksh' => max(0, (float) ($row['cost'] ?? 0)),
+        ])->all();
+    }
+
+    /** Add a material line after the project is posted — from a stock card, or one the market is supplying. */
+    public function storeMaterial(Request $request, Project $project)
+    {
+        $data = ProjectMaterial::dataFrom($request);
+
+        if (! empty($data['inventory_item_id'])) {
+            $card = InventoryItem::findOrFail($data['inventory_item_id']);
+            $data['name'] = $card->name;
+            $data['unit'] = $card->unit;
+            $data['unit_cost_ksh'] = $data['unit_cost_ksh'] ?? $card->unit_cost_ksh;
+        }
+
+        abort_if(blank($data['name'] ?? null), 422, 'Name the material, or pick the stock card it comes from — the fundi has to see exactly what they are given.');
+
+        $material = $project->providedMaterials()->create([
+            'name' => $data['name'],
+            'inventory_item_id' => $data['inventory_item_id'] ?? null,
+            'quantity' => $data['quantity'],
+            'unit' => $data['unit'] ?? 'pcs',
+            'unit_cost_ksh' => $data['unit_cost_ksh'] ?? 0,
+            'note' => $data['note'] ?? null,
+        ]);
+
+        return back()->with('status', $material->name.' added to what '.$project->reference
+            .' provides — '.$material->quantityLabel().' at '.$material->unitCostLabel().' each = '
+            .$material->totalLabel().'. The fundi sees this line on the project.');
+    }
+
+    /** The store or the site hands it over: the line becomes part of what the payout deducts. */
+    public function supplyMaterial(Request $request, ProjectMaterial $material)
+    {
+        $data = $request->validate([
+            'supplied_on' => 'required|date',
+            'note' => 'nullable|string|max:1000',
+        ], [], ['supplied_on' => 'Date handed over']);
+
+        abort_if($material->isSupplied(), 422, $material->name.' was already recorded as handed over on '
+            .($material->supplied_on?->format('d M Y') ?? 'a date already on the line').'.');
+
+        $material->update([
+            'supplied_on' => $data['supplied_on'],
+            'supplied_by_user' => auth()->id(),
+            'note' => $data['note'] ?: $material->note,
+        ]);
+
+        return back()->with('status', $material->name.' recorded as handed over for '
+            .($material->project->reference ?? 'the project').' — '.$material->totalLabel()
+            .' now sits in the payout deduction. Goods from a stock card are also booked out on the card (§14.5).');
+    }
+
+    /** Correct the quantity or the cost on a line that has not been handed over yet. */
+    public function updateMaterial(Request $request, ProjectMaterial $material)
+    {
+        $data = $request->validate([
+            'quantity' => 'required|numeric|min:0.01|max:1000000',
+            'unit_cost_ksh' => 'required|numeric|min:0|max:100000000',
+            'note' => 'nullable|string|max:1000',
+        ], [], ['quantity' => 'Quantity', 'unit_cost_ksh' => 'Cost each']);
+
+        abort_if($material->isSupplied(), 422, $material->name.' was handed over on '
+            .($material->supplied_on?->format('d M Y') ?? 'a date already on the line')
+            .', so its line stays as it was given. Add a second line for anything extra, and the payout takes both.');
+
+        $material->update($data);
+
+        return back()->with('status', $material->name.' corrected to '.$material->fresh()->quantityLabel()
+            .' at '.$material->fresh()->unitCostLabel().' each = '.$material->fresh()->totalLabel().'.');
     }
 
     public function show(Project $project)
     {
         return view('admin.projects.show', [
-            'project' => $project->load(['hirer', 'applications', 'award', 'poster']),
+            'project' => $project->load(['hirer', 'applications', 'award', 'poster', 'providedMaterials.item', 'providedMaterials.provider']),
             'candidates' => Project::assignableMembers(),
+            'cards' => InventoryItem::where('status', 'active')->orderBy('name')->get(['id', 'sku', 'name', 'unit', 'unit_cost_ksh']),
+            'units' => InventoryItem::UNITS,
         ]);
     }
 

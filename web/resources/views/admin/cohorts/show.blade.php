@@ -3,12 +3,15 @@
 
 @php
     use App\Models\Enrollment;
+    use App\Models\FinanceEntry;
+    use App\Support\Finance;
     $pending = $enrollments->where('state', 'pending');
     $seated = $enrollments->where('state', 'approved');
     $others = $enrollments->reject(fn ($e) => in_array($e->state, ['pending', 'approved'], true));
 @endphp
 
 @section('content')
+@include('partials.errors')
 <p class="back"><a href="{{ route('admin.cohorts.index') }}">&larr; Cohorts</a></p>
 <div class="head-row">
     <div>
@@ -159,6 +162,7 @@
             <span class="tag">{{ $e->ctp->ctp_code }}</span>
             <span class="status {{ $e->stage }}">{{ $e->stageLabel() }}</span>
             <span class="fee-tag {{ $pct >= 100 ? 'paid' : 'waived' }}">track {{ $pct }}%</span>
+            <span class="fee-tag {{ ['paid' => 'paid', 'waived' => 'waived', 'awaiting_payment' => 'unpaid'][$e->fee_status] ?? 'unpaid' }}">{{ $e->feeLabel() }}</span>
             @if ($attendance !== null)
                 <span class="tag {{ $e->isBelowAttendance() ? 'gold' : 'gray' }}">{{ $attendance }}% attendance</span>
             @endif
@@ -204,6 +208,61 @@
                 </div>
             @endif
         </div>
+
+        <h4 class="dl-group" style="margin-top:16px;">Course fee</h4>
+        <p class="help" style="margin:0 0 8px;">
+            @if ($e->feePaid())
+                <b>{{ Finance::ksh((float) $e->fee_amount) }}</b> received {{ $e->fee_paid_at?->format('d M Y') ?? '—' }}
+                by {{ FinanceEntry::METHODS[$e->fee_method] ?? $e->fee_method }}
+                @if ($e->fee_reference) · ref {{ $e->fee_reference }}@endif
+                @if ($e->feeRecorder?->name) · recorded by {{ $e->feeRecorder->name }}@endif.
+                The money is on the register against this cohort — a mistake is corrected with an opposite ledger line,
+                never by deleting this seat.
+            @elseif ($e->fee_status === 'waived')
+                Waived by the office.
+            @else
+                {{ $e->feeDueKsh() > 0 ? 'Nothing recorded yet against '.Finance::ksh($e->feeDueKsh()).' due.' : 'This course carries no fee — set one here if the programme is charging.' }}
+            @endif
+        </p>
+        @if ($e->state === 'approved')
+            <details class="need-form">
+                <summary>{{ $e->feePaid() || $e->fee_status === 'waived' ? 'Correct the fee on this seat' : 'Record the course fee' }}</summary>
+                <form method="POST" action="{{ route('admin.enrollments.fee', $e) }}" class="fee-form">
+                    @csrf
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label>Outcome <span class="req">*</span></label>
+                            <select name="fee_status" required>
+                                @foreach (['paid' => 'Fee paid', 'waived' => 'Waived by the office'] as $k => $l)
+                                    <option value="{{ $k }}" @selected($e->fee_status === $k)>{{ $l }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Amount (KSH) <span class="req">*</span></label>
+                            <input type="number" name="fee_amount" min="0" step="0.01"
+                                   value="{{ old('fee_amount', $e->fee_amount ?: $e->feeDueKsh()) }}">
+                        </div>
+                        <div class="field">
+                            <label>Received by</label>
+                            <select name="fee_method">
+                                @foreach (array_diff_key(FinanceEntry::METHODS, ['pending' => 1]) as $k => $l)
+                                    <option value="{{ $k }}" @selected(old('fee_method', $e->fee_method) === $k)>{{ $l }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field" style="margin-top:10px;">
+                        <label>Payment reference</label>
+                        <input type="text" name="fee_reference" maxlength="60"
+                               placeholder="M-Pesa code, bank slip or receipt number." value="{{ old('fee_reference', $e->fee_reference) }}">
+                        <div class="help">Recording it as paid posts one income line on the money register under
+                            {{ $cohort->reference }} — this is where the programme's training income is counted (§14).</div>
+                    </div>
+                    <button class="btn btn-sm btn-lime" type="submit" style="margin-top:10px;">Save the fee</button>
+                </form>
+            </details>
+        @endif
 
         <h4 class="dl-group" style="margin-top:16px;">Track</h4>
         @include('partials.track', ['enrollment' => $e])
