@@ -22,6 +22,9 @@ use App\Models\PurchaseRequest;
 use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\Trainer;
+use App\Models\WorkOrder;
+use App\Models\WorkOrderDispute;
+use App\Models\WorkOrderMilestone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -38,6 +41,7 @@ class Audit
         ProjectMatch::class, Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
         InventoryItem::class, StockMovement::class, Setting::class,
+        WorkOrder::class, WorkOrderMilestone::class, WorkOrderDispute::class,
     ];
 
     /** @var array<string, bool> */
@@ -48,6 +52,7 @@ class Audit
         'status', 'state', 'stage', 'priority', 'tier', 'availability', 'fee_status', 'is_listed', 'active',
         'decision_note', 'rejection_reason', 'held_reason', 'net_ksh', 'agreed_amount_ksh', 'amount_ksh',
         'qty_on_hand', 'reason', 'value', 'supplied_on',
+        'schedule', 'outcome', 'penalty_ksh', 'percent_complete',
     ];
 
     /** Never written into the trail, whatever changes. */
@@ -55,6 +60,7 @@ class Audit
         'password', 'remember_token', 'token', 'api_token', 'photo_path', 'photo_name', 'photo_size',
         'id_scan_path', 'passport_photo_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
         'certificate_path', 'org_doc_path', 'logo_path',
+        'confirmation_path', 'confirmation_name', 'issue_path', 'issue_name', 'issue_size',
     ];
 
     public static function record(Model $subject, string $action, ?string $detail = null): void
@@ -87,6 +93,15 @@ class Audit
         if ($subject instanceof ProjectMatch) {
             return 'round '.$subject->round.' — '.($subject->fundi->full_name ?? 'an E-Fundi')
                 .' for '.($subject->project->title ?? 'a project');
+        }
+
+        if ($subject instanceof WorkOrderDispute) {
+            return 'dispute on '.($subject->workOrder->reference ?? 'a work order')
+                .($subject->outcome ? ' — '.$subject->outcomeLabel() : '');
+        }
+
+        if ($subject instanceof WorkOrderMilestone) {
+            return $subject->name.' — '.($subject->workOrder->reference ?? 'a work order');
         }
 
         foreach (['full_name', 'name', 'title', 'organisation', 'reference', 'item_name', 'sku'] as $field) {

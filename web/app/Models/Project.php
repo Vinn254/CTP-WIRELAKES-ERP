@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Execution;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -216,6 +217,10 @@ class Project extends Model
 
         $application->update(['status' => 'approved', 'reviewed_by' => auth()->id(), 'rejection_reason' => null]);
         $this->update(['status' => 'awarded', 'awarded_at' => now()]);
+
+        // §10.2 — an assignment is what a work order is generated from, so it happens here rather than on whichever
+        // screen reached the award. A CTP attachment is recorded the same way a fundi job is.
+        Execution::openFor($this, $application);
 
         return $application;
     }

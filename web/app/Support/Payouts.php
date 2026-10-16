@@ -42,7 +42,7 @@ class Payouts
             // so the office never types a figure that disagrees with what the store gave out (§14.6 step 6).
             'materials_ksh' => $isTraining
                 ? ($data['materials_ksh'] ?? 0)
-                : ($data['materials_ksh'] ?: self::materialsFor($data['project_id'] ?? null)),
+                : (($data['materials_ksh'] ?? null) ?: self::materialsFor($data['project_id'] ?? null)),
             'raised_by_user' => auth()->id(),
         ]);
 
@@ -247,6 +247,19 @@ class Payouts
         ], ['rejection_reason.min' => 'A payout is refused on a reason the fundi can read — say what is missing.']);
 
         $payout->update(['stage' => 'rejected', 'rejection_reason' => $data['rejection_reason'], 'held_reason' => null]);
+
+        return $payout;
+    }
+
+    /**
+     * Module 7 — a dispute decided after the handover changes what the worker is owed, and the payout is the same
+     * money record. The figure is carried over and the calculation rewritten, so the register and the work order
+     * never show two different deductions for one job.
+     */
+    public static function carryPenalty(Payout $payout, float $penalty): Payout
+    {
+        $payout->update(['penalty_ksh' => $penalty]);
+        static::storeFigures($payout->refresh());
 
         return $payout;
     }

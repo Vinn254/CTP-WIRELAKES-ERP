@@ -53,6 +53,8 @@ class MemberPortal
             'inviteCount' => $member instanceof FundiRegistration
                 ? ProjectMatch::for($member)->awaiting()->count()
                 : 0,
+            // §10.4 step 1 — the orders waiting on the worker's own signature, whichever member they are.
+            'workOrderCount' => Execution::awaitingWorker($member),
         ];
     }
 

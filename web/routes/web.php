@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CommunityController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\ExecutionController;
 use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\InventoryController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\WorkOrderPortalController;
 use Illuminate\Support\Facades\Route;
 
 // Public pages
@@ -260,6 +262,33 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/marketplace/{project}/award/{match}', [MarketplaceController::class, 'award'])->whereNumber('project')->whereNumber('match')->name('marketplace.award');
     Route::post('/marketplace/{project}/auto-award', [MarketplaceController::class, 'autoAward'])->whereNumber('project')->name('marketplace.autoaward');
 
+    // Module 7 — delivery (§10). The order an award turns into, the materials issued against it, what happened on site,
+    // the hirer's inspection as the office recorded it, the dispute path, and the hand into Module 11's payout register.
+    Route::get('/execution', [ExecutionController::class, 'index'])->name('execution.index');
+    Route::get('/execution/{order}', [ExecutionController::class, 'show'])->whereNumber('order')->name('execution.show');
+    Route::post('/execution/{order}/plan', [ExecutionController::class, 'plan'])->whereNumber('order')->name('execution.plan');
+    Route::post('/execution/{order}/material/{material}/issue', [ExecutionController::class, 'issueMaterial'])
+        ->whereNumber('order')->whereNumber('material')->name('execution.material.issue');
+    Route::post('/execution/{order}/milestone/{milestone}/sign', [ExecutionController::class, 'signMilestone'])
+        ->whereNumber('order')->whereNumber('milestone')->name('execution.milestone.sign');
+    Route::post('/execution/{order}/milestone/{milestone}/unsign', [ExecutionController::class, 'unsignMilestone'])
+        ->whereNumber('order')->whereNumber('milestone')->name('execution.milestone.unsign');
+    Route::post('/execution/{order}/visit', [ExecutionController::class, 'visit'])->whereNumber('order')->name('execution.visit');
+    Route::post('/execution/{order}/confirm', [ExecutionController::class, 'confirm'])->whereNumber('order')->name('execution.confirm');
+    Route::post('/execution/{order}/dispute', [ExecutionController::class, 'dispute'])->whereNumber('order')->name('execution.dispute');
+    Route::post('/execution/{order}/dispute/{dispute}/mediate', [ExecutionController::class, 'mediate'])
+        ->whereNumber('order')->whereNumber('dispute')->name('execution.dispute.mediate');
+    Route::post('/execution/{order}/dispute/{dispute}/decide', [ExecutionController::class, 'decide'])
+        ->whereNumber('order')->whereNumber('dispute')->name('execution.dispute.decide');
+    Route::post('/execution/{order}/handover', [ExecutionController::class, 'handover'])->whereNumber('order')->name('execution.handover');
+    Route::post('/execution/{order}/close', [ExecutionController::class, 'close'])->whereNumber('order')->name('execution.close');
+    Route::post('/execution/{order}/cancel', [ExecutionController::class, 'cancel'])->whereNumber('order')->name('execution.cancel');
+    Route::get('/execution/{order}/update/{update}/photo', [ExecutionController::class, 'updatePhoto'])
+        ->whereNumber('order')->whereNumber('update')->name('execution.update.photo');
+    Route::get('/execution/{order}/confirmation', [ExecutionController::class, 'confirmation'])->whereNumber('order')->name('execution.confirmation');
+    Route::get('/execution/{order}/dispute/{dispute}/evidence', [ExecutionController::class, 'disputeEvidence'])
+        ->whereNumber('order')->whereNumber('dispute')->name('execution.dispute.evidence');
+
     // Module 10 — E-Waste Management. The field registers, an E-Fundi forwards, the office weighs it in.
     Route::get('/ewaste', [EwasteController::class, 'index'])->name('ewaste.index');
     Route::post('/ewaste/{collection}/receive', [EwasteController::class, 'receive'])->whereNumber('collection')->name('ewaste.receive');
@@ -364,4 +393,17 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/projects/{project}', [PortalController::class, 'project'])->name('project');
     Route::post('/projects/{project}/apply', [PortalController::class, 'apply'])->name('apply');
     Route::post('/applications/{application}/withdraw', [PortalController::class, 'withdraw'])->name('withdraw');
+
+    // Module 7 — the worker's own side of the order (§10.4 steps 1, 3, 5 and §10.6 step 2).
+    Route::get('/work', [WorkOrderPortalController::class, 'index'])->name('work');
+    Route::get('/work/{order}', [WorkOrderPortalController::class, 'show'])->whereNumber('order')->name('work.show');
+    Route::post('/work/{order}/accept', [WorkOrderPortalController::class, 'accept'])->whereNumber('order')->name('work.accept');
+    Route::post('/work/{order}/log', [WorkOrderPortalController::class, 'log'])->whereNumber('order')->name('work.log');
+    Route::post('/work/{order}/complete', [WorkOrderPortalController::class, 'complete'])->whereNumber('order')->name('work.complete');
+    Route::post('/work/{order}/dispute/{dispute}/answer', [WorkOrderPortalController::class, 'answer'])
+        ->whereNumber('order')->whereNumber('dispute')->name('work.dispute.answer');
+    Route::get('/work/{order}/update/{update}/photo', [WorkOrderPortalController::class, 'photo'])
+        ->whereNumber('order')->whereNumber('update')->name('work.update.photo');
+    Route::get('/work/{order}/dispute/{dispute}/evidence', [WorkOrderPortalController::class, 'evidence'])
+        ->whereNumber('order')->whereNumber('dispute')->name('work.dispute.evidence');
 });

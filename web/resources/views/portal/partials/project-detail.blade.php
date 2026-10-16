@@ -68,7 +68,7 @@
             </form>
         @else
             <p class="hint" style="margin-top:12px;">
-                {{ $preview ? 'This is exactly what the member sees when the project is closed to applications.' : 'This project is no longer accepting applications.' }}
+                This project is no longer accepting applications.
             </p>
         @endif
     </div>
