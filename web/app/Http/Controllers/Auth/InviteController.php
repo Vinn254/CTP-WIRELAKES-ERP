@@ -32,6 +32,9 @@ class InviteController extends Controller
             'password' => $data['password'],
             'role' => $invite->role,
             'active' => true,
+            'departments' => $invite->role === 'superadmin' || ! $invite->department
+                ? null
+                : [$invite->department],
         ]);
 
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);

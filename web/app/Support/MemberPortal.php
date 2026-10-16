@@ -55,6 +55,10 @@ class MemberPortal
                 : 0,
             // §10.4 step 1 — the orders waiting on the worker's own signature, whichever member they are.
             'workOrderCount' => Execution::awaitingWorker($member),
+            // §11.4 step 5 — the inspection items the worker still owes a photograph of the fix for.
+            'fixCount' => Construction::fixesFor($member)->count(),
+            // §12.7 — the repair jobs on technology assets assigned to this fundi to fix.
+            'techJobCount' => Technology::jobCount($member),
         ];
     }
 

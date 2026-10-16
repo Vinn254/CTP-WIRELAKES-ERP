@@ -3,6 +3,7 @@
 
 @php
     $roleLabels = ['admin' => 'Admin', 'superadmin' => 'Super admin'];
+    $deptLabels = collect($liveDepartments)->mapWithKeys(fn ($d) => [$d['slug'] => $d['name']]);
 @endphp
 
 @section('content')
@@ -32,6 +33,14 @@
                     @endforeach
                 </select>
             </span>
+            <span class="fld"><label>Department</label>
+                <select name="department">
+                    <option value="">Super admin opens every department</option>
+                    @foreach ($liveDepartments as $d)
+                        <option value="{{ $d['slug'] }}" @selected(old('department') === $d['slug'])>{{ $d['tag'] }} · {{ $d['name'] }}</option>
+                    @endforeach
+                </select>
+            </span>
             <button class="btn btn-primary" type="submit">Create invitation</button>
         </form>
         <div class="hint" style="margin-top:10px;">
@@ -43,7 +52,7 @@
 <h2 class="sec-title">Staff accounts</h2>
 <table class="data">
     <thead>
-        <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th>@if ($isSuper)<th></th>@endif</tr>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Departments</th><th>Status</th><th>Joined</th>@if ($isSuper)<th></th>@endif</tr>
     </thead>
     <tbody>
         @foreach ($users as $u)
@@ -51,6 +60,17 @@
                 <td><b>{{ $u->name }}</b>@if ($u->id === auth()->id()) <span class="tag">you</span>@endif</td>
                 <td>{{ $u->email }}</td>
                 <td><span class="status {{ $u->role === 'superadmin' ? 'active' : 'pending_review' }}">{{ $roleLabels[$u->role] ?? $u->role }}</span></td>
+                <td>
+                    @if ($u->role === 'superadmin')
+                        <span class="tag">Every department</span>
+                    @elseif (! $u->departmentSlugs())
+                        <span class="tag gray">None assigned</span>
+                    @else
+                        @foreach ($u->departmentSlugs() as $s)
+                            <span class="tag">{{ $deptLabels[$s] ?? $s }}</span>
+                        @endforeach
+                    @endif
+                </td>
                 <td><span class="status {{ $u->active ? 'active' : 'rejected' }}">{{ $u->active ? 'Active' : 'Deactivated' }}</span></td>
                 <td>{{ $u->created_at->format('d M Y') }}</td>
                 @if ($isSuper)
@@ -66,6 +86,17 @@
                                     @endforeach
                                 </select>
                                 <label class="chk"><input type="checkbox" name="active" value="1" @checked($u->active)> Active</label>
+                                <details class="dept-pick">
+                                    <summary>Departments</summary>
+                                    <div class="dept-box">
+                                        @foreach ($liveDepartments as $d)
+                                            <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
+                                                @checked($u->role !== 'superadmin' && in_array($d['slug'], $u->departmentSlugs(), true))>
+                                                {{ $d['tag'] }}</label>
+                                        @endforeach
+                                        <div class="hint">A super admin opens every one regardless of this.</div>
+                                    </div>
+                                </details>
                                 <button class="btn btn-sm btn-outline" type="submit">Save</button>
                             </form>
                         @endif

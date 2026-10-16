@@ -264,6 +264,23 @@ class Payouts
         return $payout;
     }
 
+    /**
+     * Module 8 §11.5 — an approved variation changes what the hirer agreed to pay, and the payout is the same money
+     * record. The agreed figure is carried over and the calculation rewritten. A payout already approved or released
+     * is not touched: Construction refuses the approval and points at this register instead.
+     */
+    public static function carryAgreed(Payout $payout, float $agreed): Payout
+    {
+        abort_unless(in_array($payout->stage, ['awaiting_hirer_payment', 'held', 'queued'], true), 422,
+            $payout->reference.' is '.$payout->stageLabel().' — an amount that has passed the approval gate is corrected '
+            .'on this register by Finance, not from another module.');
+
+        $payout->update(['agreed_amount_ksh' => $agreed]);
+        static::storeFigures($payout->refresh());
+
+        return $payout;
+    }
+
     private static function storeFigures(Payout $payout): void
     {
         $figures = $payout->calculate();

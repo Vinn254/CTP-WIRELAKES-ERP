@@ -81,6 +81,32 @@ class Project extends Model
         return $this->hasMany(ProjectMaterial::class);
     }
 
+    /** Module 8 — the construction file that opens on a buildable project (§11.2). */
+    public function assessments(): HasMany
+    {
+        return $this->hasMany(SiteAssessment::class)->orderByDesc('visited_on')->orderByDesc('id');
+    }
+
+    public function boqItems(): HasMany
+    {
+        return $this->hasMany(BoqItem::class)->orderBy('position')->orderBy('id');
+    }
+
+    public function labourEntries(): HasMany
+    {
+        return $this->hasMany(LabourEntry::class)->orderByDesc('worked_on')->orderByDesc('id');
+    }
+
+    public function inspections(): HasMany
+    {
+        return $this->hasMany(SiteInspection::class)->orderByDesc('scheduled_on')->orderByDesc('id');
+    }
+
+    public function variations(): HasMany
+    {
+        return $this->hasMany(VariationOrder::class)->orderByDesc('id');
+    }
+
     public function materialsPlannedKsh(): float
     {
         return round($this->providedMaterials->sum(fn ($m) => $m->totalKsh()), 2);

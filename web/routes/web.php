@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BudgetController;
 use App\Http\Controllers\Admin\CertificationController;
 use App\Http\Controllers\Admin\CohortController;
 use App\Http\Controllers\Admin\CommunityController;
+use App\Http\Controllers\Admin\ConstructionController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\TechnologyController;
 use App\Http\Controllers\Admin\TrackController;
 use App\Http\Controllers\Admin\TrainerController;
 use App\Http\Controllers\Admin\TrainingController;
@@ -33,6 +35,8 @@ use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Auth\ActivateController;
 use App\Http\Controllers\Auth\InviteController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\InspectionFixController;
+use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\RegistrationController;
@@ -289,6 +293,39 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/execution/{order}/dispute/{dispute}/evidence', [ExecutionController::class, 'disputeEvidence'])
         ->whereNumber('order')->whereNumber('dispute')->name('execution.dispute.evidence');
 
+    // Module 8 — Construction & Infrastructure. The engineering file a buildable project carries (§11).
+    Route::get('/construction', [ConstructionController::class, 'index'])->name('construction.index');
+    Route::get('/construction/{project}', [ConstructionController::class, 'show'])->whereNumber('project')->name('construction.show');
+    Route::post('/construction/{project}/assess', [ConstructionController::class, 'assess'])->whereNumber('project')->name('construction.assess');
+    Route::post('/construction/{project}/boq', [ConstructionController::class, 'boq'])->whereNumber('project')->name('construction.boq');
+    Route::post('/construction/boq/{line}/withdraw', [ConstructionController::class, 'withdrawLine'])->whereNumber('line')->name('construction.withdraw');
+    Route::post('/construction/{project}/labour', [ConstructionController::class, 'labour'])->whereNumber('project')->name('construction.labour');
+    Route::post('/construction/{project}/inspection', [ConstructionController::class, 'schedule'])->whereNumber('project')->name('construction.schedule');
+    Route::post('/construction/inspection/{inspection}/report', [ConstructionController::class, 'report'])->whereNumber('inspection')->name('construction.report');
+    Route::post('/construction/inspection/{inspection}/sign-off', [ConstructionController::class, 'signOff'])->whereNumber('inspection')->name('construction.signOff');
+    Route::post('/construction/item/{item}/recheck', [ConstructionController::class, 'recheck'])->whereNumber('item')->name('construction.recheck');
+    Route::post('/construction/{project}/variation', [ConstructionController::class, 'variation'])->whereNumber('project')->name('construction.variation');
+    Route::post('/construction/variation/{variation}/decide', [ConstructionController::class, 'decide'])->whereNumber('variation')->name('construction.decide');
+    Route::get('/construction/assessment/{assessment}/photo', [ConstructionController::class, 'assessmentFile'])->whereNumber('assessment')->name('construction.assessment.photo');
+    Route::get('/construction/inspection/{inspection}/photo', [ConstructionController::class, 'inspectionPhoto'])->whereNumber('inspection')->name('construction.inspection.photo');
+    Route::get('/construction/item/{item}/proof', [ConstructionController::class, 'itemProof'])->whereNumber('item')->name('construction.item.proof');
+
+    // Module 9 — Technology Services. The asset register, the project register and the repair tickets (§12).
+    Route::get('/technology', [TechnologyController::class, 'index'])->name('technology.index');
+    Route::get('/technology/assets/create', [TechnologyController::class, 'createAsset'])->name('technology.asset.create');
+    Route::post('/technology/assets', [TechnologyController::class, 'storeAsset'])->name('technology.asset.store');
+    Route::get('/technology/assets/{asset}', [TechnologyController::class, 'showAsset'])->whereNumber('asset')->name('technology.asset');
+    Route::post('/technology/assets/{asset}', [TechnologyController::class, 'updateAsset'])->whereNumber('asset')->name('technology.asset.update');
+    Route::post('/technology/assets/{asset}/decommission', [TechnologyController::class, 'decommission'])->whereNumber('asset')->name('technology.asset.decommission');
+    Route::post('/technology/assets/{asset}/ticket', [TechnologyController::class, 'openTicket'])->whereNumber('asset')->name('technology.asset.ticket');
+    Route::post('/technology/tickets/{ticket}/assign', [TechnologyController::class, 'assignTicket'])->whereNumber('ticket')->name('technology.ticket.assign');
+    Route::post('/technology/tickets/{ticket}/resolve', [TechnologyController::class, 'resolveTicket'])->whereNumber('ticket')->name('technology.ticket.resolve');
+    Route::post('/technology/tickets/{ticket}/close', [TechnologyController::class, 'closeTicket'])->whereNumber('ticket')->name('technology.ticket.close');
+    Route::get('/technology/projects/create', [TechnologyController::class, 'createProject'])->name('technology.project.create');
+    Route::post('/technology/projects', [TechnologyController::class, 'storeProject'])->name('technology.project.store');
+    Route::get('/technology/projects/{project}', [TechnologyController::class, 'showProject'])->whereNumber('project')->name('technology.project');
+    Route::post('/technology/projects/{project}', [TechnologyController::class, 'updateProject'])->whereNumber('project')->name('technology.project.update');
+
     // Module 10 — E-Waste Management. The field registers, an E-Fundi forwards, the office weighs it in.
     Route::get('/ewaste', [EwasteController::class, 'index'])->name('ewaste.index');
     Route::post('/ewaste/{collection}/receive', [EwasteController::class, 'receive'])->whereNumber('collection')->name('ewaste.receive');
@@ -406,4 +443,13 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
         ->whereNumber('order')->whereNumber('update')->name('work.update.photo');
     Route::get('/work/{order}/dispute/{dispute}/evidence', [WorkOrderPortalController::class, 'evidence'])
         ->whereNumber('order')->whereNumber('dispute')->name('work.dispute.evidence');
+
+    // Module 8 — the worker answers an inspection item the inspector failed, with the photograph of the rework (§11.4 step 5).
+    Route::get('/fixes', [InspectionFixController::class, 'index'])->name('fixes');
+    Route::post('/fixes/{item}/proof', [InspectionFixController::class, 'prove'])->whereNumber('item')->name('fixes.prove');
+    Route::get('/fixes/{item}/photo', [InspectionFixController::class, 'proof'])->whereNumber('item')->name('fixes.proof');
+
+    // Module 9 — the fundi's own repair jobs. A ticket assigned to them is answered here; the office confirms and closes it (§12.7).
+    Route::get('/tech', [TechnologyJobController::class, 'index'])->name('tech.jobs');
+    Route::post('/tech/{ticket}/resolve', [TechnologyJobController::class, 'resolve'])->whereNumber('ticket')->name('tech.resolve');
 });

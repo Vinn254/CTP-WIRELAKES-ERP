@@ -32,6 +32,12 @@
     $nav[] = ['label' => 'E-Waste collection', 'icon' => 'globe', 'route' => 'portal.ewaste', 'active' => ['portal.ewaste']];
     // §10.4 — the worker's own side of a job they were awarded. A CTP only ever sees an attachment order here.
     $nav[] = ['label' => $isCtp ? 'My attachment work' : 'My work orders', 'icon' => 'briefcase', 'route' => 'portal.work', 'active' => ['portal.work', 'portal.work.show'], 'count' => ($workOrderCount ?? 0)];
+    // §11.4 step 5 — what the inspector flagged on their site and the worker still owes proof of.
+    $nav[] = ['label' => 'Items to put right', 'icon' => 'check', 'route' => 'portal.fixes', 'active' => ['portal.fixes'], 'count' => ($fixCount ?? 0)];
+    // §12.7 — repair jobs on technology assets assigned to this fundi to fix.
+    if (! $isCtp) {
+        $nav[] = ['label' => 'My repair jobs', 'icon' => 'grid', 'route' => 'portal.tech.jobs', 'active' => ['portal.tech.jobs'], 'count' => ($techJobCount ?? 0)];
+    }
     $nav[] = ['label' => 'Purchase request', 'icon' => 'link', 'route' => 'portal.procurement', 'active' => ['portal.procurement']];
     if (! $isCtp) {
         $nav[] = ['label' => 'My earnings', 'icon' => 'briefcase', 'route' => 'portal.earnings', 'active' => ['portal.earnings']];

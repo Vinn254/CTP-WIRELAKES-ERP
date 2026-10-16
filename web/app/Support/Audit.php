@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\ActivityLog;
+use App\Models\BoqItem;
 use App\Models\Certification;
 use App\Models\Cohort;
 use App\Models\Community;
@@ -13,6 +14,7 @@ use App\Models\FinanceEntry;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\InventoryItem;
+use App\Models\LabourEntry;
 use App\Models\Need;
 use App\Models\Payout;
 use App\Models\Project;
@@ -20,8 +22,15 @@ use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
 use App\Models\Setting;
+use App\Models\SiteAssessment;
+use App\Models\SiteInspection;
+use App\Models\SiteInspectionItem;
 use App\Models\StockMovement;
+use App\Models\TechnologyAsset;
+use App\Models\TechnologyProject;
+use App\Models\TechnologyTicket;
 use App\Models\Trainer;
+use App\Models\VariationOrder;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderDispute;
 use App\Models\WorkOrderMilestone;
@@ -42,6 +51,9 @@ class Audit
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
         InventoryItem::class, StockMovement::class, Setting::class,
         WorkOrder::class, WorkOrderMilestone::class, WorkOrderDispute::class,
+        SiteAssessment::class, BoqItem::class, LabourEntry::class,
+        SiteInspection::class, SiteInspectionItem::class, VariationOrder::class,
+        TechnologyAsset::class, TechnologyProject::class, TechnologyTicket::class,
     ];
 
     /** @var array<string, bool> */
@@ -53,6 +65,8 @@ class Audit
         'decision_note', 'rejection_reason', 'held_reason', 'net_ksh', 'agreed_amount_ksh', 'amount_ksh',
         'qty_on_hand', 'reason', 'value', 'supplied_on',
         'schedule', 'outcome', 'penalty_ksh', 'percent_complete',
+        'recommendation', 'quantity', 'unit_cost_ksh', 'withdraw_note', 'result', 'rechecked_on',
+        'extra_cost_ksh', 'extra_days', 'signed_off_on', 'scope',
     ];
 
     /** Never written into the trail, whatever changes. */
@@ -61,6 +75,7 @@ class Audit
         'id_scan_path', 'passport_photo_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths',
         'certificate_path', 'org_doc_path', 'logo_path',
         'confirmation_path', 'confirmation_name', 'issue_path', 'issue_name', 'issue_size',
+        'proof_path', 'proof_name', 'proof_size',
     ];
 
     public static function record(Model $subject, string $action, ?string $detail = null): void
@@ -104,7 +119,7 @@ class Audit
             return $subject->name.' — '.($subject->workOrder->reference ?? 'a work order');
         }
 
-        foreach (['full_name', 'name', 'title', 'organisation', 'reference', 'item_name', 'sku'] as $field) {
+        foreach (['full_name', 'name', 'title', 'organisation', 'reference', 'purpose', 'description', 'item', 'item_name', 'sku'] as $field) {
             if (filled($subject->getAttribute($field))) {
                 return (string) $subject->getAttribute($field);
             }

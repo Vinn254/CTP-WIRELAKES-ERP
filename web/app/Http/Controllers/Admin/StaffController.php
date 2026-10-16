@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\StaffInvite;
 use App\Models\User;
+use App\Support\Departments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -13,8 +14,9 @@ class StaffController extends Controller
     public function index()
     {
         return view('admin.staff.index', [
-            'users' => User::orderByDesc('role')->orderBy('name')->get(),
+            'users' => User::whereIn('role', ['admin', 'superadmin'])->orderByDesc('role')->orderBy('name')->get(),
             'invites' => StaffInvite::latest()->get(),
+            'liveDepartments' => Departments::live(),
             'isSuper' => auth()->user()->role === 'superadmin',
         ]);
     }
@@ -23,11 +25,20 @@ class StaffController extends Controller
     {
         abort_unless(auth()->user()->role === 'superadmin', 403);
 
+        $slugs = implode(',', array_column(Departments::live(), 'slug'));
+
         $data = $request->validate([
             'name' => 'required|string|max:120',
             'email' => 'required|email|max:160|unique:users,email|unique:staff_invites,email',
             'role' => 'required|in:admin,superadmin',
+            'department' => 'nullable|required_unless:role,superadmin|in:'.$slugs,
+        ], [
+            'department.required_unless' => 'Choose the department this admin will work in — a super admin opens every one.',
         ]);
+
+        if ($data['role'] === 'superadmin') {
+            $data['department'] = null;
+        }
 
         $invite = StaffInvite::create($data + [
             'token' => Str::random(48),
@@ -51,12 +62,25 @@ class StaffController extends Controller
         abort_unless(auth()->user()->role === 'superadmin', 403);
         abort_if($user->id === auth()->id(), 400, 'You cannot change your own role.');
 
+        $slugs = implode(',', array_column(Departments::live(), 'slug'));
+
         $data = $request->validate([
             'role' => 'required|in:admin,superadmin',
             'active' => 'boolean',
+            'departments' => 'nullable|array',
+            'departments.*' => 'in:'.$slugs,
         ]);
 
-        $user->update(['role' => $data['role'], 'active' => $request->boolean('active', $user->active)]);
+        // A super admin opens every department; an admin opens only the ones ticked here.
+        $departments = $data['role'] === 'superadmin'
+            ? null
+            : array_values(array_unique(array_filter((array) $request->input('departments', []))));
+
+        $user->update([
+            'role' => $data['role'],
+            'active' => $request->boolean('active', $user->active),
+            'departments' => $departments,
+        ]);
 
         return back()->with('status', $user->name.' updated.');
     }

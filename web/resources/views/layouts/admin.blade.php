@@ -62,7 +62,7 @@
             </a>
         </nav>
         <div class="side-foot">
-            <span class="side-ver">{{ $dept ? $dept['tag'].' · '.$dept['name'] : '13 departments · 1 programme' }}</span>
+            <span class="side-ver">{{ $dept ? $dept['tag'].' · '.$dept['name'] : count(Departments::visibleFor($me)).' department'.(count(Departments::visibleFor($me)) === 1 ? '' : 's').' · 1 programme' }}</span>
         </div>
     </aside>
 

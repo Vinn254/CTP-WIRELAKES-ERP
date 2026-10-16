@@ -8,8 +8,12 @@
 @section('content')
 <h1>Departments</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 20px;">
-    Welcome, {{ auth()->user()->name }}. Each department is one module of the programme — open a department to reach
-    the screens that belong to it.
+    Welcome, {{ auth()->user()->name }}.
+    @if ($isSuper)
+        You are a <b>super admin</b> — every one of the {{ count($departments) }} live modules is open to you.
+    @else
+        These are the {{ count($departments) }} department{{ count($departments) === 1 ? '' : 's' }} assigned to you. Each is one module — open it to reach the screens that belong to it.
+    @endif
 </p>
 
 <div class="dept-grid">

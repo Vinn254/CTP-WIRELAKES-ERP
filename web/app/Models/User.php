@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role', 'active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'active', 'departments'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,6 +28,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'active' => 'boolean',
+            'departments' => 'array',
         ];
+    }
+
+    /** The department (module) slugs this staff account may open — empty for a member or an unscoped admin. */
+    public function departmentSlugs(): array
+    {
+        return array_values(array_filter((array) ($this->departments ?? [])));
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
     }
 }

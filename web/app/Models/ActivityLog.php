@@ -49,6 +49,18 @@ class ActivityLog extends Model
         InventoryItem::class => 'Stock card',
         StockMovement::class => 'Goods in or out',
         Setting::class => 'Programme setting',
+        WorkOrder::class => 'Work order',
+        WorkOrderMilestone::class => 'Stage sign-off',
+        WorkOrderDispute::class => 'Dispute',
+        SiteAssessment::class => 'Site assessment',
+        BoqItem::class => 'Bill of quantities line',
+        LabourEntry::class => 'Labour counted on site',
+        SiteInspection::class => 'Site inspection',
+        SiteInspectionItem::class => 'Inspection item',
+        VariationOrder::class => 'Variation',
+        TechnologyAsset::class => 'Technology asset',
+        TechnologyProject::class => 'Technology project',
+        TechnologyTicket::class => 'Repair ticket',
     ];
 
     public static function recordName(?string $class): string

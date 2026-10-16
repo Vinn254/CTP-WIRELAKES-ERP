@@ -21,6 +21,7 @@ use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
 use App\Models\Trainer;
+use App\Models\User;
 use App\Models\WorkOrder;
 
 /**
@@ -45,9 +46,9 @@ class Departments
         ['slug' => 'execution', 'tag' => 'Module 7', 'name' => 'Project Execution & Payment',
             'desc' => 'Work orders, materials issued, progress on site, milestones, the hirer\'s inspection and disputes', 'live' => true],
         ['slug' => 'construction', 'tag' => 'Module 8', 'name' => 'Construction & Infrastructure',
-            'desc' => 'Site assessment, BOQ, inspections', 'live' => false],
+            'desc' => 'Site assessment, the bill of quantities, labour on site, inspections and variations', 'live' => true],
         ['slug' => 'technology', 'tag' => 'Module 9', 'name' => 'Technology Services',
-            'desc' => 'ICT, Networking, Robotics, Programming, AI', 'live' => false],
+            'desc' => 'ICT, Networking, Robotics, Programming and AI — the asset register, the projects and the repair tickets', 'live' => true],
         ['slug' => 'ewaste', 'tag' => 'Module 10', 'name' => 'E-Waste Management',
             'desc' => 'Collection, weighing, refurbish, disposal', 'live' => true],
         ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance, Procurement & Inventory',
@@ -98,6 +99,12 @@ class Departments
         'execution' => [
             ['label' => 'Delivery register', 'icon' => 'briefcase', 'route' => ['admin.execution.index'], 'badge' => 'workorders'],
         ],
+        'construction' => [
+            ['label' => 'Construction files', 'icon' => 'briefcase', 'route' => ['admin.construction.index'], 'badge' => 'construction'],
+        ],
+        'technology' => [
+            ['label' => 'Technology registers', 'icon' => 'grid', 'route' => ['admin.technology.index'], 'badge' => 'technology'],
+        ],
         'ewaste' => [
             ['label' => 'E-Waste register', 'icon' => 'globe', 'route' => ['admin.ewaste.index'], 'badge' => 'collections'],
         ],
@@ -142,6 +149,8 @@ class Departments
         'admin.fundis.' => 'efundi',
         'admin.marketplace.' => 'marketplace',
         'admin.execution.' => 'execution',
+        'admin.construction.' => 'construction',
+        'admin.technology.' => 'technology',
         'admin.ewaste.' => 'ewaste',
         'admin.budget.' => 'finance',
         'admin.ledger.' => 'finance',
@@ -182,6 +191,8 @@ class Departments
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
         'admin.marketplace.index' => 'Run the search, put the project to the top of the shortlist, and award it to a fundi who took it (§9.4)',
         'admin.execution.index' => 'The order an award turns into: materials issued, days on site, stages signed off, the hirer\'s inspection and any dispute (§10.4)',
+        'admin.construction.index' => 'The engineering file behind a build: the site read, the priced BoQ, labour counted, inspections re-checked and variations decided (§11)',
+        'admin.technology.index' => 'The five sub-areas on one desk: every device and licence on the asset register, the robotics/software/AI projects, and the repair tickets the fundis answer (§12)',
         'admin.ewaste.index' => 'What the field collected, what it weighed in at and what condition it is in',
         'admin.budget.index' => 'What each programme category was given this year, and what has been charged against it',
         'admin.ledger.index' => 'Every shilling in and out, with the budget line it sits on',
@@ -204,6 +215,40 @@ class Departments
     public static function find(string $slug): ?array
     {
         return collect(self::ALL)->firstWhere('slug', $slug);
+    }
+
+    /** The departments open today — a Phase-2 module is not on any staff screen. */
+    public static function live(): array
+    {
+        return array_values(array_filter(self::ALL, fn (array $d) => $d['live']));
+    }
+
+    /** The module slugs one staff account may reach. A super admin gets every live one; an admin gets what they are
+     *  assigned; anyone else (a member, an unscoped account) gets none. Never assumed — granted. */
+    public static function visibleSlugs(?User $user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $live = array_column(self::live(), 'slug');
+
+        return $user->isSuperAdmin()
+            ? $live
+            : array_values(array_intersect($user->departmentSlugs(), $live));
+    }
+
+    /** The department cards a signed-in staff member is allowed to see. */
+    public static function visibleFor(?User $user): array
+    {
+        $slugs = static::visibleSlugs($user);
+
+        return array_values(array_filter(self::live(), fn (array $d) => in_array($d['slug'], $slugs, true)));
+    }
+
+    public static function canSee(?User $user, ?string $slug): bool
+    {
+        return $slug !== null && in_array($slug, static::visibleSlugs($user), true);
     }
 
     public static function nav(string $slug): array
@@ -245,6 +290,8 @@ class Departments
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
             'invites' => ProjectMatch::where('status', 'invited')->count(),
             'workorders' => WorkOrder::whereIn('status', ['issued', 'completion_submitted', 'disputed', 'confirmed'])->count(),
+            'construction' => Construction::badge(),
+            'technology' => Technology::badge(),
             'collections' => EWasteCollection::whereIn('status', ['submitted', 'forwarded'])->count(),
             'requests' => PurchaseRequest::whereIn('status', ['submitted', 'quoted'])->count(),
             'orders' => PurchaseOrder::whereIn('status', ['received', 'matched'])->count(),
