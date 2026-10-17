@@ -16,6 +16,7 @@ dependencies:
 
   # Local storage for the Sanctum token (use flutter_secure_storage in production)
   shared_preferences: ^2.3.2
+  image_picker: ^1.2.4
 
 dev_dependencies:
   flutter_test:

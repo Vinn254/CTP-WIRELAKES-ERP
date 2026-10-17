@@ -63,12 +63,18 @@ class AuthController extends Controller
 
     /**
      * GET /api/me
-     * Returns the authenticated user.
+     * Returns the authenticated user, and for a member account the role that drives the app's tabs.
      */
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $member = \App\Support\MemberPortal::resolve($user);
+
         return response()->json([
-            'user' => $request->user(),
+            'user' => $user,
+            'member_type' => $member ? ($member instanceof \App\Models\FundiRegistration ? 'fundi' : 'ctp') : null,
+            'member_name' => $member?->full_name,
+            'staff' => in_array($user->role, ['admin', 'superadmin'], true),
         ]);
     }
 

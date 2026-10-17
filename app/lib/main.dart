@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'config/api_config.dart';
 import 'services/api_client.dart';
-import 'screens/home_screen.dart';
+import 'screens/role_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,44 +36,16 @@ class CtpWireLakesApp extends StatelessWidget {
             minimumSize: const Size.fromHeight(48),
           ),
         ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF0E6B3A),
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
-      home: HomeScreen(api: api),
-    );
-  }
-}
-
-/// Reusable brand widget.
-class BrandHeader extends StatelessWidget {
-  final String? subtitle;
-  const BrandHeader({super.key, this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Image.asset('assets/logo.png', height: 96),
-        const SizedBox(height: 12),
-        const Text(
-          'CTP-WireLakes',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF0E6B3A),
-            letterSpacing: 1.2,
-          ),
-        ),
-        if (subtitle != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            subtitle!,
-            style: const TextStyle(color: Color(0xFF355A40), fontSize: 12),
-          ),
-        ],
-        const SizedBox(height: 8),
-        Text(
-          'API: ${ApiConfig.baseUrl}',
-          style: const TextStyle(color: Color(0xFF6F8C7C), fontSize: 11),
-        ),
-      ],
+      // A stored token only means "try the portal" — RoleGate asks the server
+      // who it belongs to and opens the member portal or the staff office.
+      home: RoleGate(api: api),
     );
   }
 }
