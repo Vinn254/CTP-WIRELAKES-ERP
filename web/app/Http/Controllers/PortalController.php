@@ -655,18 +655,19 @@ class PortalController extends Controller
     }
 
     /**
-     * Module 11, field side (§14.4 step 1). Anyone on the programme can raise a purchase request — the item, the
-     * quantity, why it is needed and the project it is charged to. Deciding, quoting, ordering, receiving and paying
-     * are the office's steps; the member reads where their request got to on the same path.
+     * Module 11, field side (§14.4 step 1). An E-Fundi on a site raises the purchase request — the item, the
+     * quantity, why it is needed and the project it is charged to. A CTP cannot: it mobilises rather than supplies,
+     * so the office raises on its behalf. Deciding, quoting, ordering, receiving and paying are the office's steps;
+     * the member reads where their request got to on the same path.
      */
     public function procurement()
     {
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found.');
-        $isCtp = $member instanceof CtpRegistration;
+        PurchaseRequest::assertMemberMayRaise($member);
 
         $mine = PurchaseRequest::ordered()
-            ->where($isCtp ? 'ctp_id' : 'fundi_id', $member->id)
+            ->where('fundi_id', $member->id)
             ->with(['project:id,title', 'cohort:id,reference', 'item:id,sku,name,unit,qty_on_hand',
                 'orders:id,purchase_request_id,reference,status,amount_ksh',
                 'quotations:id,purchase_request_id,supplier_id,amount_ksh', 'quotations.supplier:id,name'])
@@ -674,7 +675,6 @@ class PortalController extends Controller
 
         return view('portal.procurement', MemberPortal::board($member) + [
             'mine' => $mine,
-            'isCtp' => $isCtp,
             'units' => InventoryItem::UNITS,
             'categories' => BudgetLine::CATEGORIES,
             'statuses' => PurchaseRequest::STATUSES,
@@ -696,7 +696,7 @@ class PortalController extends Controller
     {
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found.');
-        $isCtp = $member instanceof CtpRegistration;
+        PurchaseRequest::assertMemberMayRaise($member);
 
         $data = PurchaseRequest::dataFrom($request);
 
@@ -713,8 +713,7 @@ class PortalController extends Controller
             'reference' => PurchaseRequest::nextReference(),
             'county' => $data['county'] ?? $member->county,
             'raised_by_user' => $member->user_id,
-            'ctp_id' => $isCtp ? $member->id : null,
-            'fundi_id' => $isCtp ? null : $member->id,
+            'fundi_id' => $member->id,
             'status' => 'submitted',
         ]);
 

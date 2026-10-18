@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — a purchase request (§14.4). This is the row the whole procurement path hangs on: anyone (a CTP in
- * the field, an E-Fundi, a manager) raises it, the Programme Manager decides, quotations are attached, a purchase
- * order goes out, goods are received, the invoice is matched and the supplier is paid. A request is never deleted
- * or re-raised — a rejected one stays on the register with its reason.
+ * Module 11 — a purchase request (§14.4). This is the row the whole procurement path hangs on: an E-Fundi at work
+ * on a project raises it (a CTP mobilises, it never supplies — the office raises what a CTP needs), the Programme
+ * Manager decides, quotations are attached, a purchase order goes out, goods are received, the invoice is matched and
+ * the supplier is paid. A request is never deleted or re-raised — a rejected one stays on the register with its reason.
  */
 class PurchaseRequest extends Model
 {
@@ -29,7 +29,7 @@ class PurchaseRequest extends Model
 
     /** The eight steps of §14.4, in the order the register walks them. */
     public const PATH = [
-        ['status' => 'submitted', 'actor' => 'Anyone — a CTP, an E-Fundi or a manager', 'action' => 'Raises the purchase request with item, quantity, justification and the project to charge'],
+        ['status' => 'submitted', 'actor' => 'An E-Fundi on a site, or the office', 'action' => 'Raises the purchase request with item, quantity, justification and the project to charge'],
         ['status' => 'approved', 'actor' => 'Programme Manager', 'action' => 'Reviews and approves it — or rejects it with a reason'],
         ['status' => 'quoted', 'actor' => 'Procurement Officer', 'action' => 'Gets quotations from approved suppliers'],
         ['status' => 'ordered', 'actor' => 'Procurement Officer', 'action' => 'Raises a purchase order and sends it to the supplier'],
@@ -51,7 +51,18 @@ class PurchaseRequest extends Model
         'decided_on' => 'datetime',
     ];
 
-    /** One validator — the office, the CTP portal and the E-Fundi portal all raise a request the same way. */
+    /**
+     * §14.4 step 1 on the member side. Only an E-Fundi works on a site and needs materials, so only an E-Fundi may
+     * raise a request; a CTP mobilises the community and never supplies. The office raises on a CTP's behalf.
+     */
+    public static function assertMemberMayRaise($member): void
+    {
+        abort_if(! $member instanceof FundiRegistration, 403,
+            'Only an E-Fundi can raise a purchase request. A CTP mobilises the community, it does not supply '
+            .'materials — ask the programme office and it raises the request for you.');
+    }
+
+    /** One validator — the office and the E-Fundi portal both raise a request the same way. */
     public static function dataFrom(Request $request): array
     {
         return $request->validate([

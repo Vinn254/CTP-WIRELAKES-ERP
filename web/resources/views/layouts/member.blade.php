@@ -34,12 +34,11 @@
     $nav[] = ['label' => $isCtp ? 'My attachment work' : 'My work orders', 'icon' => 'briefcase', 'route' => 'portal.work', 'active' => ['portal.work', 'portal.work.show'], 'count' => ($workOrderCount ?? 0)];
     // §11.4 step 5 — what the inspector flagged on their site and the worker still owes proof of.
     $nav[] = ['label' => 'Items to put right', 'icon' => 'check', 'route' => 'portal.fixes', 'active' => ['portal.fixes'], 'count' => ($fixCount ?? 0)];
-    // §12.7 — repair jobs on technology assets assigned to this fundi to fix.
     if (! $isCtp) {
+        // §12.7 — repair jobs on technology assets assigned to this fundi to fix.
         $nav[] = ['label' => 'My repair jobs', 'icon' => 'grid', 'route' => 'portal.tech.jobs', 'active' => ['portal.tech.jobs'], 'count' => ($techJobCount ?? 0)];
-    }
-    $nav[] = ['label' => 'Purchase request', 'icon' => 'link', 'route' => 'portal.procurement', 'active' => ['portal.procurement']];
-    if (! $isCtp) {
+        // §14.4 step 1 — only an E-Fundi works on a site and supplies, so a CTP is never offered this screen.
+        $nav[] = ['label' => 'Purchase request', 'icon' => 'link', 'route' => 'portal.procurement', 'active' => ['portal.procurement']];
         $nav[] = ['label' => 'My earnings', 'icon' => 'briefcase', 'route' => 'portal.earnings', 'active' => ['portal.earnings']];
     }
     $nav[] = ['label' => 'My projects', 'icon' => 'briefcase', 'route' => 'portal.projects', 'active' => ['portal.projects', 'portal.project'], 'count' => ($projects ?? collect())->count()];

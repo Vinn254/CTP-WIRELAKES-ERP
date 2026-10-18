@@ -8,8 +8,9 @@
 
 @section('content')
 <div class="page-intro">
-    <p class="sub">The programme buys materials against a <b>purchase request</b>, and anyone on it can raise one —
-        you, an E-Fundi on a site, a manager in the office (§14.4). Say what is needed, how much, what it will cost
+    <p class="sub">The programme buys materials against a <b>purchase request</b>, and this screen is where an
+        E-Fundi on a site raises one — a CTP does not, it mobilises the community and the office buys on its behalf
+        (§14.4). Say what is needed, how much, what it will cost
         and <b>why the programme needs it</b>: that justification is what the decision is made on, not the item name.
         The Programme Manager approves it, the Procurement Officer gets quotations and sends the order, the
         storekeeper receives the goods and the Finance Officer pays. What you see here is where your own request has

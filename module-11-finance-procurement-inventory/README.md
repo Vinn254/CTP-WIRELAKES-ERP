@@ -93,7 +93,8 @@ and reference — with the line "never pay a fee to an individual". The register
 
 ## Procurement and stock
 
-* A request can be raised by the office, by a CTP for their community, or by a fundi for a project (`/portal/procurement`).
+* A request is raised by the office, or by an E-Fundi for a project they are working on (`/portal/procurement`). A CTP
+  never raises one — it mobilises, and the office buys on its behalf; the office form is where that request is typed in.
   It moves `submitted → approved → quoted → ordered → received → paid` (a request can also be `rejected`); a decision
   needs a reason the raiser can read.
 * A supplier is only ever selected from the register. Choosing a quotation is what fixes the price, and the order line

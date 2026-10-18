@@ -63,11 +63,8 @@ List<MemberPage> memberPages(Member member, Counts counts, {bool canTrain = fals
   if (!isCtp) {
     pages.add(MemberPage('tech', 'My repair jobs', Icons.handyman_outlined,
         badge: counts.repairJobs, hint: 'Devices sent to you for repair and what you returned.'));
-  }
-
-  pages.add(const MemberPage('procurement', 'Purchase request', Icons.shopping_bag_outlined,
-      hint: 'Ask for materials the programme should provide. The office decides.'));
-  if (!isCtp) {
+    pages.add(const MemberPage('procurement', 'Purchase request', Icons.shopping_bag_outlined,
+        hint: 'Ask for materials the programme should provide for your site. The office decides.'));
     pages.add(const MemberPage('earnings', 'My earnings', Icons.payments_outlined,
         hint: 'Every payout, what was paid out and what was deducted from it.'));
   }

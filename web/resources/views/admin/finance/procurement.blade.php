@@ -7,8 +7,9 @@
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Purchases</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
-    One row per purchase request, walked through the eight steps of §14.4: <b>anyone raises it</b> — a CTP in the
-    field, an E-Fundi on a site, a manager in the office — the Programme Manager decides, the Procurement Officer
+    One row per purchase request, walked through the eight steps of §14.4: <b>an E-Fundi on a site raises it</b> from
+    their portal, or the office raises it — a CTP never does, it mobilises the community and the office buys on its
+    behalf — then the Programme Manager decides, the Procurement Officer
     attaches quotations and sends a purchase order, the storekeeper signs the delivery note and puts the goods on a
     stock card, the invoice is matched and the Finance Officer pays. A request is never deleted or raised twice; a
     rejected one stays here with its reason.
@@ -86,7 +87,7 @@
             </tr>
         @empty
             <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:22px;">
-                Nothing on this filter. Requests raised by a CTP or an E-Fundi arrive here on the same register as
+                Nothing on this filter. Requests raised by an E-Fundi arrive here on the same register as
                 the ones typed in by the office — <b>Purchase request</b> in their own portal.
             </td></tr>
         @endforelse
@@ -97,7 +98,8 @@
 
 <div class="card">
     <h3>Raise a purchase request (§14.4 step 1)</h3>
-    <p class="hint">This is the same form a CTP or an E-Fundi uses. Say why the programme needs it — the decision is
+    <p class="hint">This is the same form an E-Fundi uses in their portal — and the form the office uses on behalf of
+        a CTP, which never raises one itself. Say why the programme needs it — the decision is
         made on the justification, not the item name — and pick the budget line it is charged to.</p>
     <form method="POST" action="{{ route('admin.procurement.store') }}" class="fee-form"
           data-confirm="Raise this purchase request?" data-title="Raise request">

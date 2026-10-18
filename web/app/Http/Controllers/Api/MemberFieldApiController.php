@@ -310,23 +310,22 @@ class MemberFieldApiController extends Controller
         return response()->json($this->inline($collection->photo_path, $collection->reference));
     }
 
-    // ---- Purchase request (both) ----------------------------------------
+    // ---- Purchase request (E-Fundi only) ---------------------------------
 
-    /** GET /api/procurement — the member's own requests and how far each has travelled on the §14.4 path. */
+    /** GET /api/procurement — the E-Fundi's own requests and how far each has travelled on the §14.4 path. */
     public function procurement(): JsonResponse
     {
         $member = $this->member();
-        $isCtp = $member instanceof CtpRegistration;
+        PurchaseRequest::assertMemberMayRaise($member);
 
         $mine = PurchaseRequest::ordered()
-            ->where($isCtp ? 'ctp_id' : 'fundi_id', $member->id)
+            ->where('fundi_id', $member->id)
             ->with(['project:id,title', 'cohort:id,reference', 'item:id,sku,name,unit,qty_on_hand',
                 'orders:id,purchase_request_id,reference,status,amount_ksh',
                 'quotations:id,purchase_request_id,supplier_id,amount_ksh', 'quotations.supplier:id,name'])
             ->get();
 
         return response()->json([
-            'is_ctp' => $isCtp,
             'units' => InventoryItem::UNITS,
             'categories' => BudgetLine::CATEGORIES,
             'statuses' => PurchaseRequest::STATUSES,
@@ -346,11 +345,11 @@ class MemberFieldApiController extends Controller
         ]);
     }
 
-    /** POST /api/procurement — raise a request; the Programme Manager decides it at the office. */
+    /** POST /api/procurement — an E-Fundi raises a request; the Programme Manager decides it at the office. */
     public function storeProcurement(Request $request): JsonResponse
     {
         $member = $this->member();
-        $isCtp = $member instanceof CtpRegistration;
+        PurchaseRequest::assertMemberMayRaise($member);
 
         $data = PurchaseRequest::dataFrom($request);
 
@@ -367,8 +366,7 @@ class MemberFieldApiController extends Controller
             'reference' => PurchaseRequest::nextReference(),
             'county' => $data['county'] ?? $member->county,
             'raised_by_user' => $member->user_id,
-            'ctp_id' => $isCtp ? $member->id : null,
-            'fundi_id' => $isCtp ? null : $member->id,
+            'fundi_id' => $member->id,
             'status' => 'submitted',
         ]);
 

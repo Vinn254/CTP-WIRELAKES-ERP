@@ -20,7 +20,7 @@ rules of its own:
 
 | Role | Pages |
 | --- | --- |
-| CTP (trainee) | Overview · My training · My mobilisation · My communities · E-Waste collection · My attachment work · Items to put right · Purchase request · My projects · My applications · My profile |
+| CTP (trainee) | Overview · My training · My mobilisation · My communities · E-Waste collection · My attachment work · Items to put right · My projects · My applications · My profile |
 | E-Fundi (all grades) | Overview · My E-Fundi record · Invited to you · E-Waste collection · My work orders · Items to put right · My repair jobs · Purchase request · My earnings · My projects · My applications · My profile |
 | Senior fundi approved to train | the E-Fundi list **plus** Training CTPs |
 

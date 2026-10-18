@@ -101,8 +101,9 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
         children: [
           SectionCard(
             title: 'Purchase request',
-            subtitle: 'The programme buys materials against a purchase request, and anyone on it can '
-                'raise one — you, an E-Fundi on a site, a manager in the office (§14.4). Say what is '
+            subtitle: 'The programme buys materials against a purchase request, and this screen is '
+                'where an E-Fundi on a site raises one — a CTP does not, it mobilises the community '
+                'and the office buys on its behalf (§14.4). Say what is '
                 'needed, how much, what it will cost and why the programme needs it: that justification '
                 'is what the decision is made on, not the item name. What you see here is where your '
                 'own request has actually got to.',

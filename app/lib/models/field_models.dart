@@ -342,7 +342,6 @@ class PurchaseLine {
 }
 
 class ProcurementBoard {
-  final bool isCtp;
   final Map<String, String> units;
   final Map<String, String> categories;
   final Map<String, String> statuses;
@@ -352,7 +351,6 @@ class ProcurementBoard {
   final Map<String, int> totals;
 
   ProcurementBoard({
-    required this.isCtp,
     required this.units,
     required this.categories,
     required this.statuses,
@@ -367,7 +365,6 @@ class ProcurementBoard {
         .map((e) => '${(e as Map)['action'] ?? ''}')
         .toList();
     return ProcurementBoard(
-      isCtp: j['is_ctp'] == true,
       units: _options(j['units']),
       categories: _options(j['categories']),
       statuses: _options(j['statuses']),
