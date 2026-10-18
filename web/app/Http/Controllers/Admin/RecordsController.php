@@ -100,6 +100,26 @@ class RecordsController extends Controller
         ]);
     }
 
+    /** The office records a gift that reached the programme outside the public Donate page. */
+    public function storeDonation(Request $request)
+    {
+        $data = $request->validate([
+            'donor_name' => 'nullable|string|max:120',
+            'email' => 'nullable|email|max:120',
+            'phone' => 'nullable|string|max:20',
+            'amount' => 'required|numeric|min:1',
+            'method' => 'required|in:mpesa,card,bank',
+            'frequency' => 'required|in:one_time,monthly,yearly',
+            'impact_label' => 'nullable|string|max:190',
+            'message' => 'nullable|string|max:1000',
+        ]);
+        $data['anonymous'] = $request->boolean('anonymous');
+
+        Donation::create($data);
+
+        return back()->with('status', 'Donation recorded in the register.');
+    }
+
     public function messages()
     {
         return view('admin.records.messages', ['messages' => ContactMessage::latest()->paginate(25)]);

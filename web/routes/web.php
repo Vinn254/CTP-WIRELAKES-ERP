@@ -110,6 +110,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/partners/{partner}/toggle', [RecordsController::class, 'togglePartner'])->name('partners.toggle');
     Route::delete('/partners/{partner}', [RecordsController::class, 'deletePartner'])->name('partners.delete');
     Route::get('/donations', [RecordsController::class, 'donations'])->name('donations.index');
+    Route::post('/donations', [RecordsController::class, 'storeDonation'])->name('donations.store');
     Route::get('/messages', [RecordsController::class, 'messages'])->name('messages.index');
 
     // Projects (admin-posted, never shown on public pages)
