@@ -88,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Text(m.name,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: ink)),
-        Text('${m.typeLabel} · ${m.level}',
+        Text(m.standing,
             textAlign: TextAlign.center, style: const TextStyle(color: muted)),
         const SizedBox(height: 20),
         SectionCard(

@@ -195,7 +195,7 @@ class Project extends Model
                 'id' => $c->id,
                 'name' => $c->full_name,
                 'code' => $c->ctp_code ?: '—',
-                'level' => $c->fundi_tier ? $c->poolLabel() : 'CTP · '.str_replace('_', ' ', $c->track ?? 'member'),
+                'level' => $c->fundi_tier ? $c->gradeLabel() : 'CTP · '.str_replace('_', ' ', $c->track ?? 'member'),
                 'skills' => $c->track ? Str::headline(str_replace('_', ' ', $c->track)).' track' : '',
                 'tier' => $c->fundi_tier,
                 'ctp' => true,

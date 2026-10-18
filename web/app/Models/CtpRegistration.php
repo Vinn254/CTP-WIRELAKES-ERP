@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -293,10 +294,51 @@ class CtpRegistration extends Model
         return $samePerson ? null : $referrer;
     }
 
-    /** Which fundi projects this CTP can see after finishing the programme. */
-    public function poolLabel(): string
+    /**
+     * What this person reads as, on their own profile and on every office screen. The office moving a CTP into a
+     * fundi pool changes the grade they are shown from then on — the record stays one row and only the grade on it
+     * moves. It is also what decides which projects they are offered.
+     */
+    public function gradeLabel(): string
     {
         return $this->fundi_tier ? FundiRegistration::tierLabel($this->fundi_tier) : 'CTP trainee';
+    }
+
+    /**
+     * The CTPs who saw a training run through to the end of its track, or hold a certificate an executive approved
+     * — the alumni the office then moves on into a fundi pool. Their seats, cohort and certificate come with them so
+     * a register reads one row per person without a query each.
+     */
+    public static function alumni(): Builder
+    {
+        return static::query()
+            ->where(fn ($q) => $q
+                ->whereHas('enrollments', fn ($e) => $e->where('stage', 'completed'))
+                ->orWhereHas('enrollments.certification', fn ($c) => $c->where('status', 'approved')))
+            ->with(['enrollments' => fn ($q) => $q->with([
+                'cohort:id,reference,training_id,ends_on',
+                'cohort.training:id,name',
+                'certification:id,enrollment_id,certificate_code,theory_score,practical_score,attendance_pct,status,approved_on,reason',
+            ])]);
+    }
+
+    /** The runs of training this CTP finished, with the certificate on each. Newest first. */
+    public function finishedTrainings(): Collection
+    {
+        $seats = $this->relationLoaded('enrollments')
+            ? $this->enrollments
+            : $this->enrollments()->with(['cohort.training', 'certification'])->get();
+
+        return $seats->filter(fn (Enrollment $e) => $e->stage === 'completed')->sortByDesc('id')->values();
+    }
+
+    /** The certificate that qualifies them — the newest one an executive approved, or null while none is live. */
+    public function liveCertification(): ?Certification
+    {
+        return $this->finishedTrainings()
+            ->map(fn (Enrollment $e) => $e->certification)
+            ->filter(fn (?Certification $c) => $c?->isLive())
+            ->first();
     }
 
     public function statusLabel(): string
@@ -372,7 +414,7 @@ class CtpRegistration extends Model
     {
         return $person instanceof CtpRegistration ? [
             'name' => $person->full_name, 'code' => $person->ctp_code ?: $person->reference,
-            'kind' => 'CTP trainee', 'status' => $person->status, 'label' => $person->statusLabel(),
+            'kind' => $person->gradeLabel(), 'status' => $person->status, 'label' => $person->statusLabel(),
             'place' => collect([$person->ward, $person->sub_county, $person->county])->filter()->join(' · '),
             'mobiliser' => $person->referrer->full_name ?? '—', 'on' => $person->referred_at ?? $person->created_at,
         ] : [

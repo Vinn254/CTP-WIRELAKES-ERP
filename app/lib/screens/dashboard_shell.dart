@@ -204,7 +204,7 @@ class _Drawer extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
-                    child: Text(m.isFundi ? 'E-Fundi' : 'CTP trainee',
+                    child: Text(m.navGrade,
                         style: const TextStyle(
                             color: muted, fontSize: 11, fontWeight: FontWeight.w800,
                             letterSpacing: 0.8)),

@@ -129,6 +129,12 @@ class FundiRegistration extends Model
         return $tier ? trim(Str::before(trim(self::TIERS[$tier] ?? $tier), '—')) : '';
     }
 
+    /** The grade this person reads as on their own profile and on every office screen (§8.2). */
+    public function gradeLabel(): string
+    {
+        return self::tierLabel($this->tier) ?: 'E-Fundi';
+    }
+
     /** The CTP who brought this fundi into the programme — the credit belongs to them. */
     public function mobiliser(): BelongsTo
     {

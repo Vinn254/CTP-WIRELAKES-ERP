@@ -112,9 +112,22 @@ National ID already on the register (refused, with the record to open instead).
 
 Dev app: **127.0.0.1:8001** — this project never uses 8000, that is tich-erp.
 
+## What each E-Fundi has delivered
+
+Under the register on `/admin/fundis`, one line per E-Fundi from the Module 7 work orders they hold
+(`Execution::ledgerFor('fundi', …)`, one query for the page): how many projects they handed over, whether any
+landed past the deadline, what is still running, the value delivered and the disputes on record with the money
+deducted for them. Opening a line lists every work order — reference, project, agreed amount, deadline and the
+day it was delivered or where it stands.
+
+The programme holds **no star rating**: nothing in the blueprint asks a hirer to score a fundi, so the section
+reports the delivery record rather than inventing a score. If a real rating is wanted, the capture point is the
+hirer's confirmation of a completed order in Module 7 — that is a decision for the office, not a number to
+compute here.
+
 ## Next
 
 * The e-waste intake on both member screens is **built in Module 10** (`portal/ewaste`) — a fundi of every grade
   registers what they collect and a senior forwards it to the office. Nothing about the register lives here.
 * Taking a junior, an intern or an attachment applicant onto a job **under** the senior who supervises them (Module 7).
-* Rating and job history on the fundi record once assignments exist (Module 7/12).
+* A hirer rating on the fundi record, if the office decides to ask hirers for one at the Module 7 confirmation.

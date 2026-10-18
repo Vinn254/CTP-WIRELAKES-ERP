@@ -13,6 +13,9 @@
     // The photo they uploaded when they joined, if the record carries one.
     $photo = isset($member) && $member->photoPath();
 
+    // The grade the member reads as: a CTP the office moved into a fundi pool is shown as that grade here too.
+    $grade = isset($member) ? $member->gradeLabel() : ($isCtp ? 'CTP trainee' : 'E-Fundi');
+
     // Every item the member's own role is entitled to — this sidebar is the whole interface.
     $nav = [
         ['label' => 'Overview', 'icon' => 'grid', 'route' => 'portal.dashboard', 'active' => ['portal.dashboard']],
@@ -62,7 +65,7 @@
             <span>{{ $brandName }}<small>Member portal</small></span>
         </a>
         <nav class="admin-nav">
-            <div class="nav-group">{{ $isCtp ? 'CTP trainee' : 'E-Fundi' }}</div>
+            <div class="nav-group">{{ $grade }}</div>
             @foreach ($nav as $item)
                 <a href="{{ route($item['route']) }}" class="{{ request()->routeIs($item['active']) ? 'active' : '' }}">
                     @include('partials.icon', ['n' => $item['icon']]) {{ $item['label'] }}
@@ -92,7 +95,7 @@
                     <span class="avatar{{ $photo ? ' has-photo' : '' }}">
                         @if ($photo)<img src="{{ route('portal.photo') }}" alt="{{ $me->name }} — profile photo">@else{{ $initials }}@endif
                     </span>
-                    <span class="who"><b>{{ $me->name }}</b><small>{{ $isCtp ? 'CTP trainee' : 'E-Fundi' }}</small></span>
+                    <span class="who"><b>{{ $me->name }}</b><small>{{ $grade }}</small></span>
                 </span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

@@ -126,6 +126,68 @@
 
 <div class="pagination">{{ $fundis->links() }}</div>
 
+<div class="section-head">
+    <h3>What each E-Fundi has delivered</h3>
+    <span class="tag">{{ $fundis->total() }} in this view</span>
+</div>
+<p class="hint">
+    Read straight off the work orders (§10.4) for the fundis this page shows, following the same search and filters as
+    the register above: the projects each was awarded, whether the work landed inside the deadline written on the
+    order, and what a Director had to decide where a hirer raised an issue. The programme holds no review score — this
+    delivery record is the standing the matching desk reads, and every figure on a row is the order behind it.
+</p>
+
+<table class="data">
+    <thead>
+        <tr>
+            <th>E-Fundi</th><th>Grade</th><th>Works in</th>
+            <th class="num" title="Orders the hirer has confirmed or a Director has closed off">Projects delivered</th>
+            <th title="Orders still open: issued, on site, awaiting inspection or in dispute">Running</th>
+            <th>Value delivered</th><th>How they got on</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($fundis as $f)
+            @php $led = $ledger[$f->id] ?? null; @endphp
+            <tr>
+                <td><a href="{{ route('admin.fundis.show', $f) }}"><b>{{ $f->full_name }}</b></a>
+                    <div class="hint">{{ $f->ef_code ?: $f->reference }}@if ($f->business_name) · {{ $f->business_name }}@endif</div></td>
+                <td><span class="tag">{{ $f->gradeLabel() }}</span></td>
+                <td>{{ $f->county ?: '—' }}
+                    <div class="hint">{{ collect($f->service_counties ?? [])->take(2)->join(', ') }}</div></td>
+                <td>{{ $led['delivered'] ?? 0 }}</td>
+                <td>{{ $led['running'] ?? 0 }}</td>
+                <td>{{ \App\Support\Finance::ksh($led['value'] ?? 0) }}</td>
+                <td>{{ $led['verdict'] ?? 'No work handed over yet' }}</td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.fundis.show', $f) }}">Open record</a></td>
+            </tr>
+            @if ($led && $led['orders']->isNotEmpty())
+                <tr>
+                    <td colspan="8">
+                        @foreach ($led['orders'] as $o)
+                            <div class="row-line">
+                                <b>{{ $o->reference }}</b>
+                                <span>{{ $o->project->title ?? 'a project no longer on the register' }}</span>
+                                <span class="hint">{{ $o->agreedLabel() }}@if ($o->deadline) · due {{ $o->deadline->format('d M Y') }}@endif</span>
+                                <span class="status {{ $o->status === 'cancelled' ? 'closed' : ($o->completed_on ? 'active' : 'pending_review') }}">
+                                    {{ $o->completed_on
+                                        ? 'delivered '.$o->completed_on->format('d M Y').($o->deadline && $o->completed_on->gt($o->deadline) ? ' — past the deadline' : '')
+                                        : $o->statusLabel() }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </td>
+                </tr>
+            @endif
+        @empty
+            <tr><td colspan="8" class="empty-cell">
+                No E-Fundi matches this view. Delivery builds up here as the matching desk awards projects and the
+                hirer confirms the work (§10.4).
+            </td></tr>
+        @endforelse
+    </tbody>
+</table>
+
 <p class="hint" style="margin-top:14px;">
     Availability is what the fundi says themselves on their own portal; the office can correct it here when someone
     stops answering or finishes a job without telling us. Grade changes what they can be handed to train — see

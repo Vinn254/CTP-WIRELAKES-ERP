@@ -90,6 +90,19 @@ against `CtpRegistration::currentTerm()`.
 to CTP attachment. Fundis keep the tighter rule: they see only the tiers they hold. Drafts are invisible to both
 (404, not 403) — an unpublished project does not exist for a member yet.
 
+**Alumni sit under the register on `/admin/promoters`.** A CTP who has finished a training (a seat marked
+`completed`, or a certification the office approved) is listed once in **Alumni — CTPs who finished their
+training**, with the run they sat, the certificate code and the theory / practical / attendance behind it, the
+attachment work they have handed over, how many people they mobilised, and the grade select that moves them on.
+The move is still one row for life: `ctp_registrations.fundi_tier` holds `junior_fundi` / `senior_fundi`, nothing
+is copied into `fundi_registrations`, and the same `POST /admin/promoters/{ctp}/tier` the register uses does it.
+A revoked or missing certificate keeps them in the list — the office reads the reason, it does not lose the person.
+
+**The grade on the record follows the move.** `CtpRegistration::gradeLabel()` is what the person reads as on
+their own profile, the office register, the review queue, the member sidebar and the mobile app; a CTP with no
+pool reads *CTP trainee*, one moved on reads *Junior Fundi* / *Senior Fundi* and starts taking projects. The
+track they trained under stays visible underneath as a hint — the move changes the grade, not the history.
+
 **Next — the mobilisation credit.** The interface already counts people brought inside the current term
 (Jan–Apr / May–Aug / Sep–Dec) toward the 15 / 30 milestones; the discount a milestone earns is not yet issued
 as a credit against a fee.

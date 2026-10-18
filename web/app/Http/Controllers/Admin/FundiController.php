@@ -8,6 +8,7 @@ use App\Models\County;
 use App\Models\FundiRegistration;
 use App\Models\ProjectApplication;
 use App\Models\Trainer;
+use App\Support\Execution;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,7 @@ class FundiController extends Controller
 
         return view('admin.fundi.index', [
             'fundis' => $fundis,
+            'ledger' => Execution::ledgerFor('fundi', $fundis->pluck('id')->all()),
             'status' => $status,
             'tier' => $tier,
             'availability' => $availability,

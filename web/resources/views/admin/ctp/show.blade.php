@@ -19,6 +19,9 @@
         <p class="ah-meta">
             <span class="tag">{{ $ctp->ctp_code ?: 'ID not issued yet' }}</span>
             <span>{{ $ctp->trackLabel() }}</span>
+            @if ($ctp->fundi_tier)
+                <span class="tag gold">Moved on as a {{ $ctp->gradeLabel() }}</span>
+            @endif
             @if ($place)<span>{{ $place }}</span>@endif
             <span>Applied {{ $ctp->created_at->format('d M Y') }}</span>
             @if ($ctp->source === 'office')
@@ -316,7 +319,7 @@
         <div class="card">
             <h3>Deployment</h3>
             <dl class="kv">
-                <dt>Sees projects for</dt><dd><span class="chip">{{ $ctp->poolLabel() }}</span></dd>
+                <dt>Sees projects for</dt><dd><span class="chip">{{ $ctp->gradeLabel() }}</span></dd>
                 <dt>Service counties</dt>
                 <dd>@if (count((array) $ctp->service_counties))<span class="chips">@foreach ($ctp->service_counties as $sc)<span class="chip">{{ $sc }}</span>@endforeach</span>@else<span class="hint">Home county only (not set)</span>@endif</dd>
                 <dt>Available for mobilisation</dt><dd>{{ $ctp->available_for_mobilisation ? 'Yes' : 'No' }}</dd>

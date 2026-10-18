@@ -3,7 +3,7 @@
 
 @php
     $isCtp = $member instanceof App\Models\CtpRegistration;
-    $level = $isCtp ? $member->poolLabel() : 'your E-Fundi level';
+    $level = $isCtp ? $member->gradeLabel() : 'your E-Fundi level';
 @endphp
 
 @section('content')

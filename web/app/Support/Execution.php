@@ -16,6 +16,7 @@ use App\Models\WorkOrderUpdate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -704,6 +705,66 @@ class Execution
             'That attachment is no longer on record.');
 
         return Storage::disk('local')->response($path, $name ?: $fallback);
+    }
+
+    /**
+     * What a page of workers has actually delivered, read off their own orders (§10.4). One read for a whole
+     * register rather than one per row: what each finished, whether the work landed inside the deadline written on
+     * the order, what is still running, and what a Director had to decide on its disputes. The programme keeps no
+     * review score, so "how they got on" is built from these facts alone — every figure traces back to an order row.
+     *
+     * @return array<int, array{delivered: int, late: int, running: int, disputes: int, penalty: float,
+     *                           value: float, orders: Collection, verdict: string}>
+     */
+    public static function ledgerFor(string $type, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter($ids)));
+
+        if (! $ids) {
+            return [];
+        }
+
+        $orders = WorkOrder::with(['project:id,reference,title', 'disputes'])
+            ->where('assignee_type', $type)
+            ->whereIn('assignee_id', $ids)
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('assignee_id');
+
+        return collect($ids)->mapWithKeys(fn ($id) => [$id => static::ledgerRow($orders->get($id, collect()))])->all();
+    }
+
+    /** The one line a register shows per worker: the figures, and the sentence that reads them out. */
+    private static function ledgerRow(Collection $orders): array
+    {
+        $done = $orders->filter(fn (WorkOrder $o) => filled($o->completed_on));
+        $late = $done->filter(fn (WorkOrder $o) => $o->deadline && $o->completed_on->gt($o->deadline));
+        $open = $orders->filter(fn (WorkOrder $o) => in_array($o->status, ['issued', 'accepted', 'in_progress', 'completion_submitted', 'disputed'], true));
+        $files = $orders->flatMap(fn (WorkOrder $o) => $o->disputes);
+        $penalty = round((float) $files->sum('penalty_ksh'), 2);
+
+        $say = fn (int $n, string $word) => $n.' '.str($word)->plural($n);
+
+        $verdict = collect([
+            $done->isNotEmpty()
+                ? $say($done->count(), 'project').' delivered'.($late->isEmpty() ? ', all inside the deadline' : ' ('.$late->count().' late)')
+                : null,
+            $open->isNotEmpty() ? $say($open->count(), 'job').' still running' : null,
+            $files->isNotEmpty()
+                ? $say($files->count(), 'dispute').' on record'.($penalty > 0 ? ', '.Finance::ksh($penalty).' deducted' : '')
+                : null,
+        ])->filter()->implode(' · ');
+
+        return [
+            'delivered' => $done->count(),
+            'late' => $late->count(),
+            'running' => $open->count(),
+            'disputes' => $files->count(),
+            'penalty' => $penalty,
+            'value' => round((float) $done->sum('agreed_amount_ksh'), 2),
+            'orders' => $orders,
+            'verdict' => $verdict !== '' ? $verdict : 'No work handed over yet',
+        ];
     }
 
     /** Orders that are waiting on the worker themselves: unsigned, or a dispute they have not answered (§10.4 step 1, §10.6 step 2). */

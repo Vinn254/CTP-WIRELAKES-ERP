@@ -53,7 +53,7 @@ class OverviewScreen extends StatelessWidget {
                       style: const TextStyle(
                           color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
-                  Text('${m.typeLabel} · ${m.level}',
+                  Text(m.standing,
                       style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
                   if (m.code != null) ...[
                     const SizedBox(height: 10),

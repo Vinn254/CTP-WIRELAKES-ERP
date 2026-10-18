@@ -8,6 +8,7 @@ use App\Models\CtpRegistration;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Support\Execution;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -38,12 +39,23 @@ class CtpProfileController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $alumni = CtpRegistration::alumni()
+            ->withCount(['referrals as mobilised_count' => fn ($q) => $q->whereIn('status', CtpRegistration::WORKING)])
+            ->orderByRaw("case when fundi_tier = 'senior_fundi' then 0 when fundi_tier = 'junior_fundi' then 1 else 2 end")
+            ->orderBy('full_name')
+            ->paginate(20, ['*'], 'apage')
+            ->withQueryString();
+
         return view('admin.ctp.index', [
             'ctps' => $ctps,
+            'alumni' => $alumni,
+            'alumniTotal' => CtpRegistration::alumni()->count(),
+            'alumniLedger' => Execution::ledgerFor('ctp', $alumni->pluck('id')->all()),
             'status' => $status,
             'search' => $search,
             'counts' => CtpRegistration::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
             'counties' => CtpRegistration::whereNotNull('county')->distinct()->orderBy('county')->pluck('county'),
+            'tiers' => Project::CTP_POOL_TIERS,
         ]);
     }
 
@@ -314,7 +326,7 @@ class CtpProfileController extends Controller
         $data = $request->validate(['fundi_tier' => 'nullable|in:'.implode(',', array_keys(Project::CTP_POOL_TIERS))]);
         ReviewActions::setPoolTier($ctp, $data['fundi_tier'] ?? null);
 
-        return back()->with('status', $ctp->full_name.' now sees '.$ctp->poolLabel().' projects.');
+        return back()->with('status', $ctp->full_name.' now reads as '.$ctp->gradeLabel().' and sees their projects.');
     }
 
     private function documents(CtpRegistration $ctp): array

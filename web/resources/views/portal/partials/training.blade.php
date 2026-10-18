@@ -241,7 +241,7 @@
         <dd>@php $codes = $mine->pluck('certification')->filter()->where('status', 'approved')->pluck('certificate_code')->concat($history->pluck('certification')->filter()->where('status', 'approved')->pluck('certificate_code'))->filter()->unique(); @endphp
             @if ($codes->isEmpty())<span class="hint">None yet</span>@else<span class="chips">@foreach ($codes as $code)<span class="chip">{{ $code }}</span>@endforeach</span>@endif</dd>
         <dt>CTP ID</dt><dd>{{ $member->ctp_code ?: 'Issued when your application is approved' }}</dd>
-        <dt>Projects you can see</dt><dd>{{ $member->poolLabel() }}</dd>
+        <dt>Projects you can see</dt><dd>{{ $member->gradeLabel() }}</dd>
     </dl>
     <p class="help">An approved certificate is what the office uses to register you as an E-Fundi. That step is
         confirmed separately — holding a certificate does not put you in the fundi pool on its own.</p>

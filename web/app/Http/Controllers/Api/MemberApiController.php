@@ -168,7 +168,9 @@ class MemberApiController extends Controller
             'status' => $member->status,
             'level' => $isFundi
                 ? FundiRegistration::tierLabel($member->tier)
-                : ($member->fundi_tier ? $member->poolLabel() : 'CTP · '.str_replace('_', ' ', $member->track ?? 'member')),
+                : ($member->fundi_tier ? $member->gradeLabel() : 'CTP · '.str_replace('_', ' ', $member->track ?? 'member')),
+            // A CTP the office moved into a fundi pool is no longer a trainee — the app drops the CTP wording too.
+            'moved' => !$isFundi && filled($member->fundi_tier),
             // The web sidebar shows "Training CTPs" off this same flag, so the app's nav must see it too.
             'can_train' => $isFundi && $member->canTrain(),
         ];

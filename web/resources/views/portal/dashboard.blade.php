@@ -9,7 +9,7 @@
     $isCtp = $member instanceof CtpRegistration;
     $code = $isCtp ? $member->ctp_code : $member->ef_code;
     $level = $isCtp
-        ? ($member->fundi_tier ? $member->poolLabel() : Str::headline($member->track ?? '').' CTP')
+        ? ($member->fundi_tier ? $member->gradeLabel() : Str::headline($member->track ?? '').' CTP')
         : FundiRegistration::tierLabel($member->tier);
     $waiting = $applications->where('status', 'pending_review')->count();
     $won = $applications->where('status', 'approved')->count();

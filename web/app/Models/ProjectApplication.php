@@ -41,7 +41,7 @@ class ProjectApplication extends Model
         }
 
         return $member->fundi_tier
-            ? $member->poolLabel()
+            ? $member->gradeLabel()
             : 'CTP · '.str_replace('_', ' ', $member->track ?? 'member');
     }
 

@@ -12,6 +12,9 @@ class Member {
   final String? county;
   final String status;
   final String level;
+
+  /// True once the office has moved this CTP into a fundi pool.
+  final bool moved;
   final bool canTrain;
 
   Member({
@@ -24,11 +27,22 @@ class Member {
     required this.county,
     required this.status,
     required this.level,
+    this.moved = false,
     this.canTrain = false,
   });
 
   bool get isFundi => type == 'fundi';
   String get typeLabel => isFundi ? 'E-Fundi' : 'CTP';
+
+  /// What this person reads as. The office moving a CTP into a fundi pool changes the grade the app shows from
+  /// then on — the API sends the pool in [level], so the nav never keeps saying "CTP trainee" (§8.2).
+  String get gradeLabel => level.isNotEmpty ? level : (isFundi ? 'E-Fundi' : 'CTP trainee');
+
+  /// The one line under a member's name: a moved CTP shows only their new grade, not "CTP · …".
+  String get standing => moved ? gradeLabel : '$typeLabel · $level';
+
+  /// The nav group heading, same wording the web sidebar uses.
+  String get navGrade => (isFundi || moved) ? gradeLabel : 'CTP trainee';
 
   factory Member.fromJson(Map<String, dynamic> j) => Member(
         type: (j['type'] ?? 'ctp') as String,
@@ -40,6 +54,7 @@ class Member {
         county: j['county'] as String?,
         status: (j['status'] ?? '') as String,
         level: (j['level'] ?? '') as String,
+        moved: j['moved'] == true,
         canTrain: j['can_train'] == true,
       );
 }
