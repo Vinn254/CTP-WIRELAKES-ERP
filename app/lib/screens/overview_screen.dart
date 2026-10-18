@@ -64,11 +64,11 @@ class OverviewScreen extends StatelessWidget {
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      _boardPill('${c.projects}', 'projects'),
+                      _boardPill('${c.projects}', 'projects', 'projects'),
                       const SizedBox(width: 8),
-                      _boardPill('${c.workOrders}', 'work orders'),
+                      _boardPill('${c.workOrders}', 'work orders', 'work'),
                       const SizedBox(width: 8),
-                      _boardPill('${c.fixes}', 'to put right'),
+                      _boardPill('${c.fixes}', 'to put right', 'fixes'),
                     ],
                   ),
                 ],
@@ -182,22 +182,26 @@ class OverviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _boardPill(String value, String label) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
-            const SizedBox(width: 6),
-            Text(label,
-                style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
-          ],
+  Widget _boardPill(String value, String label, String pageKey) => InkWell(
+        onTap: () => onOpen(pageKey),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Text(value,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(width: 6),
+              Text(label,
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
+            ],
+          ),
         ),
       );
 
