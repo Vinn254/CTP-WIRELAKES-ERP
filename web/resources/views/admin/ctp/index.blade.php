@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'promoters') }}">&larr; CTP Promoter Management</a></p>
 <h1>CTP profiles</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Every promoter the programme has — from the person who has not paid yet to the CTP deployed on a project.
     This is the record Modules 3, 4, 5 and 12 read: <b>one person is a trainee, a mobiliser and a community agent at the same time.</b>
 </p>
@@ -29,7 +29,7 @@
 </p>
 
 <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search ID, name, phone or county">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search ID, name, phone or county" aria-label="Search ID, name, phone or county">
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.index', ['status' => $status]) }}">Clear</a>@endif
 </form>
@@ -64,10 +64,10 @@
                 <td><span class="fee-tag {{ $c->fee_status }}">{{ CtpRegistration::FEE_STATUSES[$c->fee_status] ?? $c->fee_status }}</span></td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span></td>
                 <td>{{ $c->created_at->format('d M Y') }}</td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $c) }}">Open profile</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $c) }}">Open profile</a></td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">No CTPs in this view yet.</td></tr>
+            <tr><td colspan="9" class="empty-cell">No CTPs in this view yet.</td></tr>
         @endforelse
     </tbody>
 </table>

@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Who did what, when</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     §15.6 asks for a trail of every decision. It writes itself: a watched record — an application, a seat, a
     certificate, a payout, a ledger line, a stock card — puts its own line here whenever it is opened, changed or
     closed off, by whichever screen did it. <b>Nothing on this page can be edited or deleted.</b> If an entry looks
@@ -47,7 +47,7 @@
     </div>
     <div style="flex:1;min-width:180px;">
         <label for="q">Search</label>
-        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="Reference, name or what changed">
+        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="Reference, name or what changed" aria-label="Search: Reference, name or what changed">
     </div>
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($action !== 'all' || $user || $subject !== 'all' || $search !== '')
@@ -71,7 +71,7 @@
                 <td><span class="hint">{{ $a->detail ?: '—' }}</span></td>
             </tr>
         @empty
-            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="5" class="empty-cell">
                 Nothing recorded against these filters yet. The trail starts from the first change made after
                 Module 12 was opened, so older records show only what has been touched since.
             </td></tr>

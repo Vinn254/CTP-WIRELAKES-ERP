@@ -115,8 +115,8 @@
 
             @if ($ctp->ctp_code)
                 <div class="link-box">
-                    <label class="hint">Referral link — the CTP shares this in WhatsApp and community chats</label>
-                    <input type="text" readonly value="{{ $ctp->referralLink() }}" onclick="this.select()">
+                    <label class="hint" for="referral-link">Referral link — the CTP shares this in WhatsApp and community chats</label>
+                    <input type="text" readonly id="referral-link" value="{{ $ctp->referralLink() }}" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ $ctp->referralLink() }}', this)">Copy link</button>
                 </div>
             @endif
@@ -368,8 +368,8 @@
                 <div class="hint">Login is {{ $ctp->user->active ? 'active' : 'locked' }} — they see only their own trainee interface at <b>/portal</b>.</div>
             @elseif ($invite)
                 <div class="link-box">
-                    <label class="hint">Activation link — send this to the CTP</label>
-                    <input type="text" readonly value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
+                    <label class="hint" for="ctp-activation-link">Activation link — send this to the CTP</label>
+                    <input type="text" readonly id="ctp-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                 </div>
                 @if ($invite->status === 'pending')

@@ -8,18 +8,18 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Partners</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 18px;">
+<p class="sub page-lede">
  Post your own partners straight onto the public wall, and review every partnership request sent from the public Partners page.
  <a href="{{ route('partners') }}" target="_blank">View partner wall &#8599;</a>
 </p>
 
 <div class="card" style="margin-bottom:22px;">
  <h3>Post a partner</h3>
- <form method="POST" action="{{ route('admin.partners.store') }}" enctype="multipart/form-data" class="inline-form" style="align-items:flex-end;">
+ <form method="POST" action="{{ route('admin.partners.store') }}" enctype="multipart/form-data" class="inline-form field-grid">
  @csrf
- <span class="fld"><label>Organisation name</label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
- <span class="fld grow"><label>Caption (shown under the name on the wall)</label><input type="text" name="caption" maxlength="180" value="{{ old('caption') }}" placeholder="e.g. Funding the Kisumu tech hubs"></span>
- <span class="fld"><label>Logo (PNG / JPG / SVG / WebP)</label><input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp" required></span>
+ <span class="fld"><label>Organisation name <span class="req">*</span></label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
+ <span class="fld"><label>Caption (shown under the name on the wall)</label><input type="text" name="caption" maxlength="180" value="{{ old('caption') }}" placeholder="e.g. Funding the Kisumu tech hubs"></span>
+ <span class="fld"><label>Logo (PNG / JPG / SVG / WebP) <span class="req">*</span></label><input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp" required></span>
  <button class="btn btn-primary" type="submit">Post on wall</button>
  </form>
  <div class="hint" style="margin-top:10px;">Posted partners are listed immediately. Max 2 MB.</div>
@@ -43,7 +43,7 @@
  <div class="invite-actions">
  <form method="POST" action="{{ route('admin.partners.update', $p->id) }}" enctype="multipart/form-data" class="inline-form mini-edit">
  @csrf @method('PATCH')
- <input type="text" name="caption" maxlength="180" value="{{ $p->caption }}" placeholder="Caption">
+ <input type="text" name="caption" maxlength="180" value="{{ $p->caption }}" placeholder="Caption" aria-label="Caption shown under the name">
  <label class="chk">Logo <input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp"></label>
  <button class="btn btn-sm btn-outline" type="submit">Save</button>
  </form>
@@ -58,7 +58,7 @@
  </div>
  </div>
 @empty
- <div class="card"><p style="margin:0;color:var(--muted);">Nothing is on the wall yet — post a partner above or list one of the requests below.</p></div>
+ <div class="card"><p class="page-lede">Nothing is on the wall yet — post a partner above or list one of the requests below.</p></div>
 @endforelse
 
 <h2 style="margin-top:30px;">Partnership requests <span class="tag gray">{{ $requests->count() }}</span></h2>
@@ -90,6 +90,6 @@
  </div>
  </div>
 @empty
- <div class="card"><p style="margin:0;color:var(--muted);">No pending partnership requests.</p></div>
+ <div class="card"><p class="page-lede">No pending partnership requests.</p></div>
 @endforelse
 @endsection

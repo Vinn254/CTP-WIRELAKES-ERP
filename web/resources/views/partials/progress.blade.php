@@ -105,7 +105,7 @@
                 <td><span class="hint">{{ $entry->recorderLabel() }}</span></td>
             </tr>
         @empty
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="8" class="empty-cell">
                 Nothing has been recorded on this trainee yet.
                 {{ $canRecord ? 'Use “+ Add a record” for the first session, mark or school report.' : 'Their trainer or the office will put the first line in.' }}
             </td></tr>

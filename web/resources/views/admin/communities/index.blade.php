@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'communities') }}">&larr; Community Management</a></p>
 <h1>Community register</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     A community is the unit the programme measures impact at — the place a CTP looks after, the needs flagged there
     and the people a project reached. <b>Modules 4, 6, 7, 10 and 12 all read this register.</b>
 </p>
@@ -22,7 +22,7 @@
 </div>
 
 <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search COM ID, community, ward or county">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search COM ID, community, ward or county" aria-label="Search COM ID, community, ward or county">
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.communities.index', ['status' => $status]) }}">Clear</a>@endif
     <a class="btn btn-sm btn-primary" href="{{ route('admin.communities.create') }}">Add community</a>
@@ -74,10 +74,10 @@
                 <td>{{ $c->beneficiaries_count }}</td>
                 <td>{{ $c->projects_count }}</td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span></td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.communities.show', $c) }}">Open</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.communities.show', $c) }}">Open</a></td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No communities in this view yet.</td></tr>
+            <tr><td colspan="10" class="empty-cell">No communities in this view yet.</td></tr>
         @endforelse
     </tbody>
 </table>

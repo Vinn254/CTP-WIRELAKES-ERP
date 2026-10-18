@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Messages from the public site</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 18px;">
+<p class="sub page-lede">
  Every enquiry sent through the Contact page. {{ number_format($messages->total()) }} in total — newest first.
 </p>
 
@@ -25,7 +25,7 @@
  <td><a class="btn btn-sm btn-outline" href="mailto:{{ $m->email }}?subject=Re:%20your%20enquiry%20—%20CTP-WireLakes">Reply</a></td>
  </tr>
  @empty
- <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px;">No messages yet.</td></tr>
+ <tr><td colspan="5" class="empty-cell">No messages yet.</td></tr>
  @endforelse
  </tbody>
 </table>

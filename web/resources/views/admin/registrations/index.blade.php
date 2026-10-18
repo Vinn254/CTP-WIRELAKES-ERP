@@ -17,7 +17,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>{{ $label }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Every application is reviewed here. Approving a CTP or E-Fundi issues their member ID and an activation link
     they use to set a password and sign in to the member portal.
 </p>
@@ -79,13 +79,13 @@
                 </td>
                 <td><span class="status {{ $r->status }}">{{ method_exists($r, 'statusLabel') ? $r->statusLabel() : str_replace('_', ' ', $r->status) }}</span></td>
                 <td>{{ $r->created_at->format('d M Y') }}</td>
-                <td style="text-align:right;white-space:nowrap;">
+                <td class="actions">
                     <a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a>
                     @if ($type === 'ctp')<a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.promoters.show', ['ctp' => $r->id]) }}">Profile</a>@endif
                 </td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
+            <tr><td colspan="10" class="empty-cell">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
         @endforelse
     </tbody>
 </table>

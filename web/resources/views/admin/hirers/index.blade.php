@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Hirers &amp; organisations</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 18px;">
+<p class="sub page-lede">
  Organisations bring projects to the programme, but they no longer post them themselves — record the deal here,
  then post the project against this organisation. <a href="{{ route('admin.projects.create') }}">Post a project →</a>
 </p>
@@ -17,7 +17,7 @@
 
 <div class="card" style="margin-bottom:22px;">
  <h3>New hirer</h3>
- <form method="POST" action="{{ route('admin.hirers.store') }}" class="inline-form" style="align-items:flex-end;">
+ <form method="POST" action="{{ route('admin.hirers.store') }}" class="inline-form field-grid">
  @csrf
  <span class="fld"><label>Organisation <span class="req">*</span></label><input type="text" name="organisation" maxlength="120" value="{{ old('organisation') }}" required></span>
  <span class="fld"><label>Contact person <span class="req">*</span></label><input type="text" name="contact_name" maxlength="120" value="{{ old('contact_name') }}" required></span>
@@ -53,20 +53,22 @@
  <div class="hint">{{ $orgTypes[$h->org_type] ?? $h->org_type }} · {{ $h->locationLabel() }} · {{ $h->projects_count }} project(s)</div>
  </div>
  <div class="invite-actions">
- <form method="POST" action="{{ route('admin.hirers.update', $h) }}" class="inline-form mini-edit">
+ <form method="POST" action="{{ route('admin.hirers.update', $h) }}" class="inline-form mini-edit field-grid">
  @csrf @method('PATCH')
- <input type="text" name="organisation" maxlength="120" value="{{ $h->organisation }}" required placeholder="Organisation">
- <input type="text" name="contact_name" maxlength="120" value="{{ $h->contact_name }}" required placeholder="Contact person">
- <input type="email" name="email" maxlength="120" value="{{ $h->email }}" placeholder="Email (optional)">
- <input type="text" name="phone" maxlength="20" value="{{ $h->phone }}" placeholder="Phone (optional)">
- <input type="text" name="county" list="county-names" maxlength="80" value="{{ $h->county }}" required placeholder="County">
- <input type="text" name="sub_county" maxlength="100" value="{{ $h->sub_county }}" required placeholder="Sub-county">
- <input type="text" name="ward" maxlength="100" value="{{ $h->ward }}" required placeholder="Ward">
+ <span class="fld"><label>Organisation <span class="req">*</span></label><input type="text" name="organisation" maxlength="120" value="{{ $h->organisation }}" required></span>
+ <span class="fld"><label>Contact person <span class="req">*</span></label><input type="text" name="contact_name" maxlength="120" value="{{ $h->contact_name }}" required></span>
+ <span class="fld"><label>Email (optional)</label><input type="email" name="email" maxlength="120" value="{{ $h->email }}"></span>
+ <span class="fld"><label>Phone (optional)</label><input type="text" name="phone" maxlength="20" value="{{ $h->phone }}" placeholder="07XX XXX XXX"></span>
+ <span class="fld"><label>County <span class="req">*</span></label><input type="text" name="county" list="county-names" maxlength="80" value="{{ $h->county }}" required></span>
+ <span class="fld"><label>Sub-county <span class="req">*</span></label><input type="text" name="sub_county" maxlength="100" value="{{ $h->sub_county }}" required></span>
+ <span class="fld"><label>Ward <span class="req">*</span></label><input type="text" name="ward" maxlength="100" value="{{ $h->ward }}" required></span>
+ <span class="fld"><label>Type <span class="req">*</span></label>
  <select name="org_type">
  @foreach ($orgTypes as $k => $lbl)
  <option value="{{ $k }}" @selected($h->org_type === $k)>{{ $lbl }}</option>
  @endforeach
  </select>
+ </span>
  <button class="btn btn-sm btn-outline" type="submit">Save</button>
  </form>
  <form method="POST" action="{{ route('admin.hirers.toggle', $h) }}">
@@ -80,7 +82,7 @@
  </div>
  </div>
 @empty
- <div class="card"><p style="margin:0;color:var(--muted);">No hirers recorded yet.</p></div>
+ <div class="card"><p class="page-lede">No hirers recorded yet.</p></div>
 @endforelse
 
 <div class="pagination">{{ $hirers->links() }}</div>

@@ -10,7 +10,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'efundi') }}">&larr; E-Fundi Management</a></p>
 <h1>E-Fundi register</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     The programme's technical workforce (§8). This is the record Modules 4, 6, 7 and 10 read:
     <b>grade, trade skills, the counties they cover and whether they are free for work.</b>
     A fundi keeps one row for life — a suspension is reopened, never deleted, and a new application never
@@ -34,13 +34,13 @@
 </p>
 
 <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search EF ID, name, phone or business">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search EF ID, name, phone or business" aria-label="Search EF ID, name, phone or business">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if (collect($filters)->filter(fn ($v) => $v !== 'all' && $v !== '')->isNotEmpty())
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.fundis.index', ['status' => $status]) }}">Clear</a>
     @endif
 
-    <div class="form-grid-2" style="width:100%; gap:12px 18px;">
+    <div class="form-grid-2">
         <div>
             <label for="tier">Grade</label>
             <select name="tier" id="tier">
@@ -114,10 +114,10 @@
                 <td>{{ $f->trainers_count ?: '—' }}</td>
                 <td><span class="fee-tag {{ $f->fee_status }}">{{ FundiRegistration::FEE_STATUSES[$f->fee_status] ?? $f->fee_status }}</span></td>
                 <td><span class="status {{ in_array($f->status, ['active'], true) ? 'active' : (in_array($f->status, ['pending_payment', 'pending_review'], true) ? 'pending_review' : 'closed') }}">{{ $f->statusLabel() }}</span></td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.fundis.show', $f) }}">Open record</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.fundis.show', $f) }}">Open record</a></td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="10" class="empty-cell">
                 No E-Fundi matches this view. Fundis arrive here from the public E-Fundi application and from the CTPs who mobilise them.
             </td></tr>
         @endforelse

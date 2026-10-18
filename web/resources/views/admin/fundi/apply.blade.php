@@ -10,7 +10,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.fundis.index') }}">&larr; E-Fundi register</a></p>
 <h1>Add an E-Fundi from the office</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     The same application a person fills on the website, typed in for them at the counter — usually by a CTP who
     mobilised them on the ground. The record enters the same lifecycle:
     <b>KSh {{ number_format($fee) }} one-time fee</b>, then review, then the E-Fundi ID and a portal login.

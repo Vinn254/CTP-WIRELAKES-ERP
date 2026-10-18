@@ -30,7 +30,7 @@
                         <td>{{ $seated->count() }} / {{ $r->seats }}</td>
                         <td>{{ $seated->where('stage', 'completed')->count() }}</td>
                         <td><span class="status {{ $r->status }}">{{ $r->statusLabel() }}</span></td>
-                        <td style="text-align:right;">
+                        <td class="actions">
                             @if ($here)
                                 <span class="tag gold">you are here</span>
                             @else

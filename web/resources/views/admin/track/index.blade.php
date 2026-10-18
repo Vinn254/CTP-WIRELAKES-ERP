@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Track</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     How the CTPs in training are actually getting on. Every attendance mark, theory and practical score,
     assessment, module the office set and document uploaded adds up to one number — and a trainee whose track
     reaches <b>100%</b> goes into the certification queue on the spot, where an executive only has to verify and
@@ -83,12 +83,12 @@
                         <span class="status {{ $e->certification->status === 'approved' ? 'active' : ($e->certification->status === 'recommended' ? 'pending_review' : 'closed') }}">{{ $e->certification->statusLabel() }}</span>
                         <div class="hint">{{ $e->certification->certificate_code ?: 'no code until an executive signs' }}</div>
                     @else<span class="hint">not put forward</span>@endif</td>
-                <td style="text-align:right;">
+                <td class="actions">
                     <a class="btn btn-sm btn-outline" href="{{ route('admin.track.show', $e) }}">Open track</a>
                 </td>
             </tr>
         @empty
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="8" class="empty-cell">
                 Nobody is on a training seat yet. Seats come from a cohort — <b>Cohorts</b> → give a CTP a seat,
                 or a CTP applies themselves from <b>My training</b>.
             </td></tr>

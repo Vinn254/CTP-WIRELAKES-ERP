@@ -13,7 +13,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'technology') }}">&larr; Technology Services</a></p>
 <h1>Technology registers</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     The five sub-areas on one desk (§12.1): <b>ICT</b>, <b>Networking</b>, <b>Robotics</b>, <b>Programming</b> and <b>AI</b>.
     Every device and licence sits on the <b>asset register</b>; the builds and software the programme delivers are
     <b>technology projects</b>; a fault opened against an asset is a <b>repair ticket</b>, assigned to an E-Fundi and
@@ -48,7 +48,7 @@
     </div>
     <div>
         <label for="q">Search</label>
-        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="code, name, place or technology">
+        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="code, name, place or technology" aria-label="Search: code, name, place or technology">
     </div>
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search || $category)<a class="btn btn-sm btn-ghost" href="{{ route('admin.technology.index', ['tab' => $tab]) }}">Clear</a>@endif
@@ -86,7 +86,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px;">
+                    <tr><td colspan="6" class="empty-cell">
                         Nothing on the register yet. Add the first device, licence or kit — its sub-area decides which of
                         the five it counts under (§12.2).
                     </td></tr>
@@ -120,7 +120,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px;">
+                    <tr><td colspan="6" class="empty-cell">
                         No robotics, programming or AI work recorded yet (§12.4–12.6).
                     </td></tr>
                 @endforelse
@@ -147,7 +147,7 @@
                         <td><span class="status {{ $ticketPill[$t->status] ?? 'pending_review' }}">{{ $t->statusLabel() }}</span></td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px;">
+                    <tr><td colspan="6" class="empty-cell">
                         No repair ticket is open. Open one from any asset on the
                         <a href="{{ route('admin.technology.index', ['tab' => 'assets']) }}">asset register</a> (§12.7).
                     </td></tr>
@@ -182,7 +182,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:22px;">
+                    <tr><td colspan="5" class="empty-cell">
                         Nothing runs out inside {{ Technology::ALERT_WINDOW_DAYS }} days. Record a warranty or licence
                         end-date on an asset and it shows up here in good time (§12.7).
                     </td></tr>

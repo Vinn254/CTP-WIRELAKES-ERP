@@ -6,7 +6,7 @@
 @php use App\Models\Supplier; @endphp
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Approved suppliers</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Quotations only count when they come from a name on this list (§14.4 step 3), so a supplier is added with their
     contact and payment details and, when they stop supplying, taken <b>off the list rather than deleted</b> — the
     purchase orders they already delivered have to stay readable and payable.
@@ -29,7 +29,7 @@
 
 <form method="GET" action="{{ route('admin.suppliers.index') }}" class="filter-bar">
     <input type="hidden" name="f" value="{{ $status }}">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search name, code or contact">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search name, code or contact" aria-label="Search name, code or contact">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search !== '')
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.suppliers.index', ['f' => $status]) }}">Clear</a>
@@ -58,7 +58,7 @@
                 <td>{{ $s->purchase_orders_count }}
                     <div class="hint">added by {{ $s->adder->exists ? $s->adder->name : 'the office' }}</div></td>
                 <td><span class="status {{ $s->status === 'approved' ? 'active' : 'closed' }}">{{ $s->statusLabel() }}</span></td>
-                <td style="text-align:right; white-space:nowrap;">
+                <td class="actions">
                     <details class="need-form">
                         <summary>Correct / change list status</summary>
 
@@ -79,8 +79,6 @@
                                         @endforeach
                                     </select>
                                 </div>
-                            </div>
-                            <div class="form-grid-2" style="margin-top:10px;">
                                 <div class="field">
                                     <label>Contact person</label>
                                     <input type="text" name="contact_name" maxlength="120" value="{{ $s->contact_name }}">
@@ -89,8 +87,6 @@
                                     <label>Phone</label>
                                     <input type="text" name="phone" maxlength="40" value="{{ $s->phone }}">
                                 </div>
-                            </div>
-                            <div class="form-grid-2" style="margin-top:10px;">
                                 <div class="field">
                                     <label>Email</label>
                                     <input type="email" name="email" maxlength="190" value="{{ $s->email }}">
@@ -99,8 +95,6 @@
                                     <label>County</label>
                                     <input type="text" name="county" maxlength="100" value="{{ $s->county }}">
                                 </div>
-                            </div>
-                            <div class="form-grid-2" style="margin-top:10px;">
                                 <div class="field">
                                     <label>M-Pesa paybill</label>
                                     <input type="text" name="mpesa_paybill" maxlength="60" value="{{ $s->mpesa_paybill }}">
@@ -109,10 +103,10 @@
                                     <label>Bank account</label>
                                     <input type="text" name="bank_account" maxlength="120" value="{{ $s->bank_account }}">
                                 </div>
-                            </div>
-                            <div class="field" style="margin-top:10px;">
-                                <label>Note</label>
-                                <input type="text" name="note" maxlength="1000" value="{{ $s->note }}">
+                                <div class="field full">
+                                    <label>Note</label>
+                                    <input type="text" name="note" maxlength="1000" value="{{ $s->note }}">
+                                </div>
                             </div>
                             <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Save details</button>
                         </form>
@@ -143,7 +137,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="10" class="empty-cell">
                 No supplier on this filter. Add one below — a request cannot be quoted until there is a name here to
                 quote it (§14.4 step 3).
             </td></tr>

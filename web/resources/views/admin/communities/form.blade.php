@@ -6,7 +6,7 @@
 @section('content')
 <p class="back"><a href="{{ $editing ? route('admin.communities.show', $community) : route('admin.communities.index') }}">&larr; {{ $editing ? $community->name : 'Community register' }}</a></p>
 <h1>{{ $editing ? 'Edit '.$community->name : 'Add a community' }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     {{ $editing
         ? 'The place, its size and its pin. Needs, beneficiaries and the CTP roster are worked on the community page.'
         : 'A community added by staff is confirmed straight away and its COM ID is issued on save.' }}

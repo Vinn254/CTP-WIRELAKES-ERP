@@ -80,7 +80,7 @@ html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; borde
 .btn-outline:hover { background: var(--lime-soft); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-ghost { background: #eef2ec; color: var(--ink); }
-.btn-sm { padding: 7px 13px; font-size: .85rem; border-radius: 8px; }
+.btn-sm { padding: 7px 13px; font-size: .85rem; border-radius: 8px; min-height: 34px; }
 .btn-lg { padding: 15px 28px; font-size: 1.05rem; }
 .btn-block { display: block; width: 100%; }
 
@@ -189,20 +189,27 @@ html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; borde
 .donate-strip h3 { color: #fff; margin: 0; font-size: 1.35rem; }
 .donate-strip p { margin: 4px 0 0; color: #eef9ea; }
 
-/* Forms */
+/* Forms — every control in a row is the same height, and a label always sits above its own field. */
 form .field { margin-bottom: 16px; }
-form label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 5px; color: var(--green-dark); }
+form .field:last-child { margin-bottom: 0; }
+form label { display: block; font-weight: 700; font-size: .88rem; margin-bottom: 5px; color: var(--green-dark); }
 form label .req { color: var(--danger); }
-input[type=text], input[type=email], input[type=tel], input[type=date], input[type=number], input[type=url], select, textarea {
-  width: 100%; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 10px;
-  font: inherit; background: #fff; color: var(--ink);
+input[type=text], input[type=email], input[type=tel], input[type=date], input[type=datetime-local], input[type=time],
+input[type=number], input[type=url], input[type=password], input[type=search], select, textarea {
+  width: 100%; padding: 10px 13px; border: 1.5px solid var(--line); border-radius: 10px;
+  font: inherit; font-size: .92rem; background: #fff; color: var(--ink); min-height: 42px;
 }
+textarea { min-height: 92px; line-height: 1.5; resize: vertical; }
+input[type=date], input[type=datetime-local], input[type=time] { padding: 8px 12px; font-size: .9rem; }
+input[type=search] { min-height: 38px; padding: 7px 12px; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--lime); border-color: var(--green); }
-input[type=file] { font: inherit; }
+input[type=file] { font: inherit; border: 0; padding: 6px 0; background: none; min-height: 0; width: auto; max-width: 100%; }
+input[type=checkbox], input[type=radio] { width: auto; min-height: 0; accent-color: var(--green); }
 fieldset { border: 1.5px solid var(--line); border-radius: 10px; padding: 16px; margin: 0 0 18px; }
 legend { font-weight: 800; color: var(--green); padding: 0 8px; }
-.form-grid, .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
-.form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; }
+.form-grid, .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; align-items: start; }
+.form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; align-items: start; }
+.form-grid > .full, .form-grid-2 > .full, .form-grid-3 > .full { grid-column: 1 / -1; }
 .help { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; }
 .checkbox-row label { margin: 0; }
@@ -217,12 +224,65 @@ legend { font-weight: 800; color: var(--green); padding: 0 8px; }
 .errors ul { margin: 6px 0 0; padding-left: 18px; }
 .flash-ok { background: var(--lime-soft); border: 1px solid var(--lime); color: var(--green-dark); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; }
 
-/* Tables & admin */
+/* Tables & admin — one frame, one rhythm. A register is read down its columns, so a column that holds figures is
+   right-aligned with tabular digits, a column of short values is kept on one line, and a table that no longer fits
+   scrolls inside its own frame instead of squashing every column. See admin.js frameTables(). */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius); box-shadow: var(--shadow); margin: 0 0 20px; position: relative; }
+/* A register that no longer fits slides inside its own frame. The two columns you work from stay put while the
+   rest slides under them: the reference on the left, the actions on the right. */
+table.data.pin-first, table.data.pin-last { border-collapse: separate; border-spacing: 0; }
+table.data.pin-last td:last-child:not([colspan]), table.data.pin-last th:last-child:not([colspan]) { position: sticky; right: 0; background: var(--card); box-shadow: -8px 0 12px -12px rgba(6, 60, 20, .5); z-index: 1; }
+table.data.pin-first td:first-child:not([colspan]), table.data.pin-first th:first-child:not([colspan]) { position: sticky; left: 0; background: var(--card); box-shadow: 8px 0 12px -12px rgba(6, 60, 20, .5); }
+table.data.pin-first thead th:first-child:not([colspan]), table.data.pin-last thead th:last-child:not([colspan]) { background: var(--green); z-index: 3; }
+table.data.pin-last tr:hover td:last-child:not([colspan]), table.data.pin-first tr:hover td:first-child:not([colspan]) { background: #f4faf1; }
+table.data.pin-first td:first-child:not([colspan]) > *, table.data.pin-last td:last-child:not([colspan]) > * { position: relative; }
+html.dark table.data.pin-last td:last-child:not([colspan]), html.dark table.data.pin-first td:first-child:not([colspan]) { background: var(--card); }
+html.dark table.data.pin-last tr:hover td:last-child:not([colspan]), html.dark table.data.pin-first tr:hover td:first-child:not([colspan]) { background: #1a261d; }
+/* An inline form that opens inside a column needs room to be filled in, so it widens the column as it opens. */
+table.data .need-form[open] { min-inline-size: 300px; text-align: left; white-space: normal; }
+/* A form inside a register column has one job — be filled in. A multi-field form takes a stable width and lays
+   its fields in two equal columns, so they line down the page instead of each row sizing itself to its content. */
+table.data .fee-form:has(.form-grid-2), table.data .fee-form:has(.form-grid-3) { min-inline-size: 460px; }
+table.data .fee-form .form-grid, table.data .fee-form .form-grid-2, table.data .fee-form .form-grid-3 { gap: 0 14px; }
+table.data .fee-form .field { margin-bottom: 10px; }
+table.data .fee-form .field > label { margin-bottom: 3px; }
+
+table.data .need-form > summary:not(.btn) { cursor: pointer; color: var(--green); font-weight: 700; font-size: .82rem; white-space: nowrap; }
+table.data .need-form > summary.btn { white-space: nowrap; }
+.table-scroll > table.data { box-shadow: none; margin: 0; border-radius: var(--radius); overflow: visible; }
 table.data { width: 100%; border-collapse: collapse; background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-table.data th { background: var(--green); color: #fff; text-align: left; padding: 11px 14px; font-size: .88rem; }
-table.data td { padding: 11px 14px; border-top: 1px solid var(--line); font-size: .92rem; }
+table.data caption { caption-side: top; text-align: left; font-weight: 800; color: var(--green-dark); padding: 0 0 10px; }
+table.data th { background: var(--green); color: #fff; text-align: left; padding: 10px 12px; font-size: .84rem; vertical-align: bottom; white-space: nowrap; line-height: 1.25; }
+table.data td { padding: 10px 12px; border-top: 1px solid var(--line); font-size: .89rem; vertical-align: middle; line-height: 1.4; }
+table.data td.wrap { overflow-wrap: anywhere; }
 table.data tr:hover td { background: #f4faf1; }
-.status { padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 800; }
+table.data td p { margin: 3px 0 0; color: var(--muted); font-size: .84rem; }
+table.data td small { display: block; color: var(--muted); font-size: .78rem; }
+table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.data td.nowrap, table.data th.nowrap { white-space: nowrap; }
+table.data td.text, table.data th.text { text-align: left; white-space: normal; }
+table.data td.mid, table.data th.mid { text-align: center; }
+table.data td.actions { text-align: right; white-space: nowrap; }
+table.data td.actions form { display: inline-block; margin: 0; }
+table.data td.actions .btn { margin-left: 6px; }
+table.data td.actions .btn:first-child { margin-left: 0; }
+table.data .lead { font-weight: 700; color: var(--green-dark); }
+table.data .ref { font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.data .empty-cell, table.data td.empty-cell { text-align: center; color: var(--muted); padding: 26px 14px; font-size: .9rem; }
+/* A note or an empty state spans the whole register: it keeps a reading measure and rides with the frame. */
+table.data .span-note { position: sticky; left: 12px; max-inline-size: 900px; }
+table.data .bar { margin: 5px 0 0; }
+table.data .photo-thumb { margin-top: 6px; }
+table.data .tag { display: inline-block; line-height: 1.3; white-space: nowrap; }
+/* A pick-list sitting loose in a register sizes itself to its choices instead of collapsing with the column;
+   one inside a labelled field still fills its own column of the form grid. */
+table.data select { width: auto; min-inline-size: 168px; max-inline-size: 240px; }
+table.data .field select, table.data .fld select, table.data .form-grid select,
+table.data .form-grid-2 select, table.data .form-grid-3 select { width: 100%; min-inline-size: 0; max-inline-size: 100%; }
+table.data .hint { font-size: .8rem; }
+.money, .amount, td b.num { font-variant-numeric: tabular-nums; }
+.status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+table.data .status { white-space: nowrap; }
 .status.pending_review { background: #fff3d6; color: var(--warn); }
 .status.pending_payment { background: #ede4ff; color: #4c2d91; }
 .status.active { background: var(--lime-soft); color: var(--green-dark); }
@@ -361,8 +421,12 @@ html.dark .chip { background: #1d3122; color: #9ad87f; }
 html.dark .content-form legend .sec-name { color: var(--lime); }
 .sec-vis { display: flex; align-items: center; gap: 6px; font-size: .82rem; margin: 0; font-weight: 700; color: var(--muted); }
 .ord-wrap { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); font-weight: 700; }
-input.ord { width: 62px; padding: 5px 7px; font-size: .82rem; }
-.fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 14px 18px; }
+input.ord { width: 56px; min-height: 32px; padding: 4px 7px; font-size: .82rem; }
+/* Every row of a repeater shares one column measure, so fields line up down the page instead of each row
+   sizing its own columns to how many fields it happens to hold. */
+.fields-grid { display: grid; grid-template-columns: 1fr; gap: 14px 18px; }
+@media (min-width: 640px) { .fields-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1080px) { .fields-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .cf label { display: flex; align-items: center; gap: 8px; }
 .cf-img img { display: block; max-width: 100%; max-height: 130px; border-radius: 9px; border: 1px solid var(--line); background: #fff; margin-bottom: 8px; object-fit: contain; }
 @media (min-width: 720px) { .cf-image { grid-column: span 2; } }
@@ -376,11 +440,12 @@ input.ord { width: 62px; padding: 5px 7px; font-size: .82rem; }
 .new-field { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: auto; }
 .new-field input[type=text] { width: 220px; }
 .new-field select { width: auto; padding: 8px 10px; }
+.new-field input[type=text], .new-field select { min-height: 38px; font-size: .87rem; }
 .save-bar { position: sticky; bottom: 0; display: flex; justify-content: center; gap: 12px; background: linear-gradient(180deg, transparent, var(--bg) 38%); padding: 18px 0 6px; }
 .btn-lg { padding: 13px 26px; font-size: 1rem; }
 .hint { font-size: .78rem; color: var(--muted); }
 .mini-edit { display: inline-flex; }
-.mini-edit select { width: auto; padding: 7px 9px; font-size: .82rem; }
+.mini-edit select { width: auto; padding: 6px 9px; font-size: .82rem; min-height: 34px; }
 .del { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); margin-left: auto; }
 .del:hover { background: var(--danger); color: #fff; }
 .del-row { margin-left: auto; }
@@ -400,11 +465,19 @@ input.ord { width: 62px; padding: 5px 7px; font-size: .82rem; }
 html.dark .ws-tile.alert { background: #2b2413; }
 html.dark .ws-tile b { color: var(--lime); }
 
-/* Inline admin forms */
-.inline-form { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
-.inline-form .fld { display: flex; flex-direction: column; gap: 4px; }
-.inline-form .fld label { margin: 0; font-size: .8rem; }
-.inline-form input[type=text], .inline-form input[type=email], .inline-form select { min-width: 190px; margin: 0; }
+/* Inline admin forms — a decision sits next to the record it belongs to, so its controls are one step smaller
+   than a page form and every control in the row is the same height. */
+.inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0; }
+.inline-form > * { margin: 0; }
+.inline-form .fld { display: flex; flex-direction: column; gap: 4px; align-self: flex-end; }
+.inline-form .fld label { margin: 0; font-size: .78rem; }
+.inline-form input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]),
+.inline-form select, .inline-form textarea {
+  width: auto; min-width: 150px; max-width: 320px; margin: 0; min-height: 38px; padding: 7px 10px; font-size: .87rem;
+}
+.inline-form .btn, .inline-form button { min-height: 38px; padding: 8px 14px; font-size: .85rem; }
+.inline-form .chk { min-height: 38px; }
+.inline-form > label, .inline-form > .hint { white-space: nowrap; min-height: 38px; display: flex; align-items: center; }
 .chk { display: flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--muted); margin: 0; }
 .invite-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 13px 16px; margin-bottom: 10px; }
 .invite-row.revoked { opacity: .6; }
@@ -417,10 +490,19 @@ html.dark .ws-tile b { color: var(--lime); }
 .mini-edit input[type=text], .mini-edit input[type=url] { width: 190px; margin: 0; font-size: .82rem; padding: 7px 9px; }
 .mini-edit .chk input[type=file] { max-width: 150px; font-size: .78rem; }
 .fld.grow { flex: 1; min-width: 220px; }
-.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+
+/* A record's own edit form, on the record: every field keeps a caption (a placeholder disappears the
+   moment the box is filled) and the columns line up, so a row of eight fields still reads as a form. */
+.field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px 14px; align-items: end; width: 100%; }
+.field-grid .fld { min-width: 0; }
+.field-grid .fld > input, .field-grid .fld > select, .field-grid .fld > textarea { width: 100%; min-width: 0; max-width: 100%; }
+.field-grid .fld > label { font-size: .78rem; font-weight: 700; color: var(--muted); margin: 0; }
+.field-grid .btn, .field-grid button { justify-self: start; }
+.invite-actions:has(.field-grid) { flex: 1 1 100%; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
 .stat { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 16px; display: flex; flex-direction: column; gap: 3px; }
 .stat small { color: var(--muted); font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.stat b { font-size: 1.3rem; color: var(--green-dark); }
+.stat b { font-size: 1.3rem; color: var(--green-dark); font-variant-numeric: tabular-nums; }
 html.dark .stat b { color: var(--lime); }
 @media (max-width: 720px) { .stat-row { grid-template-columns: 1fr; } }
 @media (max-width: 980px) {
@@ -428,8 +510,11 @@ html.dark .stat b { color: var(--lime); }
   .admin-sidebar.open { transform: none; box-shadow: 0 0 60px rgba(0,0,0,.45); }
   .admin-topbar .menu-toggle { display: block; }
 }
-.kv { display: grid; grid-template-columns: 220px 1fr; gap: 8px 18px; }
+.kv { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr); gap: 8px 18px; align-items: baseline; }
+.kv > dt { overflow-wrap: anywhere; }
+.kv > dd { overflow-wrap: anywhere; }
 .kv dt { font-weight: 800; color: var(--green-dark); }
+@media (max-width: 700px) { .kv { grid-template-columns: 1fr; gap: 2px; } .kv dd { margin-bottom: 10px; } }
 .kv dd { margin: 0; }
 .doc-link { display: block; padding: 8px 0; border-bottom: 1px dashed var(--line); }
 .pagination { display: flex; gap: 6px; margin: 22px 0; flex-wrap: wrap; }
@@ -575,8 +660,23 @@ html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .stack { display: flex; flex-direction: column; gap: 16px; }
 .gaps { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #fff8e6; border-left: 4px solid var(--warn); }
 html.dark .gaps { background: #2a2413; }
-.filter-bar { display: flex; gap: 8px; align-items: center; margin: 4px 0 14px; flex-wrap: wrap; }
-.filter-bar input[type=search] { flex: 1; min-width: 220px; max-width: 420px; margin: 0; }
+/* Filter strips sit above a register and hold a search box, labelled dropdowns and their buttons.
+   Everything is bottom-aligned so a labelled control and a bare input share one line; a labelled
+   cell keeps its caption above the control instead of pushing the row taller. */
+.filter-bar { display: flex; gap: 10px 14px; align-items: flex-end; margin: 4px 0 16px; flex-wrap: wrap; }
+.filter-bar > * { margin: 0; }
+.filter-bar > div, .filter-bar > .fld { display: flex; flex-direction: column; gap: 4px; }
+.filter-bar > .form-grid, .filter-bar > .form-grid-2, .filter-bar > .form-grid-3 { display: contents; }
+.filter-bar label { font-size: .78rem; font-weight: 700; color: var(--muted); }
+.filter-bar input[type=search] { flex: 1; min-width: 220px; max-width: 420px; min-height: 38px; }
+.filter-bar .grow { flex: 1; min-width: 220px; max-width: 420px; }
+.filter-bar select { width: auto; min-width: 172px; max-width: 250px; min-height: 38px; }
+.filter-bar .btn { min-height: 38px; }
+.filter-bar .hint { min-height: 38px; display: flex; align-items: center; }
+/* The action belongs at the end of a filter strip, after every field it applies to. */
+.filter-bar > button, .filter-bar > a.btn { order: 2; }
+
+
 .row-line { display: flex; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--line); flex-wrap: wrap; }
 .row-line:first-of-type { border-top: 0; }
 .row-line .hint { flex: 1; }
@@ -592,7 +692,8 @@ html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .ms-top { display: flex; gap: 8px; align-items: baseline; }
 .ms-bar { height: 9px; border-radius: 999px; background: var(--soft, #eef2f0); overflow: hidden; margin: 8px 0 6px; }
 .ms-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--lime)); }
-.lifecycle { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.lifecycle { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.lifecycle .btn, .lifecycle select, .lifecycle input { min-height: 34px; }
 .lifecycle .mini-form { margin-top: 0; }
 .repeat-input { display: block; width: 100%; margin-bottom: 8px; }
 .check-row { display: flex; gap: 9px; align-items: flex-start; margin: 10px 0; font-size: .92rem; }
@@ -603,20 +704,18 @@ html.dark .fee-tag { background: #2b2145; color: #cbb6ff; }
 .need-row:first-of-type { border-top: 0; }
 .need-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .need-actions .lifecycle { margin-top: 0; }
-.inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.inline-form select { width: auto; min-width: 130px; margin: 0; }
-.inline-form label { margin: 0; }
 details.convert, details.need-form { margin: 10px 0 4px; border: 1px dashed var(--line); border-radius: var(--radius); padding: 10px 12px; }
 details.convert > summary, details.need-form > summary { cursor: pointer; font-weight: 700; color: var(--green-dark); }
 details[open] > summary { margin-bottom: 10px; }
 .filter-note { margin: 0 0 12px; font-size: .9rem; }
-.select-sm { width: auto; min-width: 170px; margin: 0; }
+.select-sm { width: auto; min-width: 170px; margin: 0; min-height: 34px; padding: 6px 9px; font-size: .84rem; }
 .doc-link { font-size: .84rem; font-weight: 700; }
 .check-row input { margin-top: 3px; }
 .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 
 /* CTP trainee interface — the member's own portal */
 .ctp-hero .ctp-term { margin-top: 4px; font-size: .88rem; }
+.page-lede { color: var(--muted); margin: 6px 0 18px; max-width: 92ch; }
 .page-intro { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--card, #fff); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: var(--radius); padding: 13px 18px; margin-bottom: 18px; font-size: .92rem; color: var(--muted); }
 .section-head { margin: 26px 0 12px; }
 .more { margin: 14px 0 0; font-weight: 700; }
@@ -715,6 +814,10 @@ body.zooming { overflow: hidden; }
 html.dark .flag-bad { color: #ff6b61; }
 html.dark .flag-good { color: var(--lime); }
 .money-table td { white-space: nowrap; }
+.money-table td.num { white-space: nowrap; }
+/* An indicator list reads as a statement, not a register: the figure carries the weight of the row. */
+table.data.indicator td.num { font-weight: 800; color: var(--green-dark); font-size: 1.02rem; }
+html.dark table.data.indicator td.num { color: var(--lime); }
 .money-table td:nth-child(2) { white-space: normal; min-width: 200px; }
 .calc-line { background: var(--soft, #f2f5f3); border-left: 3px solid var(--green); padding: 10px 12px; border-radius: 6px; margin: 10px 0; font-weight: 700; }
 
@@ -750,4 +853,9 @@ html.dark .band-3 small, html.dark .band-4 small { color: #dff0d6; }
   body, html { background: #fff; color: #000; }
   .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
   table.data { width: 100%; border-collapse: collapse; }
+  .table-scroll { overflow: visible; box-shadow: none; }
+  /* Every column prints in its place — nothing is pinned, hidden or dropped to save width. */
+  table.data th, table.data td { position: static !important; box-shadow: none !important; }
+  table.data .span-note { position: static; max-inline-size: none; }
+  table.data th, table.data td { padding: 5px 6px; font-size: 8.4pt; }
 }

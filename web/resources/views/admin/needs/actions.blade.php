@@ -21,8 +21,8 @@
     <form method="POST" action="{{ route('admin.needs.priority', $need) }}" class="inline-form"
           data-confirm="Set the priority on this need?" data-title="Priority">
         @csrf
-        <label class="hint">Priority</label>
-        <select name="priority">
+        <label class="hint" for="need-priority-{{ $need->id }}">Priority</label>
+        <select name="priority" id="need-priority-{{ $need->id }}">
             @foreach (Need::PRIORITIES as $key => $label)
                 <option value="{{ $key }}" @selected($need->priority === $key)>{{ $label }}</option>
             @endforeach

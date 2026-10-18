@@ -13,7 +13,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'construction') }}">&larr; Construction &amp; Infrastructure</a></p>
 <h1>Construction files</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     The engineering record behind a buildable project (§11.1): the site read before anyone prices it, the bill of
     quantities line by line, the labour counted on site, the inspections with every item marked, and the changes the
     design did not carry. What is on this desk is the <i>file</i> — the order itself, the worker's days and the
@@ -40,7 +40,7 @@
     <input type="hidden" name="tab" value="{{ $tab }}">
     <div>
         <label for="q">Project, trade or place</label>
-        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="PRJ-2026-00001, masonry, Nakuru">
+        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="PRJ-2026-00001, masonry, Nakuru" aria-label="Search: PRJ-2026-00001, masonry, Nakuru">
     </div>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.construction.index', ['tab' => $tab]) }}">Clear</a>@endif
@@ -105,7 +105,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
+                <tr><td colspan="8" class="empty-cell">
                     No construction file here yet. A file opens on any project whose trade is buildable work
                     ({{ collect($trades)->take(4)->implode(', ') }}…) —
                     post or award one on {!! dept_ref('admin.projects.index', 'Projects') !!}, then read the site

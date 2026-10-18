@@ -8,7 +8,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.cohorts.index') }}">&larr; Cohorts</a></p>
 <h1>Cohort results</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Choose a cohort and read every trainee in it on one table: attendance, the modules they got through, their
     theory, practical and assessment scores, the track they have reached and where their certificate stands.
     <b>The numbers come from the trainee's own record</b> — nothing is typed twice, and the trainer sees this same table
@@ -23,7 +23,7 @@
     </div>
 @else
     <form method="GET" action="{{ route('admin.cohorts.results') }}" class="filter-bar">
-        <div class="form-grid-2" style="width:100%; gap:12px 18px;">
+        <div class="form-grid-2">
             <div>
                 <label for="cohort">Cohort</label>
                 <select name="cohort" id="cohort">

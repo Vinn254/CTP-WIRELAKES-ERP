@@ -10,7 +10,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Certification</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     The last step of Module 4 §7.5. A trainee reaches this queue from their <a href="{{ route('admin.track.index') }}">track</a>:
     when the marks, sessions, modules and paperwork add up to <b>100%</b> the record lands here for the office to
     verify — <b>only a programme executive approves a certificate and issues its code</b>. A certificate that is
@@ -61,7 +61,7 @@
                         </td>
                         <td>{{ $e->avgScore('theory') !== null ? $e->avgScore('theory').'/100' : 'theory —' }}
                             <div class="hint">{{ $e->avgScore('practical') !== null ? $e->avgScore('practical').'/100' : 'practical —' }}</div></td>
-                        <td style="text-align:right;">
+                        <td class="actions">
                             <form method="POST" action="{{ route('admin.certification.recommend', $e) }}" class="mini-form"
                                   data-confirm="Put {{ $e->ctp->full_name }} forward for certification?" data-title="Put forward">
                                 @csrf
@@ -109,7 +109,7 @@
                     @if ($c->approver)<div class="hint">{{ $c->status === 'approved' ? 'signed by '.$c->approver->name.' · '.$c->approved_on?->format('d M Y') : $c->approver->name }}</div>@endif</td>
                 <td><span class="status {{ $c->status === 'approved' ? 'active' : ($c->status === 'recommended' ? 'pending_review' : 'closed') }}">{{ $c->statusLabel() }}</span>
                     @if ($c->reason)<div class="hint">{{ \Illuminate\Support\Str::limit($c->reason, 60) }}</div>@endif</td>
-                <td style="text-align:right;white-space:nowrap;">
+                <td class="actions">
                     @if ($c->status === 'recommended')
                         <form method="POST" action="{{ route('admin.certification.approve', $c) }}" class="mini-form"
                               data-confirm="Approve and issue {{ $c->enrollment->ctp->full_name }}'s certificate?" data-title="Issue certificate">
@@ -145,7 +145,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="10" class="empty-cell">
                 Nothing has been put forward yet. A trainee reaches this queue from their
                 <a href="{{ route('admin.track.index') }}">track</a> the moment it reaches 100%.
             </td></tr>

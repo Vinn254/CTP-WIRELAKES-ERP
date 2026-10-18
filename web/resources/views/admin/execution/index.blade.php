@@ -13,7 +13,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'execution') }}">&larr; Project Execution &amp; Payment</a></p>
 <h1>Delivery register</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Every work order an award has produced (§10.2). The order is generated the moment a project is given to a worker —
     on the project page or on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!} — and this is where
     the rest of §10.4 is done: the store issuing materials against it, days logged on site, stages signed off, the
@@ -42,7 +42,7 @@
     <input type="hidden" name="tab" value="{{ $tab }}">
     <div>
         <label for="q">Order, worker or project</label>
-        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="WO-2026-00001, a name, or PRJ-">
+        <input type="search" name="q" id="q" value="{{ $search }}" placeholder="WO-2026-00001, a name, or PRJ-" aria-label="Search: WO-2026-00001, a name, or PRJ-">
     </div>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.execution.index', ['tab' => $tab]) }}">Clear</a>@endif
@@ -103,7 +103,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
+                <tr><td colspan="8" class="empty-cell">
                     No work order in this state yet. An order appears the moment a project is awarded to a worker
                     (§10.2) — award one on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!}
                     or on <a href="{{ dept_link('admin.projects.index') }}">Projects</a>.

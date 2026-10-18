@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.promoters.show', $ctp) }}">&larr; {{ $ctp->ctp_code ?: $ctp->full_name }}</a></p>
 <h1>Edit profile — {{ $ctp->full_name }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Name, ID number and contact details come from the application and are corrected in <b>Module 1 → Applicants</b>.
     What you capture here is what the field modules and the M&amp;E map depend on.
 </p>

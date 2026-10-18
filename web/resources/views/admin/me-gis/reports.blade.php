@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Reports, by who reads them</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     §15.5 lists the report each role works from. A report is <b>not kept and not edited</b> — it is the registers
     behind it read again the moment you ask, so what you print today matches what the modules hold today, and every
     one of them can be exported as a file (§15.6).

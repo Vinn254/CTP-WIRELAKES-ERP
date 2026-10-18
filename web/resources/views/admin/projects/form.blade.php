@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.projects.index') }}">&larr; Projects</a></p>
 <h1>{{ $editing ? 'Edit '.$project->reference : 'Post a new project' }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 18px;">
+<p class="sub page-lede">
  Choose the level in <b>Who can apply</b> — that single setting decides which members see it in their portal.
  Projects never appear on the public site.
 </p>
@@ -49,16 +49,16 @@
  <tbody>
  @foreach (range(0, 4) as $i)
  <tr>
- <td><input type="text" name="material[{{ $i }}][name]" maxlength="190" placeholder="e.g. Cable, 2.5 mm single core (coil)" value="{{ old('material.'.$i.'.name') }}"></td>
- <td><input type="number" name="material[{{ $i }}][quantity]" step="0.01" min="0" placeholder="0" value="{{ old('material.'.$i.'.quantity') }}"></td>
+ <td><input type="text" name="material[{{ $i }}][name]" maxlength="190" placeholder="e.g. Cable, 2.5 mm single core (coil)" value="{{ old('material.'.$i.'.name') }}" aria-label="Material name, line {{ $i + 1 }}"></td>
+ <td><input type="number" name="material[{{ $i }}][quantity]" step="0.01" min="0" placeholder="0" value="{{ old('material.'.$i.'.quantity') }}" aria-label="Quantity, line {{ $i + 1 }}"></td>
  <td>
- <select name="material[{{ $i }}][unit]">
+ <select name="material[{{ $i }}][unit]" aria-label="Unit, line {{ $i + 1 }}">
  @foreach (\App\Models\InventoryItem::UNITS as $key => $label)
  <option value="{{ $key }}">{{ $label }}</option>
  @endforeach
  </select>
  </td>
- <td><input type="number" name="material[{{ $i }}][cost]" step="0.01" min="0" placeholder="0" value="{{ old('material.'.$i.'.cost') }}"></td>
+ <td><input type="number" name="material[{{ $i }}][cost]" step="0.01" min="0" placeholder="0" value="{{ old('material.'.$i.'.cost') }}" aria-label="Cost each in shillings, line {{ $i + 1 }}"></td>
  </tr>
  @endforeach
  </tbody>

@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'communities') }}">&larr; Community Management</a></p>
 <h1>Beneficiaries</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     The people, households and businesses a project reached. These are the impact counts Module 12 reports —
     registered by a CTP on <b>/portal</b> or by staff on the community page.
 </p>
@@ -30,7 +30,7 @@
 @endif
 
 <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search a name">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search a name" aria-label="Search a name">
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.beneficiaries.index', ['type' => $type]) }}">Clear</a>@endif
 </form>
@@ -76,7 +76,7 @@
                         {{ $b->staffUser->name ?? 'staff' }}
                     @endif
                 </td>
-                <td style="text-align:right;">
+                <td class="actions">
                     <form method="POST" action="{{ route('admin.beneficiaries.delete', $b) }}" class="mini-form"
                           data-confirm="Remove {{ $b->name }} from the beneficiary count?" data-title="Remove beneficiary">
                         @csrf
@@ -86,7 +86,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px;">No beneficiaries recorded in this view yet.</td></tr>
+            <tr><td colspan="8" class="empty-cell">No beneficiaries recorded in this view yet.</td></tr>
         @endforelse
     </tbody>
 </table>

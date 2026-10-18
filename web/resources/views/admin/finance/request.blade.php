@@ -134,7 +134,7 @@
                             <td class="{{ $best && $best->id === $q->id ? 'flag-good' : '' }}">{{ $q->amountLabel() }}</td>
                             <td><span class="hint">{{ $q->quotation_ref ?: '—' }}</span></td>
                             <td><span class="hint">{{ $q->quoted_on?->format('d M Y') }}</span></td>
-                            <td style="text-align:right; white-space:nowrap;">
+                            <td class="actions">
                                 @if ($canQuote && ! $q->is_selected)
                                     <form method="POST" action="{{ route('admin.procurement.quotation.select', $q) }}" class="mini-form">
                                         @csrf

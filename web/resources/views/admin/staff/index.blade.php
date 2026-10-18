@@ -22,10 +22,10 @@
     @unless ($isSuper)
         <p class="hint">Ask a super admin to send invitations.</p>
     @else
-        <form method="POST" action="{{ route('admin.staff.invite') }}" class="inline-form" style="align-items:flex-end;">
+        <form method="POST" action="{{ route('admin.staff.invite') }}" class="inline-form field-grid">
             @csrf
-            <span class="fld"><label>Full name</label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
-            <span class="fld"><label>Email</label><input type="email" name="email" maxlength="160" value="{{ old('email') }}" required></span>
+            <span class="fld"><label>Full name <span class="req">*</span></label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
+            <span class="fld"><label>Email <span class="req">*</span></label><input type="email" name="email" maxlength="160" value="{{ old('email') }}" required></span>
             <span class="fld"><label>Role</label>
                 <select name="role">
                     @foreach (\App\Models\StaffInvite::ROLES as $k => $lbl)
@@ -74,13 +74,13 @@
                 <td><span class="status {{ $u->active ? 'active' : 'rejected' }}">{{ $u->active ? 'Active' : 'Deactivated' }}</span></td>
                 <td>{{ $u->created_at->format('d M Y') }}</td>
                 @if ($isSuper)
-                    <td style="text-align:right;">
+                    <td class="actions">
                         @if ($u->id === auth()->id())
                             <span class="hint">your account</span>
                         @else
                             <form method="POST" action="{{ route('admin.staff.users.update', $u->id) }}" class="inline-form mini-edit">
                                 @csrf
-                                <select name="role">
+                                <select name="role" aria-label="Role of this staff member">
                                     @foreach ($roleLabels as $k => $lbl)
                                         <option value="{{ $k }}" @selected($u->role === $k)>{{ $lbl }}</option>
                                     @endforeach
@@ -133,7 +133,7 @@
         </div>
     </div>
 @empty
-    <div class="card"><p style="margin:0;color:var(--muted);">No invitations sent yet.</p></div>
+    <div class="card"><p class="page-lede">No invitations sent yet.</p></div>
 @endforelse
 
 <script>

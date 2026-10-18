@@ -343,7 +343,7 @@
                     <td class="hint">{{ $d->recorder->name ?: 'the office' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px;">
+                <tr><td colspan="8" class="empty-cell">
                     No day counted yet. Labour is what makes a construction cost auditable — one line per person per day.
                 </td></tr>
             @endforelse

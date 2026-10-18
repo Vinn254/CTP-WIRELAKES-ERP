@@ -375,8 +375,8 @@
                     interface at <b>/portal</b>, including their projects and the sites they train at.</div>
             @elseif ($invite)
                 <div class="link-box">
-                    <label class="hint">Activation link — send this to the fundi</label>
-                    <input type="text" readonly value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
+                    <label class="hint" for="fundi-activation-link">Activation link — send this to the fundi</label>
+                    <input type="text" readonly id="fundi-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                 </div>
                 @if ($invite->status === 'pending')

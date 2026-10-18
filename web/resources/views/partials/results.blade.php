@@ -62,10 +62,10 @@
                         <span class="hint">not yet</span>
                     @endif
                 </td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ $open($e) }}">Open</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ $open($e) }}">Open</a></td>
             </tr>
         @empty
-            <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:24px;">
+            <tr><td colspan="11" class="empty-cell">
                 Nobody holds a seat in this cohort yet, so there are no results to show. The office gives a seat, or a CTP
                 applies for one while the cohort is open.
             </td></tr>

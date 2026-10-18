@@ -13,7 +13,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.technology.index', ['tab' => 'assets']) }}">&larr; Asset register</a></p>
 <h1>{{ $asset->name }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     {{ $asset->asset_code }} · {{ $asset->categoryLabel() }} · tagged <b>{{ $asset->qr_payload }}</b> (§12.7)
 </p>
 

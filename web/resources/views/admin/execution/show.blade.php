@@ -187,7 +187,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:18px;">
+                <tr><td colspan="7" class="empty-cell">
                     No material line is on the project yet. The office lists them on
                     <a href="{{ dept_link('admin.projects.show', ['project' => $order->project]) }}">the project page</a> before the job starts.
                 </td></tr>
@@ -309,7 +309,7 @@
                         @else — @endif</td>
                 </tr>
             @empty
-                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px;">
+                <tr><td colspan="6" class="empty-cell">
                     Nothing has been logged on this job yet.
                 </td></tr>
             @endforelse

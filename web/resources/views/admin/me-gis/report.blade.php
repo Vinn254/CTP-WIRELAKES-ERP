@@ -36,7 +36,7 @@
                 @forelse ($section['rows'] as $row)
                     <tr>@foreach ($row as $cell)<td>{{ $cell }}</td>@endforeach</tr>
                 @empty
-                    <tr><td colspan="{{ count($section['columns']) }}" style="text-align:center;color:var(--muted);padding:16px;">
+                    <tr><td colspan="{{ count($section['columns']) }}" class="empty-cell">
                         Nothing recorded against this yet.
                     </td></tr>
                 @endforelse

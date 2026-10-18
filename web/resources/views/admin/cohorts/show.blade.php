@@ -181,8 +181,8 @@
         <div class="form-grid-3">
             <form method="POST" action="{{ route('admin.enrollments.stage', $e) }}" class="mini-form fee-form">
                 @csrf
-                <label class="hint">Stage</label>
-                <select name="stage">
+                <label class="hint" for="stage-{{ $e->id }}">Stage</label>
+                <select name="stage" id="stage-{{ $e->id }}">
                     @foreach ($stages as $key => $label)
                         <option value="{{ $key }}" @selected($e->stage === $key)>{{ $label }}</option>
                     @endforeach
@@ -194,7 +194,7 @@
                 <form method="POST" action="{{ route('admin.certification.recommend', $e) }}" class="mini-form fee-form"
                       data-confirm="Put {{ $e->ctp->full_name }} forward for certification?" data-title="Recommend for certification">
                     @csrf
-                    <label class="hint">Certification</label>
+                    <span class="hint">Certification</span>
                     <p class="help" style="margin:0 0 6px;">Theory {{ $e->avgScore('theory') ?? '—' }} · Practical {{ $e->avgScore('practical') ?? '—' }} · Attendance {{ $attendance ?? 'not marked' }}%</p>
                     <button class="btn btn-sm btn-primary" type="submit">Put forward</button>
                 </form>

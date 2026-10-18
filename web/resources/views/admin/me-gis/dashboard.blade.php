@@ -5,7 +5,7 @@
 @php use App\Support\Finance; use App\Support\Impact; @endphp
 <p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Impact dashboard @if ($county) — {{ $county }} @endif</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     These are the measures §15.2 keeps an eye on. <b>Nothing on this page is typed in or stored</b> — every figure
     is counted from the register another module already writes, so a number here always has the records behind it.
     Where the blueprint asks for a figure no module keeps yet, the line says which module has to open instead of
@@ -46,12 +46,12 @@
     <div class="card">
         <h2 class="section-head">{{ $items['label'] }}</h2>
         <p class="help">{{ $items['note'] }}.</p>
-        <table class="data">
+        <table class="data indicator">
             <tbody>
                 @foreach ($groups[$key] as $row)
                     <tr>
                         <td style="width:38%"><b>{{ $row['label'] }}</b></td>
-                        <td style="width:18%">
+                        <td class="num" style="width:18%">
                             @if (! empty($row['pending']))
                                 <span class="tag">not counted yet</span>
                             @else

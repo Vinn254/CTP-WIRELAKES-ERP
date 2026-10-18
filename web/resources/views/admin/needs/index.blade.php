@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'communities') }}">&larr; Community Management</a></p>
 <h1>Needs assessment</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Step 5 of the assessment workflow: the programme office reviews what CTPs pinned in the field, sets the priority
     and flags the funded ones for the project pipeline. <b>Converting a need drafts its project without leaving this page.</b>
 </p>
@@ -22,13 +22,15 @@
 </div>
 
 <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search a need, its detail, community or county">
-    <select name="type" class="select-sm">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search a need, its detail, community or county" aria-label="Search a need, its detail, community or county">
+    <span class="fld"><label for="type">Need type</label>
+    <select name="type" id="type">
         <option value="all">All need types</option>
         @foreach ($types as $key => $label)
             <option value="{{ $key }}" @selected($type === $key)>{{ $label }}</option>
         @endforeach
     </select>
+    </span>
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search || $type !== 'all')
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.needs.index', ['status' => $status]) }}">Clear</a>

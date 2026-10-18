@@ -10,7 +10,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Projects</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
  Post projects here — they are <b>never shown on the public site</b>. Approved CTPs and E-Fundis see only the projects
  that match their level, apply from their portal, and you assign one worker per project.
 </p>
@@ -67,13 +67,13 @@
  @endif
  </td>
  <td><span class="status {{ $pill[$p->status] ?? 'pending_review' }}">{{ Project::STATUSES[$p->status] ?? $p->status }}</span></td>
- <td style="text-align:right;white-space:nowrap;">
+ <td class="actions">
  <a class="btn btn-sm btn-outline" href="{{ route('admin.projects.show', $p) }}">Review</a>
  <a class="btn btn-sm btn-ghost" href="{{ route('admin.projects.edit', $p) }}">Edit</a>
  </td>
  </tr>
  @empty
- <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">No projects in this view yet.</td></tr>
+ <tr><td colspan="10" class="empty-cell">No projects in this view yet.</td></tr>
  @endforelse
  </tbody>
 </table>

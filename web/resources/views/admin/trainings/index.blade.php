@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Training</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     This is what the programme teaches — nothing else. <b>A cohort is an intake of one of these</b> and
     <b>a fundi is registered to teach these</b>; nobody types a course name anywhere. Start a new trade here and
     it appears on both forms straight away. Under each training you set the <b>modules</b> a trainee has to get
@@ -89,7 +89,7 @@
                     <div class="hint"><a href="{{ route('admin.trainers.index') }}">Fundi-trainers</a></div>
                 </td>
                 <td><span class="status {{ $t->status === 'active' ? 'active' : 'closed' }}">{{ $t->statusLabel() }}</span></td>
-                <td style="text-align:right;white-space:nowrap;">
+                <td class="actions">
                     <form method="POST" action="{{ route('admin.trainings.toggle', $t) }}" class="mini-form">
                         @csrf
                         <button class="btn btn-sm btn-ghost" type="submit">{{ $t->status === 'active' ? 'Take off' : 'Put on' }}</button>
@@ -207,7 +207,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="8" class="empty-cell">
                 No trainings on the list. Add the trades the programme runs before posting a cohort.
             </td></tr>
         @endforelse

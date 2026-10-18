@@ -49,16 +49,17 @@
  </dl>
  @if ($project->status === 'awarded')
  <div class="worker-swap">
- <label class="swap-label" for="workerSelect">Change worker</label>
  <form method="POST" action="{{ route('admin.projects.assign', $project) }}" class="inline-form"
        data-confirm="Hand {{ $project->reference }} to the selected member? {{ $award->full_name }} will be told they were not selected." data-title="Change worker">
  @csrf
  <input type="hidden" name="applicant_type" id="swapType" value="{{ $award->applicant_type }}">
+ <span class="fld"><label for="workerSelect">New worker <span class="req">*</span></label>
  <select name="applicant_id" id="workerSelect" required>
  @foreach ($candidates as $c)
  <option value="{{ $c['id'] }}" data-type="{{ $c['type'] }}" @selected($c['type'] === $award->applicant_type && (int) $c['id'] === (int) $award->applicant_id)>{{ $c['code'] }} · {{ $c['name'] }}</option>
  @endforeach
  </select>
+ </span>
  <button class="btn btn-sm btn-lime" type="submit">Change worker</button>
  </form>
  <div class="hint">Every approved member can take this job — {{ count($candidates) }} on the list.</div>
@@ -232,7 +233,7 @@
  </form>
  <form method="POST" action="{{ route('admin.projects.decline', [$project, $app]) }}" class="inline-form mini-edit">
  @csrf
- <input type="text" name="rejection_reason" maxlength="300" placeholder="Optional reason">
+ <input type="text" name="rejection_reason" maxlength="300" placeholder="Optional reason" aria-label="Reason for declining (optional)">
  <button class="btn btn-sm btn-danger" type="submit">Decline</button>
  </form>
  @else
@@ -241,7 +242,7 @@
  </div>
  </div>
 @empty
- <div class="card"><p style="margin:0;color:var(--muted);">No member has applied yet. Share the activation link with eligible members so they can sign in and apply.</p></div>
+ <div class="card"><p class="page-lede">No member has applied yet. Share the activation link with eligible members so they can sign in and apply.</p></div>
 @endforelse
 
 @once

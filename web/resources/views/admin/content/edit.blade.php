@@ -34,7 +34,7 @@
                 <span class="sec-name">{{ $section->name }}</span>
                 <span class="tag {{ $section->kind === 'repeater' ? 'gold' : '' }}">{{ $section->kind }}</span>
                 <label class="sec-vis"><input type="checkbox" name="visible[{{ $section->id }}]" value="1" @checked($section->is_visible)> Visible</label>
-                <span class="ord-wrap">Order <input class="ord" type="number" name="section_order[{{ $section->id }}]" value="{{ $section->sort_order }}"></span>
+                <label class="ord-wrap">Order <input class="ord" type="number" name="section_order[{{ $section->id }}]" value="{{ $section->sort_order }}"></label>
                 <button type="button" class="btn btn-sm btn-danger del" form="delsec-{{ $section->id }}">Delete section</button>
             </legend>
 
@@ -54,7 +54,7 @@
                     <div class="repeater-row">
                         <div class="row-head">
                             <b>Item {{ $i + 1 }}</b>
-                            <span class="ord-wrap">Order <input class="ord" type="number" name="entry_order[{{ $entry->id }}]" value="{{ $entry->sort_order }}"></span>
+                            <label class="ord-wrap">Order <input class="ord" type="number" name="entry_order[{{ $entry->id }}]" value="{{ $entry->sort_order }}"></label>
                             <button type="button" class="btn btn-sm btn-ghost del-row" form="delrow-{{ $entry->id }}">Delete row</button>
                         </div>
                         <div class="fields-grid">
@@ -69,8 +69,8 @@
             <div class="row-tools">
                 <button type="button" class="btn btn-sm btn-outline" form="addrow-{{ $section->id }}">Add row</button>
                 <span class="new-field">
-                    <input type="text" name="label" form="addfld-{{ $section->id }}" placeholder="New field name, e.g. Mission" maxlength="120">
-                    <select name="type" form="addfld-{{ $section->id }}">
+                    <input type="text" name="label" form="addfld-{{ $section->id }}" placeholder="New field name, e.g. Mission" maxlength="120" aria-label="New field name">
+                    <select name="type" form="addfld-{{ $section->id }}" aria-label="New field type">
                         @foreach ($fieldTypes as $k => $lbl)
                             <option value="{{ $k }}">{{ $lbl }}</option>
                         @endforeach
@@ -92,11 +92,13 @@
 <div class="card">
     <form method="POST" action="{{ route('admin.content.section.add', $page) }}" class="inline-form">
         @csrf
-        <input type="text" name="name" placeholder="Section name, e.g. Success stories" maxlength="120" required>
-        <select name="kind">
-            <option value="single">Single block (one set of fields)</option>
-            <option value="repeater">Repeater (many rows / cards)</option>
-        </select>
+        <span class="fld"><label>Section name <span class="req">*</span></label><input type="text" name="name" placeholder="e.g. Success stories" maxlength="120" required></span>
+        <span class="fld"><label>Kind</label>
+            <select name="kind">
+                <option value="single">Single block (one set of fields)</option>
+                <option value="repeater">Repeater (many rows / cards)</option>
+            </select>
+        </span>
         <button class="btn btn-primary btn-sm" type="submit">Add section</button>
     </form>
     <div class="hint" style="margin-top:10px;">A starter “Title” field is created for you — add more fields afterwards. The section appears on the public page once saved.</div>

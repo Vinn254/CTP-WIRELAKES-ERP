@@ -6,7 +6,7 @@
 @php use App\Models\InventoryItem; use App\Models\StockMovement; use App\Support\Finance; @endphp
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Stock register</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     One card per item (§14.5): SKU, description, unit, quantity on hand, the level it reorders at, where it sits and
     what it cost. <b>The quantity is never typed in</b> — it is the sum of the movements on the card, so the store can
     always be explained back to a purchase order that brought goods in, or a project or cohort that drew them out.
@@ -41,7 +41,7 @@
 <form method="GET" action="{{ route('admin.inventory.index') }}" class="filter-bar">
     <input type="hidden" name="cat" value="{{ $category }}">
     <input type="hidden" name="f" value="{{ $flag }}">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search SKU, item or where it is kept">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search SKU, item or where it is kept" aria-label="Search SKU, item or where it is kept">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search !== '')
         <a class="btn btn-sm btn-ghost"
@@ -79,11 +79,11 @@
                     @endif
                     <div class="hint">{{ $i->movements->count() }} movement(s)</div>
                 </td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline"
+                <td class="actions"><a class="btn btn-sm btn-outline"
                     href="{{ route('admin.inventory.show', $i) }}">Open card</a></td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="10" class="empty-cell">
                 No card on this filter. Goods arrive on a card themselves when a purchase order is received
                 (§14.4 step 6) — a card added here is for stock the store already holds.
             </td></tr>

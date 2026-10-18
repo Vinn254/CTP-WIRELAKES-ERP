@@ -7,7 +7,7 @@
 @include('partials.flash')
 <p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Programme settings</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     §15.6 lists what the administration section configures. Only the switches <b>the code actually reads</b> are on
     this page — a setting nothing looks at would be worse than none, because it would look like it works.
     Page wording, fees shown on the public site and branding are edited in

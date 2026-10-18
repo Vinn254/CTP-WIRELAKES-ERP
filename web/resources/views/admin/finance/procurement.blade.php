@@ -6,7 +6,7 @@
 @php use App\Models\PurchaseRequest; use App\Support\Finance; @endphp
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Purchases</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     One row per purchase request, walked through the eight steps of §14.4: <b>an E-Fundi on a site raises it</b> from
     their portal, or the office raises it — a CTP never does, it mobilises the community and the office buys on its
     behalf — then the Programme Manager decides, the Procurement Officer
@@ -34,12 +34,12 @@
 
 <form method="GET" action="{{ route('admin.procurement.index') }}" class="filter-bar">
     <input type="hidden" name="f" value="{{ $status }}">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, item or justification">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, item or justification" aria-label="Search reference, item or justification">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($budget !== 'all' || $search !== '')
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.procurement.index', ['f' => $status]) }}">Clear</a>
     @endif
-    <div style="width:100%;">
+    <div class="grow">
         <label for="budget">Budget line</label>
         <select name="budget" id="budget">
             <option value="all">Any budget line</option>
@@ -81,12 +81,12 @@
                         {{ $pr->statusLabel() }}
                     </span>
                 </td>
-                <td style="text-align:right;">
+                <td class="actions">
                     <a class="btn btn-sm btn-outline" href="{{ route('admin.procurement.show', $pr) }}">Open</a>
                 </td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="9" class="empty-cell">
                 Nothing on this filter. Requests raised by an E-Fundi arrive here on the same register as
                 the ones typed in by the office — <b>Purchase request</b> in their own portal.
             </td></tr>

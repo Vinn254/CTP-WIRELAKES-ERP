@@ -201,8 +201,8 @@
                     <p>{{ $personName }} is a member — ID <b>{{ $memberCode }}</b>.</p>
                     @if ($invite)
                         <div class="link-box">
-                            <label class="hint">Activation link — send this to the member</label>
-                            <input type="text" readonly value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
+                            <label class="hint" for="member-activation-link">Activation link — send this to the member</label>
+                            <input type="text" readonly id="member-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                             <button class="btn btn-sm btn-outline" type="button"
                                     onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                         </div>

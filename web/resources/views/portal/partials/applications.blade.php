@@ -4,7 +4,7 @@
 @endphp
 
 @if ($shown->isEmpty())
-    <div class="card"><p style="margin:0;color:var(--muted);">You have not applied for any project yet. Open a project and send your application.</p></div>
+    <div class="card"><p class="page-lede">You have not applied for any project yet. Open a project and send your application.</p></div>
 @else
     @foreach ($shown as $a)
         <div class="invite-row {{ $a->status === 'rejected' ? 'revoked' : '' }}">

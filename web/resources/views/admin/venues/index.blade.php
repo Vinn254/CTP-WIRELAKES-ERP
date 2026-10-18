@@ -8,7 +8,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Training venues</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Where a cohort is delivered: a <b>partner school</b> using its facilities, a <b>community site</b>, or a
     <b>CTP-WireLakes centre</b>. A venue linked to a partner keeps the public partner wall (Module 1) in step.
 </p>
@@ -21,7 +21,7 @@
 </div>
 
 <form method="GET" class="filter-bar">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search venue, county or ward">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search venue, county or ward" aria-label="Search venue, county or ward">
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.venues.index') }}">Clear</a>@endif
 </form>
@@ -118,7 +118,7 @@
                 <td>{{ $v->cohorts->count() }}<div class="hint">{{ $v->cohorts->whereIn('status', ['open', 'in_progress'])->count() }} running now</div></td>
                 <td>{{ $v->partner?->name ?: '—' }}</td>
                 <td><span class="status {{ $v->status === 'active' ? 'active' : 'closed' }}">{{ $v->status === 'active' ? 'open' : 'closed' }}</span></td>
-                <td style="text-align:right;white-space:nowrap;">
+                <td class="actions">
                     <form method="POST" action="{{ route('admin.venues.toggle', $v) }}" class="mini-form">
                         @csrf
                         <button class="btn btn-sm btn-ghost" type="submit">{{ $v->status === 'active' ? 'Close' : 'Open' }}</button>
@@ -178,7 +178,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="8" class="empty-cell">
                 No venues yet. Add the school or site a cohort will run at, then post the cohort.
             </td></tr>
         @endforelse

@@ -6,7 +6,7 @@
 @php use App\Support\Finance; @endphp
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Programme budget — {{ $year }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     One line per programme category for one financial year, with what has actually been charged against it read
     straight off the money register. The categories are the closed list the programme is planned around —
     <b>the office sets the amounts, it does not invent new pots of money</b>. A budget line is a money decision, so
@@ -64,7 +64,7 @@
                     @elseif ($over)<span class="status closed">Over budget</span>
                     @else<span class="status pending_review">No money set</span>@endif
                 </td>
-                <td style="text-align:right;">
+                <td class="actions">
                     <details class="need-form">
                         <summary>{{ $row['line'] ? 'Change the amount' : 'Set a budget' }}</summary>
                         <form method="POST" action="{{ route('admin.budget.save') }}" class="fee-form"

@@ -9,7 +9,7 @@
 @endphp
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Payouts to E-Fundis</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Two income streams on one register, kept visibly apart (§14.6). <b>Project income</b> is what a fundi earns on a
     job: it waits for the hirer's payment to be confirmed, and is the agreed amount <i>minus</i> materials,
     commission, the mobilization credit and any deductions. <b>Training income</b> is what a fundi-trainer earns for
@@ -39,10 +39,10 @@
 
 <form method="GET" action="{{ route('admin.payouts.index') }}" class="filter-bar">
     <input type="hidden" name="f" value="{{ $stream }}">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search payout reference or note">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search payout reference or note" aria-label="Search payout reference or note">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     <a class="btn btn-sm btn-ghost" href="{{ route('admin.payouts.index') }}">Clear</a>
-    <div style="width:100%;">
+    <div class="grow">
         <label for="stage">Stage</label>
         <select name="stage" id="stage">
             <option value="all">Any stage</option>
@@ -88,11 +88,11 @@
                     @if ($p->approved_on)<div>{{ $p->approved_on->format('d M Y') }}</div>@endif</span></td>
                 <td><span class="hint">{{ $p->releaser->exists ? $p->releaser->name : '—' }}
                     @if ($p->released_on)<div>{{ $p->released_on->format('d M Y') }} · {{ $p->provider_ref }}</div>@endif</span></td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline"
+                <td class="actions"><a class="btn btn-sm btn-outline"
                     href="{{ route('admin.payouts.show', $p) }}">Open</a></td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="9" class="empty-cell">
                 No payout on this filter yet. Open one below when a fundi finishes a project or a cohort run —
                 the fundi sees the same money on their own <b>My earnings</b> screen.
             </td></tr>

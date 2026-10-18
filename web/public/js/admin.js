@@ -92,7 +92,93 @@
         });
     };
 
+    /* Registers read as columns, not as a wall of wrapped text. Each table is measured once the page has painted:
+       a column whose cells are all figures — an amount, a count, a percentage — is right-aligned with tabular
+       digits so the thousands line up; a column whose cells are all short is kept on one line so a date or a
+       reference never breaks in half; a column of prose is given a floor wide enough to hold two real words, so
+       the table never squeezes a name into a stack of one-word lines. A department can settle a column by hand
+       instead: put num, text or nowrap on its <th> and the table keeps that reading. No column is ever dropped
+       or hidden — when the lines stop fitting, the table scrolls inside its own frame and the two columns you
+       act on (the reference on the left, the buttons on the right) stay pinned. */
+    const FIGURE = /^(?:[-+~≈]\s*)?(?:(?:ksh|kes|sh|ugx|cfa)\s*[-+~≈]?\s*[\d][\d,.]*|[\d][\d,.]*\s*(?:%|kg|kgs|g|tonnes?|km|hrs?|hours?|days?|weeks?|months?|years?|x)?)$/i;
+    const BLANK = /^[\s.—–-]*$/;
+    const PROSE_FLOOR = 152;
+
+    function isFigure(text) {
+        return FIGURE.test(text.replace(/\s+/g, ' ').trim());
+    }
+
+    function alignColumns(table) {
+        const head = table.querySelector('thead tr');
+        if (!head) return;
+        const headers = [...head.children];
+        const body = table.querySelector('tbody');
+        if (!body) return;
+        // Rows that span the table (a note, an empty state) say nothing about any column.
+        const rows = [...body.querySelectorAll(':scope > tr')]
+            .filter((tr) => tr.children.length === headers.length && ![...tr.children].some((td) => td.colSpan > 1));
+        if (!rows.length) return;
+
+        headers.forEach((th, i) => {
+            const cells = rows.map((tr) => tr.children[i]);
+            const marks = th.classList;
+            if (marks.contains('num') || marks.contains('text') || marks.contains('nowrap')) {
+                if (marks.contains('num')) cells.forEach((td) => td.classList.add('num'));
+                if (marks.contains('nowrap')) cells.forEach((td) => td.classList.add('nowrap'));
+                return;
+            }
+            const hasControl = cells.some((td) => td.querySelector('input, select, textarea, button, details'));
+            if (hasControl || cells.some((td) => td.querySelector('.bar'))) return;
+            const texts = cells.map((td) => td.textContent.replace(/\s+/g, ' ').trim());
+            if (texts.some((t) => t.length > 200)) return;
+            const filled = texts.filter((t) => !BLANK.test(t));
+            if (filled.length && filled.every(isFigure)) {
+                marks.add('num');
+                cells.forEach((td) => td.classList.add('num'));
+                return;
+            }
+            if (texts.every((t) => t.length <= 26)) {
+                marks.add('nowrap');
+                cells.forEach((td) => td.classList.add('nowrap'));
+                return;
+            }
+            // Prose: it may wrap, but not into ribbons.
+            th.style.minWidth = PROSE_FLOOR + 'px';
+        });
+    }
+
+    /* A row that spans the whole register — a note under a line, or the empty state — must stay readable while the
+       columns slide, so its text keeps a reading measure and rides with the frame instead of running off the edge. */
+    function noteRows(table) {
+        table.querySelectorAll('tbody > tr > td[colspan]').forEach((td) => {
+            if (td.firstElementChild && td.firstElementChild.classList.contains('span-note')) return;
+            const box = document.createElement('div');
+            box.className = 'span-note';
+            while (td.firstChild) { box.appendChild(td.firstChild); }
+            td.appendChild(box);
+        });
+    }
+
+    function frameTables() {
+        document.querySelectorAll('table.data').forEach((table) => {
+            alignColumns(table);
+            noteRows(table);
+            if (table.parentElement && !table.parentElement.classList.contains('table-scroll')) {
+                const frame = document.createElement('div');
+                frame.className = 'table-scroll';
+                table.parentNode.insertBefore(frame, table);
+                frame.appendChild(table);
+            }
+            const head = table.querySelector('thead tr');
+            if (!head) return;
+            // Pin only when the frame actually has to scroll: the reference and the actions stay under the eye
+            // while the middle columns slide past. An inline form widens its own column as it opens.
+            if (table.scrollWidth > table.parentElement.clientWidth + 2) table.classList.add('pin-first', 'pin-last');
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        frameTables();
         document.querySelectorAll('.flash-ok, .flash-error').forEach(function (node) {
             toast(node.textContent.trim(), node.classList.contains('flash-error'));
             node.remove();

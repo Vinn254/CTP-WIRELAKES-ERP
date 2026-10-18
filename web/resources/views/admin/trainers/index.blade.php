@@ -9,7 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Fundi-trainers</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     A trainer stays a <b>Member &rsaquo; E-Fundi record</b> — this list only holds the teaching role, and it is held
     <b>one row per site</b>: where they teach, which trainings they are licensed for, the hours they give and the rate
     they are paid. Only a <b>senior fundi</b> can train CTPs, and a cohort is only handed to a fundi the office
@@ -122,7 +122,7 @@
                 </td>
                 <td><span class="status {{ $t->status === 'approved' ? 'active' : ($t->status === 'applied' ? 'pending_review' : 'closed') }}">{{ $t->statusLabel() }}</span>
                     @if ($t->note)<div class="hint">{{ \Illuminate\Support\Str::limit($t->note, 50) }}</div>@endif</td>
-                <td style="text-align:right;white-space:nowrap;">
+                <td class="actions">
                     @if ($t->status !== 'approved')
                         <form method="POST" action="{{ route('admin.trainers.decide', $t) }}" class="mini-form"
                               data-confirm="Approve {{ $t->fundi->full_name }} to train CTPs?" data-title="Approve trainer">
@@ -183,7 +183,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="9" class="empty-cell">
                 No trainer records in this view. Only a senior fundi can train CTPs.
             </td></tr>
         @endforelse

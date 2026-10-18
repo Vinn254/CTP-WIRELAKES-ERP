@@ -10,7 +10,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Cohorts</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     A cohort is one intake of a training the programme runs, held at one place. <b>Posted as open, CTPs apply for a seat</b> or the office puts a
     CTP straight in; progress is recorded until the trainee is certified.
 </p>
@@ -78,10 +78,10 @@
                 </td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
                     @if ($c->status === 'open' && $c->isFull())<div class="hint">full</div>@endif</td>
-                <td style="text-align:right;"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a></td>
             </tr>
         @empty
-            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">
+            <tr><td colspan="10" class="empty-cell">
                 No cohorts in this view yet. Post a training, then open it for CTPs to apply.
             </td></tr>
         @endforelse

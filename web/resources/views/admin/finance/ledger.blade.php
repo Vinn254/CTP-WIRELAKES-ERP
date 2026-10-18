@@ -6,7 +6,7 @@
 @php use App\Models\FinanceEntry; use App\Support\Finance; @endphp
 <p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Money register — {{ $year }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Every shilling in and every shilling out is one line here (§14.3). Money the system already knows about —
     a supplier paid on a purchase order, a payout released to an E-Fundi, materials issued from the store —
     <b>posts its own line and is not retyped</b>. What is typed in is membership fees, donor and partner funds,
@@ -40,13 +40,13 @@
 <form method="GET" action="{{ route('admin.ledger.index') }}" class="filter-bar">
     <input type="hidden" name="f" value="{{ $direction }}">
     <input type="hidden" name="year" value="{{ $year }}">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, title or note">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, title or note" aria-label="Search reference, title or note">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($kind !== 'all' || $budget !== 'all' || $search !== '')
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.ledger.index', ['f' => $direction, 'year' => $year]) }}">Clear</a>
     @endif
 
-    <div class="form-grid-2" style="width:100%; gap:12px 18px;">
+    <div class="form-grid-2">
         <div>
             <label for="kind">What the money is</label>
             <select name="kind" id="kind">
@@ -110,7 +110,7 @@
                 <tr><td colspan="8" class="hint">{{ $e->note }}</td></tr>
             @endif
         @empty
-            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="8" class="empty-cell">
                 No lines on the register with these filters for {{ $year }}. Paid purchase orders and released
                 payouts land here on their own; the two forms below record the money the office holds.
             </td></tr>

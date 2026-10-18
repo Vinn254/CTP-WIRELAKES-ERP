@@ -4,7 +4,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.department', 'ewaste') }}">&larr; E-Waste Management</a></p>
 <h1>E-Waste register</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     Every line the field collected, from the first photo to the weight on the scale. A CTP or an E-Fundi registers a
     collection, an E-Fundi carries it to a collection point and forwards it, and <b>weighing it in is done here</b> —
     that is what turns an estimate into programme stock. The route each item takes (repair, refurbish, recycle,
@@ -33,13 +33,13 @@
 
 <form method="GET" action="{{ route('admin.ewaste.index') }}" class="filter-bar">
     <input type="hidden" name="f" value="{{ $status }}">
-    <input type="search" name="q" value="{{ $search }}" placeholder="Search collection ID, note or who collected it">
+    <input type="search" name="q" value="{{ $search }}" placeholder="Search collection ID, note or who collected it" aria-label="Search collection ID, note or who collected it">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($item !== 'all' || $county !== 'all' || $search !== '')
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.ewaste.index', ['f' => $status]) }}">Clear</a>
     @endif
 
-    <div class="form-grid-2" style="width:100%; gap:12px 18px;">
+    <div class="form-grid-2">
         <div>
             <label for="item">Item type</label>
             <select name="item" id="item">
@@ -133,7 +133,7 @@
                 </tr>
             @endif
         @empty
-            <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:22px;">
+            <tr><td colspan="11" class="empty-cell">
                 Nothing on the register with those filters. CTPs and E-Fundids add lines from their own portal —
                 <b>E-Waste collection</b> in the member sidebar.
             </td></tr>

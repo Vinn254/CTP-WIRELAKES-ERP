@@ -88,7 +88,7 @@
                         @else <span class="tag gray">at the store, on assignment</span> @endif</td>
                 </tr>
             @empty
-                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;">
+                <tr><td colspan="5" class="empty-cell">
                     No material line is listed for this project — ask the office if you were told to expect some.
                 </td></tr>
             @endforelse
@@ -149,7 +149,7 @@
                         @else — @endif</td>
                 </tr>
             @empty
-                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px;">Nothing logged yet.</td></tr>
+                <tr><td colspan="6" class="empty-cell">Nothing logged yet.</td></tr>
             @endforelse
         </tbody>
     </table>

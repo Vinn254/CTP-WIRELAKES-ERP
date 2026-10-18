@@ -6,7 +6,7 @@
 @section('content')
 <p class="back"><a href="{{ $editing ? route('admin.cohorts.show', $cohort) : route('admin.cohorts.index') }}">&larr; {{ $editing ? $cohort->reference : 'Cohorts' }}</a></p>
 <h1>{{ $editing ? 'Edit '.$cohort->reference : 'Post a training' }}</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     {{ $editing
         ? 'The training, the place and the seats. Applications, progress and certification are worked on the cohort page.'
         : 'Save it as a draft, check the venue and trainer, then open it — only an open cohort reaches the CTP portal.' }}

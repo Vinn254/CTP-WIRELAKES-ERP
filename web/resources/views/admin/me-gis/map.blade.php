@@ -6,7 +6,7 @@
 @include('partials.errors')
 <p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Where the programme is working</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 16px;">
+<p class="sub page-lede">
     §15.4 asks for a Kenya-wide map with layers you can switch between. Every record in this system carries a county
     name rather than a map coordinate, so the country is drawn as <b>one square per county</b>, laid out roughly as
     it sits — north at the top, the coast down the right. Pick a layer, and a square darkens by how many records that
@@ -89,7 +89,7 @@
                         <td><span class="hint">{{ $r['meta'] }}</span></td>
                     </tr>
                 @empty
-                    <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:18px;">
+                    <tr><td colspan="3" class="empty-cell">
                         No {{ strtolower($layers[$layer]['label']) }} recorded against that county name.
                     </td></tr>
                 @endforelse

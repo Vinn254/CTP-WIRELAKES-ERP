@@ -8,7 +8,7 @@
     @foreach (content_rows('faq', 'items') as $f)
         <div class="card" style="margin-bottom:14px;">
             <h3 style="margin-bottom:6px;">{{ $f['question'] ?? '' }}</h3>
-            <p style="margin:0;color:var(--muted);">{{ $f['answer'] ?? '' }}</p>
+            <p class="page-lede">{{ $f['answer'] ?? '' }}</p>
         </div>
     @endforeach
 </section>
