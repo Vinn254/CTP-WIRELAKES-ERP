@@ -69,7 +69,7 @@
         <a href="tel:{{ $record->phone }}">{{ $record->phone }}</a>
         <a href="mailto:{{ $record->email }}">{{ $record->email }}</a>
         @if ($type === 'ctp')
-            <a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $record->id) }}">CTP profile</a>
+            <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.promoters.show', ['ctp' => $record->id]) }}">CTP profile</a>
         @endif
     </div>
 </div>
@@ -125,7 +125,7 @@
                     when the money reaches us, and the application moves into the review queue.
                     @if ($type === 'ctp')
                         A CTP a partner is sponsoring pays nothing — set the sponsor on their
-                        <a href="{{ route('admin.promoters.show', $record->id) }}">CTP profile</a>.
+                        <a href="{{ dept_link('admin.promoters.show', ['ctp' => $record->id]) }}">CTP profile</a>.
                     @endif
                 </p>
                 <form method="POST" action="{{ route('admin.registrations.fee', [$type, $record->id]) }}"

@@ -15,10 +15,10 @@
 <h1>Delivery register</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 16px;">
     Every work order an award has produced (§10.2). The order is generated the moment a project is given to a worker —
-    on the project page or on the <a href="{{ route('admin.marketplace.index') }}">matching desk</a> — and this is where
+    on the project page or on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!} — and this is where
     the rest of §10.4 is done: the store issuing materials against it, days logged on site, stages signed off, the
     hirer's inspection as the office recorded it, a dispute run to its decision, and the hand that opens the payout on
-    the <a href="{{ route('admin.payouts.index') }}">Module 11 register</a>. No amount is calculated here.
+    {!! dept_ref('admin.payouts.index', 'the Module 11 register') !!}. No amount is calculated here.
 </p>
 
 <div class="stat-row">
@@ -105,8 +105,8 @@
             @empty
                 <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
                     No work order in this state yet. An order appears the moment a project is awarded to a worker
-                    (§10.2) — award one on the <a href="{{ route('admin.marketplace.index') }}">matching desk</a>
-                    or on <a href="{{ route('admin.projects.index') }}">Projects</a>.
+                    (§10.2) — award one on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!}
+                    or on <a href="{{ dept_link('admin.projects.index') }}">Projects</a>.
                 </td></tr>
             @endforelse
         </tbody>

@@ -39,9 +39,9 @@
         </div>
     </div>
     <div class="page-actions">
-        <a class="btn btn-sm btn-outline" href="{{ route('admin.projects.show', $order->project) }}">The project</a>
+        <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.projects.show', ['project' => $order->project]) }}">The project</a>
         @if ($payout)
-            <a class="btn btn-sm btn-outline" href="{{ route('admin.payouts.show', $payout) }}">{{ $payout->reference }}</a>
+            <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.payouts.show', ['payout' => $payout]) }}">{{ $payout->reference }}</a>
         @endif
     </div>
 </div>
@@ -189,7 +189,7 @@
             @empty
                 <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:18px;">
                     No material line is on the project yet. The office lists them on
-                    <a href="{{ route('admin.projects.show', $order->project) }}">the project page</a> before the job starts.
+                    <a href="{{ dept_link('admin.projects.show', ['project' => $order->project]) }}">the project page</a> before the job starts.
                 </td></tr>
             @endforelse
         </tbody>
@@ -473,7 +473,7 @@
     <h2 class="section-head">Money (§10.4 steps 8–12)</h2>
     @if ($payout)
         <dl class="kv">
-            <div><dt>Payout</dt><dd><a href="{{ route('admin.payouts.show', $payout) }}"><b>{{ $payout->reference }}</b></a>
+            <div><dt>Payout</dt><dd><a href="{{ dept_link('admin.payouts.show', ['payout' => $payout]) }}"><b>{{ $payout->reference }}</b></a>
                 — {{ $payout->stageLabel() }}</dd></div>
             <div><dt>Calculated as</dt><dd>{{ $payout->calculation }}</dd></div>
             <div><dt>Net to the fundi</dt><dd>{{ $payout->netLabel() }}

@@ -38,7 +38,7 @@
         <p style="margin:12px 0 0;border-left:4px solid var(--muted);padding-left:10px;">
             <b>Retired {{ $asset->decommissioned_on?->format('d M Y') }}.</b> {{ $asset->decommission_note }}
             @if ($asset->ewaste_collection_id)
-                — routed to E-Waste <a href="{{ route('admin.ewaste.index') }}">{{ $asset->ewasteCollection->reference ?: 'collection' }}</a> (§12.7).
+                — routed to {!! dept_ref('admin.ewaste.index', 'E-Waste '.($asset->ewasteCollection->reference ?: 'collection')) !!} (§12.7).
             @else
                 — kept on the register with the reason.
             @endif

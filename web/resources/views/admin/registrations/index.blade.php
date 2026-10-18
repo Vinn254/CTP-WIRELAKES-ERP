@@ -81,7 +81,7 @@
                 <td>{{ $r->created_at->format('d M Y') }}</td>
                 <td style="text-align:right;white-space:nowrap;">
                     <a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a>
-                    @if ($type === 'ctp')<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.show', $r->id) }}">Profile</a>@endif
+                    @if ($type === 'ctp')<a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.promoters.show', ['ctp' => $r->id]) }}">Profile</a>@endif
                 </td>
             </tr>
         @empty

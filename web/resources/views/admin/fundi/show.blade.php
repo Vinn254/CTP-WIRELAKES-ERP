@@ -188,7 +188,7 @@
             <h3>Projects they have applied for</h3>
             @forelse ($applications as $a)
                 <div class="row-line">
-                    <a href="{{ route('admin.projects.show', $a->project_id) }}"><b>{{ $a->project->title ?? 'Project removed' }}</b></a>
+                    <a href="{{ dept_link('admin.projects.show', ['project' => $a->project_id]) }}"><b>{{ $a->project->title ?? 'Project removed' }}</b></a>
                     <span class="hint">{{ $a->project->reference ?? '' }}</span>
                     <span class="tag">{{ $a->project->categoryLabel() ?? '' }}</span>
                     <span class="status {{ $a->status === 'approved' ? 'active' : ($a->status === 'pending_review' ? 'pending_review' : 'closed') }}">{{ str_replace('_', ' ', $a->status) }}</span>

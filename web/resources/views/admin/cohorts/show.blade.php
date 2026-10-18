@@ -43,7 +43,7 @@
                     <span class="chip">{{ $cohort->trainer->statusLabel() }}</span>
                     @if ($cohort->trainer->rate_ksh > 0)<div class="hint">KSh {{ number_format((float) $cohort->trainer->rate_ksh) }} — Module 11 invoices this</div>@endif
                 @endif</dd>
-            <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ route('admin.communities.show', $cohort->community) }}">{{ $cohort->community->name }}</a>@else<span class="hint">not tied to one</span>@endif</dd>
+            <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ dept_link('admin.communities.show', ['community' => $cohort->community]) }}">{{ $cohort->community->name }}</a>@else<span class="hint">not tied to one</span>@endif</dd>
             <dt>Sessions</dt><dd>{{ $cohort->hoursLabel() }}</dd>
             <dt>Fee per trainee</dt><dd>KSh {{ number_format((float) $cohort->fee_ksh) }}</dd>
             <dt>Applications close</dt><dd>{{ $cohort->enrol_closes_on?->format('d M Y') ?? 'until you close them' }}</dd>
@@ -101,7 +101,7 @@
     <h3>Seat applications ({{ $pending->count() }})</h3>
     @forelse ($pending as $e)
         <div class="row-line">
-            <a href="{{ route('admin.promoters.show', $e->ctp_id) }}"><b>{{ $e->ctp->full_name }}</b></a>
+            <a href="{{ dept_link('admin.promoters.show', ['ctp' => $e->ctp_id]) }}"><b>{{ $e->ctp->full_name }}</b></a>
             <span class="tag">{{ $e->ctp->ctp_code }}</span>
             <span class="hint">{{ collect([$e->ctp->ward, $e->ctp->county])->filter()->join(', ') }}</span>
             <span class="status {{ $e->ctp->status }}">{{ $e->ctp->statusLabel() }}</span>

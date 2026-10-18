@@ -17,7 +17,7 @@
     The five sub-areas on one desk (§12.1): <b>ICT</b>, <b>Networking</b>, <b>Robotics</b>, <b>Programming</b> and <b>AI</b>.
     Every device and licence sits on the <b>asset register</b>; the builds and software the programme delivers are
     <b>technology projects</b>; a fault opened against an asset is a <b>repair ticket</b>, assigned to an E-Fundi and
-    closed out. A dead asset is decommissioned here and handed to <a href="{{ route('admin.ewaste.index') }}">E-Waste</a> (§12.7).
+    closed out. A dead asset is decommissioned here and handed to {!! dept_ref('admin.ewaste.index', 'E-Waste') !!} (§12.7).
 </p>
 
 <div class="stat-row">

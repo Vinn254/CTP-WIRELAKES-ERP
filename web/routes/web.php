@@ -41,6 +41,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkOrderPortalController;
+use App\Support\Departments;
 use Illuminate\Support\Facades\Route;
 
 // Public pages
@@ -384,6 +385,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
     Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
     Route::post('/programme', [ProgrammeController::class, 'update'])->name('settings.update');
+
+    // Shared records — a department's own copy of another module's screen, so opening a record your department links
+    // to never moves you out of it. Same controller, same data. Read-only by design: only the screens listed in
+    // Departments::HOSTED are copied here, and no write route is registered under /in/, so changing a record stays
+    // with the module that owns it. The department comes last in every URI because the owning controller receives
+    // its own route parameters positionally and does not declare the department it is being shown in.
+    Route::name('host.')->where(['department' => implode('|', Departments::hosts())])->group(function () {
+        Route::get('/projects/in/{department}', [ProjectController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{project}/in/{department}', [ProjectController::class, 'show'])->whereNumber('project')->name('projects.show');
+        Route::get('/promoters/{ctp}/in/{department}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
+        Route::get('/communities/{community}/in/{department}', [CommunityController::class, 'show'])->whereNumber('community')->name('communities.show');
+        Route::get('/fundis/{fundi}/in/{department}', [FundiController::class, 'show'])->whereNumber('fundi')->name('fundis.show');
+        Route::get('/cohorts/{cohort}/in/{department}', [CohortController::class, 'show'])->whereNumber('cohort')->name('cohorts.show');
+        Route::get('/execution/{order}/in/{department}', [ExecutionController::class, 'show'])->whereNumber('order')->name('execution.show');
+        Route::get('/finance/inventory/{item}/in/{department}', [InventoryController::class, 'show'])->whereNumber('item')->name('inventory.show');
+        Route::get('/finance/payouts/{payout}/in/{department}', [PayoutController::class, 'show'])->whereNumber('payout')->name('payouts.show');
+    });
 });
 
 // Member portal — the member's own interface. Never staff, never public.

@@ -19,11 +19,28 @@ class EnsureUserIsStaff
 
         // Each admin opens only the departments assigned to them; a super admin opens every live one. A screen with
         // no owning department (the landing, the department overview) is gated in its own controller.
-        $owner = Departments::owner($request->route()?->getName());
+        $name = $request->route()?->getName();
+
+        // A shared record shown as a copy inside another department is gated on that department instead: the page has
+        // to be one that department is given a copy of, and the staff member has to belong to that department. The
+        // owning module's write routes are never registered under /in/, so a copy can only ever be read.
+        if (str_starts_with((string) $name, 'admin.host.')) {
+            $host = $request->route()?->parameter('department');
+
+            abort_unless(
+                Departments::canHost($name, $host) && in_array($host, Departments::visibleSlugs($user), true),
+                403,
+                'That record is not one of '.($host ?: 'this').' department’s screens.'
+            );
+
+            return $next($request);
+        }
+
+        $owner = Departments::owner($name);
 
         if ($owner !== null && ! in_array($owner, Departments::visibleSlugs($user), true)) {
-            $name = Departments::find($owner)['name'] ?? $owner;
-            abort(403, 'The '.$name.' screens are outside your department access.');
+            $ownerName = Departments::find($owner)['name'] ?? $owner;
+            abort(403, 'The '.$ownerName.' screens are outside your department access.');
         }
 
         return $next($request);

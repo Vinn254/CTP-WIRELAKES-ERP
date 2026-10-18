@@ -62,7 +62,7 @@
                 </td>
                 <td>
                     @if ($b->project)
-                        <a href="{{ route('admin.projects.show', $b->project_id) }}">{{ $b->project->reference }}</a>
+                        <a href="{{ dept_link('admin.projects.show', ['project' => $b->project_id]) }}">{{ $b->project->reference }}</a>
                     @else
                         <span class="hint">not tied</span>
                     @endif
@@ -70,7 +70,7 @@
                 <td>{{ $b->benefited_on->format('d M Y') }}</td>
                 <td>
                     @if ($b->creator)
-                        <a href="{{ route('admin.promoters.show', $b->created_by_ctp) }}">{{ $b->creator->full_name }}</a>
+                        <a href="{{ dept_link('admin.promoters.show', ['ctp' => $b->created_by_ctp]) }}">{{ $b->creator->full_name }}</a>
                         <div class="hint">{{ $b->creator->ctp_code }}</div>
                     @else
                         {{ $b->staffUser->name ?? 'staff' }}

@@ -1,6 +1,29 @@
 <?php
 
 use App\Support\Content;
+use App\Support\Departments;
+
+if (! function_exists('dept_link')) {
+    /** Link to a record kept by another module, opened inside the department you are standing in. */
+    function dept_link(string $routeName, array $params = []): string
+    {
+        return Departments::inside($routeName, $params);
+    }
+}
+
+if (! function_exists('dept_ref')) {
+    /**
+     * A named mention of another department's screen inside a page: linked when this staff member can open it (their
+     * own copy included), plain words when they cannot. Prose that points at a module the reader has no access to
+     * must not offer a click that lands on "outside your department access".
+     */
+    function dept_ref(string $routeName, string $label, array $params = []): string
+    {
+        return Departments::reachable(request()->user(), $routeName)
+            ? '<a href="'.Departments::inside($routeName, $params).'">'.e($label).'</a>'
+            : e($label);
+    }
+}
 
 if (! function_exists('content')) {
     /** Field value from a single section, or $default when missing/empty. */

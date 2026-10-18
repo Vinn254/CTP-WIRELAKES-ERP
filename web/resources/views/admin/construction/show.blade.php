@@ -36,12 +36,12 @@
         </div>
     </div>
     <div class="page-actions">
-        <a class="btn btn-sm btn-outline" href="{{ route('admin.projects.show', $project) }}">The project</a>
+        <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.projects.show', ['project' => $project]) }}">The project</a>
         @if ($order)
-            <a class="btn btn-sm btn-outline" href="{{ route('admin.execution.show', $order) }}">Delivery sheet</a>
+            <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.execution.show', ['order' => $order]) }}">Delivery sheet</a>
         @endif
         @if ($payout)
-            <a class="btn btn-sm btn-outline" href="{{ route('admin.payouts.show', $payout) }}">{{ $payout->reference }}</a>
+            <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.payouts.show', ['payout' => $payout]) }}">{{ $payout->reference }}</a>
         @endif
     </div>
 </div>
@@ -57,8 +57,8 @@
     </div>
     <p class="hint">
         The BoQ total and the labour total are the sum of their lines, never a typed figure. They are what the office
-        reads when it prices a variation or questions a payout; the payout itself is calculated on the
-        <a href="{{ route('admin.payouts.index') }}">Module 11 register</a>.
+        reads when it prices a variation or questions a payout; the payout itself is calculated on
+        {!! dept_ref('admin.payouts.index', 'the Module 11 register') !!}.
     </p>
 </div>
 
@@ -202,7 +202,7 @@
             </table>
             <button class="btn btn-sm btn-outline" type="button" data-boq-add>Add a line</button>
             <button class="btn btn-sm btn-primary" type="submit">Save the BoQ</button>
-            <span class="hint">Saving corrects the lines in place — the <a href="{{ route('admin.activity.index') }}">activity trail</a> keeps each quantity and price change.</span>
+            <span class="hint">Saving corrects the lines in place — the {!! dept_ref('admin.activity.index', 'activity trail') !!} keeps each quantity and price change.</span>
         </form>
     @endif
 
@@ -590,7 +590,7 @@
         </form>
     @elseif ($canBuild)
         <p class="hint">A variation is priced against a work order. This project has none yet — it has to be awarded and
-            its order issued on the <a href="{{ route('admin.execution.index') }}">delivery register</a> first (§11.5).</p>
+            its order issued on {!! dept_ref('admin.execution.index', 'the delivery register') !!} first (§11.5).</p>
     @endif
 
     @foreach ($variations as $v)

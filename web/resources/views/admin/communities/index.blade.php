@@ -58,7 +58,7 @@
                 <td>{{ $c->county }}<div class="hint">{{ collect([$c->sub_county, $c->ward])->filter()->join(', ') }}</div></td>
                 <td>
                     @if ($lead)
-                        <a href="{{ route('admin.promoters.show', $lead) }}">{{ $lead->full_name }}</a>
+                        <a href="{{ dept_link('admin.promoters.show', ['ctp' => $lead]) }}">{{ $lead->full_name }}</a>
                         <div class="hint">lead · {{ $lead->ctp_code }}</div>
                     @elseif ($others->isNotEmpty())
                         <span class="hint">no lead named</span>

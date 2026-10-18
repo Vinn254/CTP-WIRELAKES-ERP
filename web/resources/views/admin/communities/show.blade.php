@@ -69,7 +69,7 @@
                 get credit for the people they bring. One of them is named lead so the record has an owner.</p>
             @forelse ($community->ctps as $ctp)
                 <div class="row-line">
-                    <a href="{{ route('admin.promoters.show', $ctp) }}"><b>{{ $ctp->full_name }}</b></a>
+                    <a href="{{ dept_link('admin.promoters.show', ['ctp' => $ctp]) }}"><b>{{ $ctp->full_name }}</b></a>
                     <span class="hint">{{ $ctp->ctp_code }} · {{ $ctp->county }}</span>
                     <span class="fee-tag {{ $ctp->pivot->role === 'lead' ? 'paid' : '' }}">{{ Community::ROLES[$ctp->pivot->role] ?? Str::headline($ctp->pivot->role) }}</span>
                     <form method="POST" action="{{ route('admin.communities.ctp.remove', [$community, $ctp]) }}" class="mini-form"
@@ -162,7 +162,7 @@
                     <span class="hint">{{ $b->age ? $b->age.' yrs · ' : '' }}{{ $b->gender ? ucfirst($b->gender) : '' }}</span>
                     <span class="hint">benefited {{ $b->benefited_on->format('d M Y') }}</span>
                     @if ($b->project)
-                        <a class="hint" href="{{ route('admin.projects.show', $b->project_id) }}">{{ $b->project->reference }}</a>
+                        <a class="hint" href="{{ dept_link('admin.projects.show', ['project' => $b->project_id]) }}">{{ $b->project->reference }}</a>
                     @endif
                     <form method="POST" action="{{ route('admin.beneficiaries.delete', $b) }}" class="mini-form"
                           data-confirm="Remove {{ $b->name }} from the beneficiary count?" data-title="Remove beneficiary">
@@ -235,7 +235,7 @@
             <p class="hint">KSh {{ number_format($investment, 2) }} committed here across {{ $projects->count() }} project{{ $projects->count() === 1 ? '' : 's' }}.</p>
             @forelse ($projects as $p)
                 <div class="row-line">
-                    <a href="{{ route('admin.projects.show', $p) }}"><b>{{ $p->title }}</b></a>
+                    <a href="{{ dept_link('admin.projects.show', ['project' => $p]) }}"><b>{{ $p->title }}</b></a>
                     <span class="hint">{{ $p->reference }} · {{ $p->categoryLabel() }}</span>
                     <span class="status {{ $p->status }}">{{ str_replace('_', ' ', $p->status) }}</span>
                     <span class="hint">{{ $p->budget ? 'KSh '.number_format((float) $p->budget) : 'no budget set' }}</span>
@@ -251,7 +251,7 @@
             CTPs on this roster.</p>
             @forelse ($community->cohorts as $c)
                 <div class="row-line">
-                    <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->courseLabel() }}</b></a>
+                    <a href="{{ dept_link('admin.cohorts.show', ['cohort' => $c]) }}"><b>{{ $c->courseLabel() }}</b></a>
                     <span class="hint">{{ $c->reference }} · {{ $c->training?->name }}</span>
                     <span class="hint">{{ $c->dateLabel() }}</span>
                     <span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
@@ -259,7 +259,7 @@
                 </div>
             @empty
                 <p class="hint">No cohort has been booked in this community yet. Prioritised needs are what the office
-                    uses to choose one — post it under <a href="{{ route('admin.cohorts.index') }}">Training &amp; Certification</a>.</p>
+                    uses to choose one — post it under {!! dept_ref('admin.cohorts.index', 'Training & Certification') !!}.</p>
             @endforelse
         </div>
     </div>
@@ -270,7 +270,7 @@
             @if ($community->status === 'pending_review')
                 <p class="hint">Proposed by
                     @if ($community->creator)
-                        <a href="{{ route('admin.promoters.show', $community->created_by_ctp) }}"><b>{{ $community->creator->full_name }}</b></a>
+                        <a href="{{ dept_link('admin.promoters.show', ['ctp' => $community->created_by_ctp]) }}"><b>{{ $community->creator->full_name }}</b></a>
                         ({{ $community->creator->ctp_code }}) on {{ $community->created_at->format('d M Y') }}
                     @else
                         a removed record

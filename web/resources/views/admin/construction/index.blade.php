@@ -17,9 +17,8 @@
     The engineering record behind a buildable project (§11.1): the site read before anyone prices it, the bill of
     quantities line by line, the labour counted on site, the inspections with every item marked, and the changes the
     design did not carry. What is on this desk is the <i>file</i> — the order itself, the worker's days and the
-    hirer's confirmation stay on the
-    <a href="{{ route('admin.execution.index') }}">delivery register</a>, and every shilling is still worked out on
-    the <a href="{{ route('admin.payouts.index') }}">Module 11 register</a>.
+    hirer's confirmation stay on {!! dept_ref('admin.execution.index', 'the delivery register') !!}, and every shilling is still worked out on
+    {!! dept_ref('admin.payouts.index', 'the Module 11 register') !!}.
 </p>
 
 <div class="stat-row">
@@ -109,7 +108,7 @@
                 <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px;">
                     No construction file here yet. A file opens on any project whose trade is buildable work
                     ({{ collect($trades)->take(4)->implode(', ') }}…) —
-                    post or award one on <a href="{{ route('admin.projects.index') }}">Projects</a>, then read the site
+                    post or award one on {!! dept_ref('admin.projects.index', 'Projects') !!}, then read the site
                     before pricing it (§11.2).
                 </td></tr>
             @endforelse

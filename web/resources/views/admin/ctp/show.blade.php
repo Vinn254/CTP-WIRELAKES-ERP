@@ -160,7 +160,7 @@
             <h3>Projects</h3>
             @forelse ($projects as $a)
                 <div class="row-line">
-                    <a href="{{ route('admin.projects.show', $a->project_id) }}"><b>{{ $a->project->title ?? 'Project deleted' }}</b></a>
+                    <a href="{{ dept_link('admin.projects.show', ['project' => $a->project_id]) }}"><b>{{ $a->project->title ?? 'Project deleted' }}</b></a>
                     <span class="hint">{{ $a->project->reference ?? '' }}</span>
                     <span class="status {{ $a->status }}">{{ str_replace('_', ' ', $a->status) }}</span>
                 </div>

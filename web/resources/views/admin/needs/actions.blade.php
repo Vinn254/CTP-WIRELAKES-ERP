@@ -9,7 +9,7 @@
         <div class="row-line">
             <span class="hint">Became</span>
             @if ($need->project)
-                <a href="{{ route('admin.projects.show', $need->project_id) }}"><b>{{ $need->project->reference }} · {{ $need->project->title }}</b></a>
+                <a href="{{ dept_link('admin.projects.show', ['project' => $need->project_id]) }}"><b>{{ $need->project->reference }} · {{ $need->project->title }}</b></a>
                 <span class="status {{ $need->project->status }}">{{ str_replace('_', ' ', $need->project->status) }}</span>
             @else
                 <span class="hint">its project was removed</span>

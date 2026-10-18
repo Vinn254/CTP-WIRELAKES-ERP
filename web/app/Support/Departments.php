@@ -207,6 +207,26 @@ class Departments
         'admin.programme.index' => 'The membership fees and contact details the code reads; an executive changes them (§15.6)',
     ];
 
+    /**
+     * Shared records. A department whose own screen links to another module's record is given a copy of that screen
+     * inside its office — same controller, same data, its URL carrying the department it is shown in. Reading a
+     * record never moves anyone out of the department they work in. The owning module keeps every write action: a
+     * copy is read-only, and the routes that change the record stay where they belong.
+     *
+     * hosted route name => [the screen it copies, the departments given a copy of it]
+     */
+    public const HOSTED = [
+        'admin.host.projects.show' => ['admin.projects.show', ['marketplace', 'execution', 'construction', 'communities', 'promoters', 'efundi']],
+        'admin.host.projects.index' => ['admin.projects.index', ['marketplace', 'execution', 'construction']],
+        'admin.host.promoters.show' => ['admin.promoters.show', ['membership', 'communities', 'training']],
+        'admin.host.communities.show' => ['admin.communities.show', ['membership', 'training', 'marketplace', 'execution', 'construction']],
+        'admin.host.fundis.show' => ['admin.fundis.show', ['marketplace', 'execution', 'training']],
+        'admin.host.inventory.show' => ['admin.inventory.show', ['membership', 'marketplace', 'execution', 'construction']],
+        'admin.host.cohorts.show' => ['admin.cohorts.show', ['communities']],
+        'admin.host.payouts.show' => ['admin.payouts.show', ['execution', 'construction']],
+        'admin.host.execution.show' => ['admin.execution.show', ['construction']],
+    ];
+
     public static function all(): array
     {
         return self::ALL;
@@ -265,6 +285,74 @@ class Departments
         }
 
         return null;
+    }
+
+    /** The department a screen is being shown in — its own copy of a shared record, or the module that owns it. */
+    public static function currentSlug(): ?string
+    {
+        $route = app('router')->getCurrentRoute();
+
+        return $route?->parameter('department') ?: static::owner($route?->getName());
+    }
+
+    /** Every department that is given copies of shared records. */
+    public static function hosts(): array
+    {
+        return array_values(array_unique(array_merge(...array_column(self::HOSTED, 1))));
+    }
+
+    /** Are we standing in another module's record, shown here as a read-only copy? */
+    public static function hosted(?string $routeName = null): bool
+    {
+        return in_array($routeName ?: static::currentRouteName(), array_keys(self::HOSTED), true);
+    }
+
+    private static function currentRouteName(): ?string
+    {
+        return app('router')->getCurrentRoute()?->getName();
+    }
+
+    /** Is this department given a copy of this shared screen? The only way a host reaches another module's record. */
+    public static function canHost(string $hostedRouteName, ?string $host): bool
+    {
+        return $host !== null && in_array($host, self::HOSTED[$hostedRouteName][1] ?? [], true);
+    }
+
+    /**
+     * A link that stays inside the department you are in: if this department is given a copy of the screen, open the
+     * copy; otherwise open the owning module's. Use it for every link to another department's record.
+     */
+    public static function inside(string $routeName, array $params = []): string
+    {
+        $copy = static::copyOf($routeName);
+
+        return $copy
+            ? route($copy, $params + ['department' => static::currentSlug()])
+            : route($routeName, $params);
+    }
+
+    /** The hosted route this department is given for another module's screen, if it is given one. */
+    public static function copyOf(string $owningRouteName): ?string
+    {
+        $host = static::currentSlug();
+
+        if ($host === null) {
+            return null;
+        }
+
+        foreach (self::HOSTED as $hostedName => [$owning, $hosts]) {
+            if ($owning === $owningRouteName && in_array($host, $hosts, true)) {
+                return $hostedName;
+            }
+        }
+
+        return null;
+    }
+
+    /** Can this staff member open the screen at all — as their own copy, or in the module that owns it? */
+    public static function reachable(?User $user, string $routeName): bool
+    {
+        return static::copyOf($routeName) !== null || static::canSee($user, static::owner($routeName));
     }
 
     /** Overview tiles for a department — the same screens as its sidebar. */

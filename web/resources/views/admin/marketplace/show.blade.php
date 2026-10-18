@@ -5,6 +5,7 @@
     use App\Models\FundiRegistration;
     use App\Models\Project;
     use App\Models\ProjectMatch;
+    use App\Support\Departments;
     use App\Support\Finance;
     use App\Support\Marketplace;
 
@@ -30,7 +31,7 @@
         </div>
     </div>
     <div class="page-actions">
-        <a class="btn btn-sm btn-outline" href="{{ route('admin.projects.show', $project) }}">Posting, materials &amp; applications</a>
+        <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.projects.show', ['project' => $project]) }}">Posting, materials &amp; applications</a>
     </div>
 </div>
 
@@ -41,8 +42,9 @@
             <b>{{ $award->full_name }}</b> <span class="tag gray">{{ $award->memberCode() }}</span>
             took it on {{ $project->awarded_at?->format('d M Y') ?? 'a date on the record' }}.
             The work order is opened under
-            <a href="{{ route('admin.department', 'execution') }}">Project Execution &amp; Payment</a> and the money under
-            <a href="{{ route('admin.department', 'finance') }}">Finance</a> — this desk keeps the rounds below as the
+            @php $me = auth()->user(); @endphp
+            @if (Departments::canSee($me, 'execution'))<a href="{{ route('admin.department', 'execution') }}">Project Execution &amp; Payment</a>@else<b>Project Execution &amp; Payment</b>@endif and the money under
+            @if (Departments::canSee($me, 'finance'))<a href="{{ route('admin.department', 'finance') }}">Finance</a>@else<b>Finance</b>@endif — this desk keeps the rounds below as the
             record of how the fundi was found. To change the worker, release the award on the project page first.
         </p>
     </div>
@@ -177,7 +179,7 @@
             <div class="invite-row {{ in_array($match->status, ['declined', 'no_reply'], true) ? 'revoked' : '' }}">
                 <div class="invite-main">
                     <b>{{ $match->score }}%</b>
-                    <a href="{{ route('admin.fundis.show', $fundi) }}">{{ $fundi->full_name }}</a>
+                    <a href="{{ dept_link('admin.fundis.show', ['fundi' => $fundi]) }}">{{ $fundi->full_name }}</a>
                     <span class="tag gray">{{ $fundi->ef_code ?: 'no E-Fundi ID yet' }}</span>
                     <span class="status {{ $statusPill[$match->status] ?? 'pending_review' }}">{{ $match->statusLabel() }}</span>
                     <div class="hint">{{ FundiRegistration::tierLabel($fundi->tier) }} ·
@@ -266,6 +268,6 @@
 
 <p class="hint">
     Materials the programme supplies, the work order and the payout are not this department's screens: the list stays on
-    <a href="{{ route('admin.projects.show', $project) }}">the project</a>, delivery is Module 7 and money is Module 11.
+    <a href="{{ dept_link('admin.projects.show', ['project' => $project]) }}">the project</a>, delivery is Module 7 and money is Module 11.
 </p>
 @endsection

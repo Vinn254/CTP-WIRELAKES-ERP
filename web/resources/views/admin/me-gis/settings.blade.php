@@ -11,8 +11,8 @@
     §15.6 lists what the administration section configures. Only the switches <b>the code actually reads</b> are on
     this page — a setting nothing looks at would be worse than none, because it would look like it works.
     Page wording, fees shown on the public site and branding are edited in
-    <a href="{{ route('admin.content.index') }}">site content</a> (Module 1); staff accounts and roles in
-    <a href="{{ route('admin.staff.index') }}">staff &amp; roles</a>.
+    {!! dept_ref('admin.content.index', 'site content') !!} (Module 1); staff accounts and roles in
+    {!! dept_ref('admin.staff.index', 'staff & roles') !!}.
 </p>
 
 @if (! $canEdit)

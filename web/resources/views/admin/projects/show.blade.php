@@ -34,7 +34,7 @@
  <div><dt>Hirer</dt><dd>{{ $project->hirer->organisation ?: '—' }}@if ($project->hirer->contact_name)<div class="hint">{{ $project->hirer->contact_name }} · {{ $project->hirer->email }}</div>@endif</dd></div>
  <div><dt>Trade</dt><dd>{{ $project->trade ?: 'Any trade' }}</dd></div>
  <div><dt>Place</dt><dd>{{ collect([$project->county, $project->ward])->filter()->implode(', ') ?: '—' }}
- @if ($project->community->exists)<div class="hint">Community <a href="{{ route('admin.communities.show', $project->community_id) }}">{{ $project->community->community_code ?: $project->community->name }}</a></div>@endif</dd></div>
+ @if ($project->community->exists)<div class="hint">Community <a href="{{ dept_link('admin.communities.show', ['community' => $project->community_id]) }}">{{ $project->community->community_code ?: $project->community->name }}</a></div>@endif</dd></div>
  <div><dt>Budget</dt><dd>{{ $project->budget !== null ? 'KSh '.number_format((float) $project->budget, 2) : 'Not set' }}</dd></div>
  <div><dt>Duration</dt><dd>{{ $project->duration ?: '—' }}</dd></div>
  <div><dt>Deadline</dt><dd>{{ $project->deadline ? $project->deadline->format('d M Y') : 'Open until closed' }}</dd></div>
@@ -112,7 +112,7 @@
  @foreach ($project->providedMaterials as $m)
  <tr>
  <td><b>{{ $m->name }}</b>@if ($m->note)<div class="hint">{{ $m->note }}</div>@endif</td>
- <td>@if ($m->item->exists)<a class="hint" href="{{ route('admin.inventory.show', $m->item) }}">{{ $m->item->sku }}</a>@else <span class="hint">bought for the job</span>@endif</td>
+ <td>@if ($m->item->exists)<a class="hint" href="{{ dept_link('admin.inventory.show', ['item' => $m->item]) }}">{{ $m->item->sku }}</a>@else <span class="hint">bought for the job</span>@endif</td>
  <td>{{ $m->quantityLabel() }}</td>
  <td>{{ $m->unitCostLabel() }}</td>
  <td><b>{{ $m->totalLabel() }}</b></td>

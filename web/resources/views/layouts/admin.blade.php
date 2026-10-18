@@ -6,6 +6,10 @@
     $route = request()->route();
     $deptSlug = ($route ? $route->parameter('department') : null) ?: Departments::owner($route ? $route->getName() : null);
     $dept = $deptSlug ? Departments::find($deptSlug) : null;
+    // A shared record shown as this department's copy: which screen it copies, and who really owns it.
+    $owningRoute = Departments::hosted() ? (Departments::HOSTED[$route?->getName()][0] ?? null) : null;
+    $ownerSlug = $owningRoute ? Departments::owner($owningRoute) : null;
+    $ownerName = $ownerSlug ? (Departments::find($ownerSlug)['name'] ?? $ownerSlug) : null;
     $deptPage = request()->route('page');
     $isActive = function (array $item) use ($deptPage) {
         $target = $item['route'][0];
@@ -88,6 +92,19 @@
         </header>
         <main class="admin-content">
             @include('partials.flash')
+            @if ($owningRoute)
+                <div class="card callout" style="margin-bottom:16px;">
+                    <b>{{ $dept['tag'] ?? '' }} · {{ $dept['name'] ?? '' }} copy</b> — this record belongs to
+                    {{ $ownerName }}, and reading it here changes nothing.
+                    @if (Departments::canSee($me, $ownerSlug))
+                        <a href="{{ route($owningRoute, collect($route?->parameters())->except('department')->all()) }}">
+                            Open it in {{ $ownerName }}
+                        </a>
+                    @else
+                        Only the staff who run {{ $ownerName }} can change it.
+                    @endif
+                </div>
+            @endif
             @yield('content')
         </main>
     </div>
@@ -95,5 +112,25 @@
 <script src="{{ asset('js/theme.js') }}"></script>
 <script src="{{ asset('js/admin.js') }}"></script>
 <script src="{{ asset('js/lightbox.js') }}"></script>
+@if ($owningRoute)
+<script>
+    // A copy belongs to the office it is shown in: its back link returns there, not to the register of the
+    // module that owns the record.
+    document.querySelectorAll('main.admin-content p.back a').forEach((a) => {
+        a.href = @json(route('admin.department', $deptSlug));
+        a.textContent = '\u2190 Back to {{ $dept['name'] ?? 'this department' }}';
+    });
+</script>
+@endif
+@if ($owningRoute && ! Departments::canSee($me, $ownerSlug))
+<script>
+    // The copy is read-only for this staff member. The server refuses the write either way; this saves them the
+    // click, and says where the record is actually kept.
+    document.querySelectorAll('main.admin-content form[method="post" i] button, main.admin-content form[method="post" i] input[type=submit]')
+        .forEach((el) => { el.disabled = true; el.title = 'Read-only copy — the {{ $ownerName }} office changes this record.'; });
+    document.querySelectorAll('main.admin-content a[href$="/edit"], main.admin-content a[href*="/edit?"]')
+        .forEach((el) => el.remove());
+</script>
+@endif
 </body>
 </html>
