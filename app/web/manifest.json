@@ -1,11 +1,11 @@
 {
-    "name": "ctp_wirelakes_app",
-    "short_name": "ctp_wirelakes_app",
+    "name": "CTP-WireLakes Member Portal",
+    "short_name": "CTP-WireLakes",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F7FAF5",
+    "theme_color": "#066722",
+    "description": "CTP-WireLakes member portal for Community Trainers and E-Fundis.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

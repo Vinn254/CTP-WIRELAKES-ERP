@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../widgets/ui.dart';
 import 'dashboard_shell.dart';
@@ -185,10 +184,6 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
               child: Column(
                 children: [
-                  Text('Backend: ${ApiConfig.baseUrl}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: muted, fontSize: 11)),
-                  const SizedBox(height: 6),
                   const Text('CTP-WireLakes Construction and Technology Enterprise',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: muted, fontSize: 11)),
