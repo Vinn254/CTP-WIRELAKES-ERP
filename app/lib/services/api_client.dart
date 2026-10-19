@@ -87,10 +87,14 @@ class ApiClient {
     };
   }
 
+  /// Generous on purpose: `php artisan serve` answers one request at a time, so a screen that opens with
+  /// several calls waits behind them. A short limit turned a merely slow office into "server unreachable".
+  static const _wait = Duration(seconds: 45);
+
   Future<dynamic> get(String path) async {
     final res = await http
         .get(Uri.parse(ApiConfig.url(path)), headers: _headers(json: false))
-        .timeout(const Duration(seconds: 10));
+        .timeout(_wait);
     return _parse(res);
   }
 
@@ -98,14 +102,14 @@ class ApiClient {
     final res = await http
         .post(Uri.parse(ApiConfig.url(path)),
             headers: _headers(), body: jsonEncode(_flatten(body)))
-        .timeout(const Duration(seconds: 20));
+        .timeout(_wait);
     return _parse(res);
   }
 
   Future<dynamic> delete(String path) async {
     final res = await http
         .delete(Uri.parse(ApiConfig.url(path)), headers: _headers())
-        .timeout(const Duration(seconds: 20));
+        .timeout(_wait);
     return _parse(res);
   }
 
