@@ -62,6 +62,7 @@
     </div>
 </header>
 <script src="{{ asset('js/theme.js') }}"></script>
+<script src="{{ asset('js/password.js') }}"></script>
 <script>
 function toggleSiteMenu(btn) {
     const nav = document.getElementById('siteNav');

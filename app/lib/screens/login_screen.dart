@@ -17,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
+  bool _showPw = false;
   String? _error;
 
   @override
@@ -118,10 +119,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 12),
                         TextField(
                           controller: _password,
-                          obscureText: true,
+                          obscureText: !_showPw,
                           autofillHints: const [AutofillHints.password],
                           onSubmitted: (_) => _busy ? null : _login(),
-                          decoration: _field('Password', Icons.lock_outline),
+                          decoration: _field('Password', Icons.lock_outline, suffix: IconButton(
+                            onPressed: () => setState(() => _showPw = !_showPw),
+                            tooltip: _showPw ? 'Hide the password' : 'Show the password',
+                            icon: Icon(
+                                _showPw ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                size: 20,
+                                color: muted),
+                          )),
                         ),
                         const SizedBox(height: 20),
                         FilledButton.icon(
@@ -224,9 +232,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  InputDecoration _field(String label, IconData icon) => InputDecoration(
+  InputDecoration _field(String label, IconData icon, {Widget? suffix}) => InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, size: 20),
+        suffixIcon: suffix,
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

@@ -211,6 +211,16 @@ legend { font-weight: 800; color: var(--green); padding: 0 8px; }
 .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; align-items: start; }
 .form-grid > .full, .form-grid-2 > .full, .form-grid-3 > .full { grid-column: 1 / -1; }
 .help { font-size: .82rem; color: var(--muted); margin-top: 4px; }
+/* The Show / Hide switch inside a password box — added by js/password.js to any input[type=password]. */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap > input { padding-inline-end: 64px; }
+.pw-toggle { position: absolute; inset-inline-end: 5px; top: 50%; transform: translateY(-50%);
+  border: 0; background: none; color: var(--green); font: inherit; font-size: .78rem; font-weight: 800;
+  padding: 6px 9px; border-radius: 8px; cursor: pointer; min-height: 0; }
+.pw-toggle:hover { background: var(--lime-soft); }
+.pw-toggle:focus-visible { outline: 2px solid var(--lime); outline-offset: 1px; }
+html.dark .pw-toggle { color: #8fd96f; }
+html.dark .pw-toggle:hover { background: #1d3122; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; }
 .checkbox-row label { margin: 0; }
 .chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
