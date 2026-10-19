@@ -109,7 +109,10 @@ class _TechJobsScreenState extends State<TechJobsScreen> {
           const SizedBox(height: 10),
           if (jobs.isEmpty)
             const Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+                side: cardBorder,
+              ),
               child: EmptyHint(
                 icon: Icons.handyman_outlined,
                 title: 'No repair job is assigned to you',
@@ -162,10 +165,10 @@ class _JobCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(
-          left: BorderSide(color: resolved ? muted : Colors.red.shade700, width: 4),
-          top: BorderSide(color: Colors.grey.shade200),
-          right: BorderSide(color: Colors.grey.shade200),
-          bottom: BorderSide(color: Colors.grey.shade200),
+          left: BorderSide(color: resolved ? muted : danger, width: 4),
+          top: BorderSide(color: line),
+          right: BorderSide(color: line),
+          bottom: BorderSide(color: line),
         ),
       ),
       child: Column(
@@ -180,8 +183,8 @@ class _JobCard extends StatelessWidget {
               ),
               Tag(job.priority,
                   color: job.priority.toLowerCase().contains('urgent')
-                      ? Colors.red.shade700
-                      : Colors.amber.shade800),
+                      ? danger
+                      : warn),
             ],
           ),
           Padding(

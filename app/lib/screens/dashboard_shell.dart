@@ -169,16 +169,22 @@ class _Drawer extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: heroColors),
+              ),
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 22,
-                    backgroundColor: green,
-                    foregroundColor: Colors.white,
+                    radius: 23,
+                    backgroundColor: Colors.white,
+                    foregroundColor: greenDark,
                     child: Text(m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -188,9 +194,11 @@ class _Drawer extends StatelessWidget {
                         Text(m.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w800, color: ink)),
-                        Text('${m.typeLabel}${m.code != null ? ' · ${m.code}' : ''}',
-                            style: const TextStyle(color: muted, fontSize: 12)),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
+                        Text('${m.navGrade}${m.code != null ? ' · ${m.code}' : ''}',
+                            style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.85), fontSize: 12)),
                       ],
                     ),
                   ),
@@ -204,7 +212,7 @@ class _Drawer extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
-                    child: Text(m.navGrade,
+                    child: Text('My pages',
                         style: const TextStyle(
                             color: muted, fontSize: 11, fontWeight: FontWeight.w800,
                             letterSpacing: 0.8)),
@@ -243,20 +251,27 @@ class _Drawer extends StatelessWidget {
 Widget _item(MemberPage p, bool selected, ValueChanged<String> onOpen) {
   return ListTile(
     selected: selected,
-    selectedTileColor: soft,
-    selectedColor: green,
-    leading: Icon(p.icon, color: selected ? green : muted),
+    // The web sidebar marks the page you are on with the bright lime block, so the drawer does the same.
+    selectedTileColor: lime,
+    selectedColor: onLime,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+    minVerticalPadding: 6,
+    leading: Icon(p.icon, color: selected ? onLime : muted),
     title: Text(p.label,
-        style: TextStyle(fontWeight: selected ? FontWeight.w800 : FontWeight.w600)),
+        style: TextStyle(
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            color: selected ? onLime : ink)),
     trailing: p.badge > 0
         ? Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
             decoration: BoxDecoration(
-              color: p.badge > 0 ? green : muted,
+              color: selected ? onLime : lime,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text('${p.badge}',
-                style: const TextStyle(color: Colors.white, fontSize: 11,
+                style: TextStyle(
+                    color: selected ? lime : onLime,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800)),
           )
         : null,

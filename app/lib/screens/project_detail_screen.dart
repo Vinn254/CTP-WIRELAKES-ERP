@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/member_models.dart';
 import '../services/api_client.dart';
+import '../widgets/ui.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final ApiClient api;
@@ -97,7 +98,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           spacing: 8,
           children: [
             _tag(p.categoryLabel),
-            if (p.status == 'open') _tag('Open', color: const Color(0xFF0E6B3A)),
+            if (p.status == 'open') _tag('Open', color: green),
             if (p.deadline != null) _tag('Deadline ${p.deadline}'),
           ],
         ),
@@ -105,7 +106,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         Text(p.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
         Text([p.county, p.ward, p.trade].where((x) => x != null && x.isNotEmpty).join(' · '),
-            style: const TextStyle(color: Color(0xFF355A40))),
+            style: const TextStyle(color: muted)),
         const Divider(height: 32),
         if (p.hirer != null) _field('Posted by', p.hirer!),
         _field('Reference', p.reference ?? '—'),
@@ -136,7 +137,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         else
           const Card(
             child: ListTile(
-              leading: Icon(Icons.lock_outline, color: Colors.grey),
+              leading: Icon(Icons.lock_outline, color: muted),
               title: Text('Not open for your level'),
               subtitle: Text('This project is for a different member category.'),
             ),
@@ -155,14 +156,14 @@ class _ApplyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFFE7F3E3),
+      color: soft,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text('Apply for this project',
-                style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF10331F))),
+                style: TextStyle(fontWeight: FontWeight.w700, color: ink)),
             const SizedBox(height: 8),
             TextField(
               controller: controller,
@@ -198,7 +199,7 @@ class _AppliedBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: const Icon(Icons.check_circle, color: Color(0xFF0E6B3A)),
+        leading: const Icon(Icons.check_circle, color: green),
         title: const Text('You have applied'),
         subtitle: Text('Status: ${application.statusLabel ?? application.status ?? 'pending review'}'),
       ),
@@ -211,13 +212,13 @@ Widget _field(String label, String value) => Padding(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 120, child: Text(label, style: const TextStyle(color: Color(0xFF355A40)))),
+          SizedBox(width: 120, child: Text(label, style: const TextStyle(color: muted))),
           Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600))),
         ],
       ),
     );
 
-Widget _tag(String text, {Color color = const Color(0xFF355A40)}) => Container(
+Widget _tag(String text, {Color color = muted}) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),

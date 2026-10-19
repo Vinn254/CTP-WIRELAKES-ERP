@@ -118,7 +118,10 @@ class _FixesScreenState extends State<FixesScreen> {
           const SizedBox(height: 10),
           if (data.fixes.isEmpty)
             const Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+                side: cardBorder,
+              ),
               child: EmptyHint(
                 icon: Icons.verified_outlined,
                 title: 'Nothing is flagged on your sites',
@@ -158,7 +161,7 @@ class _FixesScreenState extends State<FixesScreen> {
                               icon: const Icon(Icons.photo_outlined, color: green, size: 20),
                               onPressed: () => _showProof(c),
                             )
-                          : const Icon(Icons.photo_outlined, color: Colors.grey, size: 20),
+                          : const Icon(Icons.photo_outlined, color: muted, size: 20),
                     ),
                 ],
               ),
@@ -210,10 +213,10 @@ class _FixCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(
-          left: BorderSide(color: Colors.red.shade700, width: 4),
-          top: BorderSide(color: Colors.grey.shade200),
-          right: BorderSide(color: Colors.grey.shade200),
-          bottom: BorderSide(color: Colors.grey.shade200),
+          left: BorderSide(color: danger, width: 4),
+          top: BorderSide(color: line),
+          right: BorderSide(color: line),
+          bottom: BorderSide(color: line),
         ),
       ),
       child: Column(
@@ -226,7 +229,7 @@ class _FixCard extends StatelessWidget {
                 child: Text(item.item,
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: ink)),
               ),
-              Tag(item.result, color: Colors.red.shade700),
+              Tag(item.result, color: danger),
             ],
           ),
           Padding(

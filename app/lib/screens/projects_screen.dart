@@ -62,7 +62,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 final p = list[i];
                 return Card(
                   margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: cardBorder,
+                  ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: () async {

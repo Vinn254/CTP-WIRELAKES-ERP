@@ -40,39 +40,42 @@ class OverviewScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          Card(
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            color: green,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Hello, ${m.name.split(' ').first}',
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: heroColors),
+            ),
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Hello, ${m.name.split(' ').first}',
+                    style: const TextStyle(
+                        color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(m.standing,
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
+                if (m.code != null) ...[
+                  const SizedBox(height: 10),
+                  Text('Member code ${m.code}',
                       style: const TextStyle(
-                          color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 4),
-                  Text(m.standing,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
-                  if (m.code != null) ...[
-                    const SizedBox(height: 10),
-                    Text('Member code ${m.code}',
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                  ],
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      _boardPill('${c.projects}', 'projects', 'projects'),
-                      const SizedBox(width: 8),
-                      _boardPill('${c.workOrders}', 'work orders', 'work'),
-                      const SizedBox(width: 8),
-                      _boardPill('${c.fixes}', 'to put right', 'fixes'),
-                    ],
-                  ),
+                          color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                 ],
-              ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    _boardPill('${c.projects}', 'projects', 'projects'),
+                    const SizedBox(width: 8),
+                    _boardPill('${c.workOrders}', 'work orders', 'work'),
+                    const SizedBox(width: 8),
+                    _boardPill('${c.fixes}', 'to put right', 'fixes'),
+                  ],
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 18),
@@ -89,7 +92,7 @@ class OverviewScreen extends StatelessWidget {
                       dense: true,
                       leading: Badge.count(
                         count: item.$2,
-                        backgroundColor: Colors.orange.shade700,
+                        backgroundColor: warn,
                         child: const Icon(Icons.notifications_outlined, color: green),
                       ),
                       title: Text(_waitingLabel(item.$1, m.isFundi)),
@@ -122,7 +125,7 @@ class OverviewScreen extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE3EDE5)),
+                        border: Border.all(color: line),
                       ),
                       padding: const EdgeInsets.all(14),
                       child: Column(
@@ -134,7 +137,7 @@ class OverviewScreen extends StatelessWidget {
                                 width: 38,
                                 height: 38,
                                 decoration: BoxDecoration(
-                                  color: green.withValues(alpha: 0.1),
+                                  color: limeSoft,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(p.icon, size: 20, color: green),
@@ -145,12 +148,12 @@ class OverviewScreen extends StatelessWidget {
                                   padding:
                                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: green,
+                                    color: lime,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text('${p.badge}',
                                       style: const TextStyle(
-                                          color: Colors.white,
+                                          color: onLime,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w800)),
                                 ),
@@ -195,7 +198,7 @@ class OverviewScreen extends StatelessWidget {
             children: [
               Text(value,
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                      color: lime, fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(width: 6),
               Text(label,
                   style: TextStyle(

@@ -194,7 +194,10 @@ class _TrainerScreenState extends State<TrainerScreen> {
             ),
           if (b.sites.isEmpty)
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: cardBorder,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -239,7 +242,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
           color: s.status == 'approved'
               ? green
               : s.status == 'applied'
-                  ? Colors.orange.shade800
+                  ? warn
                   : muted),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,7 +303,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
           const SizedBox(height: 2),
           Text(
               'Attendance under 80% keeps a trainee out of certification, so mark the days.',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              style: TextStyle(color: muted, fontSize: 12)),
           if (c.trainees.isEmpty)
             const Padding(
               padding: EdgeInsets.only(top: 6),
@@ -350,7 +353,7 @@ class _TrainerScreenState extends State<TrainerScreen> {
                 child: Row(
                   children: [
                     Icon(m.marked ? Icons.check_circle : Icons.circle_outlined,
-                        size: 18, color: m.marked ? green : Colors.grey),
+                        size: 18, color: m.marked ? green : muted),
                     const SizedBox(width: 8),
                     Expanded(child: Text(m.title, style: const TextStyle(fontSize: 13))),
                     m.marked

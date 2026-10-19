@@ -182,7 +182,10 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
   Widget _requestCard(ProcurementBoard b, PurchaseLine line) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: cardBorder,
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
         child: Column(
@@ -263,7 +266,7 @@ class _StepDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = current ? green : (done ? muted : Colors.grey.shade400);
+    final color = current ? green : (done ? muted : line);
     return Container(
       width: 22,
       height: 22,

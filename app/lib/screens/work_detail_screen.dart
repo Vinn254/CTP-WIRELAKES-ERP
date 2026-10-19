@@ -195,7 +195,10 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: cardBorder,
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
         child: Column(
@@ -417,10 +420,10 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(
-          left: BorderSide(color: Colors.red.shade700, width: 4),
-          top: BorderSide(color: Colors.grey.shade200),
-          right: BorderSide(color: Colors.grey.shade200),
-          bottom: BorderSide(color: Colors.grey.shade200),
+          left: BorderSide(color: danger, width: 4),
+          top: BorderSide(color: line),
+          right: BorderSide(color: line),
+          bottom: BorderSide(color: line),
         ),
       ),
       child: Column(
@@ -602,10 +605,10 @@ class _Rule extends StatelessWidget {
 }
 
 Color _pill(String status) => switch (status) {
-      'issued' || 'accepted' => Colors.amber.shade800,
+      'issued' || 'accepted' => warn,
       'in_progress' || 'completion_submitted' => green,
-      'confirmed' || 'closed' => const Color(0xFF0E6B3A),
-      'disputed' || 'cancelled' => Colors.red.shade700,
+      'confirmed' || 'closed' => greenDark,
+      'disputed' || 'cancelled' => danger,
       _ => muted,
     };
 

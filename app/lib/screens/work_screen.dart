@@ -85,7 +85,10 @@ class _WorkScreenState extends State<WorkScreen> {
           const SizedBox(height: 6),
           if (data.orders.isEmpty)
             const Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+                side: cardBorder,
+              ),
               child: EmptyHint(
                 icon: Icons.assignment_outlined,
                 title: 'No work order yet',
@@ -129,7 +132,10 @@ class _OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: cardBorder,
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onOpen,
@@ -294,10 +300,10 @@ class _Steps extends StatelessWidget {
 }
 
 Color _pill(String status) => switch (status) {
-      'issued' || 'accepted' => Colors.amber.shade800,
+      'issued' || 'accepted' => warn,
       'in_progress' || 'completion_submitted' => green,
-      'confirmed' || 'closed' => const Color(0xFF0E6B3A),
-      'disputed' || 'cancelled' => Colors.red.shade700,
+      'confirmed' || 'closed' => greenDark,
+      'disputed' || 'cancelled' => danger,
       _ => muted,
     };
 

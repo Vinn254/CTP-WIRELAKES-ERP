@@ -135,7 +135,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                       subtitle: [h.cohort, h.period].where((x) => x != null && x.isNotEmpty).join(' · '),
                       meta: h.stateLabel + (h.stageLabel.isEmpty ? '' : ' · ${h.stageLabel}'),
                       trailing: Tag(h.stateLabel,
-                          color: h.state == 'approved' ? green : h.state == 'pending' ? Colors.orange.shade800 : muted),
+                          color: h.state == 'approved' ? green : h.state == 'pending' ? warn : muted),
                     ),
                 ],
               ),
@@ -195,7 +195,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
     return SectionCard(
       title: s.course ?? 'Training',
       subtitle: [s.cohort, s.period].where((x) => x != null && x.isNotEmpty).join(' · '),
-      trailing: Tag(s.stateLabel, color: s.state == 'approved' ? green : Colors.orange.shade800),
+      trailing: Tag(s.stateLabel, color: s.state == 'approved' ? green : warn),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -268,7 +268,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
             children: [
               if (c.period != null && c.period!.isNotEmpty) Tag(c.period!),
               if (c.seatsLeft != null)
-                Tag('${c.seatsLeft} seats left', color: c.seatsLeft! > 0 ? green : Colors.red.shade700),
+                Tag('${c.seatsLeft} seats left', color: c.seatsLeft! > 0 ? green : danger),
               if (c.applied) const Tag('Applied', color: green),
             ],
           ),

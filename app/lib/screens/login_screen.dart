@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F7F3),
+      backgroundColor: page,
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -95,8 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Card(
                   margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: cardBorder,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
                     child: Column(
@@ -134,7 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 20),
                         FilledButton.icon(
                           onPressed: _busy ? null : _login,
+                          // The website's own primary button: bright lime with deep green lettering.
                           style: FilledButton.styleFrom(
+                            backgroundColor: lime,
+                            foregroundColor: onLime,
                             minimumSize: const Size.fromHeight(50),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
@@ -144,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 18,
                                   width: 18,
                                   child: CircularProgressIndicator(
-                                      color: Colors.white, strokeWidth: 2),
+                                      color: onLime, strokeWidth: 2),
                                 )
                               : const Icon(Icons.login),
                           label: Text(_busy ? 'Signing in…' : 'Log in',
@@ -156,17 +161,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFDECEC),
+                              color: danger.withValues(alpha: 0.07),
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: danger.withValues(alpha: 0.35)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.error_outline, size: 18, color: Color(0xFFB3261E)),
+                                const Icon(Icons.error_outline, size: 18, color: danger),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(_error!,
                                       style: const TextStyle(
-                                          color: Color(0xFF7A1712), fontSize: 12.5, height: 1.3)),
+                                          color: danger, fontSize: 12.5, height: 1.3)),
                                 ),
                               ],
                             ),
@@ -184,11 +190,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text('Backend: ${ApiConfig.baseUrl}',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFF6F8C7C), fontSize: 11)),
+                      style: const TextStyle(color: muted, fontSize: 11)),
                   const SizedBox(height: 6),
                   const Text('CTP-WireLakes Construction and Technology Enterprise',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFF6F8C7C), fontSize: 11)),
+                      style: TextStyle(color: muted, fontSize: 11)),
                 ],
               ),
             ),
@@ -204,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0E6B3A), Color(0xFF0A4F2B)],
+          colors: heroColors,
         ),
         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(34), bottomRight: Radius.circular(34)),
       ),
@@ -234,22 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   InputDecoration _field(String label, IconData icon, {Widget? suffix}) => InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 20),
+        prefixIcon: Icon(icon, size: 20, color: muted),
         suffixIcon: suffix,
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFD8E5DB)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFD8E5DB)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: green, width: 1.6),
-        ),
       );
 }

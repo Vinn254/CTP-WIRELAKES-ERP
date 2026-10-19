@@ -9,10 +9,27 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_client.dart';
 
-const green = Color(0xFF0E6B3A);
-const ink = Color(0xFF10331F);
-const muted = Color(0xFF355A40);
-const soft = Color(0xFFE7F3E3);
+/// The brand palette, taken straight from the website's own `:root` in public/css/app.css so the app and
+/// the portal are visibly one programme. `lime` is the bright logo green the site paints its buttons, active
+/// nav and stat rules with; `heroColors` is the gradient of the site's banner.
+const green = Color(0xFF066722);
+const greenDark = Color(0xFF04491A);
+const lime = Color(0xFF4CB614);
+const limeSoft = Color(0xFFEAF6E2);
+const onLime = Color(0xFF083D0D);
+const ink = Color(0xFF1D2B20);
+const muted = Color(0xFF5C6F60);
+const soft = limeSoft;
+const page = Color(0xFFF7FAF5);
+const line = Color(0xFFDCE8D8);
+const danger = Color(0xFFB3261E);
+const warn = Color(0xFF8A6D00);
+
+/// The hairline every card, field and tile wears — the web's `border: 1px solid var(--line)`. A card that
+/// overrides its own shape must restate this or it loses the rule, so it lives here as one value. It is a
+/// separate name from [line] because a screen is free to call its own variable `line`.
+const cardBorder = BorderSide(color: line, width: 1.5);
+const heroColors = [Color(0xFF033D10), greenDark, green, Color(0xFF2F9E1A)];
 
 // ---- state views -----------------------------------------------------------
 
@@ -36,7 +53,7 @@ class EmptyHint extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          Icon(icon, size: 44, color: Colors.grey),
+          Icon(icon, size: 44, color: lime),
           const SizedBox(height: 12),
           Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 6),
@@ -92,6 +109,14 @@ class SectionCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // The lime rule the website puts on every section head and stat card.
+                Container(
+                  width: 4,
+                  height: 17,
+                  margin: const EdgeInsets.only(right: 9, top: 2),
+                  decoration: const BoxDecoration(
+                      color: lime, borderRadius: BorderRadius.all(Radius.circular(2))),
+                ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,10 +231,9 @@ class RecordRow extends StatelessWidget {
             if (meta != null)
               Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: Text(meta!,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                child: Text(meta!, style: const TextStyle(color: muted, fontSize: 12)),
               ),
-            Divider(height: 18),
+            const Divider(height: 18, color: line),
           ],
         ),
       ),
@@ -630,7 +654,6 @@ class _FormSheetState extends State<_FormSheet> {
 
   InputDecoration _deco(FieldSpec f) => InputDecoration(
         hintText: f.helper,
-        border: const OutlineInputBorder(),
         isDense: true,
       );
 }
@@ -720,5 +743,5 @@ void say(BuildContext context, String message) {
 void showError(BuildContext context, Object error) {
   final message = error is ApiException ? error.message : '$error';
   ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red.shade800));
+      .showSnackBar(SnackBar(content: Text(message), backgroundColor: danger));
 }

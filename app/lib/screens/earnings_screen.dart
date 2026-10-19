@@ -129,7 +129,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 13.5,
-                          color: e.isIncome ? green : Colors.red.shade700,
+                          color: e.isIncome ? green : danger,
                         ),
                       ),
                     ),
@@ -187,7 +187,10 @@ class _EarningsScreenState extends State<EarningsScreen> {
       );
 
   Widget _noneLine(String text) => Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: cardBorder,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Text(text, style: const TextStyle(color: muted, fontSize: 13)),
@@ -199,7 +202,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
       title: p.reference,
       subtitle: [p.streamLabel, p.source].where((x) => x != null && x.isNotEmpty).join(' — '),
       trailing: Tag(p.stageLabel,
-          color: p.released ? green : p.rejected ? Colors.red.shade700 : Colors.orange.shade800),
+          color: p.released ? green : p.rejected ? danger : warn),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -222,7 +225,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                   Icon(
                     i < p.step ? Icons.check_circle : Icons.circle_outlined,
                     size: 16,
-                    color: i < p.step ? green : Colors.grey,
+                    color: i < p.step ? green : muted,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -230,12 +233,12 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       p.path[i],
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: i < p.step ? ink : Colors.grey.shade600,
+                        color: i < p.step ? ink : muted,
                         fontWeight: i == p.step ? FontWeight.w700 : FontWeight.w400,
                       ),
                     ),
                   ),
-                  if (i == p.step) Tag('You are here', color: Colors.orange.shade800),
+                  if (i == p.step) Tag('You are here', color: warn),
                 ],
               ),
             ),

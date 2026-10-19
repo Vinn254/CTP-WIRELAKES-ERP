@@ -85,7 +85,10 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
                 final a = list[i];
                 return Card(
                   margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: cardBorder,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(15, 13, 12, 10),
                     child: Column(
@@ -102,7 +105,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
                                 color: a.status == 'approved'
                                     ? green
                                     : a.status == 'rejected'
-                                        ? Colors.red.shade700
+                                        ? danger
                                         : muted),
                           ],
                         ),
@@ -133,7 +136,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
                               TextButton(
                                   onPressed: () => _withdraw(a),
                                   child: Text('Withdraw',
-                                      style: TextStyle(color: Colors.red.shade700))),
+                                      style: TextStyle(color: danger))),
                           ],
                         ),
                       ],

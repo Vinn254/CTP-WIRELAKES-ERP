@@ -158,7 +158,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
   Widget _inviteCard(Invite m) {
     final canColor = m.status == 'awarded' || m.status == 'accepted'
         ? green
-        : (m.status == 'invited' ? Colors.orange.shade800 : muted);
+        : (m.status == 'invited' ? warn : muted);
     return SectionCard(
       title: m.projectTitle ?? 'Project',
       subtitle: [m.projectReference, m.hirer]

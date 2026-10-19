@@ -139,7 +139,7 @@ class _EfundiScreenState extends State<EfundiScreen> {
                 'matching and the training cohorts all read. Keep your availability and skills '
                 'current here; your grade, membership and documents are held by the office and '
                 'corrected by them.',
-            trailing: Tag(r.statusLabel, color: r.status == 'active' ? green : Colors.orange.shade800),
+            trailing: Tag(r.statusLabel, color: r.status == 'active' ? green : warn),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -226,7 +226,7 @@ class _EfundiScreenState extends State<EfundiScreen> {
                                 color: s.status == 'approved'
                                     ? green
                                     : s.status == 'applied'
-                                        ? Colors.orange.shade800
+                                        ? warn
                                         : muted),
                           ),
                       ],
