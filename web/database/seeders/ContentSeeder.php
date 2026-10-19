@@ -39,7 +39,7 @@ class ContentSeeder extends Seeder
              'cta1_label' => ['Button 1 label', 'text'], 'cta1_url' => ['Button 1 link', 'text'],
              'cta2_label' => ['Button 2 label', 'text'], 'cta2_url' => ['Button 2 link', 'text']],
             [['kicker' => 'Community Technology Promoters · Kenya',
-              'title' => 'From a community need, we create trained people, certified fundis, completed projects and lasting jobs.',
+              'title' => 'We train and certify people — then give the projects to our own Fundis.',
               'lede' => 'CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.',
               'cta1_label' => 'Become a CTP', 'cta1_url' => '/register/ctp',
               'cta2_label' => 'Become a Fundi', 'cta2_url' => '/register/fundi']]);
