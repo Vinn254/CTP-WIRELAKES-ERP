@@ -184,3 +184,6 @@ app/linux/build/
 ~*.xls
 ~*.pptx
 
+
+# Root README: local notes only, kept off the public repo
+/README.md
