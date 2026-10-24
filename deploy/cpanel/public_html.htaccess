@@ -1,0 +1,14 @@
+# Put this file at /home/<cpanel_user>/public_html/.htaccess
+# It is only needed when the domain's document root cannot be moved off public_html.
+# The app itself stays one level up in /home/<cpanel_user>/ctp-wirelakes, so .env and storage never sit under the web root.
+
+RewriteEngine On
+
+# Pass the bearer token through to PHP — the mobile app authorises every API call with it.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# A request that matches nothing inside public_html belongs to the Laravel front controller.
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
+RewriteRule ^(.*)$ /ctp-wirelakes/web/public/$1 [L,QSA]

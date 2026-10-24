@@ -1,0 +1,114 @@
+# cPanel deployment — CTP-WireLakes (web office + member mobile app)
+#
+# Three values are yours to fill: the domain, the cPanel username and the MySQL password you set in cPanel.
+# They are written as <angle brackets> below. Never put a real password in this file and never commit one.
+
+project:
+  name: CTP-WireLakes ERP
+  repo: https://github.com/Vinn254/CTP-WIRELAKES-ERP
+  framework: Laravel 13 (PHP ^8.3)
+  web_root: web            # the Laravel application
+  document_root: web/public # what the domain must serve
+  database_schema_file: production.sql   # import into an empty database — has no demo accounts
+  api_base_for_app: https://<domain>     # the mobile app calls <domain>/api
+
+host_requirements:
+  php_version: "8.3"
+  php_extensions: [bcmath, ctype, dom, fileinfo, mbstring, openssl, pdo_mysql, sqlite3, tokenizer, xml, zip]
+  mysql: "5.7 or MariaDB 10.4+"
+  composer: "2.x (cPanel → PHP 8.3 → Extensions, or use the Terminal)"
+  mod_rewrite: required        # Laravel's public/.htaccess
+  disk: "app + storage/uploads; allow at least 1 GB for member photos and e-waste pictures"
+  node: "not needed — the CSS and JS ship in web/public, there is no build step on the host"
+
+# ---------------------------------------------------------------------------
+# Where the files go
+# ---------------------------------------------------------------------------
+layout:
+  home: /home/<cpanel_user>
+  application: /home/<cpanel_user>/ctp-wirelakes      # web/, app/, module folders, production.sql
+  served_from: /home/<cpanel_user>/ctp-wirelakes/web/public
+  never_exposed: [web/.env, web/storage, web/vendor source, production.sql]
+
+  # Option 1 — the domain's document root can be edited (subdomain or addon domain):
+  #   cPanel → Domains → <domain> → Document Root → /home/<cpanel_user>/ctp-wirelakes/web/public
+  #   Done. Nothing else to add.
+  #
+  # Option 2 — the main domain, whose root is fixed at public_html:
+  #   keep the app in /home/<cpanel_user>/ctp-wirelakes and put deploy/cpanel/public_html.htaccess
+  #   in /home/<cpanel_user>/public_html/.htaccess. It rewrites every request into web/public,
+  #   so .env and storage stay above the web root.
+
+# ---------------------------------------------------------------------------
+# Install order — run these in cPanel → Terminal, one at a time
+# ---------------------------------------------------------------------------
+deploy_steps:
+  - step: Create the database
+    how: cPanel → MySQL® Databases → create database <db_name>, create user <db_user>, add user to database with ALL PRIVILEGES
+  - step: Upload the code
+    how: "cPanel → File Manager → upload the repo zip into /home/<cpanel_user>/ctp-wirelakes, then Extract. Or: git clone https://github.com/Vinn254/CTP-WIRELAKES-ERP.git ctp-wirelakes"
+  - step: Import the database
+    how: cPanel → phpMyAdmin → select <db_name> → Import → choose production.sql → Go
+    check: "the users table comes back with 0 rows — that is correct, there is no demo login"
+  - step: Install PHP dependencies
+    run: cd /home/<cpanel_user>/ctp-wirelakes/web && composer install --no-dev --optimize-autoloader
+  - step: Write the environment file
+    run: cd /home/<cpanel_user>/ctp-wirelakes/web && cp ../deploy/cpanel/env.production.example .env
+    fill: [APP_URL, DB_DATABASE, DB_USERNAME, DB_PASSWORD]
+    note: "leave SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD empty — see first_account below"
+  - step: Generate the app key
+    run: cd /home/<cpanel_user>/ctp-wirelakes/web && php artisan key:generate --force
+  - step: Keep the private store writable
+    run: "chmod -R 775 /home/<cpanel_user>/ctp-wirelakes/web/storage /home/<cpanel_user>/ctp-wirelakes/web/bootstrap/cache"
+    note: "`php artisan storage:link` is NOT needed — every upload (member photos, CTP documents, e-waste pictures) is
+      written to the local disk under web/storage/app/private and streamed back through a signed-in controller, so
+      nothing is ever publicly readable by URL. Do not move uploads to public_html."
+  - step: Cache the configuration
+    run: "php artisan config:cache && php artisan route:cache && php artisan view:cache"
+    note: "Run these LAST, after .env is final — a cached config freezes whatever .env said at that moment, and
+      APP_ENV=production with APP_DEBUG=false must already be set. Editing .env again means re-running all three."
+
+# ---------------------------------------------------------------------------
+# First account — no demo credentials exist on this host
+# ---------------------------------------------------------------------------
+first_account:
+  nothing_ships: "production.sql has no members, no staff and no super admin — a fresh host opens on an empty office."
+  method_a_registration: "Open https://<domain>/register and register a real CTP or Fundi account, then let the office promote it once a super admin exists."
+  method_b_seed_recommended: "Put your own email and your own password in web/.env as SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD, run `php artisan db:seed`, then blank those two lines and run `php artisan config:clear`."
+  after_sign_in: "Super admin → Staff → invite each department desk with its own email. Department accounts are invited, never seeded."
+  rotate: "The password you seeded exists only in your host .env and with you; it is written in no file in this repository."
+
+# ---------------------------------------------------------------------------
+# Scheduled work
+# ---------------------------------------------------------------------------
+cron:
+  status_today: "The app schedules nothing — the 48-hour invite window, the 60-day warranty and licence alerts are
+     worked out when a screen opens, so nothing is missed if no cron runs."
+  when_needed: "Once a `schedule` entry exists in routes/console.php, add exactly one cron job:"
+  command: "* * * * * /opt/ea-multi-php/php83/bin/php /home/<cpanel_user>/ctp-wirelakes/web/artisan schedule:run >> /dev/null 2>&1"
+  how: cPanel → Cron Jobs → add the line above; use the exact PHP 8.3 binary path shown in cPanel → Cron Jobs' own help text
+  single_scheduler: "One entry only — the app decides what is due, so a second entry would run the same work twice"
+
+# ---------------------------------------------------------------------------
+# Mobile app against this host
+# ---------------------------------------------------------------------------
+mobile_app:
+  app_folder: app
+  flutter: "3.44+ with the Android SDK"
+  build_android: "flutter build apk --release --dart-define=API_BASE_URL=https://<domain>"
+  build_windows: "flutter build windows --release --dart-define=API_BASE_URL=https://<domain>"
+  build_web: "flutter build web --release --dart-define=API_BASE_URL=https://<domain>"
+  hosting_the_web_build: "upload app/build/web into public_html/portal (or a subdomain root) — it is static files, no PHP needed there"
+  requires_https: true   # Android blocks plain http to a production host
+  api_health_check: "curl https://<domain>/api/health should return the app name and php version"
+
+# ---------------------------------------------------------------------------
+# After go-live
+# ---------------------------------------------------------------------------
+checklist:
+  - "https://<domain> renders with styling (web/public/css/app.css is served, not 404)"
+  - "https://<domain>/api/health returns JSON"
+  - "a member can register, sign in on the mobile app, and see their own board"
+  - "an upload saved through the office is written under web/storage/app/private and opens on screen for a signed-in member, 403 for everyone else"
+  - "no stack trace ever mentions APP_DEBUG — set false"
+  - "backups: cPanel → Backup → Download a MySQL backup weekly"

@@ -36,14 +36,20 @@ class DatabaseSeeder extends Seeder
         Setting::updateOrCreate(['key' => 'programme_email'], ['value' => 'info@ctp-wirelakes.ke']);
         Setting::updateOrCreate(['key' => 'programme_phone'], ['value' => '+254 700 000 000']);
 
-        User::firstOrCreate(
-            ['email' => 'superadmin@ctp-wirelakes.ke'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('REDACTED-DEMO-PASSWORD'),
-                'role' => 'superadmin',
-            ]
-        );
+        // The first account comes from the environment, never from this file. Leave both keys empty on a real
+        // install and nothing is created; the office then invites every staff member from within the app.
+        $adminEmail = trim((string) env('SEED_ADMIN_EMAIL', ''));
+        $adminPassword = (string) env('SEED_ADMIN_PASSWORD', '');
+        if ($adminEmail !== '' && $adminPassword !== '') {
+            User::firstOrCreate(
+                ['email' => $adminEmail],
+                [
+                    'name' => env('SEED_ADMIN_NAME', 'Super Admin'),
+                    'password' => Hash::make($adminPassword),
+                    'role' => 'superadmin',
+                ]
+            );
+        }
 
         $this->call(ContentSeeder::class);
     }
