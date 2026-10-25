@@ -16,7 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'staff' => \App\Http\Middleware\EnsureUserIsStaff::class,
             'member' => \App\Http\Middleware\EnsureUserIsMember::class,
+            'idle' => \App\Http\Middleware\ExpireIdleApiToken::class,
         ]);
+
+        // Hosted behind cPanel's own proxy, every visitor would otherwise arrive as 127.0.0.1 — the audit trail's
+        // IP column and the sign-in throttle would both be worthless. Only the front proxy is trusted for that.
+        $middleware->trustProxies(at: '*');
 
         // API requests never redirect to a web login route — they return JSON 401.
         $middleware->redirectGuestsTo(function (Request $request) {

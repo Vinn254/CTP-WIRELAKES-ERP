@@ -121,8 +121,8 @@
                             <option value="{{ $p->id }}" @selected((int) old('sponsor_id') === $p->id)>{{ $p->name }}</option>
                         @endforeach
                     </select>
-                    <div class="help">A CTP sponsored by one of our partners pays no membership fee — your application goes
-                        straight to review.</div>
+                    <div class="help">A CTP sponsored by one of our partners pays no membership fee. The office confirms it with
+                        the partner first, so keep the fee details handy in the meantime.</div>
                 </div>
             </fieldset>
 

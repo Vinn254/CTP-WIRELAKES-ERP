@@ -30,6 +30,7 @@ use App\Models\TechnologyAsset;
 use App\Models\TechnologyProject;
 use App\Models\TechnologyTicket;
 use App\Models\Trainer;
+use App\Models\User;
 use App\Models\VariationOrder;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderDispute;
@@ -54,6 +55,7 @@ class Audit
         SiteAssessment::class, BoqItem::class, LabourEntry::class,
         SiteInspection::class, SiteInspectionItem::class, VariationOrder::class,
         TechnologyAsset::class, TechnologyProject::class, TechnologyTicket::class,
+        User::class,
     ];
 
     /** @var array<string, bool> */
@@ -67,6 +69,7 @@ class Audit
         'schedule', 'outcome', 'penalty_ksh', 'percent_complete',
         'recommendation', 'quantity', 'unit_cost_ksh', 'withdraw_note', 'result', 'rechecked_on',
         'extra_cost_ksh', 'extra_days', 'signed_off_on', 'scope',
+        'role', 'departments',
     ];
 
     /** Never written into the trail, whatever changes. */
@@ -94,6 +97,28 @@ class Audit
             'subject_id' => $subject->getKey(),
             'subject_label' => Str::limit(static::label($subject), 190, ''),
             'detail' => Str::limit($detail ?? static::changes($subject, $action), 1000, ''),
+            'ip' => request()?->ip(),
+        ]);
+    }
+
+    /**
+     * An account event, written without a record behind it: a sign-in, a code, a reset link. The person is named by
+     * the address they typed even when the attempt failed and no account was touched.
+     */
+    public static function auth(string $action, string $detail, ?\App\Models\User $actor = null): void
+    {
+        if (! static::tableExists(new ActivityLog)) {
+            return;
+        }
+
+        ActivityLog::create([
+            'user_id' => $actor?->id,
+            'actor_name' => $actor?->name ?? 'a visitor',
+            'action' => $action,
+            'subject_type' => $actor ? User::class : null,
+            'subject_id' => $actor?->id,
+            'subject_label' => Str::limit($actor?->email ?: $detail, 190, ''),
+            'detail' => Str::limit($detail, 1000, ''),
             'ip' => request()?->ip(),
         ]);
     }

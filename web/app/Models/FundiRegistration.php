@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizedIdentity;
+use App\Support\Accounts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +21,8 @@ use Illuminate\Validation\Rule;
  */
 class FundiRegistration extends Model
 {
+    use NormalizedIdentity;
+
     public const TIERS = [
         'fundi_intern' => 'Fundi-Intern — graduated, no experience, seeking an internship',
         'attachment' => 'Attachment applicant — still in school, not yet graduated',
@@ -261,6 +265,9 @@ class FundiRegistration extends Model
             'years_in_business' => 'Years trading', 'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
             'passport_photo' => 'Profile photo',
         ]);
+
+        // One person, one account: the office cannot open a second record for somebody already on the programme.
+        Accounts::guard($data);
 
         return [
             'reference' => 'EF-APP-'.strtoupper(bin2hex(random_bytes(3))),

@@ -275,6 +275,9 @@ class MemberFieldApiController extends Controller
         abort_if($collection->status !== 'submitted', 422,
             $collection->reference.' is already '.$collection->statusLabel().' — the office holds that part of the record.');
 
+        // The same guard the web portal applies: a line is forwarded only by an E-Fundi it is actually waiting on.
+        abort_unless(EWasteCollection::waitingFor($fundi)->whereKey($collection->id)->exists(), 403,
+            $collection->reference.' is not a line for you to carry — it is outside your county or already claimed.');
         $data = $request->validate([
             'condition' => 'required|in:'.implode(',', array_keys(EWasteCollection::CONDITIONS)),
             'note' => 'nullable|string|max:1000',
@@ -548,10 +551,7 @@ class MemberFieldApiController extends Controller
 
     private function waitingFor(FundiRegistration $fundi)
     {
-        return EWasteCollection::ordered()
-            ->where('status', 'submitted')->whereNull('fundi_id')
-            ->where(fn ($q) => $q->where('county', $fundi->county)->orWhereNull('county'))
-            ->where(fn ($q) => $q->where('ctp_id', '!=', $fundi->id)->orWhereNull('ctp_id'))
+        return EWasteCollection::waitingFor($fundi)->ordered()
             ->with(['ctp:id,full_name,ctp_code', 'community:id,name'])
             ->get();
     }

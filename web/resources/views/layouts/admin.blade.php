@@ -25,7 +25,7 @@
     $me = auth()->user();
     $initials = collect(explode(' ', trim($me->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
 @endphp
-<html lang="en">
+<html lang="en" data-idle-minutes="{{ (int) config('account.idle_minutes') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -112,6 +112,7 @@
 <script src="{{ asset('js/theme.js') }}"></script>
 <script src="{{ asset('js/admin.js') }}"></script>
 <script src="{{ asset('js/lightbox.js') }}"></script>
+<script src="{{ asset('js/idle-guard.js') }}"></script>
 @if ($owningRoute)
 <script>
     // A copy belongs to the office it is shown in: its back link returns there, not to the register of the

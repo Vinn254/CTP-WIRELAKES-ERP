@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailOtp;
 use App\Models\StaffInvite;
 use App\Models\User;
+use App\Support\Accounts;
+use App\Support\Audit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class InviteController extends Controller
 {
@@ -14,7 +16,10 @@ class InviteController extends Controller
     {
         $invite = StaffInvite::where('token', $token)->firstOrFail();
 
-        return view('auth.invite', ['invite' => $invite->isUsable() ? $invite : null]);
+        return view('auth.invite', [
+            'invite' => $invite->isUsable() ? $invite : null,
+            'minutes' => (int) config('account.otp.minutes'),
+        ]);
     }
 
     public function accept(Request $request, string $token)
@@ -26,22 +31,34 @@ class InviteController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        // One person, one login account: an invitation cannot open a second one for an address already signed in.
+        // The office decides who works in it, so this check is against the accounts, not the field registers.
+        Accounts::guard(['email' => $invite->email], null, [User::class]);
+
+        // The account is born unverified. It only wakes when the code emailed to that address is typed back.
         $user = User::create([
             'name' => $invite->name,
             'email' => $invite->email,
             'password' => $data['password'],
-            'role' => $invite->role,
-            'active' => true,
-            'departments' => $invite->role === 'superadmin' || ! $invite->department
-                ? null
-                : [$invite->department],
         ]);
+
+        $user->forceFill([
+            'role' => $invite->role,
+            'active' => false,
+            'departments' => $invite->role === 'superadmin' || ! $invite->department ? null : [$invite->department],
+        ])->save();
 
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);
 
-        Auth::login($user, true);
-        $request->session()->regenerate();
+        if (! EmailOtp::start($user, $user->email, 'activate', $request, route('admin.departments'),
+            'Welcome aboard, '.$user->name.'! Your email is confirmed and your staff account is ready.')) {
+            Audit::auth('otp_sent', 'Invitation for '.$user->email.' set, but a code went moments ago — nothing sent twice.');
 
-        return redirect()->route('admin.departments')->with('status', 'Welcome aboard, '.$user->name.'! Your staff account is ready.');
+            return back()->withErrors(['email' => 'We have just emailed a code to '.$user->email.'. Wait a minute, then check your inbox.']);
+        }
+
+        Audit::auth('account_created', 'Staff account created from an invitation for '.$user->email.', waiting to confirm the email.', $user);
+
+        return redirect()->route('otp.verify');
     }
 }

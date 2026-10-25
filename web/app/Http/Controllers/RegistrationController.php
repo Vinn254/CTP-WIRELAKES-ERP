@@ -17,7 +17,7 @@ class RegistrationController extends Controller
         return $prefix.'-APP-'.strtoupper(bin2hex(random_bytes(3)));
     }
 
-    /** Unique-across-its-own-table rule so the same person can be a CTP and a Fundi. */
+    /** Per-table rules first, then the programme-wide one-person check — the same address cannot be on both registers. */
     private function uniqueIn(string $table, string $column): array
     {
         return [Rule::unique($table, $column)];
@@ -117,6 +117,8 @@ class RegistrationController extends Controller
         ]);
 
         $ref = $this->reference('EF');
+        // The same person cannot sit on both registers under different cases or spellings.
+        \App\Support\Accounts::guard($data);
         $files = ['id_scan', 'business_cert', 'trade_certs', 'portfolio', 'passport_photo'];
         $record = collect($data)->except(array_merge($files, ['mobiliser_code']))->all();
         $record['mobilised_by_ctp'] = CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;

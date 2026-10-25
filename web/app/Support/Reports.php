@@ -443,7 +443,7 @@ class Reports
 
         $out = fopen('php://temp', 'r+');
         foreach ($lines as $line) {
-            fputcsv($out, $line);
+            fputcsv($out, Csv::row($line));
         }
         rewind($out);
 

@@ -4,6 +4,11 @@
 
 RewriteEngine On
 
+# Nothing that starts with a dot, and no build manifest, may be served — even if the document root ever points
+# at the app folder instead of public_html. These come first: they must be checked before the front-controller rule.
+RewriteRule (^|/)\.(?!well-known) - [F]
+RewriteRule ^(web/)?(\.env|composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml)$ - [F]
+
 # Pass the bearer token through to PHP — the mobile app authorises every API call with it.
 RewriteCond %{HTTP:Authorization} .
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

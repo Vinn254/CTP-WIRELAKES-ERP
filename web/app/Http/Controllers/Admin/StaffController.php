@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\StaffInvite;
 use App\Models\User;
+use App\Support\Accounts;
+use App\Support\Audit;
 use App\Support\Departments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -41,10 +43,14 @@ class StaffController extends Controller
         }
 
         $invite = StaffInvite::create($data + [
+            'email' => Accounts::email($data['email']),
             'token' => Str::random(48),
             'invited_by' => auth()->id(),
             'expires_at' => now()->addDays(14),
         ]);
+
+        Audit::auth('created', 'Invitation raised for '.$invite->email.' ('.$invite->role
+            .($invite->department ? ', '.$invite->department : '').') by '.auth()->user()->name.'.', auth()->user());
 
         return back()->with('status', 'Invitation created for '.$invite->email.' — copy its activation link from the Invitations list below and send it.');
     }
@@ -76,11 +82,13 @@ class StaffController extends Controller
             ? null
             : array_values(array_unique(array_filter((array) $request->input('departments', []))));
 
-        $user->update([
+        // These three columns are what a person can do in the system, so they are written directly, never filled
+        // from a request array by name.
+        $user->forceFill([
             'role' => $data['role'],
             'active' => $request->boolean('active', $user->active),
             'departments' => $departments,
-        ]);
+        ])->save();
 
         return back()->with('status', $user->name.' updated.');
     }

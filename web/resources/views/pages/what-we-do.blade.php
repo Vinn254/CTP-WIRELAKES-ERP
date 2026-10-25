@@ -14,7 +14,7 @@
                 <h3>{{ $c['title'] ?? '' }}</h3>
                 <p>{{ $c['desc'] ?? '' }}</p>
                 @if (! empty($c['cta_url']))
-                    <a href="{{ $c['cta_url'] }}">{{ $c['cta_label'] ?? 'Learn more' }} →</a>
+                    <a href="{{ safe_href($c['cta_url']) }}">{{ $c['cta_label'] ?? 'Learn more' }} →</a>
                 @endif
             </div>
         @endforeach

@@ -70,8 +70,8 @@ class ContentController extends Controller
             foreach ($fields as $fieldId => $file) {
                 $field = ContentField::find($fieldId);
                 if (! $field || $field->type !== 'image' || ! $file) continue;
-                $request->validate(["images.$entryId.$fieldId" => 'image|mimes:jpg,jpeg,png,svg,webp|max:4096']);
-                $name = ContentField::slugName($field, $file->getClientOriginalName());
+                $request->validate(["images.$entryId.$fieldId" => 'image|mimes:'.\App\Support\Uploads::IMAGE_MIMES.'|max:4096']);
+                $name = ContentField::slugName($field, $file);
                 $file->move(public_path('uploads/content'), $name);
                 ContentValue::updateOrCreate(
                     ['entry_id' => $entry->id, 'field_id' => $field->id],

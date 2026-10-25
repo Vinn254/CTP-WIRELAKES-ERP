@@ -19,7 +19,7 @@
  @csrf
  <span class="fld"><label>Organisation name <span class="req">*</span></label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
  <span class="fld"><label>Caption (shown under the name on the wall)</label><input type="text" name="caption" maxlength="180" value="{{ old('caption') }}" placeholder="e.g. Funding the Kisumu tech hubs"></span>
- <span class="fld"><label>Logo (PNG / JPG / SVG / WebP) <span class="req">*</span></label><input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp" required></span>
+ <span class="fld"><label>Logo (PNG / JPG / WebP) <span class="req">*</span></label><input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp" required></span>
  <button class="btn btn-primary" type="submit">Post on wall</button>
  </form>
  <div class="hint" style="margin-top:10px;">Posted partners are listed immediately. Max 2 MB.</div>
@@ -44,7 +44,7 @@
  <form method="POST" action="{{ route('admin.partners.update', $p->id) }}" enctype="multipart/form-data" class="inline-form mini-edit">
  @csrf @method('PATCH')
  <input type="text" name="caption" maxlength="180" value="{{ $p->caption }}" placeholder="Caption" aria-label="Caption shown under the name">
- <label class="chk">Logo <input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp"></label>
+ <label class="chk">Logo <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp"></label>
  <button class="btn btn-sm btn-outline" type="submit">Save</button>
  </form>
  <form method="POST" action="{{ route('admin.partners.toggle', $p->id) }}">
@@ -75,7 +75,7 @@
  <div class="invite-main">
  <b>{{ $p->name }}</b>
  <span class="tag gray">{{ $tiers[$p->tier] ?? 'No tier' }}</span>
- <div class="hint"><a href="mailto:{{ $p->contact_email }}">{{ $p->contact_email }}</a>@if ($p->website) · <a href="{{ $p->website }}" target="_blank">website &#8599;</a>@endif</div>
+ <div class="hint"><a href="mailto:{{ $p->contact_email }}">{{ $p->contact_email }}</a>@if ($p->website) · <a href="{{ safe_href($p->website) }}" target="_blank" rel="noopener">website &#8599;</a>@endif</div>
  <div class="hint">Requested {{ $p->created_at->format('d M Y') }}</div>
  </div>
  <div class="invite-actions">

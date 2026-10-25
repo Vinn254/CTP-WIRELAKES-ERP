@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use App\Models\Donation;
 use App\Models\Partner;
+use App\Support\SafeUrl;
+use App\Support\Uploads;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -43,10 +45,10 @@ class PageController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:120',
-            'website' => 'nullable|url|max:200',
+            'website' => SafeUrl::rule(),
             'contact_email' => 'required|email|max:120',
             'tier' => 'nullable|in:platinum,gold,silver',
-            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
+            'logo' => 'nullable|image|mimes:'.Uploads::IMAGE_MIMES.'|max:2048',
         ]);
 
         $partner = Partner::create(collect($data)->except('logo')->all() + ['source' => 'request', 'is_listed' => false]);
@@ -57,7 +59,7 @@ class PageController extends Controller
             if (! is_dir($dir)) {
                 mkdir($dir, 0775, true);
             }
-            $name = Str::slug($partner->name).'-p'.$partner->id.'.'.$file->getClientOriginalExtension();
+            $name = Str::slug($partner->name).'-p'.$partner->id.'.'.Uploads::imageExtension($file);
             $file->move($dir, $name);
             $partner->update(['logo_path' => $name]);
         }

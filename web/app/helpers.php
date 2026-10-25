@@ -70,3 +70,11 @@ if (! function_exists('content_extra_sections')) {
         }
     }
 }
+
+if (! function_exists('safe_href')) {
+    /** A stored link going into an href: a real web address or this programme's own page, never a script. */
+    function safe_href(mixed $value, string $fallback = '#'): string
+    {
+        return \App\Support\SafeUrl::href($value, $fallback);
+    }
+}

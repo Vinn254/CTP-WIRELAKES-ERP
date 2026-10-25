@@ -26,6 +26,16 @@ class ActivityLog extends Model
         'revoked' => 'Revoked',
         'released' => 'Released',
         'deleted' => 'Closed off',
+        // The account side of the trail: who came in, who was turned away, who proved their email.
+        'account_created' => 'Account created',
+        'signed_in' => 'Signed in',
+        'signed_out' => 'Signed out',
+        'failed_sign_in' => 'Failed sign-in',
+        'otp_sent' => 'Code sent',
+        'otp_verified' => 'Code confirmed',
+        'reset_sent' => 'Reset link sent',
+        'reset_used' => 'Password reset',
+        'reset_refused' => 'Reset link refused',
     ];
 
     /** What a reader calls each kind of record, on the trail and in its filter. */
@@ -61,6 +71,7 @@ class ActivityLog extends Model
         TechnologyAsset::class => 'Technology asset',
         TechnologyProject::class => 'Technology project',
         TechnologyTicket::class => 'Repair ticket',
+        User::class => 'Login account',
     ];
 
     public static function recordName(?string $class): string

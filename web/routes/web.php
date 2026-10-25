@@ -35,6 +35,8 @@ use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Auth\ActivateController;
 use App\Http\Controllers\Auth\InviteController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\OtpVerificationController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
@@ -57,7 +59,7 @@ Route::post('/contact', [PageController::class, 'storeContact'])->name('contact.
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 
 // Registrations
-Route::prefix('register')->name('register.')->group(function () {
+Route::prefix('register')->name('register.')->middleware('throttle:8,1')->group(function () {
     Route::get('/ctp', [RegistrationController::class, 'ctpForm'])->name('ctp');
     Route::post('/ctp', [RegistrationController::class, 'storeCtp'])->name('ctp.store');
     Route::get('/fundi', [RegistrationController::class, 'fundiForm'])->name('fundi');
@@ -66,10 +68,22 @@ Route::prefix('register')->name('register.')->group(function () {
         ->whereIn('type', ['ctp', 'fundi'])->name('success');
 });
 
-// Staff auth
+// Staff & member auth
 Route::get('/login', [LoginController::class, 'show'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:10,1')->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+// The emailed code that confirms it is really the account holder — for a new account and for every office sign-in.
+Route::get('/verify', [OtpVerificationController::class, 'show'])->name('otp.verify');
+Route::post('/verify', [OtpVerificationController::class, 'verify'])->middleware('throttle:12,1')->name('otp.confirm');
+Route::post('/verify/resend', [OtpVerificationController::class, 'resend'])->name('otp.resend');
+Route::post('/verify/cancel', [OtpVerificationController::class, 'cancel'])->name('otp.cancel');
+
+// Forgot the password: a link that lives for the minutes set in config/account.php and works once.
+Route::get('/forgot-password', [PasswordResetController::class, 'show'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'email'])->middleware('throttle:6,1')->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
+Route::post('/reset-password/{token}', [PasswordResetController::class, 'update'])->middleware('throttle:6,1')->name('password.update');
 
 // Staff invitation acceptance (public — token-gated)
 Route::get('/invite/{token}', [InviteController::class, 'show'])->name('invite.show');
@@ -384,6 +398,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/reports/{report}/export', [ReportController::class, 'csv'])->name('reports.export');
 
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+    Route::get('/activity/export', [ActivityController::class, 'csv'])->name('activity.export');
     Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
     Route::post('/programme', [ProgrammeController::class, 'update'])->name('settings.update');
 

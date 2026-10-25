@@ -20,6 +20,11 @@
             </div>
             <button class="btn-signin" type="submit">Sign in <span class="arr">→</span></button>
         </form>
+        <p class="back"><a href="{{ route('password.request') }}">Forgot your password?</a></p>
+        <p class="help">
+            Programme staff also type a code we email them, every time they sign in.
+            Anyone left idle for {{ $idleMinutes }} minutes is signed out.
+        </p>
     </div>
 </section>
 @endsection

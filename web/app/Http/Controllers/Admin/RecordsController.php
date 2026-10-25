@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use App\Models\Donation;
 use App\Models\Partner;
+use App\Support\SafeUrl;
+use App\Support\Uploads;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -18,7 +20,7 @@ class RecordsController extends Controller
             mkdir($dir, 0775, true);
         }
         $file = $request->file('logo');
-        $name = Str::slug($partner->name).'-'.substr(bin2hex(random_bytes(3)), 0, 6).'.'.$file->getClientOriginalExtension();
+        $name = Str::slug($partner->name).'-'.substr(bin2hex(random_bytes(3)), 0, 6).'.'.Uploads::imageExtension($file);
         $file->move($dir, $name);
         $partner->logo_path = $name;
     }
@@ -38,8 +40,8 @@ class RecordsController extends Controller
             'name' => 'required|string|max:120|unique:partners,name',
             'tier' => 'nullable|in:platinum,gold,silver',
             'caption' => 'nullable|string|max:180',
-            'website' => 'nullable|url|max:200',
-            'logo' => 'required|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
+            'website' => SafeUrl::rule(),
+            'logo' => 'required|image|mimes:'.Uploads::IMAGE_MIMES.'|max:2048',
         ], [], ['logo' => 'partner logo']);
 
         $partner = Partner::create([
@@ -63,8 +65,8 @@ class RecordsController extends Controller
         $data = $request->validate([
             'tier' => 'nullable|in:platinum,gold,silver',
             'caption' => 'nullable|string|max:180',
-            'website' => 'nullable|url|max:200',
-            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
+            'website' => SafeUrl::rule(),
+            'logo' => 'nullable|image|mimes:'.Uploads::IMAGE_MIMES.'|max:2048',
         ]);
 
         $partner->fill(collect($data)->except('logo')->all());

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/member_models.dart';
 import '../services/api_client.dart';
@@ -31,18 +33,65 @@ class DashboardShell extends StatefulWidget {
   State<DashboardShell> createState() => _DashboardShellState();
 }
 
-class _DashboardShellState extends State<DashboardShell> {
+class _DashboardShellState extends State<DashboardShell> with WidgetsBindingObserver {
   final _scaffold = GlobalKey<ScaffoldState>();
   Board? _board;
   bool _loading = false;
   String? _error;
   String _page = 'overview';
 
+  Timer? _idle;
+  DateTime _lastTouch = DateTime.now();
+  bool _expired = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+    // The same window the website uses: the server sends idle_minutes, the phone obeys it.
+    _idle = Timer.periodic(const Duration(seconds: 20), (_) => _checkIdle());
   }
+
+  @override
+  void dispose() {
+    _idle?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // A phone that sat face-down in a pocket was not being used, even though nothing was tapped.
+    if (state == AppLifecycleState.resumed) _checkIdle();
+  }
+
+  void _checkIdle() {
+    if (_expired) return;
+    if (DateTime.now().difference(_lastTouch) < Duration(minutes: widget.api.idleMinutes)) {
+      return;
+    }
+    _expired = true;
+    _idle?.cancel();
+    widget.api.clearToken();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(
+          api: widget.api,
+          notice: 'You were signed out after ${widget.api.idleMinutes} minutes without a tap.',
+        ),
+      ),
+      (_) => false,
+    );
+  }
+
+  /// Every page of the portal sits inside this, so any touch restarts the clock.
+  Widget _alive(Widget child) => Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => _lastTouch = DateTime.now(),
+        child: child,
+      );
 
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
@@ -84,7 +133,7 @@ class _DashboardShellState extends State<DashboardShell> {
     final current = pages.firstWhere((p) => p.key == _page,
         orElse: () => pages.first);
 
-    return Scaffold(
+    return _alive(Scaffold(
       key: _scaffold,
       drawer: _Drawer(
         board: board,
@@ -104,7 +153,7 @@ class _DashboardShellState extends State<DashboardShell> {
         ],
       ),
       body: _body(board, current.key),
-    );
+    ));
   }
 
   Widget _body(Board board, String key) {

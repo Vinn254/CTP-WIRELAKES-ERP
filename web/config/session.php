@@ -32,7 +32,9 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
+    // A session dies with the account-security idle window (config/account.php) unless the server says otherwise,
+    // so nobody is left signed in on a shared desk long after they walked away.
+    'lifetime' => (int) env('SESSION_LIFETIME', config('account.idle_minutes', 5)),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

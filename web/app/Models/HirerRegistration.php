@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizedIdentity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HirerRegistration extends Model
 {
+    use NormalizedIdentity;
+
     public const ORG_TYPES = [
         'organisation' => 'Organisation',
         'school' => 'School',

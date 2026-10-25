@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizedIdentity;
+use App\Support\Accounts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,6 +18,8 @@ use Illuminate\Validation\Rule;
 
 class CtpRegistration extends Model
 {
+    use NormalizedIdentity;
+
     public const TRACKS = [
         'school_leaver' => 'School-leaver training track',
         'junior' => 'Junior practical-check track',
@@ -227,7 +231,12 @@ class CtpRegistration extends Model
      */
     public static function startApplication(array $data, bool $fromOffice = false): self
     {
-        $sponsored = ! empty($data['sponsor_id']);
+        // One person, one account: the same email, phone or ID cannot open a second record anywhere in the programme.
+        Accounts::guard($data);
+
+        // Only the office settles a fee. A person who names a sponsor on the public form is believed after the
+        // partner is checked, so the application still waits at the fee step until then.
+        $sponsored = $fromOffice && ! empty($data['sponsor_id']);
         $referrer = static::resolveReferrer($data['referral_code'] ?? null, $data);
 
         return static::create([
@@ -287,9 +296,9 @@ class CtpRegistration extends Model
             return null;
         }
 
-        $samePerson = $referrer->national_id === ($data['national_id'] ?? null)
-            || $referrer->phone === ($data['phone'] ?? null)
-            || $referrer->email === ($data['email'] ?? null);
+        $samePerson = Accounts::idNumber($referrer->national_id) === Accounts::idNumber($data['national_id'] ?? null)
+            || Accounts::phone($referrer->phone) === Accounts::phone($data['phone'] ?? null)
+            || Accounts::email($referrer->email) === Accounts::email($data['email'] ?? null);
 
         return $samePerson ? null : $referrer;
     }

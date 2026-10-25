@@ -20,19 +20,24 @@ use Illuminate\Support\Facades\Route;
 // Health check — used by ops, load balancers and the Flutter splash screen
 Route::get('/health', [HealthController::class, 'index'])->name('api.health');
 
-// Public auth endpoints
-Route::post('/auth/register', [AuthController::class, 'register'])->name('api.auth.register');
-Route::post('/auth/login',    [AuthController::class, 'login'])->name('api.auth.login');
+// Public auth endpoints — every one of them is throttled: the login form, the code and the reset link are the
+// three doors a brute-force script would knock on.
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:6,1')->name('api.auth.register');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('api.auth.login');
+Route::post('/auth/otp/verify', [AuthController::class, 'verifyOtp'])->middleware('throttle:12,1')->name('api.auth.otp.verify');
+Route::post('/auth/otp/resend', [AuthController::class, 'resendOtp'])->middleware('throttle:6,1')->name('api.auth.otp.resend');
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:6,1')->name('api.auth.forgot');
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:6,1')->name('api.auth.reset');
 
-// Protected endpoints (require a valid Sanctum token)
-Route::middleware('auth:sanctum')->group(function () {
+// Protected endpoints (require a valid Sanctum token, and sign out when the phone is left idle)
+Route::middleware(['auth:sanctum', 'idle'])->group(function () {
     Route::get('/me',       [AuthController::class, 'me'])->name('api.me');
     Route::post('/auth/logout', [AuthController::class, 'logout'])->name('api.auth.logout');
 });
 
 // The member portal over the API — the same member-resolved screens the web portal serves.
 // Never staff, never public; the member is read from the token, never a url.
-Route::middleware(['auth:sanctum', 'member'])->group(function () {
+Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::get('/me/board', [MemberApiController::class, 'board'])->name('api.me.board');
     Route::get('/me/photo', [MemberApiController::class, 'photo'])->name('api.me.photo');
     Route::get('/projects', [MemberApiController::class, 'projects'])->name('api.projects');
@@ -44,7 +49,7 @@ Route::middleware(['auth:sanctum', 'member'])->group(function () {
 
 // More member screens, each the exact portal page: the kind guard (fundi/CTP) lives in the controller,
 // so a CTP hitting an E-Fundi route and vice-versa is refused just as the web sidebar never offers it.
-Route::middleware(['auth:sanctum', 'member'])->group(function () {
+Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::get('/efundi', [MemberPortalApiController::class, 'efundi'])->name('api.efundi');
     Route::post('/efundi/availability', [MemberPortalApiController::class, 'saveAvailability'])->name('api.efundi.availability');
     Route::post('/efundi/skills', [MemberPortalApiController::class, 'saveSkills'])->name('api.efundi.skills');
@@ -59,7 +64,7 @@ Route::middleware(['auth:sanctum', 'member'])->group(function () {
 });
 
 // The field screens — communities, mobilisation, e-waste, purchase requests, earnings and the trainer's roll.
-Route::middleware(['auth:sanctum', 'member'])->group(function () {
+Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::get('/communities', [MemberFieldApiController::class, 'communities'])->name('api.communities');
     Route::post('/communities', [MemberFieldApiController::class, 'storeCommunity'])->name('api.communities.store');
     Route::post('/communities/need', [MemberFieldApiController::class, 'storeNeed'])->name('api.communities.need');
@@ -84,7 +89,7 @@ Route::middleware(['auth:sanctum', 'member'])->group(function () {
 });
 
 // The worker's own side of a job: the order, what the inspector flagged, and the repair tickets.
-Route::middleware(['auth:sanctum', 'member'])->group(function () {
+Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::post('/me/photo', [MemberWorkApiController::class, 'storePhoto'])->name('api.me.photo.store');
 
     Route::get('/work', [MemberWorkApiController::class, 'work'])->name('api.work');

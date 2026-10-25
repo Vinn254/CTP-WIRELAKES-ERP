@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\AccountInvite;
-use App\Models\CtpRegistration;
-use App\Models\FundiRegistration;
+use App\Models\EmailOtp;
 use App\Models\User;
+use App\Support\Accounts;
+use App\Support\Audit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
- * Approved CTPs and E-Fundis set their own portal password through a one-off link,
- * the same way staff accept invitations.
+ * Approved CTPs and E-Fundis set their own portal password through a one-off link, the same way staff accept
+ * invitations. The account stays asleep until the emailed code proves the address is theirs.
  */
 class ActivateController extends Controller
 {
@@ -20,7 +20,10 @@ class ActivateController extends Controller
     {
         $invite = AccountInvite::where('token', $token)->firstOrFail();
 
-        return view('auth.activate', ['invite' => $invite->isUsable() ? $invite : null]);
+        return view('auth.activate', [
+            'invite' => $invite->isUsable() ? $invite : null,
+            'minutes' => (int) config('account.otp.minutes'),
+        ]);
     }
 
     public function accept(Request $request, string $token)
@@ -35,21 +38,27 @@ class ActivateController extends Controller
         $member = $invite->member();
         abort_if(! $member, 404, 'The member record behind this link no longer exists.');
 
+        // Their own registration is not a clash; a second account anywhere else is.
+        Accounts::guard(['email' => $invite->email], $member);
+
         $user = User::create([
             'name' => $invite->name,
             'email' => $invite->email,
             'password' => $data['password'],
-            'role' => $invite->member_type,
-            'active' => true,
         ]);
+
+        $user->forceFill(['role' => $invite->member_type, 'active' => false])->save();
 
         $member->update(['user_id' => $user->id]);
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);
 
-        Auth::login($user, true);
-        $request->session()->regenerate();
+        if (! EmailOtp::start($user, $user->email, 'activate', $request, route('portal.dashboard'),
+            'Welcome, '.$user->name.'! Your email is confirmed — your ID is '.($member->ef_code ?? $member->ctp_code).'.')) {
+            return back()->withErrors(['email' => 'We have just emailed a code to '.$user->email.'. Wait a minute, then check your inbox.']);
+        }
 
-        return redirect()->route('portal.dashboard')
-            ->with('status', 'Welcome, '.$user->name.'! Your member ID is '.($member->ef_code ?? $member->ctp_code).'. Sign in here any time to see projects.');
+        Audit::auth('account_created', 'Member account created for '.$user->email.' ('.$invite->member_type.'), waiting to confirm the email.', $user);
+
+        return redirect()->route('otp.verify');
     }
 }

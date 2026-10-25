@@ -47,7 +47,7 @@
     $nav[] = ['label' => 'My projects', 'icon' => 'briefcase', 'route' => 'portal.projects', 'active' => ['portal.projects', 'portal.project'], 'count' => ($projects ?? collect())->count()];
     $nav[] = ['label' => 'My applications', 'icon' => 'mail', 'route' => 'portal.applications', 'active' => ['portal.applications'], 'count' => ($applications ?? collect())->count()];
 @endphp
-<html lang="en">
+<html lang="en" data-idle-minutes="{{ (int) config('account.idle_minutes') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -114,5 +114,6 @@
 <script src="{{ asset('js/theme.js') }}"></script>
 <script src="{{ asset('js/admin.js') }}"></script>
 <script src="{{ asset('js/lightbox.js') }}"></script>
+<script src="{{ asset('js/idle-guard.js') }}"></script>
 </body>
 </html>

@@ -16,8 +16,8 @@
             <p class="lede">{{ content('home','hero','lede','CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.') }}</p>
             @include('partials.extra-fields', ['page' => 'home', 'section' => 'hero', 'used' => ['kicker', 'title', 'lede', 'cta1_label', 'cta1_url', 'cta2_label', 'cta2_url']])
             <div class="hero-ctas">
-                <a class="btn btn-lime btn-lg" href="{{ content('home','hero','cta1_url','/register/ctp') }}">{{ content('home','hero','cta1_label','Become a CTP') }}</a>
-                <a class="btn btn-outline btn-lg" href="{{ content('home','hero','cta2_url','/register/fundi') }}">{{ content('home','hero','cta2_label','Become a Fundi') }}</a>
+                <a class="btn btn-lime btn-lg" href="{{ safe_href(content('home','hero','cta1_url','/register/ctp')) }}">{{ content('home','hero','cta1_label','Become a CTP') }}</a>
+                <a class="btn btn-outline btn-lg" href="{{ safe_href(content('home','hero','cta2_url','/register/fundi')) }}">{{ content('home','hero','cta2_label','Become a Fundi') }}</a>
             </div>
         </div>
         <div class="hero-slider" aria-label="Highlights">
@@ -40,7 +40,7 @@
             <div class="card"><div class="icon">{{ $c['icon'] ?? '' }}</div><h3>{{ $c['title'] ?? '' }}</h3><p>{{ $c['desc'] ?? '' }}</p></div>
         @endforeach
     </div>
-    <p><a class="btn btn-primary" href="{{ content('home','programme','cta_url','/what-we-do') }}">{{ content('home','programme','cta_label','See all six areas of work') }}</a></p>
+    <p><a class="btn btn-primary" href="{{ safe_href(content('home','programme','cta_url','/what-we-do')) }}">{{ content('home','programme','cta_label','See all six areas of work') }}</a></p>
 </section>
 @endif
 

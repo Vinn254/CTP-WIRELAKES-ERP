@@ -15,7 +15,7 @@
                 <label class="chk"><input type="checkbox" name="remove_image[{{ $entry->id }}][{{ $field->id }}]" value="1"> Remove picture</label>
             </div>
         @endif
-        <input type="file" name="images[{{ $entry->id }}][{{ $field->id }}]" accept=".jpg,.jpeg,.png,.svg,.webp">
+        <input type="file" name="images[{{ $entry->id }}][{{ $field->id }}]" accept=".jpg,.jpeg,.png,.webp">
         <div class="hint">{{ $value?->image_path ? 'Leave empty to keep the current picture. Max 4 MB.' : 'JPG, PNG, SVG or WebP — max 4 MB.' }}</div>
     @elseif ($field->type === 'textarea')
         <textarea name="values[{{ $entry->id }}][{{ $field->id }}]" rows="4">{{ $v }}</textarea>

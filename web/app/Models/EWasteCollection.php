@@ -133,6 +133,18 @@ class EWasteCollection extends Model
         return $query->orderByDesc('collected_on')->orderByDesc('id');
     }
 
+    /**
+     * The lines one E-Fundi is allowed to carry: still unclaimed, registered by somebody else, in their county.
+     * The list on their screen and the forward that closes a line both read from here, so the two can never drift.
+     */
+    public function scopeWaitingFor($query, FundiRegistration $fundi)
+    {
+        return $query->where('status', 'submitted')
+            ->whereNull('fundi_id')
+            ->where(fn ($q) => $q->where('county', $fundi->county)->orWhereNull('county'))
+            ->where(fn ($q) => $q->where('ctp_id', '!=', $fundi->id)->orWhereNull('ctp_id'));
+    }
+
     public function itemTypeLabel(): string
     {
         return self::ITEM_TYPES[$this->item_type] ?? Str::headline($this->item_type);

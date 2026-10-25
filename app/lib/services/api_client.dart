@@ -46,6 +46,10 @@ class ApiClient {
   String? get token => _token;
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
 
+  /// How long the phone may sit untouched before the app signs itself out. The server answers
+  /// with it on /me, so the app and the website always expire on the same window.
+  int idleMinutes = 5;
+
   /// Which kind of account owns the current token: 'member' or 'staff'. Drives
   /// which home screen the app opens — the native portal or the web office.
   String? _kind;
@@ -142,6 +146,9 @@ class ApiClient {
   }
 
   // ---- High-level auth helpers -----------------------------------------
+  //
+  // Signing up, and signing in as management, answers with a challenge instead of a token: the person
+  // has to type back the code that was emailed to them first. Only /auth/otp/verify hands over a token.
 
   Future<Map<String, dynamic>> register({
     required String name,
@@ -153,7 +160,7 @@ class ApiClient {
       'email': email,
       'password': password,
     }) as Map<String, dynamic>;
-    await _saveToken(data['token'] as String);
+    if (data['token'] != null) await _saveToken(data['token'] as String);
     return data;
   }
 
@@ -165,8 +172,43 @@ class ApiClient {
       'email': email,
       'password': password,
     }) as Map<String, dynamic>;
+    if (data['token'] != null) await _saveToken(data['token'] as String);
+    return data;
+  }
+
+  /// The code from the email, against the challenge the last call returned.
+  Future<Map<String, dynamic>> verifyOtp({
+    required String challenge,
+    required String code,
+  }) async {
+    final data = await post('/auth/otp/verify', {
+      'challenge': challenge,
+      'code': code,
+    }) as Map<String, dynamic>;
     await _saveToken(data['token'] as String);
     return data;
+  }
+
+  Future<String> resendOtp(String challenge) async {
+    final data = await post('/auth/otp/resend', {'challenge': challenge});
+    return (data as Map)['challenge']?.toString() ?? challenge;
+  }
+
+  Future<String> forgotPassword(String email) async {
+    final data = await post('/auth/forgot-password', {'email': email});
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> resetPassword({
+    required String token,
+    required String password,
+  }) async {
+    final data = await post('/auth/reset-password', {
+      'token': token,
+      'password': password,
+      'password_confirmation': password,
+    });
+    return (data as Map)['message'].toString();
   }
 
   Future<Map<String, dynamic>> me() async {
@@ -178,6 +220,7 @@ class ApiClient {
   /// the app opens the right home on the next cold start.
   Future<Map<String, dynamic>> resolveAccount() async {
     final data = await me();
+    if (data['idle_minutes'] is int) idleMinutes = data['idle_minutes'] as int;
     if (data['staff'] == true) {
       await saveKind('staff');
     } else if (data['member_type'] != null) {

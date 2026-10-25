@@ -371,10 +371,7 @@ class PortalController extends Controller
             ->get();
 
         // An E-Fundi carries what the CTPs registered to a collection point, so they see the ones waiting near them.
-        $waiting = $isCtp ? collect() : EWasteCollection::ordered()
-            ->where('status', 'submitted')->whereNull('fundi_id')
-            ->where(fn ($q) => $q->where('county', $member->county)->orWhereNull('county'))
-            ->where(fn ($q) => $q->where('ctp_id', '!=', $member->id)->orWhereNull('ctp_id'))
+        $waiting = $isCtp ? collect() : EWasteCollection::waitingFor($member)->ordered()
             ->with(['ctp:id,full_name,ctp_code', 'community:id,name'])
             ->get();
 
@@ -427,6 +424,10 @@ class PortalController extends Controller
 
         abort_if($collection->status !== 'submitted', 422,
             $collection->reference.' is already '.$collection->statusLabel().' — the office holds that part of the record.');
+
+        // Forwarding is a write, so the line has to be one of theirs — not any id that walks in through the url.
+        abort_unless(EWasteCollection::waitingFor($fundi)->whereKey($collection->id)->exists(), 403,
+            $collection->reference.' is not a line for you to carry — it is outside your county or already claimed.');
 
         $data = $request->validate([
             'condition' => 'required|in:'.implode(',', array_keys(EWasteCollection::CONDITIONS)),
