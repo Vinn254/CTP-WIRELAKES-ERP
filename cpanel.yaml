@@ -56,6 +56,11 @@ deploy_steps:
     run: cd /home/<cpanel_user>/ctp-wirelakes/web && cp ../deploy/cpanel/env.production.example .env
     fill: [APP_URL, DB_DATABASE, DB_USERNAME, DB_PASSWORD]
     note: "leave SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD empty — see first_account below"
+  - step: Make an mailbox to send from
+    how: "cPanel → Email Accounts → Create at your domain (it@<domain> is a good choice), then cPanel → Email Accounts → that box → Connect Devices → Mail Client Manual Settings, and copy the password you set for it. Codes and reset links are the only way into the office, so a host that cannot send email is a host nobody can sign in to."
+  - step: Fill in the mail block of the environment file
+    how: "web/.env → MAIL_MAILER=smtp, MAIL_SCHEME=smtps, MAIL_HOST=mail.<domain>, MAIL_PORT=465, MAIL_USERNAME and MAIL_FROM_ADDRESS = the address above, MAIL_PASSWORD = its password"
+    check: "cd /home/<cpanel_user>/ctp-wirelakes/web && php artisan tinker --execute=\"mail('you@your-personal-email','test','The office can send.')\" — the mail goes the moment you run it, no queue worker involved"
   - step: Generate the app key
     run: cd /home/<cpanel_user>/ctp-wirelakes/web && php artisan key:generate --force
   - step: Keep the private store writable
@@ -110,5 +115,9 @@ checklist:
   - "https://<domain>/api/health returns JSON"
   - "a member can register, sign in on the mobile app, and see their own board"
   - "an upload saved through the office is written under web/storage/app/private and opens on screen for a signed-in member, 403 for everyone else"
+  - "a super admin sign-in stops at /verify and the emailed code opens it; a wrong code five times burns that code"
+  - "'Forgot password' emails a link that works once, dies after 56 minutes, and refuses a fourth request the same day"
+  - "an office tab left untouched for 5 minutes signs itself out; so does the mobile app"
+  - "the same email cannot register twice — a second try answers 'one person has one account'"
   - "no stack trace ever mentions APP_DEBUG — set false"
   - "backups: cPanel → Backup → Download a MySQL backup weekly"
