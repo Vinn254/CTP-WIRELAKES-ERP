@@ -8,6 +8,8 @@
     $heroPhoto = content('site','backgrounds','hero_photo');
     $pagePhoto = content('site','backgrounds','page_photo');
     $photoDark = min(max((float) content('site','backgrounds','photo_darkness','0.66'), 0.3), 0.85);
+    // A page that opens on its hero carries the header over that hero, so a message shown there has to clear it.
+    $hasFlash = (bool) (session('status') || session('error'));
 @endphp
 <html lang="en">
 <head>
@@ -28,7 +30,7 @@
     </style>
     <script>if (localStorage.getItem('ctp-theme') === 'dark') document.documentElement.classList.add('dark');</script>
 </head>
-<body class="@yield('bodyClass')">
+<body class="@yield('bodyClass') @if($hasFlash) has-flash @endif">
 <header class="site-header">
     <div class="container header-bar">
         <a class="brand" href="{{ route('home') }}">
@@ -88,10 +90,11 @@ document.addEventListener('click', function (e) {
     const header = document.querySelector('.site-header');
     if (!header) return;
     const hasHero = document.body.classList.contains('has-hero');
+    const flash = document.body.classList.contains('has-flash');
     window.syncHeader = function () {
         const y = window.scrollY;
         const navOpen = !!document.querySelector('.main-nav.open');
-        const solid = !hasHero || y > 30 || navOpen;
+        const solid = !hasHero || y > 30 || navOpen || flash;
         header.classList.toggle('solid', solid);
         header.classList.toggle('hidden', y > 160 && window.direction === 'down' && !navOpen);
     };
