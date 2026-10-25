@@ -46,6 +46,13 @@ class AuthController extends Controller
             'password' => $data['password'],
         ]);
 
+        if (! EmailOtp::enabled()) {
+            $user->forceFill(['active' => true, 'email_verified_at' => now()])->save();
+            Audit::auth('account_created', 'App account created for '.$email.' — no code asked for in this environment.', $user);
+
+            return response()->json(['user' => $user, 'token' => $user->createToken('mobile')->plainTextToken], 201);
+        }
+
         $challenge = $this->sendOtp($user, $email, 'activate');
 
         if (! $challenge) {
@@ -82,13 +89,21 @@ class AuthController extends Controller
 
         if (! $user->active) {
             // An account whose email was never confirmed is not shut out for good: send the code again.
-            if (! $user->email_verified_at && ($challenge = $this->sendOtp($user, $email, 'activate'))) {
-                return response()->json([
-                    'otp_required' => true,
-                    'challenge' => $challenge,
-                    'minutes' => (int) config('account.otp.minutes'),
-                    'message' => 'Confirm your email address with the code we just sent.',
-                ]);
+            if (! $user->email_verified_at) {
+                if (! EmailOtp::enabled()) {
+                    $user->forceFill(['active' => true, 'email_verified_at' => now()])->save();
+
+                    return $this->tokenFor($user->fresh());
+                }
+
+                if ($challenge = $this->sendOtp($user, $email, 'activate')) {
+                    return response()->json([
+                        'otp_required' => true,
+                        'challenge' => $challenge,
+                        'minutes' => (int) config('account.otp.minutes'),
+                        'message' => 'Confirm your email address with the code we just sent.',
+                    ]);
+                }
             }
 
             Audit::auth('failed_sign_in', $email.' tried to open a deactivated account from the app.', $user);
@@ -96,7 +111,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'This account is switched off. Contact a super admin.'], 403);
         }
 
-        if (in_array($user->role, ['admin', 'superadmin'], true)) {
+        if (in_array($user->role, ['admin', 'superadmin'], true) && EmailOtp::enabled()) {
             $challenge = $this->sendOtp($user, $email, 'login');
 
             if (! $challenge) {
@@ -113,6 +128,12 @@ class AuthController extends Controller
             ]);
         }
 
+        return $this->tokenFor($user);
+    }
+
+    /** The token a confirmed account keeps. The app never sees a code it did not have to send. */
+    private function tokenFor(User $user): JsonResponse
+    {
         return response()->json(['user' => $user, 'token' => $user->createToken('mobile')->plainTextToken]);
     }
 

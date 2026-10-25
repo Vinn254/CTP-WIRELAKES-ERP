@@ -50,6 +50,11 @@ class InviteController extends Controller
 
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);
 
+        if (! EmailOtp::enabled()) {
+            return EmailOtp::signInWithoutCode($user, $request, route('admin.departments'),
+                'Welcome aboard, '.$user->name.'! Your staff account is ready.');
+        }
+
         if (! EmailOtp::start($user, $user->email, 'activate', $request, route('admin.departments'),
             'Welcome aboard, '.$user->name.'! Your email is confirmed and your staff account is ready.')) {
             Audit::auth('otp_sent', 'Invitation for '.$user->email.' set, but a code went moments ago — nothing sent twice.');

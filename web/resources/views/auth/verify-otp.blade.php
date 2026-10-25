@@ -17,20 +17,21 @@
             @csrf
             <div class="field">
                 <label>Confirmation code <span class="req">*</span></label>
-                <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code"
-                       maxlength="{{ config('account.otp.digits') }}" required autofocus
-                       style="letter-spacing:.5em;text-align:center;font-size:1.4rem;">
+                <input class="otp-code" type="text" name="code" inputmode="numeric" autocomplete="one-time-code"
+                       maxlength="{{ config('account.otp.digits') }}" required autofocus placeholder="······">
             </div>
             <button class="btn-signin" type="submit">Confirm <span class="arr">→</span></button>
         </form>
-        <form method="POST" action="{{ route('otp.resend') }}">
-            @csrf
-            <button class="btn-ghost" type="submit">Send me a new code</button>
-        </form>
-        <form method="POST" action="{{ route('otp.cancel') }}">
-            @csrf
-            <button class="btn-ghost" type="submit">Stop and go back to the login</button>
-        </form>
+        <div class="otp-actions">
+            <form method="POST" action="{{ route('otp.resend') }}">
+                @csrf
+                <button class="btn-quiet" type="submit">Send me a new code</button>
+            </form>
+            <form method="POST" action="{{ route('otp.cancel') }}">
+                @csrf
+                <button class="btn-quiet btn-quiet-plain" type="submit">Stop and go back to the login</button>
+            </form>
+        </div>
         <p class="help">Nobody at the programme will ever ask you for this code. Do not share it.</p>
     </div>
 </section>

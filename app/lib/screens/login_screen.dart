@@ -285,8 +285,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _codeStep() {
-    return Column(
+  /// The hairline action beside the primary one — the web card's `.btn-quiet`.
+  static final ButtonStyle _quietAction = OutlinedButton.styleFrom(
+    foregroundColor: greenDark,
+    minimumSize: const Size(0, 44),
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    side: const BorderSide(color: line, width: 1.5),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
+  );
+
+  Widget _codeStep() {    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text('Confirm it is you',
@@ -302,7 +311,11 @@ class _LoginScreenState extends State<LoginScreen> {
           autofocus: true,
           maxLength: 10,
           onSubmitted: (_) => _busy ? null : _confirmCode(),
-          decoration: _field('Code from your email', Icons.pin_outlined),
+          style: const TextStyle(
+              fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 6, color: ink),
+          textAlign: TextAlign.center,
+          decoration: _field('Code from your email', Icons.pin_outlined)
+              .copyWith(counterText: ''),
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
@@ -320,23 +333,37 @@ class _LoginScreenState extends State<LoginScreen> {
           label: Text(_busy ? 'Checking…' : 'Confirm and sign in',
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
         ),
+        // The two ways out of the screen sit as a matched pair under a rule, so neither reads as the
+        // action that continues the sign-in — the same shape the website's card uses.
+        const SizedBox(height: 18),
+        const Divider(height: 1),
+        const SizedBox(height: 14),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton(
-              onPressed: _busy ? null : _resend,
-              child: const Text('Send another code'),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _busy ? null : _resend,
+                style: _quietAction,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Send me a new code'),
+              ),
             ),
-            TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => setState(() {
-                        _challenge = null;
-                        _code.clear();
-                        _error = null;
-                        _notice = null;
-                      }),
-              child: const Text('Use my password again'),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _busy
+                    ? null
+                    : () => setState(() {
+                          _challenge = null;
+                          _code.clear();
+                          _error = null;
+                          _notice = null;
+                        }),
+                style: _quietAction.copyWith(
+                    foregroundColor: WidgetStatePropertyAll(muted)),
+                icon: const Icon(Icons.close, size: 18),
+                label: const Text('Stop and go back'),
+              ),
             ),
           ],
         ),

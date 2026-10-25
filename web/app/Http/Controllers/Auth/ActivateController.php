@@ -52,6 +52,11 @@ class ActivateController extends Controller
         $member->update(['user_id' => $user->id]);
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);
 
+        if (! EmailOtp::enabled()) {
+            return EmailOtp::signInWithoutCode($user, $request, route('portal.dashboard'),
+                'Welcome, '.$user->name.'! Your account is ready — your ID is '.($member->ef_code ?? $member->ctp_code).'.');
+        }
+
         if (! EmailOtp::start($user, $user->email, 'activate', $request, route('portal.dashboard'),
             'Welcome, '.$user->name.'! Your email is confirmed — your ID is '.($member->ef_code ?? $member->ctp_code).'.')) {
             return back()->withErrors(['email' => 'We have just emailed a code to '.$user->email.'. Wait a minute, then check your inbox.']);

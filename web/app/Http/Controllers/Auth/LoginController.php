@@ -47,9 +47,15 @@ class LoginController extends Controller
 
         if (! $user->active) {
             // An account whose email was never confirmed is not a dead end: send the code again.
-            if (! $user->email_verified_at && EmailOtp::start($user, $email, 'activate', $request, route('portal.dashboard'))) {
-                return redirect()->route('otp.verify')
-                    ->with('status', 'Your account is still waiting to confirm its email. A new code is on its way to '.$email.'.');
+            if (! $user->email_verified_at) {
+                if (! EmailOtp::enabled()) {
+                    return EmailOtp::signInWithoutCode($user, $request, $this->homeFor($user));
+                }
+
+                if (EmailOtp::start($user, $email, 'activate', $request, route('portal.dashboard'))) {
+                    return redirect()->route('otp.verify')
+                        ->with('status', 'Your account is still waiting to confirm its email. A new code is on its way to '.$email.'.');
+                }
             }
 
             Audit::auth('failed_sign_in', $email.' tried to open a deactivated account.', $user);
@@ -60,6 +66,10 @@ class LoginController extends Controller
         // Management is the part of the system that moves money and closes records, so every one of those sign-ins
         // is confirmed by a code to the holder's own email — a stolen password alone no longer opens the office.
         if (in_array($user->role, ['admin', 'superadmin'], true)) {
+            if (! EmailOtp::enabled()) {
+                return EmailOtp::signInWithoutCode($user, $request, route('admin.departments'));
+            }
+
             if (! EmailOtp::start($user, $email, 'login', $request, route('admin.departments'))) {
                 return back()->withErrors([
                     'email' => 'A code went to your email a moment ago. Wait a minute, then look in your inbox.',
@@ -76,6 +86,12 @@ class LoginController extends Controller
         Audit::auth('signed_in', 'Signed in to the member portal.', $user);
 
         return redirect()->intended(route('portal.dashboard'));
+    }
+
+    /** Where a member or an office account belongs once it is signed in. */
+    private function homeFor(User $user): string
+    {
+        return route(in_array($user->role, ['admin', 'superadmin'], true) ? 'admin.departments' : 'portal.dashboard');
     }
 
     public function logout(Request $request)

@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Mail\OtpEmail;
 use App\Support\Accounts;
+use App\Support\Audit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -28,6 +30,12 @@ class EmailOtp extends Model
     /** A fresh code cannot be asked for more than this often, per address. */
     private const RESEND_SECONDS = 60;
 
+    /** Whether codes are sent at all. Off on a test machine, on wherever the programme really runs. */
+    public static function enabled(): bool
+    {
+        return (bool) config('account.otp.enabled');
+    }
+
     public function isLive(): bool
     {
         return ! $this->consumed_at
@@ -36,12 +44,36 @@ class EmailOtp extends Model
     }
 
     /**
+     * The sign-in an emailed code would have finished, for an environment that sends no codes. The trail says plainly
+     * that no code was asked for, so a disabled check is never mistaken for a passed one.
+     */
+    public static function signInWithoutCode(User $user, Request $request, string $to, ?string $flash = null)
+    {
+        if (! $user->active || ! $user->email_verified_at) {
+            $user->forceFill(['active' => true, 'email_verified_at' => now()])->save();
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+        Audit::auth('signed_in', 'Signed in with the password alone — emailed codes are turned off in this environment.', $user);
+
+        return filled($flash)
+            ? redirect()->to($to)->with('status', $flash)
+            : redirect()->to($to);
+    }
+
+    /**
      * Send a new code to the address, retiring whatever was open before it.
      *
-     * @return array{otp: self, code: string, challenge: string}|null null while the last code is still cooling off
+     * @return array{otp: self, code: string, challenge: string}|null null while the last code is still cooling off,
+     *                                                                or while codes are turned off altogether
      */
     public static function issue(?User $user, string $email, string $purpose): ?array
     {
+        if (! static::enabled()) {
+            return null;
+        }
+
         $email = Accounts::email($email);
 
         $latest = static::where('email', $email)->where('purpose', $purpose)->latest('id')->first();

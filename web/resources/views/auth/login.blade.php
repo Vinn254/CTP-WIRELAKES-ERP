@@ -22,7 +22,9 @@
         </form>
         <p class="back"><a href="{{ route('password.request') }}">Forgot your password?</a></p>
         <p class="help">
-            Programme staff also type a code we email them, every time they sign in.
+            @if (config('account.otp.enabled'))
+                Programme staff also type a code we email them, every time they sign in.
+            @endif
             Anyone left idle for {{ $idleMinutes }} minutes is signed out.
         </p>
     </div>

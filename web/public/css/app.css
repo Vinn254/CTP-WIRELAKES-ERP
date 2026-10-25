@@ -615,6 +615,26 @@ html.dark .theme-toggle { background: #1d3122; color: #f5d76e; border-color: #3c
 html.dark .login-badge { box-shadow: 0 10px 24px rgba(0,0,0,.5); }
 html.dark .btn-signin { box-shadow: 0 10px 22px rgba(0,0,0,.5); }
 
+/* The code screen: the box reads as the six figures themselves, and the two ways out of the screen sit as a
+   matched pair under a rule, so neither looks like the action that continues the sign-in. */
+.otp-code { text-align: center; font-size: 1.4rem; font-weight: 800; letter-spacing: .5em; text-indent: .5em;
+  padding: 12px 10px; font-variant-numeric: tabular-nums; }
+.otp-code::placeholder { color: var(--line); letter-spacing: .35em; text-indent: .35em; }
+.otp-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid var(--line); }
+.otp-actions form { margin: 0; text-align: center; }
+.btn-quiet { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line);
+  background: var(--card); color: var(--green-dark); font: inherit; font-size: .8rem; font-weight: 800;
+  line-height: 1.25; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color .12s ease, background .12s ease, transform .12s ease; }
+.btn-quiet:hover { border-color: var(--lime); background: var(--lime-soft); transform: translateY(-1px); }
+.btn-quiet:active { transform: translateY(0); }
+.btn-quiet-plain { color: var(--muted); font-weight: 700; }
+.btn-quiet-plain:hover { color: var(--ink); }
+html.dark .btn-quiet { background: #243226; color: #e6f2df; border-color: var(--line); }
+html.dark .btn-quiet:hover { background: #2c3d2e; border-color: var(--lime); }
+@media (max-width: 520px) { .otp-actions { grid-template-columns: 1fr; } }
+
 /* Projects — admin list, detail and member portal */
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 16px; }
 .tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 17px; border-radius: 999px; border: 1px solid rgba(6,103,34,.34); background: rgba(6,103,34,.07); color: var(--green-dark); font-weight: 800; font-size: .88rem; white-space: nowrap; text-decoration: none; transition: .15s; }

@@ -9,6 +9,9 @@ return [
 
     // The emailed six-figure code. It proves the address belongs to the person holding the password.
     'otp' => [
+        // Codes are on wherever the programme really runs, and off on a test machine that has no mailbox to
+        // answer with. Set OTP_ENABLED=false (or true) in .env to decide it by hand.
+        'enabled' => env('OTP_ENABLED', env('APP_ENV') === 'production'),
         'digits' => 6,
         'minutes' => 10,
         // A wrong code this many times burns the code; they must ask for a new one.
