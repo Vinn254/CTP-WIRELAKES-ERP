@@ -417,6 +417,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         Route::get('/execution/{order}/in/{department}', [ExecutionController::class, 'show'])->whereNumber('order')->name('execution.show');
         Route::get('/finance/inventory/{item}/in/{department}', [InventoryController::class, 'show'])->whereNumber('item')->name('inventory.show');
         Route::get('/finance/payouts/{payout}/in/{department}', [PayoutController::class, 'show'])->whereNumber('payout')->name('payouts.show');
+        Route::get('/activity/in/{department}', [ActivityController::class, 'index'])->name('activity.index');
+        Route::get('/activity/export/in/{department}', [ActivityController::class, 'csv'])->name('activity.export');
     });
 });
 

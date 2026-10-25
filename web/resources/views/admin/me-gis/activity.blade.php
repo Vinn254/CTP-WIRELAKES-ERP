@@ -18,7 +18,7 @@
     <div class="stat"><small>On this page</small><b>{{ $entries->count() }}</b></div>
 </div>
 
-<form method="GET" action="{{ route('admin.activity.index') }}" class="filter-bar">
+<form method="GET" action="{{ dept_link('admin.activity.index') }}" class="filter-bar">
     <div>
         <label for="scope">Which lines</label>
         <select name="scope" id="scope">
@@ -60,9 +60,9 @@
     </div>
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($action !== 'all' || $user || $subject !== 'all' || $scope !== 'all' || $search !== '')
-        <a class="btn btn-sm btn-ghost" href="{{ route('admin.activity.index') }}">Clear</a>
+        <a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.activity.index') }}">Clear</a>
     @endif
-    <a class="btn btn-sm btn-ghost" href="{{ route('admin.activity.export', request()->query()) }}">Download these lines (CSV)</a>
+    <a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.activity.export', request()->query()) }}">Download these lines (CSV)</a>
 </form>
 
 <table class="data">

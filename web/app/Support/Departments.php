@@ -71,6 +71,7 @@ class Departments
             ['label' => 'Donations', 'icon' => 'heart', 'route' => ['admin.donations.index']],
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
             ['label' => 'Staff & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
+            ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
         'promoters' => [
             ['label' => 'CTP profiles', 'icon' => 'users', 'route' => ['admin.promoters.index'], 'badge' => 'promoters'],
@@ -204,6 +205,7 @@ class Departments
         'admin.gis.map' => 'One square per county, shaded by the layer you pick, opening the records held there (§15.4)',
         'admin.reports.index' => 'The report each role works from, printed or exported as a file (§15.5, §15.6)',
         'admin.activity.index' => 'Who changed what, when — written by the records themselves, never typed in (§15.6)',
+        'admin.host.activity.index' => 'The same trail, read here: every sign-in, code, decision and record change in the programme',
         'admin.programme.index' => 'The membership fees and contact details the code reads; an executive changes them (§15.6)',
     ];
 
@@ -225,6 +227,10 @@ class Departments
         'admin.host.cohorts.show' => ['admin.cohorts.show', ['communities']],
         'admin.host.payouts.show' => ['admin.payouts.show', ['execution', 'construction']],
         'admin.host.execution.show' => ['admin.execution.show', ['construction']],
+        // Module 1 keeps the accounts and the people who hold them, so it reads the trail too — as its own copy of
+        // the M&E screen, never a link out of the department.
+        'admin.host.activity.index' => ['admin.activity.index', ['membership']],
+        'admin.host.activity.export' => ['admin.activity.export', ['membership']],
     ];
 
     public static function all(): array
