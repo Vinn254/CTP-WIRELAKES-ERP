@@ -203,12 +203,17 @@ textarea { min-height: 92px; line-height: 1.5; resize: vertical; }
 input[type=date], input[type=datetime-local], input[type=time] { padding: 8px 12px; font-size: .9rem; }
 input[type=search] { min-height: 38px; padding: 7px 12px; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--lime); border-color: var(--green); }
-input[type=file] { font: inherit; border: 0; padding: 6px 0; background: none; min-height: 0; width: auto; max-width: 100%; }
+input[type=file] { font: inherit; width: 100%; min-width: 0; max-width: 100%; padding: 7px 10px; border: 1.5px dashed var(--line); border-radius: 10px; background: #fff; color: var(--muted); font-size: .85rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+input[type=file]::file-selector-button { margin-inline-end: 10px; padding: 6px 12px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--lime-soft); color: var(--green-dark); font: inherit; font-weight: 800; font-size: .8rem; cursor: pointer; }
+html.dark input[type=file] { background: #141d16; border-color: var(--line); }
+html.dark input[type=file]::file-selector-button { background: #1d3122; color: #9ad87f; border-color: #3c6b42; }
 input[type=checkbox], input[type=radio] { width: auto; min-height: 0; accent-color: var(--green); }
-fieldset { border: 1.5px solid var(--line); border-radius: 10px; padding: 16px; margin: 0 0 18px; }
+fieldset { border: 1.5px solid var(--line); border-radius: 10px; padding: 16px; margin: 0 0 18px; min-width: 0; }
 legend { font-weight: 800; color: var(--green); padding: 0 8px; }
 .form-grid, .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; align-items: start; }
 .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; align-items: start; }
+/* A grid column is only as narrow as its widest unbreakable content, and a file picker's line is wide. */
+.form-grid > *, .form-grid-2 > *, .form-grid-3 > * { min-width: 0; }
 .form-grid > .full, .form-grid-2 > .full, .form-grid-3 > .full { grid-column: 1 / -1; }
 .help { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 /* The Show / Hide switch inside a password box — added by js/password.js to any input[type=password]. */
