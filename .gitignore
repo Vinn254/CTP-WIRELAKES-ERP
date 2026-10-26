@@ -187,3 +187,10 @@ app/linux/build/
 
 # Root README: local notes only, kept off the public repo
 /README.md
+
+# Business documents — the blueprint and the Module 2 deep-dive stay on this machine.
+/*.docx
+
+# Deployment scratch built for the host, never a repo file.
+/ctp-vendor.zip
+*.bundle
