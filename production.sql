@@ -1,5 +1,5 @@
 -- CTP-WireLakes production database
--- Generated 2026-10-24 11:01:29 by `php artisan db:export-production`
+-- Generated 2026-10-26 10:24:20 by `php artisan db:export-production`
 -- Structure for every module, plus the counties, fees, training catalogue and website content.
 -- No members, no staff accounts, no test records. Import into an empty database.
 
@@ -809,6 +809,28 @@ CREATE TABLE `donations` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---- email_otps ----
+DROP TABLE IF EXISTS `email_otps`;
+CREATE TABLE `email_otps` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `email` varchar(190) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `purpose` enum('activate','login') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `challenge_hash` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `attempts` tinyint unsigned NOT NULL DEFAULT '0',
+  `expires_at` timestamp NOT NULL,
+  `consumed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email_otps_challenge_hash_unique` (`challenge_hash`),
+  KEY `email_otps_user_id_foreign` (`user_id`),
+  KEY `email_otps_email_index` (`email`),
+  KEY `email_otps_purpose_index` (`purpose`),
+  CONSTRAINT `email_otps_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---- enrollments ----
 DROP TABLE IF EXISTS `enrollments`;
 CREATE TABLE `enrollments` (
@@ -1112,7 +1134,7 @@ CREATE TABLE `migrations` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- rows: 44
+-- rows: 46
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
   ('1', '0001_01_01_000000_create_users_table', '1'),
   ('2', '0001_01_01_000001_create_cache_table', '1'),
@@ -1157,7 +1179,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
   ('42', '2026_10_16_140000_create_work_order_tables', '26'),
   ('43', '2026_10_16_180000_create_construction_tables', '27'),
   ('44', '2026_10_16_190000_create_technology_tables', '28'),
-  ('45', '2026_10_16_210000_add_departments_to_users_table', '29');
+  ('45', '2026_10_16_210000_add_departments_to_users_table', '29'),
+  ('46', '2026_10_25_090000_create_account_security_tables', '30'),
+  ('47', '2026_10_25_100000_normalize_stored_identities', '30');
 
 -- ---- module_completions ----
 DROP TABLE IF EXISTS `module_completions`;
@@ -1228,6 +1252,23 @@ CREATE TABLE `partners` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---- password_reset_links ----
+DROP TABLE IF EXISTS `password_reset_links`;
+CREATE TABLE `password_reset_links` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `email` varchar(190) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sequence` tinyint unsigned NOT NULL DEFAULT '1',
+  `expires_at` timestamp NOT NULL,
+  `used_at` timestamp NULL DEFAULT NULL,
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `password_reset_links_token_hash_unique` (`token_hash`),
+  KEY `password_reset_links_email_created_at_index` (`email`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---- password_reset_tokens ----
