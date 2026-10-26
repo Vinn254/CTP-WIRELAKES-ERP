@@ -515,7 +515,7 @@ INSERT INTO `content_values` (`id`, `entry_id`, `field_id`, `text_value`, `image
   ('158', '55', '90', 'From a community need', ''),
   ('159', '55', '91', 'We train and certify people — then give the projects to our Fundis.', ''),
   ('160', '55', '92', 'Community-led', ''),
-  ('161', '55', '93', 'Become a CTP', ''),
+  ('161', '55', '93', 'Become a student (CTP)', ''),
   ('162', '55', '94', '/register/ctp', ''),
   ('163', '55', '95', 'Become a Fundi', ''),
   ('164', '55', '96', '/register/fundi', ''),

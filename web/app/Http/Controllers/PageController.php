@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use App\Models\Donation;
 use App\Models\Partner;
+use App\Models\WorkOrder;
+use App\Support\MemberPortal;
 use App\Support\SafeUrl;
 use App\Support\Uploads;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class PageController extends Controller
@@ -16,6 +19,8 @@ class PageController extends Controller
     {
         return view('pages.home', [
             'partners' => Partner::where('is_listed', true)->orderBy('name')->get(),
+            'delivered' => $this->delivered(),
+            'canApply' => $this->canApply(),
         ]);
     }
 
@@ -26,7 +31,31 @@ class PageController extends Controller
 
     public function whatWeDo()
     {
-        return view('pages.what-we-do');
+        return view('pages.what-we-do', [
+            'delivered' => $this->delivered(),
+            'canApply' => $this->canApply(),
+        ]);
+    }
+
+    /**
+     * Work the programme has finished: an order the hirer signed off, or one Finance has closed after paying.
+     * Shown on the public pages as proof the projects really get done, newest first.
+     */
+    private function delivered(): Collection
+    {
+        return WorkOrder::with(['project.hirer', 'project.community'])
+            ->whereIn('status', ['confirmed', 'closed'])
+            ->whereHas('project')
+            ->orderByDesc('confirmed_on')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+    }
+
+    /** A visitor who already holds a member account applies straight away; anyone else is asked to sign in first. */
+    private function canApply(): bool
+    {
+        return (bool) (auth()->user() ? MemberPortal::resolve(auth()->user()) : null);
     }
 
     public function faq()

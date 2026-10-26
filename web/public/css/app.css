@@ -618,6 +618,18 @@ html.dark .theme-toggle { background: #1d3122; color: #f5d76e; border-color: #3c
 .btn-signin:hover .arr { transform: translateX(4px); }
 html.dark .login-badge { box-shadow: 0 10px 24px rgba(0,0,0,.5); }
 html.dark .btn-signin { box-shadow: 0 10px 22px rgba(0,0,0,.5); }
+.login-join { margin: 14px 0 0; font-size: .9rem; color: var(--muted); }
+
+/* Projects the programme has finished, shown on the public pages. */
+.delivered-card { display: flex; flex-direction: column; }
+.delivered-card h3 { margin: 10px 0 6px; font-size: 1.08rem; }
+.delivered-card p { flex: 0 0 auto; }
+.delivered-when { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.delivered-when small { color: var(--muted); font-size: .8rem; }
+.delivered-meta { list-style: none; margin: 0 0 16px; padding: 12px 0 0; border-top: 1px dashed var(--line); font-size: .86rem; color: var(--muted); }
+.delivered-meta li { padding: 2px 0; }
+.delivered-card .btn { margin-top: auto; align-self: flex-start; white-space: nowrap; }
+.delivered-note { margin-top: 18px; font-size: .95rem; }
 
 /* The code screen: the box reads as the six figures themselves, and the two ways out of the screen sit as a
    matched pair under a rule, so neither looks like the action that continues the sign-in. */

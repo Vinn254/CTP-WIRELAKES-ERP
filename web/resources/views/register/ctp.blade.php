@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Become a CTP')
+@section('title', 'Become a student (CTP)')
 
 @section('content')
 <section class="section" style="max-width:860px;margin:34px auto;">

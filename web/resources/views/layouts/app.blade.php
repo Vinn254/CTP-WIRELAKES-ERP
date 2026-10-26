@@ -47,7 +47,7 @@
             <div class="nav-cta join-menu">
                 <button type="button" class="btn btn-primary btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">Join / Sign up @include('partials.icon', ['n' => 'chevron'])</button>
                 <div class="join-drop">
-                    <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a CTP</a>
+                    <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a student (CTP)</a>
                     <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
                     <span class="join-sep"></span>
                     <a class="btn btn-ghost btn-sm nav-login" href="{{ route('login') }}">Log in</a>
@@ -124,7 +124,7 @@ document.addEventListener('click', function (e) {
         <div>
             <h4>Join the programme</h4>
             <p>
-                <a href="{{ route('register.ctp') }}">Become a CTP</a><br>
+                <a href="{{ route('register.ctp') }}">Become a student (CTP)</a><br>
                 <a href="{{ route('register.fundi') }}">Become a Fundi</a><br>
                 <a href="{{ route('login') }}">Member &amp; fundi login</a><br>
                 <a href="{{ route('donate') }}">Donate</a>

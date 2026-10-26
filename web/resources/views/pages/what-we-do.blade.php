@@ -21,5 +21,7 @@
     </div>
 </section>
 
+@include('partials.delivered-projects')
+
 @include('partials.content-extra', ['page' => 'what-we-do', 'used' => ['intro', 'cards']])
 @endsection
