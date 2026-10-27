@@ -171,11 +171,11 @@ html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; borde
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; border: 1px solid var(--line); }
 .card h3 { margin-top: 0; }
 /* The areas of work are line icons sitting in a soft light green disc, rather than emoji. */
-.card .icon, .icon { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--lime-soft); color: var(--lime); }
-.card .icon .ico { width: 34px; height: 34px; }
+.card .icon, .icon { display: inline-grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; background: #ddf1d0; color: var(--lime); }
+.card .icon .ico { width: 36px; height: 36px; }
 .icon .ico { stroke-width: 1.8; }
-.icon-lg { width: 92px; height: 92px; }
-.icon-lg .ico { width: 44px; height: 44px; }
+.icon-lg { width: 96px; height: 96px; }
+.icon-lg .ico { width: 46px; height: 46px; }
 html.dark .card .icon, html.dark .icon { background: #16351c; color: #7fd44f; }
 .card.link-card:hover { border-color: var(--lime); transform: translateY(-2px); transition: .15s; }
 .partner-card { display: flex; flex-direction: column; align-items: center; gap: 8px; }
