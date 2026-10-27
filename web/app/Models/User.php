@@ -32,6 +32,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'active' => 'boolean',
             'departments' => 'array',
+            'roles' => 'array',
         ];
     }
 
@@ -39,6 +40,12 @@ class User extends Authenticatable
     public function departmentSlugs(): array
     {
         return array_values(array_filter((array) ($this->departments ?? [])));
+    }
+
+    /** The job titles held here. A person can hold more than one; the departments they grant are merged. */
+    public function roleSlugs(): array
+    {
+        return array_values(array_filter((array) ($this->roles ?? [])));
     }
 
     public function isSuperAdmin(): bool

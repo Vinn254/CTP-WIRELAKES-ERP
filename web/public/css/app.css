@@ -517,6 +517,20 @@ html.dark .ws-tile b { color: var(--lime); }
 .mini-edit .chk input[type=file] { max-width: 150px; font-size: .78rem; }
 .fld.grow { flex: 1; min-width: 220px; }
 
+/* Staff & roles: the role tiles a person can hold, and the modules each one opens underneath. */
+.invite-form { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+.invite-form > .fld, .invite-form > .inline-form, .invite-form > .dept-pick { width: 100%; }
+.role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 10px; }
+.role-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; background: var(--card); }
+.role-pick:has(input:checked) { border-color: var(--lime); background: var(--lime-soft); }
+.role-pick b { font-size: .88rem; color: var(--green-dark); }
+.role-pick small { flex-basis: 100%; color: var(--muted); font-size: .76rem; line-height: 1.4; font-weight: 600; }
+.role-pick input[type=checkbox] { margin: 0; }
+.dept-pick summary { cursor: pointer; font-size: .82rem; font-weight: 800; color: var(--muted); }
+.dept-box { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 10px; background: var(--bg); }
+.dept-box hr { width: 100%; border: 0; border-top: 1px solid var(--line); margin: 2px 0; }
+.dept-box .hint { flex-basis: 100%; }
+
 /* A record's own edit form, on the record: every field keeps a caption (a placeholder disappears the
    moment the box is filled) and the columns line up, so a row of eight fields still reads as a form. */
 .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px 14px; align-items: end; width: 100%; }

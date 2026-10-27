@@ -45,7 +45,8 @@ class InviteController extends Controller
         $user->forceFill([
             'role' => $invite->role,
             'active' => false,
-            'departments' => $invite->role === 'superadmin' || ! $invite->department ? null : [$invite->department],
+            'roles' => $invite->roleSlugs() ?: null,
+            'departments' => $invite->role === 'superadmin' ? null : ($invite->departmentSlugs() ?: null),
         ])->save();
 
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);
