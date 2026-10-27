@@ -1,7 +1,7 @@
 @if ($delivered->isNotEmpty())
     <section class="section">
-        <span class="tag">Projects delivered</span>
-        <h2>Work the programme has finished</h2>
+        <span class="tag">Completed</span>
+        <h2>Projects done successfully</h2>
         <p class="sub">Every project below was completed by an E-Fundi or a CTP on attachment, then signed off by the
             organisation that hired them. New work joins this list as each order closes.</p>
 

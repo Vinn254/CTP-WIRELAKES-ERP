@@ -28,6 +28,8 @@ a { color: var(--green); }
 img { max-width: 100%; }
 h1, h2, h3 { color: var(--green-dark); line-height: 1.2; }
 .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+/* Links carry no underline anywhere in the site — colour alone marks them. */
+a { text-decoration: none; }
 
 /* Header / footer — one bar: logo left, menu + Join dropdown right. Fixed, blends over hero, disappears on scroll down */
 .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 30; background: transparent; transition: transform .35s ease, background .3s ease, box-shadow .3s ease; }
@@ -399,7 +401,6 @@ html.dark .back { background: #1d3122; color: #9ad87f; border-color: #2c4a32; }
 .ah-meta { display: flex; gap: 8px 18px; flex-wrap: wrap; margin: 0; color: var(--muted); font-size: .85rem; }
 .ah-contact { display: flex; flex-direction: column; gap: 4px; text-align: right; }
 .ah-contact a { color: var(--green); font-weight: 700; font-size: .87rem; text-decoration: none; }
-.ah-contact a:hover { text-decoration: underline; }
 .review-grid { align-items: start; }
 .review-side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 78px; }
 .dl-group { margin: 20px 0 8px; font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 5px; }
@@ -701,8 +702,6 @@ html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .proj-list { display: flex; flex-direction: column; gap: 12px; }
 .proj-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 14px 18px; transition: .15s; }
 .proj-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-.proj-item b a { color: var(--green-dark); text-decoration: none; }
-.proj-item b a:hover { text-decoration: underline; }
 .proj-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .member-body { background: var(--bg); }
 .member-hero { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; background: linear-gradient(100deg, var(--green) 0%, #0b7f2c 58%, var(--lime) 100%); color: #fff; border-radius: var(--radius); padding: 22px 26px; margin-bottom: 22px; box-shadow: var(--shadow); }
