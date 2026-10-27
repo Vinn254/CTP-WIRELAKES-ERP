@@ -16,6 +16,25 @@
     @endif
 </p>
 
+@if ($teaching ?? null)
+    <section class="ov-desk" style="margin:0 0 20px;">
+        <header class="ov-desk-head">
+            <h2>{{ \App\Support\Roles::all()['trainer']['name'] }}</h2>
+            <span>1 page</span>
+        </header>
+        <p class="ov-desk-note">{{ \App\Support\Roles::all()['trainer']['desc'] }}</p>
+        <div class="ov-grid">
+            <a class="ov-cell" href="{{ route('admin.teaching.index') }}">
+                <span class="ov-ico">@include('partials.icon', ['n' => 'award'])</span>
+                <span class="ov-cell-body">
+                    <b>My teaching</b>
+                    <small>The cohorts you take and the marks you record for them</small>
+                </span>
+            </a>
+        </div>
+    </section>
+@endif
+
 <div class="dept-grid">
     @foreach ($departments as $d)
         @php $waiting = Departments::waiting($d['slug']); @endphp

@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\TeachingController;
 use App\Http\Controllers\Admin\TechnologyController;
 use App\Http\Controllers\Admin\TrackController;
 use App\Http\Controllers\Admin\TrainerController;
@@ -253,6 +254,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/track', [TrackController::class, 'index'])->name('track.index');
     Route::get('/track/{enrollment}', [TrackController::class, 'show'])->whereNumber('enrollment')->name('track.show');
     Route::post('/track/{enrollment}/progress', [TrackController::class, 'storeProgress'])->whereNumber('enrollment')->name('track.progress');
+
+    // A staff account that also trains CTPs works its own roll here, from the same sign-in as its department desks.
+    Route::get('/teaching', [TeachingController::class, 'index'])->name('teaching.index');
+    Route::get('/teaching/{enrollment}', [TeachingController::class, 'trainee'])->whereNumber('enrollment')->name('teaching.trainee');
+    Route::post('/teaching/{enrollment}/progress', [TeachingController::class, 'progress'])->whereNumber('enrollment')->name('teaching.progress');
+    Route::post('/teaching/{enrollment}/modules/{module}', [TeachingController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('teaching.module.mark');
+    Route::delete('/teaching/{enrollment}/modules/{module}', [TeachingController::class, 'unmarkModule'])->whereNumber('enrollment')->whereNumber('module')->name('teaching.module.unmark');
+    Route::post('/teaching/{enrollment}/documents', [TeachingController::class, 'storeDocument'])->whereNumber('enrollment')->name('teaching.document.store');
+    Route::get('/teaching/{enrollment}/documents/{document}', [TeachingController::class, 'document'])->whereNumber('enrollment')->whereNumber('document')->name('teaching.document.show');
 
     Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
     Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');

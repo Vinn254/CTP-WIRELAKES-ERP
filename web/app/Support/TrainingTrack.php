@@ -73,8 +73,9 @@ class TrainingTrack
         abort_if(! $mark, 422, $module->title.' is not marked on '.$enrollment->ctp->full_name.'’s record.');
 
         $cert = $enrollment->certification;
+        // The message is built whether or not the guard trips, so the certificate is read null-safely.
         abort_unless(! $cert || $cert->status === 'recommended', 422,
-            $enrollment->ctp->full_name.' has a '.$cert->statusLabel().' certificate on this cohort — the mark stays. '
+            $enrollment->ctp->full_name.' has a '.$cert?->statusLabel().' certificate on this cohort — the mark stays. '
             .'An executive revokes the certificate first if the whole thing was wrong.');
 
         $mark->delete();

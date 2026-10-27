@@ -1,15 +1,17 @@
 @php
     $docs = $enrollment->documents;
     $mode = $mode ?? null;
-    $canUpload = in_array($mode, ['admin', 'trainer'], true) && $enrollment->state === 'approved';
+    $canUpload = in_array($mode, ['admin', 'trainer', 'teaching'], true) && $enrollment->state === 'approved';
     // The trainee sees what sits on their own record; only the office and their trainer can open the file.
-    $canOpen = in_array($mode, ['admin', 'trainer'], true);
-    $action = fn (string $name) => $name === 'admin'
-        ? route('admin.enrollments.document.store', $enrollment)
-        : route('portal.trainer.document.store', $enrollment);
-    $open = fn (string $name, $d) => $name === 'admin'
-        ? route('admin.enrollments.document.show', [$enrollment, $d])
-        : route('portal.trainer.document.show', [$enrollment, $d]);
+    $canOpen = in_array($mode, ['admin', 'trainer', 'teaching'], true);
+    // Which desk the paperwork is worked from: the office's, the trainer's own portal, or their teaching desk in the office.
+    $desk = match ($mode) {
+        'admin' => ['admin.enrollments.document.store', 'admin.enrollments.document.show'],
+        'teaching' => ['admin.teaching.document.store', 'admin.teaching.document.show'],
+        default => ['portal.trainer.document.store', 'portal.trainer.document.show'],
+    };
+    $action = fn () => route($desk[0], $enrollment);
+    $open = fn ($d) => route($desk[1], [$enrollment, $d]);
     $modules = $modules ?? collect();
     // Only a picture can be zoomed; a PDF or a document still opens in its own tab.
     $isImage = fn (string $name) => in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
@@ -23,7 +25,7 @@
         <span class="hint">{{ $d->dated_on->format('d M Y') }} · {{ $d->sizeLabel() }}</span>
         @if ($d->module)<span class="tag">{{ $d->module->title }}</span>@endif
         @if ($canOpen)
-            <a class="btn btn-sm btn-outline" href="{{ $open($mode, $d) }}"
+            <a class="btn btn-sm btn-outline" href="{{ $open($d) }}"
                 @if ($isImage($d->file_name)) data-zoom data-zoom-label="{{ $d->title }} — {{ $enrollment->ctp->full_name }}" @endif
                 title="{{ $isImage($d->file_name) ? 'Zoom the photo' : 'Open the file' }}">Open</a>
         @else
@@ -39,7 +41,7 @@
 @if ($canUpload)
     <details class="need-form">
         <summary>Upload a document for {{ $enrollment->ctp->full_name }}</summary>
-        <form method="POST" action="{{ $action($mode) }}" enctype="multipart/form-data" class="fee-form"
+        <form method="POST" action="{{ $action() }}" enctype="multipart/form-data" class="fee-form"
               data-confirm="Add this document to their training record?" data-title="Upload document">
             @csrf
             <div class="form-grid-2">

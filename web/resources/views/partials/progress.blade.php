@@ -2,8 +2,13 @@
     use App\Models\ProgressEntry;
 
     $mode = $mode ?? null;
-    $canRecord = in_array($mode, ['admin', 'trainer'], true) && $enrollment->state === 'approved';
-    $action = $mode === 'admin' ? route('admin.track.progress', $enrollment) : route('portal.trainer.progress');
+    $canRecord = in_array($mode, ['admin', 'trainer', 'teaching'], true) && $enrollment->state === 'approved';
+    $action = match ($mode) {
+        'admin' => route('admin.track.progress', $enrollment),
+        'teaching' => route('admin.teaching.progress', $enrollment),
+        default => route('portal.trainer.progress'),
+    };
+    $byTrainer = in_array($mode, ['trainer', 'teaching'], true);
     $days = ($entries ?? $enrollment->entries)->sortBy([['entry_date', 'asc'], ['id', 'asc']]);
     $attendance = $days->where('kind', 'attendance');
 
@@ -70,9 +75,9 @@
                     @if ($outsideWindow)
                         Today is outside that period, so the date is set to the nearest day the record allows.
                     @endif
-                    {{ $mode === 'trainer' ? 'What you record goes straight on the CTP’s track and the office sees it the same moment.' : 'Use this for the marks a partner school sent in — the office records them on the school’s behalf.' }}</p>
+                    {{ $byTrainer ? 'What you record goes straight on the CTP’s track and the office sees it the same moment.' : 'Use this for the marks a partner school sent in — the office records them on the school’s behalf.' }}</p>
                 <button class="btn btn-lime btn-block" type="submit" style="margin-top:10px;">
-                    {{ $mode === 'trainer' ? 'Record and send to the office' : 'Record on the track' }}
+                    {{ $byTrainer ? 'Record and send to the office' : 'Record on the track' }}
                 </button>
             </form>
         </details>

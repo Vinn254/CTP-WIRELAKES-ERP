@@ -282,6 +282,32 @@ class Departments
         return self::NAV[$slug] ?? [];
     }
 
+    /**
+     * Screens only a super admin may truly use, wherever they sit. The accounts office lives in Module 1, so it
+     * would otherwise appear in a System Administrator's list and answer 403 — inviting staff and changing roles
+     * stays with the one account that holds every module.
+     */
+    private const SUPER_ONLY = ['admin.staff.index'];
+
+    /** The screens of a department this staff account can actually open. */
+    public static function mine(?User $user, array $items): array
+    {
+        if ($user && $user->isSuperAdmin()) {
+            return $items;
+        }
+
+        return array_values(array_filter(
+            $items,
+            fn (array $item) => ! in_array($item['route'][0], self::SUPER_ONLY, true)
+        ));
+    }
+
+    /** The line shown under a screen on an overview page. */
+    public static function note(string $routeName): string
+    {
+        return self::NOTES[$routeName] ?? '';
+    }
+
     public static function owner(?string $routeName): ?string
     {
         foreach (self::OWNERS as $prefix => $slug) {

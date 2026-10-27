@@ -51,7 +51,7 @@ class StaffController extends Controller
             ? [[], []]
             : $this->grant($request->input('roles', []), $request->input('departments', []));
 
-        if ($data['role'] === 'admin' && $departments === []) {
+        if ($data['role'] === 'admin' && $departments === [] && ! Roles::grants($roles)) {
             return back()->withInput()->with('error',
                 'Give this person at least one role or department — an admin with neither opens nothing.');
         }

@@ -23,6 +23,7 @@
         return request()->routeIs(preg_replace('/\.[^.]+$/', '.', $target).'*');
     };
     $me = auth()->user();
+    $isSuper = (bool) $me?->isSuperAdmin();
     $initials = collect(explode(' ', trim($me->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
 @endphp
 <html lang="en" data-idle-minutes="{{ (int) config('account.idle_minutes') }}">
@@ -43,20 +44,32 @@
         </a>
         <nav class="admin-nav">
             <a href="{{ route('admin.departments') }}" class="{{ $dept ? '' : 'active' }}">
-                @include('partials.icon', ['n' => 'grid']) All departments
+                @include('partials.icon', ['n' => 'grid']) {{ $isSuper ? 'All departments' : 'My overview' }}
             </a>
 
-            @if ($dept)
-                <div class="nav-group">{{ $dept['tag'] }} · {{ $dept['name'] }}</div>
-                <a href="{{ route('admin.department', $dept['slug']) }}" class="{{ request()->routeIs('admin.department') ? 'active' : '' }}">
-                    @include('partials.icon', ['n' => 'chevron']) Overview
-                </a>
-                @foreach (Departments::nav($dept['slug']) as $item)
-                    @php $badge = Departments::badge($item['badge'] ?? null); @endphp
-                    <a href="{{ route(...$item['route']) }}" class="{{ $isActive($item) ? 'active' : '' }}">
-                        @include('partials.icon', ['n' => $item['icon']]) {{ $item['label'] }}
-                        @if ($badge)<span class="nav-badge">{{ $badge }}</span>@endif
+            @if ($isSuper)
+                @if (\App\Support\Workspace::teaching($me))
+                    <div class="nav-group">{{ \App\Support\Roles::all()['trainer']['name'] }}</div>
+                    <a href="{{ route('admin.teaching.index') }}" class="{{ request()->routeIs('admin.teaching.*') ? 'active' : '' }}">
+                        @include('partials.icon', ['n' => 'award']) My teaching
                     </a>
+                @endif
+                @if ($dept)
+                    <div class="nav-group">{{ $dept['tag'] }} · {{ $dept['name'] }}</div>
+                    <a href="{{ route('admin.department', $dept['slug']) }}" class="{{ request()->routeIs('admin.department') ? 'active' : '' }}">
+                        @include('partials.icon', ['n' => 'chevron']) Overview
+                    </a>
+                    @foreach (Departments::nav($dept['slug']) as $item)
+                        @include('admin.partials.nav-item', ['item' => $item, 'isActive' => $isActive])
+                    @endforeach
+                @endif
+            @else
+                {{-- A job title is worked as its screens, not as a stack of numbered modules. --}}
+                @foreach (\App\Support\Workspace::groups($me) as $group)
+                    <div class="nav-group">{{ $group['label'] }}</div>
+                    @foreach ($group['items'] as $item)
+                        @include('admin.partials.nav-item', ['item' => $item, 'isActive' => $isActive])
+                    @endforeach
                 @endforeach
             @endif
 
@@ -66,7 +79,9 @@
             </a>
         </nav>
         <div class="side-foot">
-            <span class="side-ver">{{ $dept ? $dept['tag'].' · '.$dept['name'] : count(Departments::visibleFor($me)).' department'.(count(Departments::visibleFor($me)) === 1 ? '' : 's').' · 1 programme' }}</span>
+            <span class="side-ver">{{ $isSuper
+                ? ($dept ? $dept['tag'].' · '.$dept['name'] : count(Departments::visibleFor($me)).' departments · 1 programme')
+                : ($dept ? $dept['name'] : (\App\Support\Roles::labelsFor($me) ?: 'Department staff')) }}</span>
         </div>
     </aside>
 
@@ -80,7 +95,7 @@
                 @include('partials.theme-toggle')
                 <span class="profile">
                     <span class="avatar">{{ $initials }}</span>
-                    <span class="who"><b>{{ $me->name }}</b><small>{{ $me->role === 'superadmin' ? 'Super admin' : 'Admin' }}</small></span>
+                    <span class="who"><b>{{ $me->name }}</b><small>{{ $isSuper ? 'Super admin' : (\App\Support\Roles::labelsFor($me) ?: 'Department staff') }}</small></span>
                 </span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

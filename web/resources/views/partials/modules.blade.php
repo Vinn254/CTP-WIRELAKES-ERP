@@ -1,9 +1,13 @@
 @php
     $board = $board ?? $enrollment->moduleBoard();
-    $canMark = isset($mode) && in_array($mode, ['admin', 'trainer'], true);
-    $url = fn (string $name, $m) => $name === 'admin'
-        ? route('admin.enrollments.module.mark', [$enrollment, $m])
-        : route('portal.trainer.module.mark', [$enrollment, $m]);
+    $canMark = isset($mode) && in_array($mode, ['admin', 'trainer', 'teaching'], true);
+    // 'teaching' is a trainer's own desk inside the office: same marks, routes a department tick does not grant.
+    $markRoute = match ($mode) {
+        'admin' => 'admin.enrollments.module.mark',
+        'teaching' => 'admin.teaching.module.mark',
+        default => 'portal.trainer.module.mark',
+    };
+    $url = fn ($m) => route($markRoute, [$enrollment, $m]);
 @endphp
 
 <h4 class="dl-group">Modules under this training ({{ $board['marked']->count() }} of {{ $board['modules']->count() }} marked)</h4>
@@ -26,13 +30,13 @@
 
             @if ($canMark && $enrollment->state === 'approved')
                 @if (! $mark)
-                    <form method="POST" action="{{ $url($mode, $m) }}" class="mini-form"
+                    <form method="POST" action="{{ $url($m) }}" class="mini-form"
                           data-confirm="Mark {{ $m->title }} as got through?" data-title="Mark module">
                         @csrf
                         <button class="btn btn-sm btn-lime" type="submit">Mark done</button>
                     </form>
                 @else
-                    <form method="POST" action="{{ $url($mode, $m) }}" class="mini-form"
+                    <form method="POST" action="{{ $url($m) }}" class="mini-form"
                           data-confirm="Take the mark off {{ $m->title }}?" data-title="Undo the mark">
                         @csrf @method('DELETE')
                         <button class="btn btn-sm btn-ghost" type="submit">Undo</button>

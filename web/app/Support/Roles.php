@@ -34,12 +34,31 @@ class Roles
             'desc' => 'Matching, delivery, construction, technology and e-waste',
             'departments' => ['marketplace', 'execution', 'construction', 'technology', 'ewaste'],
         ],
+        // The one title that opens no module: it is a person's own teaching record, not a department's desk.
+        'trainer' => [
+            'name' => 'Fundi Trainer',
+            'desc' => 'The cohorts you take, the trainings you deliver and the marks you record',
+            'departments' => [],
+        ],
     ];
 
     /** @return array<string, array{name: string, desc: string, departments: array<int, string>}> */
     public static function all(): array
     {
         return self::PROFILES;
+    }
+
+    /** Titles that open a personal desk rather than a department, so they grant no module ticks. */
+    public static function personal(string $slug): bool
+    {
+        return ($profile = self::PROFILES[$slug] ?? null) ? $profile['departments'] === [] : false;
+    }
+
+    /** Does this set of titles open anything at all — a module or a personal desk? */
+    public static function grants(array $roleSlugs): bool
+    {
+        return self::departmentsFor($roleSlugs) !== []
+            || (bool) array_filter($roleSlugs, fn ($slug) => self::personal($slug));
     }
 
     /**

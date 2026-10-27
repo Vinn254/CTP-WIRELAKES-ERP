@@ -9,7 +9,7 @@
 <div class="workspace">
     <div class="ws-head">
         <div>
-            <span class="mod">{{ $department['tag'] }} · Live</span>
+            <span class="mod">{{ auth()->user()->isSuperAdmin() ? $department['tag'].' · Live' : 'Live' }}</span>
             <h2>{{ $department['name'] }}</h2>
         </div>
         @if ($department['slug'] === 'membership')

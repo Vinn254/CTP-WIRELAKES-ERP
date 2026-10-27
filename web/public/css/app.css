@@ -491,6 +491,55 @@ input.ord { width: 56px; min-height: 32px; padding: 4px 7px; font-size: .82rem; 
 html.dark .ws-tile.alert { background: #2b2413; }
 html.dark .ws-tile b { color: var(--lime); }
 
+/* The workspace landing a job title works from: one identity band, a count-led queue strip, then each title's
+   screens as compact tiles — a line glyph, the page name, one line of plain words. */
+.ov { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 22px; }
+.ov-id h1 { margin: 0; font-size: 1.5rem; }
+.ov-roles { display: flex; gap: 7px; flex-wrap: wrap; margin: 8px 0 0; }
+.ov-chip { font-size: .76rem; font-weight: 800; letter-spacing: .03em; color: var(--green);
+  background: var(--lime-soft); border: 1px solid #cfe6bd; border-radius: 999px; padding: 3px 11px; }
+.ov-chip.quiet { color: var(--muted); background: var(--bg); border-color: var(--line); }
+.ov-nums { display: flex; gap: 28px; }
+.ov-nums > div { display: flex; flex-direction: column; align-items: flex-end; }
+.ov-nums b { font-size: 1.55rem; line-height: 1.1; color: var(--green-dark); }
+.ov-nums span { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 800; }
+.ov-nums .hot b { color: var(--warn); }
+
+.ov-queue { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 14px;
+  background: #fff8e8; border: 1px solid #f0dca6; border-radius: 12px; padding: 11px 14px; }
+.ov-queue-label { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--warn); margin-right: 4px; }
+.ov-queue a { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink);
+  background: var(--card); border: 1px solid #f0dca6; border-radius: 999px; padding: 4px 13px 4px 5px; font-size: .84rem; font-weight: 700; }
+.ov-queue a:hover { border-color: var(--warn); }
+.ov-queue i { font-style: normal; background: var(--warn); color: #fff; border-radius: 999px; min-width: 23px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center; font-size: .76rem; font-weight: 800; padding: 0 6px; }
+.ov-queue.calm { color: var(--green-dark); font-size: .87rem; background: var(--lime-soft); border-color: #cfe6bd; }
+.ov-queue.calm .ov-queue-label { color: var(--green); }
+html.dark .ov-queue { background: #2b2413; }
+html.dark .ov-queue.calm { background: #16241a; }
+
+.ov-desk { margin-top: 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 18px 22px 20px; }
+.ov-desk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.ov-desk-head h2 { margin: 0; font-size: 1.06rem; color: var(--green-dark); }
+.ov-desk-head span { font-size: .73rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.ov-desk-note { margin: 3px 0 14px; color: var(--muted); font-size: .85rem; }
+.ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr)); gap: 10px; }
+.ov-cell { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--bg); text-decoration: none; color: var(--ink); transition: .15s; }
+.ov-cell:hover { border-color: var(--lime); background: var(--card); transform: translateY(-1px); box-shadow: var(--shadow); }
+.ov-cell.hot { border-color: #f0dca6; background: #fff8e8; }
+html.dark .ov-cell.hot { background: #2b2413; }
+.ov-ico { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--lime-soft);
+  display: inline-flex; align-items: center; justify-content: center; color: var(--green); }
+.ov-cell-body { min-width: 0; }
+.ov-cell-body b { display: block; font-size: .9rem; color: var(--green-dark); }
+.ov-cell-body small { display: block; color: var(--muted); font-size: .77rem; line-height: 1.35;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-pill { position: absolute; top: 8px; right: 11px; background: var(--warn); color: #fff; border-radius: 999px;
+  font-size: .7rem; font-weight: 800; padding: 1px 8px; }
+
 /* Inline admin forms — a decision sits next to the record it belongs to, so its controls are one step smaller
    than a page form and every control in the row is the same height. */
 .inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0; }
