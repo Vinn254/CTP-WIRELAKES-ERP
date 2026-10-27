@@ -406,6 +406,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/activity/export', [ActivityController::class, 'csv'])->name('activity.export');
     Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
     Route::post('/programme', [ProgrammeController::class, 'update'])->name('settings.update');
+    Route::post('/programme/mail-check', [ProgrammeController::class, 'mailCheck'])->name('settings.mail_check');
 
     // Shared records — a department's own copy of another module's screen, so opening a record your department links
     // to never moves you out of it. Same controller, same data. Read-only by design: only the screens listed in

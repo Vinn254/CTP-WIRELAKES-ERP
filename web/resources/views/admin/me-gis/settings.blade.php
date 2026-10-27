@@ -44,6 +44,37 @@
 </div>
 
 <div class="card">
+    <h2 class="section-head">Email delivery</h2>
+    <p class="sub">
+        Everything the programme posts goes out through the settings below. They live in the <code>.env</code> file on
+        the server, not on this page. When an email has not arrived, run the test — it answers with what the mail
+        server actually said instead of staying silent.
+    </p>
+    <table class="data">
+        <thead><tr><th>Setting</th><th>Currently in use</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><b>Mailer</b></td>
+                <td>{{ $mail['mailer'] }}
+                    @if ($mail['mailer'] !== 'smtp')
+                        <span class="hint">— the app is not sending email with this setting</span>
+                    @endif
+                </td>
+            </tr>
+            <tr><td>Mail server</td><td>{{ $mail['host'] }}:{{ $mail['port'] }} ({{ $mail['scheme'] }})</td></tr>
+            <tr><td>Signs in as</td><td>{{ $mail['username'] !== '' ? $mail['username'] : '— no username —' }}</td></tr>
+            <tr><td>Sent from</td><td>{{ $mail['from'] !== '' ? $mail['from'] : '— no from address —' }}</td></tr>
+        </tbody>
+    </table>
+    @if (auth()->user()->role === 'superadmin')
+        <form method="POST" action="{{ route('admin.settings.mail_check') }}" class="inline-form">
+            @csrf
+            <button class="btn btn-primary" type="submit">Send a test email to {{ auth()->user()->email }}</button>
+        </form>
+    @endif
+</div>
+
+<div class="card">
     <h2 class="section-head">Rules that are not switches</h2>
     <table class="data">
         <thead><tr><th>Rule</th><th>What it is</th><th>Why it is not editable here</th></tr></thead>

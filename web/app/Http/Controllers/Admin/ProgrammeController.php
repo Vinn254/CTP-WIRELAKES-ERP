@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CtpRegistration;
 use App\Models\Setting;
 use App\Support\Finance;
+use App\Support\MailCheck;
 use Illuminate\Http\Request;
 
 /**
@@ -29,7 +30,22 @@ class ProgrammeController extends Controller
             'rows' => $rows,
             'canEdit' => Finance::isExecutive(),
             'mobilisation' => CtpRegistration::MOBILISATION_TIERS,
+            'mail' => MailCheck::settings(),
         ]);
+    }
+
+    /**
+     * The office cannot run a command on shared hosting, so this posts one message through the settings in .env
+     * and puts the mail server's own answer on the screen.
+     */
+    public function mailCheck(Request $request)
+    {
+        abort_unless($request->user()->role === 'superadmin', 403,
+            'Only a super admin can test what the programme sends through.');
+
+        $result = MailCheck::deliver($request->user()->email);
+
+        return back()->with($result['ok'] ? 'status' : 'error', $result['message']);
     }
 
     public function update(Request $request)

@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\StaffInviteEmail;
 use App\Models\StaffInvite;
 use App\Models\User;
 use App\Support\Accounts;
 use App\Support\Audit;
 use App\Support\Departments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Throwable;
 
 class StaffController extends Controller
 {
@@ -52,7 +55,16 @@ class StaffController extends Controller
         Audit::auth('created', 'Invitation raised for '.$invite->email.' ('.$invite->role
             .($invite->department ? ', '.$invite->department : '').') by '.auth()->user()->name.'.', auth()->user());
 
-        return back()->with('status', 'Invitation created for '.$invite->email.' — copy its activation link from the Invitations list below and send it.');
+        // The link stays on this screen whatever the mail server answers, so a failed email never loses the invite.
+        try {
+            Mail::to($invite->email)->send(new StaffInviteEmail($invite));
+        } catch (Throwable $e) {
+            return back()->with('error', 'The invitation is saved, but its email did not go out: '.$e->getMessage()
+                .' — copy the activation link from the Invitations list below and send it yourself.');
+        }
+
+        return back()->with('status', 'Invitation created and emailed to '.$invite->email
+            .'. Its activation link is also in the Invitations list below.');
     }
 
     public function revoke(StaffInvite $invite)
