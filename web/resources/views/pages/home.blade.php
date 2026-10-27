@@ -37,7 +37,7 @@
     <p class="sub">{{ content('home','programme','sub','Six connected areas of work, run as one ecosystem.') }}</p>
     <div class="grid-3">
         @foreach ($cards as $c)
-            <div class="card"><div class="icon">{{ $c['icon'] ?? '' }}</div><h3>{{ $c['title'] ?? '' }}</h3><p>{{ $c['desc'] ?? '' }}</p></div>
+            <div class="card"><div class="icon">@include('partials.icon', ['n' => $c['icon'] ?? ''])</div><h3>{{ $c['title'] ?? '' }}</h3><p>{{ $c['desc'] ?? '' }}</p></div>
         @endforeach
     </div>
     <p><a class="btn btn-primary" href="{{ safe_href(content('home','programme','cta_url','/what-we-do')) }}">{{ content('home','programme','cta_label','See all six areas of work') }}</a></p>

@@ -8,7 +8,7 @@
 
     @if ($partners->isEmpty())
         <div class="card" style="text-align:center;padding:36px;">
-            <div class="icon" style="font-size:2.4rem;">{{ content('partners','empty_state','icon','🤝') }}</div>
+            <div class="icon icon-lg">@include('partials.icon', ['n' => content('partners','empty_state','icon','🤝')])</div>
             <h3>{{ content('partners','empty_state','title','The partner wall is being filled') }}</h3>
             <p>{{ content('partners','empty_state','text','Our first partner logos will appear here. Want to be one of them? Use the form below.') }}</p>
         </div>

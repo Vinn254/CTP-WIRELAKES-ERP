@@ -25,7 +25,7 @@
     <h2>{{ content('about','operate','title','Where we operate') }}</h2>
     <p class="sub">{!! nl2br(e(content('about','operate','sub',''))) !!}</p>
     <div class="card" style="text-align:center;padding:40px;">
-        <div class="icon" style="font-size:3rem;">{{ content('about','operate','card_icon','🗺️') }}</div>
+        <div class="icon icon-lg">@include('partials.icon', ['n' => content('about','operate','card_icon','🗺️')])</div>
         <h3>{{ content('about','operate','card_title','Kisumu · Kenya') }}</h3>
         <p>{{ content('about','operate','card_text','') }}</p>
     </div>
