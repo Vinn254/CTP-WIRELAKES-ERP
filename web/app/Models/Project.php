@@ -132,6 +132,27 @@ class Project extends Model
         return $this->status === 'open';
     }
 
+    /** Plain words for the application window, so a visitor never has to guess if a project is still open. */
+    public function applicationWindow(): string
+    {
+        if ($this->status !== 'open') {
+            return 'Not taking applications';
+        }
+
+        if (! $this->deadline) {
+            return 'Applications open until the office assigns the work';
+        }
+
+        if ($this->deadline->isPast()) {
+            return 'Applications closed on '.$this->deadline->format('d M Y');
+        }
+
+        $days = (int) now()->startOfDay()->diffInDays($this->deadline->copy()->startOfDay());
+
+        return 'Applications close '.$this->deadline->format('d M Y')
+            .($days === 0 ? ' · closes today' : ' · '.$days.' day'.($days === 1 ? '' : 's').' left');
+    }
+
     /** Categories this member is allowed to see and apply for. */
     public static function eligibleCategories(FundiRegistration|CtpRegistration|null $member): array
     {

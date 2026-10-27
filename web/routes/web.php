@@ -41,6 +41,7 @@ use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PublicProjectController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkOrderPortalController;
 use App\Support\Departments;
@@ -57,6 +58,10 @@ Route::post('/donate', [PageController::class, 'storeDonation'])->name('donate.s
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [PageController::class, 'storeContact'])->name('contact.store');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
+
+// Public projects board: what is open for application, and what the programme has finished.
+Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects');
+Route::get('/projects/{project}', [PublicProjectController::class, 'show'])->name('projects.show');
 
 // Registrations
 Route::prefix('register')->name('register.')->middleware('throttle:8,1')->group(function () {
