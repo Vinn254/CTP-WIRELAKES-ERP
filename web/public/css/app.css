@@ -170,11 +170,13 @@ html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; borde
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; border: 1px solid var(--line); }
 .card h3 { margin-top: 0; }
-/* The areas of work are drawn as light green line icons rather than emoji. */
-.card .icon, .icon { color: var(--lime); display: inline-flex; }
-.card .icon .ico { width: 44px; height: 44px; }
-.icon .ico { stroke-width: 1.4; }
-.icon-lg .ico { width: 60px; height: 60px; stroke-width: 1.2; }
+/* The areas of work are line icons sitting in a soft light green disc, rather than emoji. */
+.card .icon, .icon { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--lime-soft); color: var(--lime); }
+.card .icon .ico { width: 34px; height: 34px; }
+.icon .ico { stroke-width: 1.8; }
+.icon-lg { width: 92px; height: 92px; }
+.icon-lg .ico { width: 44px; height: 44px; }
+html.dark .card .icon, html.dark .icon { background: #16351c; color: #7fd44f; }
 .card.link-card:hover { border-color: var(--lime); transform: translateY(-2px); transition: .15s; }
 .partner-card { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .partner-logo { height: 62px; max-width: 100%; object-fit: contain; margin-bottom: 4px; }
