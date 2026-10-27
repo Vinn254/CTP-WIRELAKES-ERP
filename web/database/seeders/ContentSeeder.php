@@ -130,10 +130,9 @@ class ContentSeeder extends Seeder
 
         // ---------- donate ----------
         $this->put('donate', 'intro', 'Page heading', 'single',
-            ['tag' => ['Tag', 'text'], 'title' => ['Title', 'text'], 'sub' => ['Subtitle', 'textarea'], 'help' => ['Payment note (below form copy)', 'textarea']],
+            ['tag' => ['Tag', 'text'], 'title' => ['Title', 'text'], 'sub' => ['Subtitle', 'textarea']],
             [['tag' => 'Donate', 'title' => 'Fund a skill. Change a life.',
-              'sub' => 'Every donation goes directly to programme work. One-time or recurring — M-Pesa, card or bank.',
-              'help' => 'Secure payment (M-Pesa STK Push, card, bank) is being switched on in the next phase. Your pledge is recorded and our team will contact you to complete it.']]);
+              'sub' => 'Every donation goes directly to programme work. One-time or recurring — M-Pesa, card or bank.']]);
 
         // ---------- partners ----------
         $this->put('partners', 'intro', 'Page heading', 'single',
