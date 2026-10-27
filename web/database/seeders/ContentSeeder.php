@@ -89,7 +89,7 @@ class ContentSeeder extends Seeder
         $this->put('about', 'operate', 'Where we operate', 'single',
             ['title' => ['Title', 'text'], 'sub' => ['Subtitle', 'textarea'], 'card_icon' => ['Card icon (emoji)', 'text'], 'card_title' => ['Card title', 'text'], 'card_text' => ['Card text', 'textarea']],
             [['title' => 'Where we operate',
-              'sub' => 'CTP-WireLakes works county-by-county across Kenya, starting from the Lake Victoria region and expanding through CTP mobilization. The interactive Kenya-wide impact map arrives with the M&E / GIS department (Module 12).',
+              'sub' => 'CTP-WireLakes works county-by-county across Kenya, starting from the Lake Victoria region and expanding through CTP mobilization.',
               'card_icon' => '🗺️', 'card_title' => 'Kisumu · Kenya',
               'card_text' => 'Head office and programme birthplace. CTPs active across wards, with county expansion driven by Modules 2 and 3.']]);
 
