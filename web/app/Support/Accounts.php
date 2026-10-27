@@ -24,6 +24,16 @@ class Accounts
         User::class => 'staff or member account',
     ];
 
+    /**
+     * What each register actually calls an identity, so a clash is only looked for where one can be held.
+     * A user account carries no phone or National ID — those sit on the CTP and E-Fundi records — so it cannot clash on them.
+     */
+    private const COLUMNS = [
+        CtpRegistration::class => ['email' => 'email', 'phone' => 'phone', 'national_id' => 'national_id'],
+        FundiRegistration::class => ['email' => 'email', 'phone' => 'phone', 'national_id' => 'national_id'],
+        User::class => ['email' => 'email'],
+    ];
+
     public static function email(?string $value): string
     {
         return mb_strtolower(trim((string) $value));
@@ -48,8 +58,8 @@ class Accounts
      */
     public static function taken(array $identity, ?Model $ignore = null, ?array $registers = null): ?array
     {
-        foreach (['email' => 'email', 'phone' => 'phone', 'national_id' => 'id_number'] as $column => $kind) {
-            $value = match ($kind) {
+        foreach (['email', 'phone', 'national_id'] as $field) {
+            $value = match ($field) {
                 'email' => static::email($identity['email'] ?? null),
                 'phone' => static::phone($identity['phone'] ?? null),
                 default => static::idNumber($identity['national_id'] ?? null),
@@ -60,6 +70,11 @@ class Accounts
             }
 
             foreach ($registers ?? array_keys(self::REGISTERS) as $class) {
+                $column = self::COLUMNS[$class][$field] ?? null;
+                if (! $column) {
+                    continue;
+                }
+
                 $query = $class::query()->where($column, $value);
 
                 if ($ignore && $ignore::class === $class && $ignore->exists) {
@@ -68,7 +83,7 @@ class Accounts
 
                 if ($record = $query->first()) {
                     return [
-                        'field' => $column,
+                        'field' => $field,
                         'value' => $value,
                         'holder' => self::REGISTERS[$class] ?? class_basename($class),
                         'record' => $record,
