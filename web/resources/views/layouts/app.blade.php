@@ -18,7 +18,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', $brandName) — {{ $brandName }}</title>
     <link rel="icon" href="{{ $brandLogo ?: asset('favicon.ico') }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ css_href() }}">
     <style>:root { --green: {{ $themeGreen }}; --lime: {{ $themeLime }}; }
     @if ($heroPhoto)
         .hero { background-image: linear-gradient(rgba(3,61,16,{{ $photoDark }}), rgba(3,61,16,{{ $photoDark }})), url('{{ $heroPhoto }}'); background-size: cover; background-position: center; }

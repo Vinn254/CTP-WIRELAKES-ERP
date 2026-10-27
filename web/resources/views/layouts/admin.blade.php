@@ -31,7 +31,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Admin') — {{ $brandName }} Staff</title>
     <link rel="icon" href="{{ $brandLogo ?: asset('favicon.ico') }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ css_href() }}">
     <script>if (localStorage.getItem('ctp-theme') === 'dark') document.documentElement.classList.add('dark');</script>
 </head>
 <body class="admin-body">

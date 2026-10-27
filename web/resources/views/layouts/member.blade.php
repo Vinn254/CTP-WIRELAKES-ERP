@@ -53,7 +53,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Overview') — {{ $brandName }} Portal</title>
     <link rel="icon" href="{{ $brandLogo ?: asset('favicon.ico') }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ css_href() }}">
     <style>:root { --green: {{ $themeGreen }}; --lime: {{ $themeLime }}; }</style>
     <script>if (localStorage.getItem('ctp-theme') === 'dark') document.documentElement.classList.add('dark');</script>
 </head>
