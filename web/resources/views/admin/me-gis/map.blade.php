@@ -4,14 +4,8 @@
 @section('content')
 @php use App\Support\KenyaMap; @endphp
 @include('partials.errors')
-<p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Where the programme is working</h1>
-<p class="sub page-lede">
-    §15.4 asks for a Kenya-wide map with layers you can switch between. Every record in this system carries a county
-    name rather than a map coordinate, so the country is drawn as <b>one square per county</b>, laid out roughly as
-    it sits — north at the top, the coast down the right. Pick a layer, and a square darkens by how many records that
-    layer holds there. Open a square to read them.
-</p>
+<p class="page-lede">Kenya map showing how many records each county holds per layer.</p>
 
 <div class="tabs">
     @foreach ($layers as $key => $l)

@@ -242,7 +242,7 @@
  </div>
  </div>
 @empty
- <div class="card"><p class="page-lede">No member has applied yet. Share the activation link with eligible members so they can sign in and apply.</p></div>
+ <div class="card"><p class="page-lede">No member has applied for this project yet.</p></div>
 @endforelse
 
 @once

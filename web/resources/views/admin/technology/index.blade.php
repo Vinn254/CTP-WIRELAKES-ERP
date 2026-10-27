@@ -11,14 +11,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'technology') }}">&larr; Technology Services</a></p>
 <h1>Technology registers</h1>
-<p class="sub page-lede">
-    The five sub-areas on one desk (§12.1): <b>ICT</b>, <b>Networking</b>, <b>Robotics</b>, <b>Programming</b> and <b>AI</b>.
-    Every device and licence sits on the <b>asset register</b>; the builds and software the programme delivers are
-    <b>technology projects</b>; a fault opened against an asset is a <b>repair ticket</b>, assigned to an E-Fundi and
-    closed out. A dead asset is decommissioned here and handed to {!! dept_ref('admin.ewaste.index', 'E-Waste') !!} (§12.7).
-</p>
+<p class="page-lede">Assets, technology projects and repair tickets in one place.</p>
 
 <div class="stat-row">
     @foreach ($queues as $label => $count)

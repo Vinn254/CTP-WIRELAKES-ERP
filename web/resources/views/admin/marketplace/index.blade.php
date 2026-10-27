@@ -3,14 +3,8 @@
 
 @section('content')
 @php use App\Support\Marketplace; @endphp
-<p class="back"><a href="{{ route('admin.department', 'marketplace') }}">&larr; Project Marketplace</a></p>
 <h1>Matching desk</h1>
-<p class="sub page-lede">
-    Where demand meets supply (§9.4). A project is posted on <a href="{{ dept_link('admin.projects.index') }}">Projects</a>,
-    members apply there too, and this desk does the other half: it reads the E-Fundi register, puts the project to the
-    fundis who fit, waits for their answer inside 48 hours, and hands the work to one of them. The materials list stays
-    on the project, the work order is Module 7 and the money is Module 11.
-</p>
+<p class="page-lede">Match open projects with fundis and award the work.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Open projects with no search yet</small><b>{{ $queues['unmatched'] }}</b></div>

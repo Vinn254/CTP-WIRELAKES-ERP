@@ -540,6 +540,22 @@ html.dark .ov-cell.hot { background: #2b2413; }
 .ov-pill { position: absolute; top: 8px; right: 11px; background: var(--warn); color: #fff; border-radius: 999px;
   font-size: .7rem; font-weight: 800; padding: 1px 8px; }
 
+/* Every office page opens the way the overview does: a tight title with one plain line under it, then the counts.
+   The long explanatory paragraphs that used to sit under each heading are gone. */
+.admin-content > h1 { margin: 0; font-size: 1.5rem; letter-spacing: -.015em; }
+.admin-content > h1 + .page-lede { margin: 5px 0 18px; }
+.page-lede { color: var(--muted); font-size: .88rem; line-height: 1.55; max-width: 96ch; margin: 5px 0 18px; }
+.page-lede b { color: var(--green-dark); font-weight: 700; }
+html.dark .page-lede b { color: var(--lime); }
+.head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px 20px; margin-bottom: 16px; }
+.head-row h1 { margin: 0; font-size: 1.5rem; letter-spacing: -.015em; }
+.head-row .ah-meta { margin: 6px 0 0; }
+.head-row .btn, .head-row form { margin: 0; }
+.head-acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+.entry-card:target { border-color: var(--lime); box-shadow: 0 0 0 3px var(--lime-soft); }
+
 /* Inline admin forms — a decision sits next to the record it belongs to, so its controls are one step smaller
    than a page form and every control in the row is the same height. */
 .inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0; }

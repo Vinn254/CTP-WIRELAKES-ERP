@@ -7,12 +7,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'communities') }}">&larr; Community Management</a></p>
 <h1>Needs assessment</h1>
-<p class="sub page-lede">
-    Step 5 of the assessment workflow: the programme office reviews what CTPs pinned in the field, sets the priority
-    and flags the funded ones for the project pipeline. <b>Converting a need drafts its project without leaving this page.</b>
-</p>
+<p class="page-lede">Review community needs raised by CTPs and set their priority.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Awaiting review</small><b>{{ $counts['proposed'] ?? 0 }}</b></div>

@@ -8,12 +8,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.promoters.index') }}">&larr; CTP profiles</a></p>
 <h1>Add a CTP from the office</h1>
-<p class="sub page-lede">
-    The same application a person fills on the website, typed in for them at the counter — usually by a CTP who
-    mobilised them on the ground. The record enters the same lifecycle:
-    <b>KSh {{ number_format($fee) }} one-time fee</b>, then review, then the CTP ID and a portal login.
-    A promoter a partner is sponsoring pays nothing and goes straight to review.
-</p>
+<p class="page-lede">Enter a CTP application at the counter for someone offline.</p>
 
 @include('partials.errors')
 

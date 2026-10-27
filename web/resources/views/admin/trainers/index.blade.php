@@ -7,15 +7,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Fundi-trainers</h1>
-<p class="sub page-lede">
-    A trainer stays a <b>Member &rsaquo; E-Fundi record</b> — this list only holds the teaching role, and it is held
-    <b>one row per site</b>: where they teach, which trainings they are licensed for, the hours they give and the rate
-    they are paid. Only a <b>senior fundi</b> can train CTPs, and a cohort is only handed to a fundi the office
-    <b>approved at the venue that cohort is booked at</b> — an approval at one site does not carry to another.
-    A senior fundi can still apply for open projects — training does not take that away.
-</p>
+<p class="page-lede">Fundi-trainers listed per site, with licences, hours and rates.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Site records</small><b>{{ $counts->sum() }}</b></div>

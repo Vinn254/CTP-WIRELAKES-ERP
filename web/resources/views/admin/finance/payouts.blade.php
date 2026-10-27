@@ -7,16 +7,8 @@
     use App\Models\Payout;
     use App\Support\Finance;
 @endphp
-<p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Payouts to E-Fundis</h1>
-<p class="sub page-lede">
-    Two income streams on one register, kept visibly apart (§14.6). <b>Project income</b> is what a fundi earns on a
-    job: it waits for the hirer's payment to be confirmed, and is the agreed amount <i>minus</i> materials,
-    commission, the mobilization credit and any deductions. <b>Training income</b> is what a fundi-trainer earns for
-    delivering a cohort: it waits for the end-of-cohort report, and is the fee per certified trainee plus the
-    workshop-hosting fee — released from the training budget. A payout that cannot move is held with its reason and
-    stays on the register; it is never deleted or raised twice.
-</p>
+<p class="page-lede">Payouts owed to E-Fundis for project work and training.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Calculated, waiting</small><b>{{ Finance::ksh($totals['queued']) }}</b></div>

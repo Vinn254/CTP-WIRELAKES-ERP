@@ -11,15 +11,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'construction') }}">&larr; Construction &amp; Infrastructure</a></p>
 <h1>Construction files</h1>
-<p class="sub page-lede">
-    The engineering record behind a buildable project (§11.1): the site read before anyone prices it, the bill of
-    quantities line by line, the labour counted on site, the inspections with every item marked, and the changes the
-    design did not carry. What is on this desk is the <i>file</i> — the order itself, the worker's days and the
-    hirer's confirmation stay on {!! dept_ref('admin.execution.index', 'the delivery register') !!}, and every shilling is still worked out on
-    {!! dept_ref('admin.payouts.index', 'the Module 11 register') !!}.
-</p>
+<p class="page-lede">The engineering record behind each buildable project.</p>
 
 <div class="stat-row">
     @foreach ($queues as $label => $count)

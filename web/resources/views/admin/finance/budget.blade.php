@@ -4,14 +4,8 @@
 @section('content')
 @include('partials.errors')
 @php use App\Support\Finance; @endphp
-<p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Programme budget — {{ $year }}</h1>
-<p class="sub page-lede">
-    One line per programme category for one financial year, with what has actually been charged against it read
-    straight off the money register. The categories are the closed list the programme is planned around —
-    <b>the office sets the amounts, it does not invent new pots of money</b>. A budget line is a money decision, so
-    setting one is signed off by a programme executive.
-</p>
+<p class="page-lede">Set and check the yearly budget for each programme category.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Budgeted {{ $year }}</small><b>{{ Finance::ksh($planned) }}</b></div>

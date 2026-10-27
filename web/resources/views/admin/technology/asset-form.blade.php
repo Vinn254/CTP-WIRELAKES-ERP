@@ -8,10 +8,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.technology.index', ['tab' => 'assets']) }}">&larr; Asset register</a></p>
 <h1>Add an asset</h1>
-<p class="sub page-lede">
-    One line on the register — a device, a licence or a kit. Pick the sub-area it belongs to (§12.1); the code and the
-    QR payload are given to it when you save. Warranty and licence end-dates feed the alerts (§12.7).
-</p>
+<p class="page-lede">Add one device, licence or kit to the register.</p>
 
 @if ($errors->any())
     <div class="card" style="border-left:4px solid var(--danger);">

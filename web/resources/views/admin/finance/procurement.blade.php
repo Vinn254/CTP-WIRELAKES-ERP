@@ -4,16 +4,8 @@
 @section('content')
 @include('partials.errors')
 @php use App\Models\PurchaseRequest; use App\Support\Finance; @endphp
-<p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Purchases</h1>
-<p class="sub page-lede">
-    One row per purchase request, walked through the eight steps of §14.4: <b>an E-Fundi on a site raises it</b> from
-    their portal, or the office raises it — a CTP never does, it mobilises the community and the office buys on its
-    behalf — then the Programme Manager decides, the Procurement Officer
-    attaches quotations and sends a purchase order, the storekeeper signs the delivery note and puts the goods on a
-    stock card, the invoice is matched and the Finance Officer pays. A request is never deleted or raised twice; a
-    rejected one stays here with its reason.
-</p>
+<p class="page-lede">Purchase requests moving through approval, ordering, delivery and payment.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Open requests</small><b>{{ $totals['awaiting'] + $totals['to_order'] }}</b></div>

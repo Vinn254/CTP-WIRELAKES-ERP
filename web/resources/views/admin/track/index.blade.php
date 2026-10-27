@@ -2,14 +2,8 @@
 @section('title', 'Track')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Track</h1>
-<p class="sub page-lede">
-    How the CTPs in training are actually getting on. Every attendance mark, theory and practical score,
-    assessment, module the office set and document uploaded adds up to one number — and a trainee whose track
-    reaches <b>100%</b> goes into the certification queue on the spot, where an executive only has to verify and
-    sign. The office adds a record here; the trainer adds the same thing from their own portal.
-</p>
+<p class="page-lede">Shows each trainee's training progress and what is still missing.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Trainees</small><b>{{ $counts['all'] }}</b></div>

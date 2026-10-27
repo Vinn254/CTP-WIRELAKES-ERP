@@ -6,12 +6,7 @@
 @section('content')
 <p class="back"><a href="{{ $editing ? route('admin.communities.show', $community) : route('admin.communities.index') }}">&larr; {{ $editing ? $community->name : 'Community register' }}</a></p>
 <h1>{{ $editing ? 'Edit '.$community->name : 'Add a community' }}</h1>
-<p class="sub page-lede">
-    {{ $editing
-        ? 'The place, its size and its pin. Needs, beneficiaries and the CTP roster are worked on the community page.'
-        : 'A community added by staff is confirmed straight away and its COM ID is issued on save.' }}
-    Ward and village names repeat across the county, so the four location levels plus the name must not already be on the register.
-</p>
+<p class="page-lede">Record a community's name, location levels and size.</p>
 
 <form method="POST" action="{{ $editing ? route('admin.communities.update', $community) : route('admin.communities.store') }}" class="card">
     @csrf

@@ -6,13 +6,7 @@
 @section('content')
 <p class="back"><a href="{{ $editing ? route('admin.cohorts.show', $cohort) : route('admin.cohorts.index') }}">&larr; {{ $editing ? $cohort->reference : 'Cohorts' }}</a></p>
 <h1>{{ $editing ? 'Edit '.$cohort->reference : 'Post a training' }}</h1>
-<p class="sub page-lede">
-    {{ $editing
-        ? 'The training, the place and the seats. Applications, progress and certification are worked on the cohort page.'
-        : 'Save it as a draft, check the venue and trainer, then open it — only an open cohort reaches the CTP portal.' }}
-    A cohort is one intake of a training the programme already runs, so it is picked from that list and never typed in.
-    It needs a venue, a trainer or a community to run in, and a trainer must be registered for that training.
-</p>
+<p class="page-lede">Set the training, venue, trainer and seats for this intake.</p>
 
 <form method="POST" action="{{ $editing ? route('admin.cohorts.update', $cohort) : route('admin.cohorts.store') }}" class="card">
     @csrf

@@ -2,13 +2,8 @@
 @section('title', 'Reports')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Reports, by who reads them</h1>
-<p class="sub page-lede">
-    §15.5 lists the report each role works from. A report is <b>not kept and not edited</b> — it is the registers
-    behind it read again the moment you ask, so what you print today matches what the modules hold today, and every
-    one of them can be exported as a file (§15.6).
-</p>
+<p class="page-lede">Each role's report, built live from the registers and exportable as CSV.</p>
 
 @if ($county !== '')
     <p class="help">Reports will be counted for <b>{{ $county }}</b>.

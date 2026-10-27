@@ -9,12 +9,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'promoters') }}">&larr; CTP Promoter Management</a></p>
 <h1>CTP profiles</h1>
-<p class="sub page-lede">
-    Every promoter the programme has — from the person who has not paid yet to the CTP deployed on a project.
-    This is the record Modules 3, 4, 5 and 12 read: <b>one person is a trainee, a mobiliser and a community agent at the same time.</b>
-</p>
+<p class="page-lede">Every community technical promoter and where each one stands.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Active CTPs</small><b>{{ $counts['active'] ?? 0 }}</b></div>

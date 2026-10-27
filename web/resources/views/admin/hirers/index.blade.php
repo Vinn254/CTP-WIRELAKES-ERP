@@ -2,12 +2,8 @@
 @section('title', 'Hirers & organisations')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Hirers &amp; organisations</h1>
-<p class="sub page-lede">
- Organisations bring projects to the programme, but they no longer post them themselves — record the deal here,
- then post the project against this organisation. <a href="{{ route('admin.projects.create') }}">Post a project →</a>
-</p>
+<p class="page-lede">Organisations that bring projects to the programme.</p>
 
 <datalist id="county-names">
  @foreach ($counties as $c)

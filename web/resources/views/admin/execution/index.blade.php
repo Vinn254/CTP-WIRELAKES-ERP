@@ -11,15 +11,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'execution') }}">&larr; Project Execution &amp; Payment</a></p>
 <h1>Delivery register</h1>
-<p class="sub page-lede">
-    Every work order an award has produced (§10.2). The order is generated the moment a project is given to a worker —
-    on the project page or on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!} — and this is where
-    the rest of §10.4 is done: the store issuing materials against it, days logged on site, stages signed off, the
-    hirer's inspection as the office recorded it, a dispute run to its decision, and the hand that opens the payout on
-    {!! dept_ref('admin.payouts.index', 'the Module 11 register') !!}. No amount is calculated here.
-</p>
+<p class="page-lede">Every work order and how its delivery is going.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Waiting on the worker's signature</small><b>{{ $queues['awaiting'] }}</b></div>

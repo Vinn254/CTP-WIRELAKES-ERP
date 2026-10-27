@@ -9,10 +9,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.projects.index') }}">&larr; Projects</a></p>
 <h1>{{ $editing ? 'Edit '.$project->reference : 'Post a new project' }}</h1>
-<p class="sub page-lede">
- Choose the level in <b>Who can apply</b> — that single setting decides which members see it in their portal.
- Projects never appear on the public site.
-</p>
+<p class="page-lede">Set the project details and who can apply.</p>
 
 @include('partials.errors')
 

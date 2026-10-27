@@ -33,11 +33,7 @@
 
 @if ($invites->isEmpty())
     <div class="card">
-        <p class="page-lede">Nothing has been put to you yet. The desk searches the register as
-            projects are posted, so the two things that bring a project to you are your record being
-            <b>active</b>, your availability set to <b>available</b> under
-            <a href="{{ route('portal.efundi') }}">My E-Fundi record</a>, and the skills and counties you keep there
-            matching the work.</p>
+        <p class="page-lede">No project invitations have reached you yet.</p>
     </div>
 @endif
 

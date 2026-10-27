@@ -7,13 +7,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Donations</h1>
-<p class="sub page-lede">
- Every pledge made through the public Donate page lands here the moment it is submitted, and the office can record a
- gift that arrived by hand.
- <span class="hint">M-Pesa / bank checkout integration arrives with the payments phase, so amounts are self-reported for now.</span>
-</p>
+<p class="page-lede">Donation pledges from the public Donate page and gifts recorded here.</p>
 
 @include('partials.errors')
 

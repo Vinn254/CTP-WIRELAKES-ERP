@@ -4,13 +4,8 @@
 @section('content')
 @include('partials.errors')
 @php use App\Models\Supplier; @endphp
-<p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Approved suppliers</h1>
-<p class="sub page-lede">
-    Quotations only count when they come from a name on this list (§14.4 step 3), so a supplier is added with their
-    contact and payment details and, when they stop supplying, taken <b>off the list rather than deleted</b> — the
-    purchase orders they already delivered have to stay readable and payable.
-</p>
+<p class="page-lede">The approved supplier list behind quotations and purchase orders.</p>
 
 <div class="stat-row">
     <div class="stat"><small>On the list</small><b>{{ $counts['all'] }}</b></div>

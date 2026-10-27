@@ -8,12 +8,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Cohorts</h1>
-<p class="sub page-lede">
-    A cohort is one intake of a training the programme runs, held at one place. <b>Posted as open, CTPs apply for a seat</b> or the office puts a
-    CTP straight in; progress is recorded until the trainee is certified.
-</p>
+<p class="page-lede">All training intakes and where each one stands.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Open for applications</small><b>{{ $openCount }}</b></div>

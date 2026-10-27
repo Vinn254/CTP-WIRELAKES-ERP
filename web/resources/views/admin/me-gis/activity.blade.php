@@ -2,14 +2,8 @@
 @section('title', 'Activity trail')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Who did what, when</h1>
-<p class="sub page-lede">
-    §15.6 asks for a trail of every decision. It writes itself: a watched record — an application, a seat, a
-    certificate, a payout, a ledger line, a stock card — puts its own line here whenever it is opened, changed or
-    closed off, by whichever screen did it. <b>Nothing on this page can be edited or deleted.</b> If an entry looks
-    wrong, the record behind it is corrected, and that correction writes the next line.
-</p>
+<p class="page-lede">Read-only log of who changed each record and when.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Lines on the trail</small><b>{{ number_format($total) }}</b></div>

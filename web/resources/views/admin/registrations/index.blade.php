@@ -15,12 +15,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>{{ $label }}</h1>
-<p class="sub page-lede">
-    Every application is reviewed here. Approving a CTP or E-Fundi issues their member ID and an activation link
-    they use to set a password and sign in to the member portal.
-</p>
+<p class="page-lede">Review and approve new CTP and E-Fundi applications.</p>
 
 <div class="tabs">
     @foreach ($types as $t => $lbl)

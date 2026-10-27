@@ -6,12 +6,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Training venues</h1>
-<p class="sub page-lede">
-    Where a cohort is delivered: a <b>partner school</b> using its facilities, a <b>community site</b>, or a
-    <b>WireLakes Technologies centre</b>. A venue linked to a partner keeps the public partner wall (Module 1) in step.
-</p>
+<p class="page-lede">The sites where cohorts are delivered, with capacity and status.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Venues</small><b>{{ $venues->count() }}</b></div>

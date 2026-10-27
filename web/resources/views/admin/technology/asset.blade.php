@@ -13,9 +13,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.technology.index', ['tab' => 'assets']) }}">&larr; Asset register</a></p>
 <h1>{{ $asset->name }}</h1>
-<p class="sub page-lede">
-    {{ $asset->asset_code }} · {{ $asset->categoryLabel() }} · tagged <b>{{ $asset->qr_payload }}</b> (§12.7)
-</p>
+<p class="page-lede">One asset's record, tickets and repair history.</p>
 
 <div class="card">
     <div class="section-head"><h3>On the register</h3></div>

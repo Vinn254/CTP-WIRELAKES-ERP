@@ -8,12 +8,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.cohorts.index') }}">&larr; Cohorts</a></p>
 <h1>Cohort results</h1>
-<p class="sub page-lede">
-    Choose a cohort and read every trainee in it on one table: attendance, the modules they got through, their
-    theory, practical and assessment scores, the track they have reached and where their certificate stands.
-    <b>The numbers come from the trainee's own record</b> — nothing is typed twice, and the trainer sees this same table
-    for the cohorts they teach.
-</p>
+<p class="page-lede">Read every trainee's scores and progress for one cohort.</p>
 
 @if ($cohorts->isEmpty())
     <div class="card">

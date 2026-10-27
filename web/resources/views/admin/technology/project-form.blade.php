@@ -10,10 +10,7 @@
 @section('content')
 <p class="back"><a href="{{ route('admin.technology.index', ['tab' => 'projects']) }}">&larr; Technology projects</a></p>
 <h1>{{ $isNew ? 'New technology project' : $project->title }}</h1>
-<p class="sub page-lede">
-    A piece of technology work the programme delivers — a robotics build, a software tool, an AI model (§12.4–12.6).
-    It runs through one lifecycle: the problem, the data, the design, the build, the test, the deploy, then the impact read back.
-</p>
+<p class="page-lede">Record a technology build and its delivery stages.</p>
 
 @if ($errors->any())
     <div class="card" style="border-left:4px solid var(--danger);">

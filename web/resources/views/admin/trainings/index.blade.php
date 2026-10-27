@@ -2,15 +2,8 @@
 @section('title', 'Training')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Training</h1>
-<p class="sub page-lede">
-    This is what the programme teaches — nothing else. <b>A cohort is an intake of one of these</b> and
-    <b>a fundi is registered to teach these</b>; nobody types a course name anywhere. Start a new trade here and
-    it appears on both forms straight away. Under each training you set the <b>modules</b> a trainee has to get
-    through — optional, and the moment you add one, the trainer sees it as what they must deliver and the CTP
-    sees it on their record.
-</p>
+<p class="page-lede">The courses the programme teaches, with the modules each one sets.</p>
 
 @include('partials.errors')
 

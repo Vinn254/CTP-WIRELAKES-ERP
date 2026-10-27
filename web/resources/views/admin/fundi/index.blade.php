@@ -8,14 +8,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'efundi') }}">&larr; E-Fundi Management</a></p>
 <h1>E-Fundi register</h1>
-<p class="sub page-lede">
-    The programme's technical workforce (§8). This is the record Modules 4, 6, 7 and 10 read:
-    <b>grade, trade skills, the counties they cover and whether they are free for work.</b>
-    A fundi keeps one row for life — a suspension is reopened, never deleted, and a new application never
-    makes a second copy of a person.
-</p>
+<p class="page-lede">Every registered fundi, their skills and whether they are free for work.</p>
 
 <div class="stat-row">
     <div class="stat"><small>On the register</small><b>{{ $counts->sum() }}</b></div>

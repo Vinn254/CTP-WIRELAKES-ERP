@@ -6,12 +6,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Partners</h1>
-<p class="sub page-lede">
- Post your own partners straight onto the public wall, and review every partnership request sent from the public Partners page.
- <a href="{{ route('partners') }}" target="_blank">View partner wall &#8599;</a>
-</p>
+<p class="page-lede">Post partners on the public wall and review partnership requests.</p>
 
 <div class="card" style="margin-bottom:22px;">
  <h3>Post a partner</h3>
@@ -58,7 +54,7 @@
  </div>
  </div>
 @empty
- <div class="card"><p class="page-lede">Nothing is on the wall yet — post a partner above or list one of the requests below.</p></div>
+ <div class="card"><p class="page-lede">Nothing is on the wall yet — post a partner above.</p></div>
 @endforelse
 
 <h2 style="margin-top:30px;">Partnership requests <span class="tag gray">{{ $requests->count() }}</span></h2>

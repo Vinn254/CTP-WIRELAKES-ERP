@@ -4,15 +4,16 @@
 @section('content')
 @include('partials.errors')
 @php use App\Models\FinanceEntry; use App\Support\Finance; @endphp
-<p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
-<h1>Money register — {{ $year }}</h1>
-<p class="sub page-lede">
-    Every shilling in and every shilling out is one line here (§14.3). Money the system already knows about —
-    a supplier paid on a purchase order, a payout released to an E-Fundi, materials issued from the store —
-    <b>posts its own line and is not retyped</b>. What is typed in is membership fees, donor and partner funds,
-    transport, accommodation and the odd operating cost. A line that was wrong is corrected with an opposite line,
-    so the mistake stays visible on the register.
-</p>
+<div class="head-row">
+    <div>
+        <h1>Money register — {{ $year }}</h1>
+        <p class="page-lede">All programme money in and out, one line per entry.</p>
+    </div>
+    <div class="head-acts">
+        <a class="btn btn-sm btn-lime" href="#money-in">+ Money in</a>
+        <a class="btn btn-sm btn-outline" href="#money-out">+ Money out</a>
+    </div>
+</div>
 
 <div class="stat-row">
     <div class="stat"><small>Money in {{ $year }}</small><b>{{ Finance::ksh($income) }}</b></div>
@@ -121,7 +122,7 @@
 {{ $entries->links() }}
 
 <div class="two-col">
-    <div class="card">
+    <div class="card entry-card" id="money-in">
         <h3>Record money in</h3>
         <p class="hint">Funding is not charged to a budget line — it arrives. Say what it is so the budget page can
             count it for the year.</p>
@@ -177,7 +178,7 @@
         </form>
     </div>
 
-    <div class="card">
+    <div class="card entry-card" id="money-out">
         <h3>Record money out</h3>
         <p class="hint">Every expense sits on a budget line (§14.2) — training money does not pay for a build. Pick
             the line, and the budget page will show it charged.</p>

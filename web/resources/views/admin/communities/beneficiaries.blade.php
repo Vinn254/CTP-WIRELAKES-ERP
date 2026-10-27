@@ -7,12 +7,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'communities') }}">&larr; Community Management</a></p>
 <h1>Beneficiaries</h1>
-<p class="sub page-lede">
-    The people, households and businesses a project reached. These are the impact counts Module 12 reports —
-    registered by a CTP on <b>/portal</b> or by staff on the community page.
-</p>
+<p class="page-lede">The people, households and businesses the programme's projects reached.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Registered</small><b>{{ $counts->sum() }}</b></div>

@@ -2,14 +2,8 @@
 @section('title', 'E-Waste register')
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'ewaste') }}">&larr; E-Waste Management</a></p>
 <h1>E-Waste register</h1>
-<p class="sub page-lede">
-    Every line the field collected, from the first photo to the weight on the scale. A CTP or an E-Fundi registers a
-    collection, an E-Fundi carries it to a collection point and forwards it, and <b>weighing it in is done here</b> —
-    that is what turns an estimate into programme stock. The route each item takes (repair, refurbish, recycle,
-    certified disposal) is recorded on the same line; nothing is deleted or registered twice.
-</p>
+<p class="page-lede">Every e-waste collection line, from field intake to weighing.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Lines on the register</small><b>{{ $counts['all'] }}</b></div>

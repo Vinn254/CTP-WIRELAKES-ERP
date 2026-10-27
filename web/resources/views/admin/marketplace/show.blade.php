@@ -215,10 +215,7 @@
     </div>
 @empty
     <div class="card">
-        <p class="page-lede">
-            No round has been run for this project yet. Run the search above to build the shortlist; members who applied
-            on their own are listed underneath and can be awarded from the project page.
-        </p>
+        <p class="page-lede">No matching round has run for this project yet.</p>
     </div>
 @endforelse
 

@@ -8,14 +8,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'training') }}">&larr; Training &amp; Certification</a></p>
 <h1>Certification</h1>
-<p class="sub page-lede">
-    The last step of Module 4 §7.5. A trainee reaches this queue from their <a href="{{ route('admin.track.index') }}">track</a>:
-    when the marks, sessions, modules and paperwork add up to <b>100%</b> the record lands here for the office to
-    verify — <b>only a programme executive approves a certificate and issues its code</b>. A certificate that is
-    revoked keeps its record — it is never deleted.
-</p>
+<p class="page-lede">Verify trainees at 100% and issue or revoke their certificates.</p>
 
 <div class="stat-row">
     <div class="stat"><small>At 100%, not queued yet</small><b>{{ $ready->count() }}</b></div>

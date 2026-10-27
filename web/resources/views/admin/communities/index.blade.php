@@ -7,12 +7,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'communities') }}">&larr; Community Management</a></p>
 <h1>Community register</h1>
-<p class="sub page-lede">
-    A community is the unit the programme measures impact at — the place a CTP looks after, the needs flagged there
-    and the people a project reached. <b>Modules 4, 6, 7, 10 and 12 all read this register.</b>
-</p>
+<p class="page-lede">Every community the programme works in and its status.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Communities</small><b>{{ $counts->sum() }}</b></div>

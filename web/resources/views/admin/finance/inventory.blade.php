@@ -4,14 +4,8 @@
 @section('content')
 @include('partials.errors')
 @php use App\Models\InventoryItem; use App\Models\StockMovement; use App\Support\Finance; @endphp
-<p class="back"><a href="{{ route('admin.department', 'finance') }}">&larr; Finance, Procurement &amp; Inventory</a></p>
 <h1>Stock register</h1>
-<p class="sub page-lede">
-    One card per item (§14.5): SKU, description, unit, quantity on hand, the level it reorders at, where it sits and
-    what it cost. <b>The quantity is never typed in</b> — it is the sum of the movements on the card, so the store can
-    always be explained back to a purchase order that brought goods in, or a project or cohort that drew them out.
-    A card that runs empty is reordered, not deleted.
-</p>
+<p class="page-lede">Every stock item with its quantity on hand and reorder level.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Cards on the register</small><b>{{ $totals['cards'] }}</b></div>

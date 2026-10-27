@@ -8,12 +8,8 @@
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.department', 'membership') }}">&larr; Public Site &amp; Membership</a></p>
 <h1>Projects</h1>
-<p class="sub page-lede">
- Post projects here — they are <b>never shown on the public site</b>. Approved CTPs and E-Fundis see only the projects
- that match their level, apply from their portal, and you assign one worker per project.
-</p>
+<p class="page-lede">Post and manage projects for members to apply on.</p>
 
 <div class="page-actions">
  <a class="btn btn-primary" href="{{ route('admin.projects.create') }}">＋ Post a project</a>

@@ -5,7 +5,7 @@
 @endphp
 
 @if ($shown->isEmpty())
-    <div class="card"><p class="page-lede">No projects are open at your level right now. Check back soon — the programme office posts new work here every week.</p></div>
+    <div class="card"><p class="page-lede">No projects are open for you right now.</p></div>
 @else
     <div class="proj-list">
         @foreach ($shown as $p)

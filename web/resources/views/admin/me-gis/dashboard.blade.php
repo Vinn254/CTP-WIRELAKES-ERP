@@ -3,14 +3,8 @@
 
 @section('content')
 @php use App\Support\Finance; use App\Support\Impact; @endphp
-<p class="back"><a href="{{ route('admin.department', 'me_gis') }}">&larr; M&amp;E, GIS and Reports</a></p>
 <h1>Impact dashboard @if ($county) — {{ $county }} @endif</h1>
-<p class="sub page-lede">
-    These are the measures §15.2 keeps an eye on. <b>Nothing on this page is typed in or stored</b> — every figure
-    is counted from the register another module already writes, so a number here always has the records behind it.
-    Where the blueprint asks for a figure no module keeps yet, the line says which module has to open instead of
-    showing a zero that would look like a result.
-</p>
+<p class="page-lede">Programme results counted live from the registers, county by county.</p>
 
 <form method="GET" action="{{ route('admin.impacts.index') }}" class="filter-bar">
     <div>
