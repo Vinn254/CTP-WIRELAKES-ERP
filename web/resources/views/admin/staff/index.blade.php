@@ -44,7 +44,8 @@
             <button class="btn btn-primary" type="submit">Create invitation</button>
         </form>
         <div class="hint" style="margin-top:10px;">
-            The invitee opens the activation link (valid 14 days) and sets their own password. Copy the link below and send it by email or WhatsApp.
+            The invitee opens the activation link (valid 14 days) and sets their own password. It is emailed to them
+            when the invitation is created; use <b>Copy link</b> below to send it another way.
         </div>
     @endunless
 </div>
@@ -115,15 +116,12 @@
             <span class="tag gray">{{ $roleLabels[$inv->role] ?? $inv->role }}</span>
             <span class="status {{ $inv->status === 'pending' ? 'pending_review' : ($inv->status === 'accepted' ? 'active' : 'rejected') }}">{{ ucfirst($inv->status) }}</span>
             <div class="hint">Sent {{ $inv->created_at->format('d M Y') }}@if ($inv->expires_at) · expires {{ $inv->expires_at->format('d M Y') }}@endif</div>
-            @if ($inv->status === 'pending')
-                <div class="invite-link">{{ request()->getSchemeAndHttpHost().route('invite.show', $inv->token) }}</div>
-            @endif
         </div>
         <div class="invite-actions">
             @if ($inv->status === 'pending' && $isSuper)
                 <a class="btn btn-sm btn-lime" href="{{ route('invite.show', $inv->token) }}" target="_blank">Open activation link</a>
                 <button class="btn btn-sm btn-outline" type="button"
-                        onclick="copyInvite('{{ request()->getSchemeAndHttpHost().route('invite.show', $inv->token) }}', this)">Copy link</button>
+                        onclick="copyInvite('{{ route('invite.show', $inv->token) }}', this)">Copy link</button>
                 <form method="POST" action="{{ route('admin.staff.invite.revoke', $inv->id) }}"
                       data-danger data-confirm="Revoke the invitation for {{ $inv->email }}? The link will stop working.">
                     @csrf
