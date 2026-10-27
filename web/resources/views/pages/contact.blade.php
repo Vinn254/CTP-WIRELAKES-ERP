@@ -8,7 +8,7 @@
         <h1>{{ content('contact','intro','title','Talk to us') }}</h1>
         <div class="card">
             <h3>{{ content('contact','office','card_title','Kisumu head office') }}</h3>
-            <p>{!! nl2br(e(content('contact','office','address',"CTP-WireLakes Programme\nKisumu, Kenya"))) !!}</p>
+            <p>{!! nl2br(e(content('contact','office','address',"WireLakes Technologies\nKisumu, Kenya"))) !!}</p>
             <p>📞 {{ content('contact','office','phone','+254 700 000 000') }}<br>✉️ <a href="mailto:{{ $officeEmail = content('contact','office','email','info@ctp-wirelakes.ke') }}">{{ $officeEmail }}</a></p>
         </div>
         <p style="margin-top:16px;"><a class="btn btn-outline" href="{{ route('faq') }}">{{ content('contact','office','faq_note','Read the FAQ first? Many answers are there →') }}</a></p>

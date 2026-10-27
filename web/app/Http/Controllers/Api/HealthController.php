@@ -29,7 +29,7 @@ class HealthController extends Controller
         }
 
         return response()->json([
-            'app'     => 'CTP-WireLakes',
+            'app'     => 'WireLakes Technologies',
             'env'     => app()->environment(),
             'php'     => PHP_VERSION,
             'laravel' => app()->version(),

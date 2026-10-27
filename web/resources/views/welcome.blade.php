@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>CTP-WireLakes — Construction &amp; Technology Enterprise</title>
+    <title>WireLakes Technologies — Construction &amp; Technology Enterprise</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
     <link rel="alternate icon" type="image/png" href="{{ asset('logo.png') }}">
     <style>
@@ -100,9 +100,9 @@
 <body>
     <header class="topbar">
         <div class="brand">
-            <img src="{{ asset('logo.svg') }}" alt="CTP-WireLakes logo">
+            <img src="{{ asset('logo.svg') }}" alt="WireLakes Technologies logo">
             <div>
-                <div class="name">CTP-WireLakes</div>
+                <div class="name">WireLakes Technologies</div>
                 <div style="font-size: 12px; color: #4a6a55;">Construction &amp; Technology Enterprise</div>
             </div>
         </div>
@@ -116,7 +116,7 @@
         <span class="pill">13 modules · 1 platform</span>
         <h1>Community technology, skills, and infrastructure for Kenya.</h1>
         <p class="lead">
-            The CTP-WireLakes ERP runs CTP Promoters, Communities, Training, the E-Fundi marketplace,
+            The WireLakes Technologies ERP runs CTP Promoters, Communities, Training, the E-Fundi marketplace,
             projects, construction, e-waste, finance, M&amp;E and a public dashboard — all from one Laravel
             backend, served to this web app and the Flutter mobile app.
         </p>
@@ -138,7 +138,7 @@
     </main>
 
     <footer class="footer">
-        © {{ date('Y') }} CTP-WireLakes Construction &amp; Technology Enterprise
+        © {{ date('Y') }} WireLakes Technologies
     </footer>
 </body>
 </html>

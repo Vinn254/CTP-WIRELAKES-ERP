@@ -7,7 +7,7 @@
     $next = $member->nextMilestone() ?? 30;
     $areas = $communities->where('status', '!=', 'rejected');
     $share = $member->referralLink();
-    $whats = 'https://wa.me/?text='.urlencode('Join CTP-WireLakes as a CTP — use my referral link '.$share);
+    $whats = 'https://wa.me/?text='.urlencode('Join WireLakes Technologies as a CTP — use my referral link '.$share);
 @endphp
 
 <div class="card">

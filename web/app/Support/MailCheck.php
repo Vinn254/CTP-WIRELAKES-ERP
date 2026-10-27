@@ -45,7 +45,7 @@ class MailCheck
         try {
             Mail::raw(
                 'This is a delivery test from the '.config('app.name').' office. If you can read it, the mail settings are working.',
-                fn ($m) => $m->to($email)->subject('CTP-WireLakes email delivery test')
+                fn ($m) => $m->to($email)->subject('WireLakes Technologies email delivery test')
             );
         } catch (Throwable $e) {
             return ['ok' => false, 'message' => 'Sending through '.$via.' failed: '.$e->getMessage()];

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 @php
     use App\Models\CtpRegistration;
-    $brandName = content('site','branding','brand_name','CTP-WireLakes');
+    $brandName = content('site','branding','brand_name','WireLakes Technologies');
     $brandLogo = content('site','branding','logo');
     $themeGreen = content('site','branding','theme_green','#066722');
     $themeLime = content('site','branding','theme_lime','#4cb614');

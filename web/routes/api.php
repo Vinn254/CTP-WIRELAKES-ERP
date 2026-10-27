@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| CTP-WireLakes API routes
+| WireLakes Technologies API routes
 |--------------------------------------------------------------------------
 | Consumed by both the Blade web app and the Flutter mobile app.
 | Auth is via Laravel Sanctum personal access tokens.

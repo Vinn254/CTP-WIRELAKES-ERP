@@ -16,7 +16,7 @@ class ContentSeeder extends Seeder
         $this->put('site', 'branding', 'Branding & logo', 'single',
             ['logo' => ['Site logo', 'image'], 'brand_name' => ['Brand name', 'text'],
              'theme_green' => ['Brand colour (dark)', 'text'], 'theme_lime' => ['Accent colour (lime)', 'text']],
-            [['brand_name' => 'CTP-WireLakes', 'theme_green' => '#066722', 'theme_lime' => '#4cb614']]);
+            [['brand_name' => 'WireLakes Technologies', 'theme_green' => '#066722', 'theme_lime' => '#4cb614']]);
 
         $this->put('site', 'backgrounds', 'Background photos', 'single',
             ['hero_photo' => ['Hero background photo', 'image'],
@@ -26,12 +26,12 @@ class ContentSeeder extends Seeder
 
         $this->put('site', 'contact', 'Contact details', 'single',
             ['email' => ['Email', 'text'], 'phone' => ['Phone', 'text'], 'address' => ['Address', 'textarea']],
-            [['email' => 'info@ctp-wirelakes.ke', 'phone' => '+254 700 000 000', 'address' => "CTP-WireLakes Programme\nKisumu, Kenya"]]);
+            [['email' => 'info@ctp-wirelakes.ke', 'phone' => '+254 700 000 000', 'address' => "WireLakes Technologies\nKisumu, Kenya"]]);
 
         $this->put('site', 'footer', 'Footer', 'single',
             ['about_text' => ['About blurb', 'textarea'], 'fine_print' => ['Copyright line', 'text']],
             [['about_text' => 'Community Technology Promoters — E-Fundis, Training & Innovation. From a community need, we create trained people, certified fundis, completed projects and lasting jobs.',
-              'fine_print' => '© '.date('Y').' CTP-WireLakes Programme · Designed by James Ombet & Vincent Otieno, Kisumu, Kenya']]);
+              'fine_print' => '© '.date('Y').' WireLakes Technologies · Designed by James Ombet & Vincent Otieno, Kisumu, Kenya']]);
 
         // ---------- home ----------
         $this->put('home', 'hero', 'Hero (top banner)', 'single',
@@ -40,7 +40,7 @@ class ContentSeeder extends Seeder
              'cta2_label' => ['Button 2 label', 'text'], 'cta2_url' => ['Button 2 link', 'text']],
             [['kicker' => 'Community Technology Promoters · Kenya',
               'title' => 'We train and certify people — then give the projects to our Fundis.',
-              'lede' => 'CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.',
+              'lede' => 'WireLakes Technologies connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.',
               'cta1_label' => 'Become a student (CTP)', 'cta1_url' => '/register/ctp',
               'cta2_label' => 'Become a Fundi', 'cta2_url' => '/register/fundi']]);
 
@@ -75,7 +75,7 @@ class ContentSeeder extends Seeder
         $this->put('about', 'intro', 'Origin story', 'single',
             ['tag' => ['Tag', 'text'], 'title' => ['Title', 'text'], 'body1' => ['Paragraph 1', 'textarea'], 'body2' => ['Paragraph 2', 'textarea']],
             [['tag' => 'About the programme', 'title' => 'Our origin',
-              'body1' => 'CTP-WireLakes (Community Technology Promoters) started in Kisumu, Kenya, with a simple idea: every community has needs — and the same community has people who can be trained, certified and deployed to meet those needs. What began as a skills initiative for school leavers and junior graduates has grown into a multi-county programme spanning training, the E-Fundi workforce, projects, construction, technology services, e-waste and the green economy.',
+              'body1' => 'WireLakes Technologies started in Kisumu, Kenya, with a simple idea: every community has needs — and the same community has people who can be trained, certified and deployed to meet those needs. What began as a skills initiative for school leavers and junior graduates has grown into a multi-county programme spanning training, the E-Fundi workforce, projects, construction, technology services, e-waste and the green economy.',
               'body2' => 'The programme is built around the CTP — the Community Technology Promoter — an on-the-ground agent who is simultaneously a trainee, a mobilizer and a community agent.']]);
 
         $this->put('about', 'pillars', 'Vision / Mission / Values cards', 'repeater',
@@ -89,7 +89,7 @@ class ContentSeeder extends Seeder
         $this->put('about', 'operate', 'Where we operate', 'single',
             ['title' => ['Title', 'text'], 'sub' => ['Subtitle', 'textarea'], 'card_icon' => ['Card icon (emoji)', 'text'], 'card_title' => ['Card title', 'text'], 'card_text' => ['Card text', 'textarea']],
             [['title' => 'Where we operate',
-              'sub' => 'CTP-WireLakes works county-by-county across Kenya, starting from the Lake Victoria region and expanding through CTP mobilization.',
+              'sub' => 'WireLakes Technologies works county-by-county across Kenya, starting from the Lake Victoria region and expanding through CTP mobilization.',
               'card_icon' => '🗺️', 'card_title' => 'Kisumu · Kenya',
               'card_text' => 'Head office and programme birthplace. CTPs active across wards, with county expansion driven by Modules 2 and 3.']]);
 
@@ -154,7 +154,7 @@ class ContentSeeder extends Seeder
 
         $this->put('contact', 'office', 'Office card', 'single',
             ['card_title' => ['Card title', 'text'], 'address' => ['Address lines', 'textarea'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'], 'faq_note' => ['FAQ link note', 'text']],
-            [['card_title' => 'Kisumu head office', 'address' => "CTP-WireLakes Programme\nKisumu, Kenya", 'phone' => '+254 700 000 000', 'email' => 'info@ctp-wirelakes.ke', 'faq_note' => 'Read the FAQ first? Many answers are there →']]);
+            [['card_title' => 'Kisumu head office', 'address' => "WireLakes Technologies\nKisumu, Kenya", 'phone' => '+254 700 000 000', 'email' => 'info@ctp-wirelakes.ke', 'faq_note' => 'Read the FAQ first? Many answers are there →']]);
 
         $this->put('contact', 'form', 'Message form heading', 'single',
             ['title' => ['Title', 'text']],

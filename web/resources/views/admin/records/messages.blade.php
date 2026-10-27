@@ -22,7 +22,7 @@
  </td>
  <td style="max-width:420px;">{!! nl2br(e($m->message)) !!}</td>
  <td>{{ $m->created_at->format('d M Y, H:i') }}</td>
- <td><a class="btn btn-sm btn-outline" href="mailto:{{ $m->email }}?subject=Re:%20your%20enquiry%20—%20CTP-WireLakes">Reply</a></td>
+ <td><a class="btn btn-sm btn-outline" href="mailto:{{ $m->email }}?subject=Re:%20your%20enquiry%20—%20WireLakes Technologies">Reply</a></td>
  </tr>
  @empty
  <tr><td colspan="5" class="empty-cell">No messages yet.</td></tr>

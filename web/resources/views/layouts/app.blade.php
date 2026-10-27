@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 @php
     $brandLogo = content('site','branding','logo');
-    $brandName = content('site','branding','brand_name','CTP-WireLakes');
+    $brandName = content('site','branding','brand_name','WireLakes Technologies');
     $themeGreen = content('site','branding','theme_green','#066722');
     $themeLime = content('site','branding','theme_lime','#4cb614');
     $siteEmail = content('site','contact','email','info@ctp-wirelakes.ke');
@@ -140,7 +140,7 @@ document.addEventListener('click', function (e) {
             </p>
         </div>
     </div>
-    <div class="container fine">{{ content('site','footer','fine_print','© '.date('Y').' CTP-WireLakes Programme') }}</div>
+    <div class="container fine">{{ content('site','footer','fine_print','© '.date('Y').' WireLakes Technologies') }}</div>
 </footer>
 </body>
 </html>

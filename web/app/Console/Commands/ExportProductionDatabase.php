@@ -67,7 +67,7 @@ class ExportProductionDatabase extends Command
 
     private function header(): string
     {
-        return "-- CTP-WireLakes production database\n"
+        return "-- WireLakes Technologies production database\n"
             . "-- Generated " . now() . " by `php artisan db:export-production`\n"
             . "-- Structure for every module, plus the counties, fees, training catalogue and website content.\n"
             . "-- No members, no staff accounts, no test records. Import into an empty database.\n\n"

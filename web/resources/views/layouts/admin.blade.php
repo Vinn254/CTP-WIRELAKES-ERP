@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 @php
     use App\Support\Departments;
-    $brandName = content('site','branding','brand_name','CTP-WireLakes');
+    $brandName = content('site','branding','brand_name','WireLakes Technologies');
     $brandLogo = content('site','branding','logo');
     $route = request()->route();
     $deptSlug = ($route ? $route->parameter('department') : null) ?: Departments::owner($route ? $route->getName() : null);

@@ -14,7 +14,7 @@ class TrainingVenue extends Model
     public const TYPES = [
         'partner_school' => 'Partner school',
         'community_site' => 'Community training site',
-        'programme_centre' => 'CTP-WireLakes centre',
+        'programme_centre' => 'WireLakes Technologies centre',
     ];
 
     protected $table = 'training_venues';

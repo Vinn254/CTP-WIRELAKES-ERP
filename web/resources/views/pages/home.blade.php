@@ -13,7 +13,7 @@
         <div class="hero-text">
             <span class="kicker">{{ content('home','hero','kicker','Community Technology Promoters · Kenya') }}</span>
             <h1>{{ content('home','hero','title','We train and certify people — then give the projects to our Fundis.') }}</h1>
-            <p class="lede">{{ content('home','hero','lede','CTP-WireLakes connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.') }}</p>
+            <p class="lede">{{ content('home','hero','lede','WireLakes Technologies connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.') }}</p>
             @include('partials.extra-fields', ['page' => 'home', 'section' => 'hero', 'used' => ['kicker', 'title', 'lede', 'cta1_label', 'cta1_url', 'cta2_label', 'cta2_url']])
             <div class="hero-ctas">
                 <a class="btn btn-lime btn-lg" href="{{ safe_href(content('home','hero','cta1_url','/register/ctp')) }}">{{ content('home','hero','cta1_label','Become a student (CTP)') }}</a>

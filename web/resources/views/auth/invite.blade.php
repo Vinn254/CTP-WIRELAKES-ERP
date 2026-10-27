@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Activate your staff account')
 
-@php $brandName = content('site','branding','brand_name','CTP-WireLakes'); @endphp
+@php $brandName = content('site','branding','brand_name','WireLakes Technologies'); @endphp
 
 @section('content')
 <section class="section login-section">

@@ -10,7 +10,7 @@
 <h1>Training venues</h1>
 <p class="sub page-lede">
     Where a cohort is delivered: a <b>partner school</b> using its facilities, a <b>community site</b>, or a
-    <b>CTP-WireLakes centre</b>. A venue linked to a partner keeps the public partner wall (Module 1) in step.
+    <b>WireLakes Technologies centre</b>. A venue linked to a partner keeps the public partner wall (Module 1) in step.
 </p>
 
 <div class="stat-row">

@@ -9,7 +9,7 @@
         <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">
             {{ $invite->name }} was raised as a
             <b>{{ $invite->role === 'superadmin' ? 'super admin' : ($invite->department.' staff') }}</b>
-            on the CTP-WireLakes programme, under this email address.
+            on the WireLakes Technologies programme, under this email address.
         </p>
         <p style="margin:0 0 10px;font-size:15px;">Open the activation link and set your own password:</p>
         <p style="margin:0 0 18px;">

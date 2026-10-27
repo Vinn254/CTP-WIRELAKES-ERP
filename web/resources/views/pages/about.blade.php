@@ -5,7 +5,7 @@
 <section class="section">
     <span class="tag">{{ content('about','intro','tag','About the programme') }}</span>
     <h1>{{ content('about','intro','title','Our origin') }}</h1>
-    <p>{!! nl2br(e(content('about','intro','body1','CTP-WireLakes started in Kisumu, Kenya.'))) !!}</p>
+    <p>{!! nl2br(e(content('about','intro','body1','WireLakes Technologies started in Kisumu, Kenya.'))) !!}</p>
     <p>{!! nl2br(e(content('about','intro','body2',''))) !!}</p>
 </section>
 
