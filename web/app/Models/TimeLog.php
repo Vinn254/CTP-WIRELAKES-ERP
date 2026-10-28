@@ -146,7 +146,7 @@ class TimeLog extends Model
                 'start' => $cursor->copy(),
                 'end' => $end,
                 'label' => 'Week '.(count($weeks) + 1),
-                'dates' => $cursor->format('d M').'–'.$end->format('d M Y'),
+                'dates' => $cursor->format('D d M').' – '.$end->format('D d M Y'),
             ];
             $cursor = $cursor->copy()->addWeek();
         }

@@ -19,6 +19,9 @@ use Illuminate\Support\Str;
  */
 class TimeSheet
 {
+    /** The first year a sheet can be picked in — the year the programme started keeping them. */
+    public const FIRST_YEAR = 2026;
+
     /**
      * Who fills a week: every office account, whichever department it sits in, plus an E-Fundi the programme has
      * posted to a site. A CTP mobilises; they are not on pay and so have no week sheet.
@@ -261,11 +264,11 @@ class TimeSheet
     /** The years a sheet can be opened for: this one back to the first week anyone logged. */
     public static function years(): array
     {
-        $now = (int) Carbon::now()->format('Y');
         $first = TimeLog::query()->orderBy('week_start')->value('week_start');
-        $first = $first ? (int) Carbon::parse($first)->format('Y') : $now;
+        $first = $first ? (int) Carbon::parse($first)->format('Y') : (int) Carbon::now()->format('Y');
 
-        return range($now, max(min($first, $now), $now - 3));
+        return range(max(min($first, (int) Carbon::now()->format('Y')), self::FIRST_YEAR),
+            (int) Carbon::now()->format('Y') + 1);
     }
 
     /** Every week anyone has filled, newest first — the office register and each worker's own history. */

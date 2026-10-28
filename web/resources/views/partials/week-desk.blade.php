@@ -40,7 +40,7 @@
         <select name="week">
             @foreach ($weekOptions as $n => $w)
                 <option value="{{ $n + 1 }}" @selected($sheet['week_no'] === $n + 1)>
-                    {{ $w['label'] }} — {{ $w['dates'] }}
+                    {{ $w['label'] }} ({{ $w['dates'] }})
                 </option>
             @endforeach
         </select>
