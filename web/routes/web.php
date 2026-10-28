@@ -473,6 +473,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/finance/order/{order}/receive', [ProcurementController::class, 'receiveOrder'])->whereNumber('order')->name('procurement.order.receive');
     Route::post('/finance/order/{order}/match', [ProcurementController::class, 'matchOrder'])->whereNumber('order')->name('procurement.order.match');
     Route::post('/finance/order/{order}/pay', [ProcurementController::class, 'payOrder'])->whereNumber('order')->name('procurement.order.pay');
+    // The two ways a document reaches a supplier: printed and carried, or sent from the office in an email.
+    Route::get('/finance/order/{order}/document', [ProcurementController::class, 'orderDocument'])->whereNumber('order')->name('procurement.order.document');
+    Route::post('/finance/order/{order}/email', [ProcurementController::class, 'orderEmail'])->whereNumber('order')->name('procurement.order.email');
+    Route::get('/finance/quotation/{quotation}/document', [ProcurementController::class, 'quotationDocument'])->whereNumber('quotation')->name('procurement.quotation.document');
+    Route::post('/finance/quotation/{quotation}/email', [ProcurementController::class, 'quotationEmail'])->whereNumber('quotation')->name('procurement.quotation.email');
 
     Route::get('/finance/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
     Route::post('/finance/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');

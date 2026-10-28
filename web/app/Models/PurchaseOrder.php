@@ -26,7 +26,7 @@ class PurchaseOrder extends Model
         'reference', 'purchase_request_id', 'supplier_id', 'quantity', 'unit_cost_ksh', 'amount_ksh', 'note',
         'raised_by_user', 'issued_on', 'delivery_note_ref', 'received_qty', 'receipt_note',
         'received_by_user', 'received_on', 'invoice_ref', 'invoice_amount_ksh', 'matched_by_user', 'matched_on',
-        'paid_on', 'status',
+        'paid_on', 'status', 'emailed_at', 'sent_to', 'sent_note',
     ];
 
     protected $casts = [
@@ -36,6 +36,7 @@ class PurchaseOrder extends Model
         'issued_on' => 'datetime',
         'received_on' => 'datetime',
         'matched_on' => 'datetime',
+        'emailed_at' => 'datetime',
         'paid_on' => 'date',
     ];
 

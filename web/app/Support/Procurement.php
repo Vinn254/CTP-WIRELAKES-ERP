@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Mail\PurchaseOrderEmail;
+use App\Mail\QuotationEmail;
 use App\Models\FinanceEntry;
 use App\Models\InventoryItem;
 use App\Models\PurchaseOrder;
@@ -9,6 +11,7 @@ use App\Models\PurchaseQuotation;
 use App\Models\PurchaseRequest;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Module 11 — the procurement path in one place. The office screens all call these, so a purchase request
@@ -230,6 +233,33 @@ class Procurement
         ]);
 
         return $order;
+    }
+
+    /**
+     * Step 5 by email — the order goes to the supplier's address as the same branded document the office prints.
+     * Sending it is the sending step, so a draft order becomes issued here; an order already sent is only sent again.
+     */
+    public static function emailOrder(PurchaseOrder $order, string $to, ?string $note = null): PurchaseOrder
+    {
+        Mail::to($to)->send(new PurchaseOrderEmail($order, $note));
+
+        $order->update(['emailed_at' => now(), 'sent_to' => $to, 'sent_note' => $note]);
+
+        if ($order->status === 'draft') {
+            static::issue($order);
+        }
+
+        return $order;
+    }
+
+    /** A quotation sent back to the supplier to confirm the figure and the terms still stand. Not a money action. */
+    public static function emailQuotation(PurchaseQuotation $quotation, string $to, ?string $note = null): PurchaseQuotation
+    {
+        Mail::to($to)->send(new QuotationEmail($quotation, $note));
+
+        $quotation->update(['emailed_at' => now(), 'sent_to' => $to, 'sent_note' => $note]);
+
+        return $quotation;
     }
 
     private static function openStockCard(PurchaseRequest $request, PurchaseOrder $order): InventoryItem

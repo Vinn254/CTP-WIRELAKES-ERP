@@ -16,10 +16,11 @@ class PurchaseQuotation extends Model
 {
     protected $fillable = [
         'purchase_request_id', 'supplier_id', 'amount_ksh', 'quotation_ref', 'quoted_on',
-        'note', 'is_selected', 'added_by_user',
+        'note', 'is_selected', 'added_by_user', 'emailed_at', 'sent_to', 'sent_note',
     ];
 
-    protected $casts = ['amount_ksh' => 'decimal:2', 'quoted_on' => 'date', 'is_selected' => 'boolean'];
+    protected $casts = ['amount_ksh' => 'decimal:2', 'quoted_on' => 'date', 'is_selected' => 'boolean',
+        'emailed_at' => 'datetime'];
 
     public static function dataFrom(Request $request): array
     {

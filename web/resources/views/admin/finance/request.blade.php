@@ -141,6 +141,37 @@
                                         <button class="btn btn-sm btn-outline" type="submit">Buy against this</button>
                                     </form>
                                 @endif
+                                <a class="btn btn-sm btn-ghost" href="{{ route('admin.procurement.quotation.document', $q) }}"
+                                   target="_blank" rel="noopener">Print</a>
+                                @include('partials.sheet-start', ['name' => 'email-quote-'.$q->id,
+                                    'title' => 'Send this quotation to the supplier',
+                                    'sub' => 'They get the same page the office prints, so the figure cannot be read two ways.'])
+                                    <form method="POST" action="{{ route('admin.procurement.quotation.email', $q) }}"
+                                          class="fee-form" data-title="Email quotation">
+                                        @csrf
+                                        <input type="hidden" name="_sheet" value="email-quote-{{ $q->id }}">
+                                        <div class="field">
+                                            <label>Send to <span class="req">*</span></label>
+                                            <input type="email" name="to" required maxlength="190"
+                                                   value="{{ old('to', $q->supplier?->email) }}"
+                                                   placeholder="the supplier's email address">
+                                        </div>
+                                        <div class="field" style="margin-top:10px;">
+                                            <label>The line above the document</label>
+                                            <input type="text" name="note" maxlength="1000"
+                                                   placeholder="e.g. Confirm this price holds to 30 November and quote PR-2026-00004 on your invoice.">
+                                        </div>
+                                        <div class="sheet-actions">
+                                            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                                            <button class="btn btn-sm btn-lime" type="submit">Send the quotation</button>
+                                        </div>
+                                    </form>
+                                @include('partials.sheet-end')
+                                <button class="btn btn-sm btn-ghost" type="button"
+                                        data-sheet="email-quote-{{ $q->id }}">Email</button>
+                                @if ($q->emailed_at)
+                                    <div class="hint">sent to {{ $q->sent_to }} {{ $q->emailed_at->format('d M Y') }}</div>
+                                @endif
                                 @if ($canQuote && $pr->status !== 'paid')
                                     <form method="POST" action="{{ route('admin.procurement.quotation.delete', $q) }}" class="mini-form"
                                           data-confirm="Remove this price from {{ $pr->reference }}?" data-title="Remove quotation">
@@ -275,8 +306,43 @@
                         @if ($o->received_on) · received {{ $o->received_on->format('d M Y') }} by {{ $o->receiver->exists ? $o->receiver->name : '—' }}@endif
                         @if ($o->matched_on) · matched {{ $o->matched_on->format('d M Y') }} by {{ $o->matcher->exists ? $o->matcher->name : '—' }}@endif
                         @if ($o->paid_on) · paid {{ $o->paid_on->format('d M Y') }}@endif
+                        @if ($o->emailed_at) · order emailed to {{ $o->sent_to }} {{ $o->emailed_at->format('d M Y') }}@endif
                     </span></dd>
                 </dl>
+
+                <p class="hint" style="margin:0 0 12px;">
+                    <a class="btn btn-sm btn-outline" href="{{ route('admin.procurement.order.document', $o) }}"
+                       target="_blank" rel="noopener">Print or save the order</a>
+                    @include('partials.sheet-start', ['name' => 'email-order-'.$o->id,
+                        'title' => 'Send the order to the supplier',
+                        'sub' => 'The email carries the same document the office prints. Sending it is the sending step.'])
+                        <form method="POST" action="{{ route('admin.procurement.order.email', $o) }}"
+                              class="fee-form" data-title="Email order">
+                            @csrf
+                            <input type="hidden" name="_sheet" value="email-order-{{ $o->id }}">
+                            <div class="field">
+                                <label>Send to <span class="req">*</span></label>
+                                <input type="email" name="to" required maxlength="190"
+                                       value="{{ old('to', $o->supplier?->email) }}"
+                                       placeholder="the supplier's email address">
+                            </div>
+                            <div class="field" style="margin-top:10px;">
+                                <label>The line above the document</label>
+                                <textarea name="note" rows="2" maxlength="1000"
+                                          placeholder="e.g. Deliver to the Kisumu centre store, attn. storekeeper, before 30 Oct."></textarea>
+                            </div>
+                            <div class="sheet-actions">
+                                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                                <button class="btn btn-sm btn-lime" type="submit">Send {{ $o->reference }}</button>
+                            </div>
+                        </form>
+                    @include('partials.sheet-end')
+                    <button class="btn btn-sm btn-outline" type="button"
+                            data-sheet="email-order-{{ $o->id }}">Email to the supplier</button>
+                    @unless ($o->supplier?->email)
+                        <span class="hint">no supplier email on file — type theirs, or add it to the supplier record</span>
+                    @endunless
+                </p>
 
                 @if ($o->status === 'draft')
                     <form method="POST" action="{{ route('admin.procurement.order.issue', $o) }}" class="mini-form"

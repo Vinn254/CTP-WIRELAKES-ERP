@@ -213,4 +213,60 @@ class ProcurementController extends Controller
             .($order->supplier->name ?? 'the supplier').' by '.$method.' on '.$when
             .'. The ledger carries the expense against '.$order->request->budgetLabel().'.');
     }
+
+    /**
+     * The order as paper — opened in the browser to read, printed or saved as a PDF and carried to the supplier
+     * physically. Nothing on the page is typed again: it is the same record the desk works from.
+     */
+    public function orderDocument(PurchaseOrder $order)
+    {
+        $order->load(['request.item', 'supplier', 'raiser:id,name']);
+
+        return view('admin.finance.order-document', ['order' => $order]);
+    }
+
+    /** The other way the order reaches the supplier: our own system carries the document to their address. */
+    public function orderEmail(Request $request, PurchaseOrder $order)
+    {
+        $data = $this->sendRules($request);
+
+        Procurement::emailOrder($order, $data['to'], $data['note'] ?? null);
+
+        return back()->with('status', $order->reference.' went to '.$data['to'].' as the order document — the same page '
+            .'the office prints.'.($order->status === 'issued'
+                ? ' The order now reads sent to the supplier.'
+                : ' It was already sent, so this is a fresh copy.'));
+    }
+
+    /** A quotation printed for the file, or sent back to the supplier to confirm the figure stands. */
+    public function quotationDocument(PurchaseQuotation $quotation)
+    {
+        $quotation->load(['request', 'supplier', 'adder:id,name']);
+
+        return view('admin.finance.quotation-document', ['quotation' => $quotation]);
+    }
+
+    public function quotationEmail(Request $request, PurchaseQuotation $quotation)
+    {
+        $data = $this->sendRules($request);
+
+        Procurement::emailQuotation($quotation, $data['to'], $data['note'] ?? null);
+
+        return back()->with('status', $quotation->label().' was sent to '.$data['to'].' as the office holds it. '
+            .'Attaching a quotation is evidence, not a money action — the figures stay as they are.');
+    }
+
+    /** One rule for both documents: an address to send to, and the line the supplier reads above the document. */
+    private function sendRules(Request $request): array
+    {
+        return $request->validate([
+            'to' => 'required|email|max:190',
+            'note' => 'nullable|string|max:1000',
+        ], [
+            'to.required' => 'Type the address the document goes to.',
+            'to.email' => 'That is not an email address — a document is sent to one.',
+        ], [
+            'to' => 'Send to', 'note' => 'The line above the document',
+        ]);
+    }
 }
