@@ -292,7 +292,7 @@ class PortalController extends Controller
         $trainer = $this->myTrainer($request, $postings);
 
         return view('portal.trainer-week', array_merge(
-            TimeSheet::desk($request->user(), $request->input('month'), $request->input('week')),
+            TimeSheet::desk($request->user(), TimeSheet::monthParam($request), $request->input('week')),
             ['member' => $fundi, 'trainer' => $trainer, 'postings' => $postings,
                 'trainings' => $trainer->trainings, 'cohorts' => $trainer->cohorts]
         ));

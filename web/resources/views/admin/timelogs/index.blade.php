@@ -24,15 +24,9 @@
 </div>
 
 <form method="GET" action="{{ route($self, $here) }}" class="filter-bar">
-    <div class="field">
-        <label>Month</label>
-        <select name="month">
-            <option value="">Every month</option>
-            @foreach ($months as $m)
-                <option value="{{ $m }}" @selected($month === $m)>{{ \Illuminate\Support\Carbon::parse($m.'-01')->format('F Y') }}</option>
-            @endforeach
-        </select>
-    </div>
+    @include('partials.month-pick', ['month' => $month, 'year' => $year, 'years' => $years,
+        'anyMonth' => true, 'anyYear' => true])
+    @foreach ($here as $key => $value)<input type="hidden" name="{{ $key }}" value="{{ $value }}">@endforeach
     <div class="field">
         <label>Status</label>
         <select name="status">

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Departments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
@@ -43,7 +44,10 @@ class TimeLog extends Model
         'approved_at' => 'datetime',
     ];
 
-    /** A day line, corrected in place — the sheet is never two rows for one day. */
+    /**
+     * A day line, corrected in place — the sheet is never two rows for one day. Who wrote it is taken from the
+     * account standing at the screen, never typed: initials and department are recorded by the desk that saves it.
+     */
     public static function dataFrom(Request $request): array
     {
         $data = $request->validate([
@@ -51,7 +55,6 @@ class TimeLog extends Model
             'time_in' => 'nullable|date_format:H:i',
             'time_out' => 'nullable|date_format:H:i|after:time_in',
             'task' => 'required|string|max:500',
-            'initials' => 'required|string|max:10',
             'department' => 'nullable|string|max:90',
             'training_id' => 'nullable|integer|exists:trainings,id',
             'cohort_id' => 'nullable|integer|exists:cohorts,id',
@@ -61,16 +64,31 @@ class TimeLog extends Model
             'log_date.before_or_equal' => 'A week sheet records days already worked — not a day in the future.',
         ], [
             'log_date' => 'Date', 'time_in' => 'Time in', 'time_out' => 'Time out', 'task' => 'Tasks accomplished',
-            'initials' => 'Initials', 'department' => 'Department', 'units' => 'Units',
+            'department' => 'Department', 'units' => 'Units',
         ]);
 
         $data['task'] = trim($data['task']);
-        $data['initials'] = Str::upper(trim($data['initials']));
         $data['units'] = (int) ($data['units'] ?? 0);
         $data['hours'] = static::hoursBetween($data['time_in'] ?? null, $data['time_out'] ?? null);
         $data['week_start'] = static::weekStartOf($data['log_date'])->toDateString();
 
         return $data;
+    }
+
+    /** The initials a person's account signs with: first letter of each of their first three names. */
+    public static function initialsOf(User $worker): string
+    {
+        return collect(preg_split('/\s+/', trim($worker->name)))->filter()
+            ->filter(fn ($word) => preg_match('/^[\p{L}]/u', $word))
+            ->take(3)->map(fn ($word) => Str::upper(Str::substr($word, 0, 1)))->implode('');
+    }
+
+    /** The departments this account can be recorded against — its own, never the whole list. */
+    public static function departmentsOf(User $worker): array
+    {
+        return collect(Departments::visibleSlugs($worker))
+            ->map(fn ($slug) => Departments::find($slug)['name'] ?? null)
+            ->filter()->unique()->values()->all() ?: ['Training'];
     }
 
     /** Hours worked, counted from the clock times the trainer wrote — 8 hours max a day. */

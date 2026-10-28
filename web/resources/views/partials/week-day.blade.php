@@ -1,13 +1,15 @@
 @php
     use App\Models\TimeLog;
-    use App\Support\Departments;
 
     /** @var array $day */
     $row = $day['row'];
     $name = 'day-'.$day['date'];
     $picked = old('log_date', $day['date']);
+    $depts = collect($defaults['departments'] ?? ['Training'])->values();
     $dept = old('department', $row?->department ?: ($defaults['department'] ?? ''));
-    $depts = collect(Departments::all())->pluck('name')->when($dept !== '', fn ($q) => $q->push($dept)->unique());
+    if (! $depts->contains($dept)) {
+        $dept = $depts->first();
+    }
     $today = now()->toDateString();
 @endphp
 @include('partials.sheet-start', ['name' => $name,
@@ -16,6 +18,8 @@
       data-confirm="Save this day to the week sheet?" data-title="Save day">
     @csrf
     <input type="hidden" name="_sheet" value="{{ $name }}">
+    <input type="hidden" name="month" value="{{ $sheet['month'] }}">
+    <input type="hidden" name="week" value="{{ $sheet['week_no'] }}">
     @foreach ($carry as $key => $value)
         <input type="hidden" name="{{ $key }}" value="{{ $value }}">
     @endforeach
@@ -50,18 +54,23 @@
     </div>
     <div class="form-grid-3">
         <div class="field">
-            <label>Initials <span class="req">*</span></label>
-            <input type="text" name="initials" maxlength="10" required
-                   value="{{ old('initials', $row?->initials ?: ($defaults['initials'] ?? '')) }}" placeholder="e.g. JMK">
+            <label>Recorded as</label>
+            <input type="text" value="{{ $defaults['initials'] }}" disabled>
+            <div class="help">Your account's initials, put on the sheet by itself.</div>
         </div>
         <div class="field">
-            <label>Dept</label>
-            <select name="department">
-                <option value="">Not named</option>
-                @foreach ($depts as $option)
-                    <option value="{{ $option }}" @selected($dept === $option)>{{ $option }}</option>
-                @endforeach
-            </select>
+            <label>Department</label>
+            @if ($depts->count() > 1)
+                <select name="department">
+                    @foreach ($depts as $option)
+                        <option value="{{ $option }}" @selected($dept === $option)>{{ $option }}</option>
+                    @endforeach
+                </select>
+                <div class="help">Only the desks your account sits at.</div>
+            @else
+                <input type="text" value="{{ $dept }}" disabled>
+                <div class="help">Taken from your account.</div>
+            @endif
         </div>
         <div class="field">
             <label>Units</label>

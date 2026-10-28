@@ -19,7 +19,7 @@ class MyTimeLogController extends Controller
         $me = $this->worker($request);
 
         return view('admin.timelogs.my', TimeSheet::desk(
-            $me, $request->input('month'), $request->input('week')
+            $me, TimeSheet::monthParam($request), $request->input('week')
         ));
     }
 

@@ -1,10 +1,13 @@
 @php
     use App\Models\TimeLog;
+    use App\Support\TimeSheet;
 
     /** @var array $sheet */
     $carry = $carry ?? [];
     $weekOptions = $sheet['weeks'];
     $written = $sheet['logs']->count();
+    $pickedMonth = substr($sheet['month'], 5);
+    $pickedYear = substr($sheet['month'], 0, 4);
 @endphp
 <div class="head-row">
     <div>
@@ -30,16 +33,8 @@
 @endif
 
 <form method="GET" action="{{ $self }}" class="filter-bar">
-    <div class="field">
-        <label>Month</label>
-        <select name="month">
-            @foreach ($months as $m)
-                <option value="{{ $m }}" @selected($sheet['month'] === $m)>
-                    {{ \Illuminate\Support\Carbon::parse($m.'-01')->format('F Y') }}
-                </option>
-            @endforeach
-        </select>
-    </div>
+    @include('partials.month-pick', ['month' => $pickedMonth, 'year' => $pickedYear,
+        'years' => $years ?? TimeSheet::years()])
     <div class="field">
         <label>Week of the month</label>
         <select name="week">

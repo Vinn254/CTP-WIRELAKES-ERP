@@ -24,16 +24,28 @@ class TimeLogController extends Controller
     {
         $all = TimeSheet::weeksFor();
         $status = $request->input('status', 'all');
+        // The month and the year are picked separately — the same twelve months every year, not a list that repeats.
         $month = (string) $request->input('month', '');
+        $year = (string) $request->input('year', '');
+        $month = preg_match('/^(0?[1-9]|1[0-2])$/', $month) ? sprintf('%02d', (int) $month) : '';
+        $year = preg_match('/^\d{4}$/', $year) ? $year : '';
 
-        $weeks = $all->when($month !== '', fn ($q) => $q->where('month', $month)->values())
-            ->when($status !== 'all', fn ($q) => $q->where('status', $status)->values());
+        $weeks = $all->when($month !== '' || $year !== '', function ($q) use ($month, $year) {
+            return $q->filter(function ($w) use ($month, $year) {
+                $wanted = substr($w['month'], 0, 4) === $year || $year === '';
+                $number = $month === '' || substr($w['month'], 5) === $month;
+
+                return $wanted && $number;
+            })->values();
+        })->when($status !== 'all', fn ($q) => $q->where('status', $status)->values());
 
         return view('admin.timelogs.index', [
             'weeks' => $weeks,
             'status' => $status,
             'month' => $month,
-            'months' => $all->pluck('month')->unique()->values()->all(),
+            'year' => $year,
+            'years' => $all->pluck('month')->map(fn ($m) => substr($m, 0, 4))->unique()->values()
+                ->sortDesc()->values()->all(),
             'statuses' => TimeLog::STATUSES,
             'counts' => $all->countBy('status'),
             'hours' => round($weeks->sum('hours'), 2),

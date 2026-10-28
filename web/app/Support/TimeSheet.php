@@ -56,10 +56,8 @@ class TimeSheet
             ->where('status', '!=', 'draft')->orderByDesc('starts_on')]);
     }
 
-    /**
-     * The week the request asks for: a month (YYYY-MM) and which week of it, Monday to Friday. With neither, the
-     * worker is shown the week today falls in.
-     */
+    /** The week the request asks for: a month (YYYY-MM) and which week of it, Monday to Friday. With neither, the
+     *  worker is shown the week today falls in. */
     public static function monday(?string $month = null, int|string|null $week = null): Carbon
     {
         if (preg_match('/^\d{4}-\d{2}$/', (string) $month)) {
@@ -70,6 +68,24 @@ class TimeSheet
         }
 
         return TimeLog::weekStartOf(Carbon::now());
+    }
+
+    /**
+     * The month a picker asked for, as YYYY-MM. The picker is a calendar month and a year on their own; a link that
+     * already carries both is taken as it stands.
+     */
+    public static function monthParam(Request $request): ?string
+    {
+        $asked = (string) $request->input('month', '');
+
+        if (preg_match('/^\d{4}-\d{2}$/', $asked)) {
+            return $asked;
+        }
+
+        $year = (int) $request->input('year', 0);
+        $number = (int) $asked;
+
+        return $year >= 2000 && $number >= 1 && $number <= 12 ? sprintf('%04d-%02d', $year, $number) : null;
     }
 
     /** The sheet for one person's week: the five ruled days, each carrying its row or nothing, plus the totals. */
@@ -126,6 +142,9 @@ class TimeSheet
             abort(422, 'That day is already signed off — the office corrects an approved week, not the worker.');
         }
 
+        $data['initials'] = TimeLog::initialsOf($worker);
+        $data['department'] = static::departmentFor($worker, $request->input('department'), $existing?->department);
+
         if ($existing) {
             $existing->update($data + ['status' => 'draft', 'approval_note' => null]);
 
@@ -138,6 +157,25 @@ class TimeSheet
         $row->save();
 
         return 'Day written to the sheet.';
+    }
+
+    /**
+     * The department recorded on a day: the account's own. One department means no choice is asked for; several
+     * mean the person picks among their own, and anything outside them is refused.
+     */
+    public static function departmentFor(User $worker, ?string $asked, ?string $onFile = null): string
+    {
+        $own = TimeLog::departmentsOf($worker);
+
+        if (count($own) === 1) {
+            return $own[0];
+        }
+
+        return match (true) {
+            in_array($asked, $own, true) => $asked,
+            in_array($onFile, $own, true) => $onFile,
+            default => $own[0],
+        };
     }
 
     /** The worker signs the whole week; the office then answers the week as a whole. */
@@ -198,7 +236,7 @@ class TimeSheet
         return [
             'sheet' => $sheet,
             'worker' => $worker,
-            'months' => static::monthOptions($start),
+            'years' => static::years(),
             'trainings' => $postings->flatMap(fn (Trainer $t) => $t->trainings)->unique('id')->values(),
             'cohorts' => $postings->flatMap(fn (Trainer $t) => $t->cohorts)->unique('id')->values(),
             'defaults' => static::defaults($worker),
@@ -207,31 +245,27 @@ class TimeSheet
         ];
     }
 
-    /** A day is written every week, so the sheet opens with what this person always puts in. */
+    /** What the sheet records by itself: the initials this account signs with, and its own department(s). */
     public static function defaults(User $worker): array
     {
+        $own = TimeLog::departmentsOf($worker);
         $last = TimeLog::where('user_id', $worker->id)->latest('log_date')->first();
-        $own = Departments::visibleSlugs($worker);
 
         return [
-            'initials' => $last?->initials ?: collect(explode(' ', trim($worker->name)))
-                ->filter()->take(3)->map(fn ($word) => Str::upper(Str::substr($word, 0, 1)))->implode(''),
-            'department' => $last?->department ?: (Departments::find($own[0] ?? '')['name'] ?? 'Training'),
+            'initials' => TimeLog::initialsOf($worker),
+            'departments' => $own,
+            'department' => static::departmentFor($worker, null, $last?->department),
         ];
     }
 
-    /** The month picker: the last two years of months, newest first — a sheet is filled for a month worked. */
-    public static function monthOptions(Carbon $start): array
+    /** The years a sheet can be opened for: this one back to the first week anyone logged. */
+    public static function years(): array
     {
-        $months = [];
-        $cursor = $start->copy()->startOfMonth();
+        $now = (int) Carbon::now()->format('Y');
+        $first = TimeLog::query()->orderBy('week_start')->value('week_start');
+        $first = $first ? (int) Carbon::parse($first)->format('Y') : $now;
 
-        foreach (range(0, 24) as $i) {
-            $months[] = $cursor->copy()->format('Y-m');
-            $cursor = $cursor->copy()->subMonth();
-        }
-
-        return $months;
+        return range($now, max(min($first, $now), $now - 3));
     }
 
     /** Every week anyone has filled, newest first — the office register and each worker's own history. */
