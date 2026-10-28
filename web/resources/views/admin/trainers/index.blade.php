@@ -7,8 +7,15 @@
 @endphp
 
 @section('content')
-<h1>Trainers</h1>
-<p class="page-lede">Who trains, site by site, with licences, hours and rates.</p>
+<div class="head-row">
+    <div>
+        <h1>Trainers</h1>
+        <p class="page-lede">Who trains, site by site, with licences, hours and rates.</p>
+    </div>
+    <div class="head-actions">
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-trainer">Add a trainer</button>
+    </div>
+</div>
 
 <div class="stat-row">
     <div class="stat"><small>Site records</small><b>{{ $counts->sum() }}</b></div>
@@ -17,16 +24,20 @@
     <div class="stat"><small>Eligible to be posted</small><b>{{ $fundis->count() + $staff->count() + $applicants->count() }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.trainers.index', ['status' => $s]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
+<form method="GET" action="{{ route('admin.trainers.index') }}" class="filter-bar inline-filter">
+    <label class="field">
+        <span>Trainer status</span>
+        <select name="status" onchange="this.form.submit()">
+            @foreach ($tabs as $s => $lbl)
+                <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+            @endforeach
+        </select>
+    </label>
+    <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
+</form>
 
-<details class="card need-form" @if ($errors->any() && old('holder')) open @endif>
-    <summary>Add a trainer — put an E-Fundi, a staff account or an applicant on the teaching list <b>for one site</b></summary>
+@include('partials.sheet-start', ['name' => 'add-trainer', 'title' => 'Add a trainer for one site',
+    'sub' => 'Put an E-Fundi, a staff account or an applicant on the teaching list.'])
     @if ($fundis->isEmpty() && $staff->isEmpty() && $applicants->isEmpty())
         <p class="hint" style="margin:10px 0 0;">There is nobody to put forward yet: no active senior fundi, no staff
             account and no applicant the careers desk is talking to. A fundi can also apply to train from their own
@@ -35,6 +46,7 @@
         <form method="POST" action="{{ route('admin.trainers.store') }}" class="fee-form"
               data-confirm="Open a trainer application for this person at the site you chose?" data-title="Add trainer">
             @csrf
+            <input type="hidden" name="_sheet" value="add-trainer">
             <div class="form-grid">
                 <div class="field">
                     <label>Who is training <span class="req">*</span></label>
@@ -110,10 +122,13 @@
                 <textarea name="note" rows="3" maxlength="500">{{ old('note') }}</textarea>
             </div>
             <datalist id="trainer-counties">@foreach ($counties as $name)<option value="{{ $name }}"></option>@endforeach</datalist>
-            <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Add trainer</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Add trainer</button>
+            </div>
         </form>
     @endif
-</details>
+@include('partials.sheet-end')
 
 <table class="data">
     <thead>
@@ -215,6 +230,6 @@
 <p class="hint" style="margin-top:14px;">
     A fundi who applies to train from their own portal arrives here as <b>Applied</b> with the site they offered —
     the office still decides. Approved trainers are the only ones the cohort form will accept, and the only ones who
-    get a week sheet to sign.
+    get a time log to sign.
 </p>
 @endsection

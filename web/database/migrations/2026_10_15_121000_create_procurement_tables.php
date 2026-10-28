@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 11 — procurement (§14.4). A request can come from anyone (a CTP in the field, a manager, a fundi),
+ * Module 11 — procurement. A request can come from anyone (a CTP in the field, a manager, a fundi),
  * is decided by the Programme Manager, quoted by the Procurement Officer from approved suppliers, ordered on a
  * purchase order, received against a delivery note, matched to the invoice and paid. Each table holds one step
  * of that path and a row never moves to a new record — the same purchase request carries the whole story.

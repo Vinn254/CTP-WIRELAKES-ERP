@@ -220,7 +220,7 @@ class CohortController extends Controller
     }
 
     /**
-     * The trainee's course fee is money in (§14.3). Recorded on the seat, and the ledger gets its line —
+     * The trainee's course fee is money in. Recorded on the seat, and the ledger gets its line —
      * the cohort only carries one fee per trainee, so a seat can pay it once.
      */
     public function fee(Request $request, Enrollment $enrollment)
@@ -260,7 +260,7 @@ class CohortController extends Controller
             : 'course fee waived for '.$enrollment->cohort->reference.'.'));
     }
 
-    /** How far through the cohort a trainee has come (§7.5 steps 2-5). */
+    /** How far through the cohort a trainee has come. */
     public function setStage(Request $request, Enrollment $enrollment)
     {
         $data = $request->validate([
@@ -373,7 +373,7 @@ class CohortController extends Controller
             abort_unless($trainer->status === 'approved', 422,
                 $who.' is not an approved trainer for '.$this->siteName($data).' — approve that site under Trainers first.');
 
-            // A trainer is approved site by site (§7.8), so an approval held at another venue does not carry over.
+            // A trainer is approved site by site, so an approval held at another venue does not carry over.
             if (! empty($data['venue_id'])) {
                 abort_unless((int) $trainer->venue_id === (int) $data['venue_id'], 422,
                     $who.' is approved at '.$trainer->placeLabel().', not at '.$this->siteName($data).'. '

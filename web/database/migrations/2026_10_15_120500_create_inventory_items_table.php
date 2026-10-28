@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 11 — the stock cards (§14.5): SKU, description, unit, quantity on hand, reorder level, where the item
+ * Module 11 — the stock cards: SKU, description, unit, quantity on hand, reorder level, where the item
  * sits and what it cost. The quantity is not history — it is the running total of the movements on the card, so a
  * shelf is never re-typed to match what somebody thinks is there.
  */

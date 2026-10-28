@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 11 / Projects — the materials the programme hands over for a project (§14.5, §14.6 step 6).
+ * Module 11 / Projects — the materials the programme hands over for a project.
  * The office lists them when it posts the project, the fundi sees the same list and its cost, and what is
  * actually handed over is the figure deducted from the payout. A line is never deleted: a material that turns
  * out not to be needed is left un-supplied, so the plan stays visible next to the payout.

@@ -93,7 +93,7 @@ class PortalController extends Controller
     }
 
     /**
-     * The E-Fundi's own record (§8): the grade the office holds, the skills and counties they keep
+     * The E-Fundi's own record: the grade the office holds, the skills and counties they keep
      * themselves, their availability, the sites they train at and the paperwork on file.
      */
     public function efundi()
@@ -282,52 +282,48 @@ class PortalController extends Controller
     }
 
     /**
-     * The E-Fundi's own week sheet. One line per day worked, then the whole week is signed and sent to the
-     * Training desk — the same paper the office approves and Human Resources reads as proof before pay.
+     * The E-Fundi's own week sheet. One line per day worked, then the whole week is signed and sent to Human
+     * Resources — the same paper every office account fills, and the proof pay is built on.
      */
     public function trainerWeek(Request $request)
     {
         $fundi = $this->fundi();
         $postings = $this->myPostings($fundi);
         $trainer = $this->myTrainer($request, $postings);
-        $start = TimeLog::weekStartOf($request->input('week', today()->toDateString()));
-        $sheet = TimeSheet::sheet($trainer, $start);
 
-        return view('portal.trainer-week', [
-            'member' => $fundi,
-            'sheet' => $sheet,
-            'trainer' => $trainer,
-            'postings' => $postings,
-            'trainings' => $trainer->trainings,
-            'cohorts' => $trainer->cohorts,
-            'back' => $start->copy()->subWeek()->toDateString(),
-            'onward' => $start->copy()->addWeek()->toDateString(),
-            'today' => $sheet['start']->toDateString(),
-            'history' => TimeSheet::weeksFor($trainer),
-            'canEdit' => in_array($sheet['status'], ['draft', 'returned'], true),
-        ]);
+        return view('portal.trainer-week', array_merge(
+            TimeSheet::desk($request->user(), $request->input('month'), $request->input('week')),
+            ['member' => $fundi, 'trainer' => $trainer, 'postings' => $postings,
+                'trainings' => $trainer->trainings, 'cohorts' => $trainer->cohorts]
+        ));
     }
 
     public function saveTrainerDay(Request $request)
     {
-        $postings = $this->myPostings($this->fundi());
-        $trainer = $this->myTrainer($request, $postings);
-        $week = TimeLog::weekStartOf($request->input('log_date'));
+        $trainer = $this->myTrainer($request, $this->myPostings($this->fundi()));
+        $me = $request->user();
+        TimeSheet::saveDay($me, $request);
 
-        return redirect()
-            ->route('portal.trainer.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
-            ->with('status', TimeSheet::saveDay($trainer, $request));
+        return $this->trainerWeekBack($request, $trainer, 'Day written to the sheet.');
     }
 
     public function signTrainerWeek(Request $request)
     {
-        $postings = $this->myPostings($this->fundi());
-        $trainer = $this->myTrainer($request, $postings);
-        $week = TimeLog::weekStartOf($request->input('week'));
+        $trainer = $this->myTrainer($request, $this->myPostings($this->fundi()));
+        $me = $request->user();
+        $week = TimeSheet::monday($request->input('month'), $request->input('week'))->toDateString();
+
+        return $this->trainerWeekBack($request, $trainer, TimeSheet::sign($me, $week));
+    }
+
+    private function trainerWeekBack(Request $request, Trainer $trainer, string $message)
+    {
+        $week = TimeSheet::monday($request->input('month'), $request->input('week'))->toDateString();
 
         return redirect()
-            ->route('portal.trainer.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
-            ->with('status', TimeSheet::sign($trainer, $week));
+            ->route('portal.trainer.week', ['trainer' => $trainer->id,
+                'month' => TimeLog::monthOf($week), 'week' => TimeLog::weekNumberOf($week)])
+            ->with('status', $message);
     }
 
     /** The sites this E-Fundi is approved to train at, with what they are licensed for. */
@@ -729,7 +725,7 @@ class PortalController extends Controller
     }
 
     /**
-     * Module 11, field side (§14.4 step 1). An E-Fundi on a site raises the purchase request — the item, the
+     * Module 11, field side. An E-Fundi on a site raises the purchase request — the item, the
      * quantity, why it is needed and the project it is charged to. A CTP cannot: it mobilises rather than supplies,
      * so the office raises on its behalf. Deciding, quoting, ordering, receiving and paying are the office's steps;
      * the member reads where their request got to on the same path.
@@ -793,11 +789,11 @@ class PortalController extends Controller
 
         return back()->with('status', $pr->reference.' is raised for '.$pr->item_name.' ('.$pr->quantityLabel()
             .'), charged to '.$pr->budgetLabel()
-            .'. The Programme Manager decides first (§14.4 step 2) — you will see the answer on this screen.');
+            .'. The Programme Manager decides first — you will see the answer on this screen.');
     }
 
     /**
-     * Module 11, §14.6. The E-Fundi's own money: project payouts and training payouts kept apart, each with what
+     * Module 11, . The E-Fundi's own money: project payouts and training payouts kept apart, each with what
      * was deducted, what the payout was calculated at and where the payment went. Read-only — releasing money is the
      * Finance Officer's step, and the payout ID here is what a payment is traced by.
      */
@@ -877,7 +873,7 @@ class PortalController extends Controller
     }
 
     /**
-     * Module 6, member side (§9.4 step 4). The projects the matching desk has put to this E-Fundi, what the search
+     * Module 6, member side. The projects the matching desk has put to this E-Fundi, what the search
      * found in their own record that led to the ask, and the 48 hours to answer it. A CTP is refused here and their
      * sidebar never offers it — CTPs mobilise the programme, they do not take the work.
      */
@@ -902,7 +898,7 @@ class PortalController extends Controller
         ]);
     }
 
-    /** Taking a project or turning it down, inside the window. The office awards it afterwards (§9.4 step 5). */
+    /** Taking a project or turning it down, inside the window. The office awards it afterwards. */
     public function respondInvite(Request $request, ProjectMatch $match)
     {
         $fundi = $this->fundi();

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * The list of trainings the programme itself runs (§7.4). A cohort is an intake of one of these, so staff choose
+ * The list of trainings the programme itself runs. A cohort is an intake of one of these, so staff choose
  * from this table instead of typing a course name, and a trainer is registered against it. Anything new the
  * programme starts running is added here by the office first.
  */

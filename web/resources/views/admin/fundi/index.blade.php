@@ -36,6 +36,14 @@
 
     <div class="form-grid-2">
         <div>
+            <label for="status">Fundi status</label>
+            <select name="status" id="status" onchange="this.form.submit()">
+                @foreach ($tabs as $s => $lbl)
+                    <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
             <label for="tier">Grade</label>
             <select name="tier" id="tier">
                 <option value="all">Every grade</option>
@@ -74,20 +82,11 @@
     </div>
 </form>
 
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}"
-           href="{{ route('admin.fundis.index', $filters + ['status' => $s]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
-
 <table class="data">
     <thead>
         <tr>
             <th>E-Fundi ID</th><th>Fundi</th><th>Grade</th><th>Skills</th><th>Works in</th>
-            <th>Availability</th><th title="Sites this fundi is registered to train CTPs at (Module 4)">Training sites</th>
+            <th>Availability</th><th title="Sites this fundi is registered to train CTPs at">Training sites</th>
             <th>Payment</th><th>Status</th><th></th>
         </tr>
     </thead>
@@ -125,7 +124,7 @@
     <span class="tag">{{ $fundis->total() }} in this view</span>
 </div>
 <p class="hint">
-    Read straight off the work orders (§10.4) for the fundis this page shows, following the same search and filters as
+    Read straight off the work orders for the fundis this page shows, following the same search and filters as
     the register above: the projects each was awarded, whether the work landed inside the deadline written on the
     order, and what a Director had to decide where a hirer raised an issue. The programme holds no review score — this
     delivery record is the standing the matching desk reads, and every figure on a row is the order behind it.
@@ -176,7 +175,7 @@
         @empty
             <tr><td colspan="8" class="empty-cell">
                 No E-Fundi matches this view. Delivery builds up here as the matching desk awards projects and the
-                hirer confirms the work (§10.4).
+                hirer confirms the work.
             </td></tr>
         @endforelse
     </tbody>

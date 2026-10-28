@@ -53,7 +53,7 @@
 <div class="card">
     <h2 class="section-head">What the search looks for</h2>
     <p class="help">
-        §9.4 matches a project to the register the way the register is kept: grade against the category, the skills the
+         matches a project to the register the way the register is kept: grade against the category, the skills the
         trade actually names, the counties the fundi said they cover, whether they say they are free, and what they have
         already done. The programme holds no review scores, so nothing here is a star rating — the standing bar is built
         from those facts and every factor is written out on the card below.
@@ -73,7 +73,7 @@
 <div class="card">
     <h2 class="section-head">Run the search</h2>
     <p class="help">
-        A run writes a new round underneath the ones already there (§9.6) — round 1 is never overwritten, so the desk
+        A run writes a new round underneath the ones already there — round 1 is never overwritten, so the desk
         can show what changed. Widening brings in fundis from neighbouring counties and says so on every card it brought.
     </p>
     <form method="POST" action="{{ route('admin.marketplace.run', $project) }}" class="fee-form"
@@ -94,7 +94,7 @@
                     <div class="hint">Taking it below {{ $bar }}% is your decision and is marked on every card it lets in.</div>
                 @else
                     <input type="number" id="bar" value="{{ $bar }}" disabled>
-                    <div class="hint">Fixed at {{ $bar }}% for staff. Lowering it is a programme executive's decision (§9.6).</div>
+                    <div class="hint">Fixed at {{ $bar }}% for staff. Lowering it is a programme executive's decision.</div>
                 @endif
             </div>
         </div>
@@ -129,7 +129,7 @@
     <div class="card">
         <h2 class="section-head">Bring a fundi forward yourself</h2>
         <p class="help">
-            §9.6 — a Director can put the project to someone the search passed over. The reason is typed and stays on the
+             — a Director can put the project to someone the search passed over. The reason is typed and stays on the
             card, and the same {{ ProjectMatch::WINDOW_HOURS }} hours apply. Hand-picks are added to the current round.
         </p>
         <form method="POST" action="{{ route('admin.marketplace.handpick', $project) }}" class="fee-form" data-title="Hand-pick a fundi">
@@ -158,7 +158,7 @@
 @else
     <p class="hint">
         Staff run the search, widen it and ask the shortlist. Bringing a fundi forward outside the search, and lowering
-        the standing bar, are decisions a programme executive makes on this page (§9.6).
+        the standing bar, are decisions a programme executive makes on this page.
     </p>
 @endif
 
@@ -222,7 +222,7 @@
 @if ($rounds->isNotEmpty() && $project->status === 'open' && $rounds->flatten()->where('status', 'accepted')->isNotEmpty())
     <div class="card">
         <h3 class="section-head">Nobody chosen yet</h3>
-        <p class="help">Or leave it to the rule: the project goes to the highest-scoring fundi who took it (§9.4 step 5).</p>
+        <p class="help">Or leave it to the rule: the project goes to the highest-scoring fundi who took it.</p>
         <form method="POST" action="{{ route('admin.marketplace.autoaward', $project) }}"
               data-confirm="Award {{ $project->reference }} to the best-scoring fundi who accepted?" data-title="Auto-pick the best">
             @csrf
@@ -235,7 +235,7 @@
 <div class="card">
     <p class="help">
         Members put these forward themselves on the project page — they are shown here so the desk can see both halves of
-        §9.4 at once. Awarding an applicant is done on the project page, and the award rule is the same one either screen
+         at once. Awarding an applicant is done on the project page, and the award rule is the same one either screen
         uses.
     </p>
     @if ($applicants->isEmpty())
@@ -263,8 +263,4 @@
     @endif
 </div>
 
-<p class="hint">
-    Materials the programme supplies, the work order and the payout are not this department's screens: the list stays on
-    <a href="{{ dept_link('admin.projects.show', ['project' => $project]) }}">the project</a>, delivery is Module 7 and money is Module 11.
-</p>
 @endsection

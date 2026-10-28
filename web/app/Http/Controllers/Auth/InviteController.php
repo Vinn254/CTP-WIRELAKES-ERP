@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\EmailOtp;
 use App\Models\StaffInvite;
+use App\Models\StaffRecord;
 use App\Models\User;
 use App\Support\Accounts;
 use App\Support\Audit;
@@ -50,6 +51,9 @@ class InviteController extends Controller
         ])->save();
 
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);
+
+        // A person the onboarding desk already wrote up keeps that file: the record finds its new account.
+        StaffRecord::claim($user);
 
         if (! EmailOtp::enabled()) {
             return EmailOtp::signInWithoutCode($user, $request, route('admin.departments'),

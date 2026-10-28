@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Module 5 — E-Fundi Management. An E-Fundi is working labour, so the register has to say whether they
- * can be taken (§8.3 availability) and whether the programme has blocked them (§8.4 suspended /
- * blacklisted). A fundi-trainer is approved for a SITE (§7.8 "delivers training cohorts in their
- * region, own workshop or community site"), so one fundi can hold the seat at Nyanda and be declined
+ * can be taken and whether the programme has blocked them. A fundi-trainer is approved for a SITE, so one fundi can hold the seat at Nyanda and be declined
  * at another — the trainers row stops being unique on the person and becomes one row per site.
  */
 return new class extends Migration

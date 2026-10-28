@@ -91,7 +91,7 @@
                 <option value="{{ $name }}" @selected(in_array($name, (array) old('service_counties', $ctp->service_counties ?: []), true))>{{ $name }}</option>
             @endforeach
         </select>
-        <div class="help">Leave empty to serve the home county only. Drives project matching in Module 6.</div>
+        <div class="help">Leave empty to serve the home county only.</div>
     </div>
     <label class="check-row">
         <input type="checkbox" name="available_for_mobilisation" value="1" @checked(old('available_for_mobilisation', $ctp->available_for_mobilisation))>

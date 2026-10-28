@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 7 — one line of what actually happened on the job (§10.4 steps 3, 4, 5). The worker's day, a supervisor's
+ * Module 7 — one line of what actually happened on the job. The worker's day, a supervisor's
  * site visit, and the final photos that come with a completion request. A line is never edited into another: a
  * wrong day is answered by the next line, so the log keeps reading as the sequence it was written in.
  */
@@ -61,7 +61,7 @@ class WorkOrderUpdate extends Model
             'note' => 'required|string|max:5000',
             'photo' => 'nullable|image|max:8192',
         ], [
-            'note.required' => 'Say what was done — a percentage with no words behind it is not a progress report (§10.4 step 3).',
+            'note.required' => 'Say what was done — a percentage with no words behind it is not a progress report.',
             'entry_date.required' => 'Which day is this for? The log is read as a sequence of days.',
         ], [
             'kind' => 'What kind of entry',

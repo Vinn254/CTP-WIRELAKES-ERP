@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="page-intro">
-    <p class="sub">When the office opens a fault on a device and assigns it to you, it comes here (§12.7).
+    <p class="sub">When the office opens a fault on a device and assigns it to you, it comes here.
         You answer it with what you did to fix it. The office then confirms the fix and closes the ticket — only they
         can close it, and while it is open the asset stays flagged on the register.</p>
     <div class="member-stats">
@@ -55,7 +55,7 @@
 @endif
 
 <div class="card">
-    <div class="section-head"><h3>How a repair ticket runs (§12.7)</h3></div>
+    <div class="section-head"><h3>How a repair ticket runs</h3></div>
     <ol class="steps">
         <li><b>The office opens the fault</b><div class="hint">on the device or licence it sits on</div></li>
         <li><b>They assign it to you</b><div class="hint">the ticket appears here</div></li>

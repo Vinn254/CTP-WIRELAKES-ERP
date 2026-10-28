@@ -13,15 +13,15 @@
     <div class="stat"><small>Nobody answered in time</small><b>{{ $queues['quiet'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach (['all' => 'Every open project', 'unmatched' => 'Needs a search', 'waiting' => 'Answers outstanding', 'answered' => 'Someone took it'] as $key => $label)
-        <a class="tab {{ $tab === $key ? 'on' : '' }}"
-           href="{{ route('admin.marketplace.index', array_filter(['tab' => $key, 'county' => $county])) }}">{{ $label }}</a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.marketplace.index') }}" class="filter-bar">
-    <input type="hidden" name="tab" value="{{ $tab }}">
+    <label class="field">
+        <span>Match status</span>
+        <select name="tab" onchange="this.form.submit()">
+            @foreach (['all' => 'Every open project', 'unmatched' => 'Needs a search', 'waiting' => 'Answers outstanding', 'answered' => 'Someone took it'] as $key => $label)
+                <option value="{{ $key }}" @selected($tab === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+    </label>
     <div>
         <label for="county">County</label>
         <select name="county" id="county">
@@ -73,7 +73,7 @@
         The search scores a fundi out of 100 on the skills the trade names (40), the county the work is in (25), their
         own availability (15), years in trade (10) and projects already done (10). {{ $bar }}% is the standing bar;
         going below it, or widening to neighbouring counties, is written on every round it was used for.
-        The top {{ Marketplace::INVITE_TOP }} of a round are the ones asked (§9.4 step 3).
+        The top {{ Marketplace::INVITE_TOP }} of a round are the ones asked.
     </p>
 </div>
 @endsection

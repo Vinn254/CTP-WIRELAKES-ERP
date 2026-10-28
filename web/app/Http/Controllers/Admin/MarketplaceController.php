@@ -11,7 +11,7 @@ use App\Support\Marketplace;
 use Illuminate\Http\Request;
 
 /**
- * Module 6 — the marketplace (§9). This is where demand meets supply: a project the office has posted, the fundis the
+ * Module 6 — the marketplace. This is where demand meets supply: a project the office has posted, the fundis the
  * system can put it to, their answers, and the award. Posting, applications, materials and the work order stay where
  * they are (Modules 1, 7 and 11) — this desk only does the matching and records what was asked and answered.
  */
@@ -48,7 +48,7 @@ class MarketplaceController extends Controller
         ]);
     }
 
-    /** One project's match sheet — the rounds, the shortlist and the actions on them (§9.4, §9.5). */
+    /** One project's match sheet — the rounds, the shortlist and the actions on them. */
     public function show(Project $project)
     {
         Marketplace::closeExpired($project->id);
@@ -68,7 +68,7 @@ class MarketplaceController extends Controller
         ]);
     }
 
-    /** §9.4 step 2 / §9.6 — run the search again. Each run is a new round that keeps the old one underneath. */
+    /**  /  — run the search again. Each run is a new round that keeps the old one underneath. */
     public function run(Request $request, Project $project)
     {
         $data = $request->validate([
@@ -80,7 +80,7 @@ class MarketplaceController extends Controller
         $opts = ['widen' => (bool) ($data['widen'] ?? false), 'bar' => $bar];
 
         abort_unless($bar < Marketplace::BAR ? Finance::isExecutive() : true, 403,
-            'Lowering the standing bar below '.Marketplace::BAR.'% is an executive decision (§9.6). The search can be run again without it.');
+            'Lowering the standing bar below '.Marketplace::BAR.'% is an executive decision. The search can be run again without it.');
 
         $result = Marketplace::run($project, $opts);
 
@@ -91,7 +91,7 @@ class MarketplaceController extends Controller
                 : 'Nobody cleared the bar. Widen the search or bring a fundi forward yourself.'));
     }
 
-    /** §9.4 step 3 — put the project to the top of the shortlist. */
+    /**  — put the project to the top of the shortlist. */
     public function invite(Request $request, Project $project)
     {
         $data = $request->validate([
@@ -107,11 +107,11 @@ class MarketplaceController extends Controller
             : back()->with('error', 'Nothing on round '.$data['round'].' is waiting to be asked.');
     }
 
-    /** §9.6 — a Director brings a fundi forward, including one the search passed over. */
+    /**  — a Director brings a fundi forward, including one the search passed over. */
     public function handPick(Request $request, Project $project)
     {
         abort_unless(Finance::isExecutive(), 403,
-            'A hand-pick is a Director\'s decision (§9.6). Staff can run the search, widen it and ask the shortlist.');
+            'A hand-pick is a Director\'s decision. Staff can run the search, widen it and ask the shortlist.');
 
         $data = $request->validate([
             'fundi_id' => 'required|exists:fundi_registrations,id',
@@ -135,7 +135,7 @@ class MarketplaceController extends Controller
             .ProjectMatch::WINDOW_HOURS.'-hour window applies to them the same way.');
     }
 
-    /** §9.4 step 5 — the project goes to a fundi who took it. */
+    /**  — the project goes to a fundi who took it. */
     public function award(Project $project, ProjectMatch $match)
     {
         abort_unless($match->project_id === $project->id, 404);
@@ -143,10 +143,10 @@ class MarketplaceController extends Controller
         Marketplace::award($match);
 
         return back()->with('status', $project->reference.' assigned to '.$match->fundi->full_name
-            .'. They are now on a job, and the work order is Module 7.');
+            .'. They are now on a job, and the work order is opened on the delivery desk.');
     }
 
-    /** §9.4 step 5 — or, when nobody is chosen, the system takes the best of those who accepted. */
+    /**  — or, when nobody is chosen, the system takes the best of those who accepted. */
     public function autoAward(Project $project)
     {
         $top = ProjectMatch::where('project_id', $project->id)->where('status', 'accepted')

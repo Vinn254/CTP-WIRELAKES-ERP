@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 7 §10.6 — a job the hirer would not confirm. The issue with its photos, the worker's answer inside 48
+ * Module 7  — a job the hirer would not confirm. The issue with its photos, the worker's answer inside 48
  * hours, what the Programme Manager did to mediate and what a Director finally decided. The five outcomes are the
  * blueprint's, kept closed: an outcome that is not on the list cannot be recorded.
  */
 class WorkOrderDispute extends Model
 {
-    /** §10.6 — the worker has two days to answer before mediation proceeds without them. */
+    /**  — the worker has two days to answer before mediation proceeds without them. */
     public const WINDOW_HOURS = 48;
 
     public const OUTCOMES = [
@@ -118,7 +118,7 @@ class WorkOrderDispute extends Model
             'issue' => 'required|string|max:5000',
             'photo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:8192',
         ], [
-            'issue.required' => 'The hirer\'s issue has to be written out — a dispute with no statement cannot be answered (§10.6).',
+            'issue.required' => 'The hirer\'s issue has to be written out — a dispute with no statement cannot be answered.',
         ], [
             'issue' => 'The issue',
             'photo' => 'Photos or documents',

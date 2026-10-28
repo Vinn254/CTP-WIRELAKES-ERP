@@ -18,19 +18,16 @@
     <div class="stat"><small>On hold</small><b class="{{ $totals['held'] ? 'flag-bad' : '' }}">{{ $totals['held'] }}</b></div>
 </div>
 
-<div class="tabs">
-    <a class="tab {{ $stream === 'all' ? 'on' : '' }}" href="{{ route('admin.payouts.index', ['q' => $search]) }}">
-        Both streams<span class="n">{{ $totals['lines'] }}</span></a>
-    @foreach (Payout::STREAMS as $key => $label)
-        <a class="tab {{ $stream === $key ? 'on' : '' }}"
-           href="{{ route('admin.payouts.index', ['f' => $key, 'stage' => $stage, 'q' => $search]) }}">
-            {{ $label }}<span class="n"></span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.payouts.index') }}" class="filter-bar">
-    <input type="hidden" name="f" value="{{ $stream }}">
+    <label class="field">
+        <span>Payout stream</span>
+        <select name="f" onchange="this.form.submit()">
+            <option value="all" @selected($stream === 'all')>Both streams ({{ $totals['lines'] }})</option>
+            @foreach (Payout::STREAMS as $key => $label)
+                <option value="{{ $key }}" @selected($stream === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search payout reference or note" aria-label="Search payout reference or note">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     <a class="btn btn-sm btn-ghost" href="{{ route('admin.payouts.index') }}">Clear</a>
@@ -96,7 +93,7 @@
 
 <div class="two-col">
     <div class="card">
-        <h3>Open a project payout (§14.6)</h3>
+        <h3>Open a project payout</h3>
         <p class="hint">Agreed amount minus materials, commission, the mobilization credit and any deductions. It
             cannot be approved until Finance confirms the hirer paid the organisation.</p>
         <form method="POST" action="{{ route('admin.payouts.store') }}" class="fee-form"
@@ -139,7 +136,7 @@
                 <div class="field">
                     <label>Materials the programme supplied</label>
                     <input type="number" name="materials_ksh" min="0" step="0.01" placeholder="Leave empty to use the project">
-                    <div class="help">Leave this empty and the system deducts what that project's material lines record as handed over — the figure cannot disagree with the store (§14.6 step 6).</div>
+                    <div class="help">Leave this empty and the system deducts what that project's material lines record as handed over — the figure cannot disagree with the store.</div>
                 </div>
                 <div class="field">
                     <label>Service commission</label>
@@ -179,7 +176,7 @@
     </div>
 
     <div class="card">
-        <h3>Open a training payout (§14.6)</h3>
+        <h3>Open a training payout</h3>
         <p class="hint">Paid to the fundi-trainer who ran the cohort, out of the training budget: fee per certified
             trainee, plus the workshop-hosting fee where they hosted it.</p>
         <form method="POST" action="{{ route('admin.payouts.store') }}" class="fee-form"

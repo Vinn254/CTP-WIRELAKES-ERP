@@ -8,7 +8,7 @@ use App\Models\Enrollment;
 use Illuminate\Http\Request;
 
 /**
- * Module 4 §7.5 step 6 and §7.7 — the office puts a trainee forward from their record, and a programme
+ * Module 4  and  — the office puts a trainee forward from their record, and a programme
  * executive approves the certificate. Only approval issues the code; a revocation keeps the record.
  */
 class CertificationController extends Controller
@@ -104,7 +104,7 @@ class CertificationController extends Controller
         return back()->with('status', 'Recommendation declined — the reason is on the trainee record.');
     }
 
-    /** A certificate already in someone's hand is revoked, never deleted (§7.7). */
+    /** A certificate already in someone's hand is revoked, never deleted. */
     public function revoke(Request $request, Certification $certification)
     {
         $this->guardExecutive();

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 9 §12.2, §12.7 — a repair or fault ticket on an asset. Opened in the field or at the office, assigned to a
+ * Module 9 ,  — a repair or fault ticket on an asset. Opened in the field or at the office, assigned to a
  * fundi, answered with the fix and closed. A ticket that is still open is what drives the department badge.
  */
 class TechnologyTicket extends Model

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 9 §12.4–12.6 — a piece of technology work the programme delivers: a robotics build, a software project, an
+ * Module 9 –12.6 — a piece of technology work the programme delivers: a robotics build, a software project, an
  * AI model. It runs through the AI lifecycle in one status column so a robotics prototype and a deployed chatbot are
  * read the same way.
  */

@@ -10,9 +10,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * One day on a trainer's week sheet. The sheet the office signs by hand — day, time in, time out, what was done,
+ * One day on a person's week sheet. The sheet the office signs by hand — day, time in, time out, what was done,
  * initials, department, approval, hours, units — is one row here per day, so the printed page and the record are
- * the same document. A week is signed, approved or returned as a whole over its day rows.
+ * the same document. A week is signed, approved or returned as a whole over its day rows, and it belongs to the
+ * staff account that worked it, whichever department that person sits in.
  */
 class TimeLog extends Model
 {
@@ -26,10 +27,10 @@ class TimeLog extends Model
     /** The five working days the sheet is ruled for; anything logged outside them still prints. */
     public const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
 
-    protected $table = 'trainer_time_logs';
+    protected $table = 'time_logs';
 
     protected $fillable = [
-        'trainer_id', 'week_start', 'log_date', 'time_in', 'time_out', 'task', 'initials', 'department',
+        'week_start', 'log_date', 'time_in', 'time_out', 'task', 'initials', 'department',
         'training_id', 'cohort_id', 'units', 'hours', 'status', 'approval_note',
         'signed_by_user', 'approved_by_user', 'approved_at',
     ];
@@ -98,14 +99,67 @@ class TimeLog extends Model
         return $start->format('d M').'–'.$start->copy()->addDays(4)->format('d M Y');
     }
 
-    /** Every row of one trainer's week, keyed by date — the office and the trainer read the same sheet. */
-    public static function forWeek(int $trainerId, string|Carbon $weekStart): Collection
+    /** Every row of one person's week, keyed by date — the office and the worker read the same sheet. */
+    public static function forWeek(int $userId, string|Carbon $weekStart): Collection
     {
-        return static::with(['training:id,name', 'cohort:id,reference', 'approvedBy:id,name', 'signedBy:id,name'])
-            ->where('trainer_id', $trainerId)
+        return static::with(['training:id,name', 'cohort:id,reference', 'approvedBy:id,name', 'signedBy:id,name', 'user:id,name,email'])
+            ->where('user_id', $userId)
             ->where('week_start', Carbon::parse($weekStart)->toDateString())
             ->orderBy('log_date')
             ->get();
+    }
+
+    /**
+     * The weeks of one month, numbered the way the founder counts them: week 1 is the Monday that falls in that
+     * month, and each week runs Monday to Friday. A month has four or five.
+     *
+     * @return array<int, array{start: Carbon, end: Carbon, label: string, dates: string}>
+     */
+    public static function weeksOfMonth(string $month): array
+    {
+        $first = Carbon::parse($month.'-01');
+
+        $weeks = [];
+        $cursor = static::firstMondayOf($first);
+
+        while ($cursor->month === $first->month) {
+            $end = $cursor->copy()->addDays(4);
+            $weeks[] = [
+                'start' => $cursor->copy(),
+                'end' => $end,
+                'label' => 'Week '.(count($weeks) + 1),
+                'dates' => $cursor->format('d M').'–'.$end->format('d M Y'),
+            ];
+            $cursor = $cursor->copy()->addWeek();
+        }
+
+        return $weeks;
+    }
+
+    /** The Monday the month's first working week starts on — the 1st itself when the month opens on a Monday. */
+    public static function firstMondayOf(Carbon $anyDayOfMonth): Carbon
+    {
+        $start = $anyDayOfMonth->copy()->startOfMonth()->startOfDay();
+
+        return $start->dayOfWeek === Carbon::MONDAY ? $start : $start->next(Carbon::MONDAY)->startOfDay();
+    }
+
+    /** Which week of its month a Monday starts — the number the picker shows back to the worker. */
+    public static function weekNumberOf(string|Carbon $monday): int
+    {
+        $monday = static::weekStartOf($monday)->copy()->startOfDay();
+
+        return (int) round(static::firstMondayOf($monday)->diffInDays($monday) / 7) + 1;
+    }
+
+    public static function monthOf(string|Carbon $date): string
+    {
+        return Carbon::parse($date)->format('Y-m');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function trainer(): BelongsTo

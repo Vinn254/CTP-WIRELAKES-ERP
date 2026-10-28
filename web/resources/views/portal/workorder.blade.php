@@ -38,7 +38,7 @@
         <div><dt>Materials</dt><dd>{{ $order->materials_note ?: 'the project lists none' }}</dd></div>
         @if ($order->accepted_on)
             <div><dt>You accepted</dt><dd><b>{{ $order->signature }}</b> on {{ $order->accepted_on->format('d M Y H:i') }}
-                , work confirmed to start {{ $order->start_on?->format('d M Y') }}</dd></div>
+, work confirmed to start {{ $order->start_on?->format('d M Y') }}</dd></div>
         @endif
     </dl>
 
@@ -46,7 +46,7 @@
         <form method="POST" action="{{ route('portal.work.accept', $order) }}" class="fee-form"
               data-confirm="Accept and sign {{ $order->reference }}?" data-title="Accept the work order">
             @csrf
-            <p class="help">Accepting is your signature on the scope, the deliverables and the schedule above (§10.4 step 1).
+            <p class="help">Accepting is your signature on the scope, the deliverables and the schedule above.
                 Confirm the day you are actually starting — the deadline and every stage date are measured from it.</p>
             <div class="form-grid-2">
                 <div class="field">
@@ -70,7 +70,7 @@
 </div>
 
 <div class="card">
-    <div class="section-head"><h3>Materials the programme is giving you (§10.3)</h3></div>
+    <div class="section-head"><h3>Materials the programme is giving you</h3></div>
     <p class="help">The storekeeper hands these against your order. What is actually issued is deducted from your
         payout — anything not handed over is not deducted, so check the dates on this table.</p>
     <table class="data">
@@ -99,7 +99,7 @@
 </div>
 
 <div class="card">
-    <div class="section-head"><h3>Your log (§10.4 step 3)</h3></div>
+    <div class="section-head"><h3>Your log</h3></div>
     @if (in_array($order->status, ['accepted', 'in_progress', 'disputed'], true))
         <form method="POST" action="{{ route('portal.work.log', $order) }}" class="fee-form" enctype="multipart/form-data"
               data-title="Log a day">
@@ -156,7 +156,7 @@
 </div>
 
 <div class="card">
-    <div class="section-head"><h3>Stages and sign-offs (§10.4 step 4)</h3></div>
+    <div class="section-head"><h3>Stages and sign-offs</h3></div>
     @if ($order->milestones->isEmpty())
         <p class="help">This order is on the <b>{{ mb_strtolower($order->scheduleLabel()) }}</b> schedule, so it has no
             stage to be signed off — the money is settled on completion.</p>
@@ -183,7 +183,7 @@
             </tbody>
         </table>
         <p class="hint">A signed stage is money the programme has agreed you earned; it is still released by Finance
-            after the hirer pays (§14.6), not on the signature alone.</p>
+            after the hirer pays, not on the signature alone.</p>
     @endif
 </div>
 
@@ -216,7 +216,7 @@
                     ? ($dispute->mediator->name ?: 'the Programme Manager').' — '.$dispute->mediation_note : 'not yet' }}</dd></div>
             </dl>
             <p class="hint">The Programme Manager mediates and a Director decides. The outcome — rework, partial or full
-                payment, refund, or a deduction — is written on this order and carried onto your payout (§10.6).</p>
+                payment, refund, or a deduction — is written on this order and carried onto your payout.</p>
         @else
             <p class="help">An attachment order has no answer box for a trainee; the office settles it with the hirer
                 and notes the outcome on your record.</p>
@@ -225,7 +225,7 @@
 @endif
 
 <div class="card">
-    <div class="section-head"><h3>Finish the job (§10.4 step 5)</h3></div>
+    <div class="section-head"><h3>Finish the job</h3></div>
     @if (in_array($order->status, ['accepted', 'in_progress'], true))
         <p class="help">When everything on the deliverables list is done, request the completion with the final photos.
             The office then arranges the hirer's inspection — they either confirm the work, which starts your payout,
@@ -271,7 +271,7 @@
     <div class="section-head"><h3>The rules on this order</h3></div>
     <ul class="help" style="margin:0;padding-left:18px;">
         <li>The agreed amount is what the project was posted with; your payout is that figure <b>minus</b> the materials
-            actually issued, the service commission and any credit decided against the job (§14.6).</li>
+            actually issued, the service commission and any credit decided against the job.</li>
         <li>Money reaches you only after the hirer pays the organisation, and it is released by a programme executive.</li>
         <li>A day you do not log is a day the supervisor cannot sign off — the log is what your payment is checked against.</li>
         <li>Being awarded a job puts you on the <a href="{{ route('portal.efundi') }}">E-Fundi record</a> as on a job;

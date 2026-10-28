@@ -12,7 +12,7 @@
 
 @section('content')
 <div class="page-intro">
-    <p class="sub">When the programme gives you a project, it becomes a <b>work order</b> in your name (§10.2).
+    <p class="sub">When the programme gives you a project, it becomes a <b>work order</b> in your name.
         This is where you sign it, see what the store is giving you, log your days on site, ask for the completion to
         be inspected, and answer a hirer who is not happy. Nothing here is typed by you except your own work —
         the office records the site visits, the milestones and the money.</p>
@@ -92,13 +92,13 @@
 <div class="card">
     <div class="section-head"><h3>How a job runs, and who does each part</h3></div>
     <ol class="steps">
-        <li><b>You accept and sign the order</b><div class="hint">§10.4 step 1 — with the day you start</div></li>
-        <li><b>The store issues your materials</b><div class="hint">§10.4 step 2 — what they hand over is deducted from your payout</div></li>
-        <li><b>You log each day</b><div class="hint">§10.4 step 3 — text, photos and the percentage</div></li>
-        <li><b>A supervisor signs stages off</b><div class="hint">§10.4 step 4 — the split on your order decides the stages</div></li>
-        <li><b>You request completion</b><div class="hint">§10.4 step 5 — with the final photos</div></li>
-        <li><b>The hirer inspects</b><div class="hint">§10.4 steps 6–7 — the office records what they say; if they raise an issue you get 48 hours to answer</div></li>
-        <li><b>Finance pays you</b><div class="hint">§10.4 steps 8–12 — the payout appears on <a href="{{ route('portal.earnings') }}">My earnings</a> with its own ID</div></li>
+        <li><b>You accept and sign the order</b><div class="hint"> — with the day you start</div></li>
+        <li><b>The store issues your materials</b><div class="hint"> — what they hand over is deducted from your payout</div></li>
+        <li><b>You log each day</b><div class="hint"> — text, photos and the percentage</div></li>
+        <li><b>A supervisor signs stages off</b><div class="hint"> — the split on your order decides the stages</div></li>
+        <li><b>You request completion</b><div class="hint"> — with the final photos</div></li>
+        <li><b>The hirer inspects</b><div class="hint"> — the office records what they say; if they raise an issue you get 48 hours to answer</div></li>
+        <li><b>Finance pays you</b><div class="hint"> — the payout appears on <a href="{{ route('portal.earnings') }}">My earnings</a> with its own ID</div></li>
     </ol>
 </div>
 @endsection

@@ -170,7 +170,7 @@ html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; borde
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; border: 1px solid var(--line); }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
 .card h3 { margin-top: 0; }
 /* The areas of work are line icons sitting in a soft light green disc, rather than emoji. */
 .card .icon, .icon { display: inline-grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; background: #ddf1d0; color: var(--lime); }
@@ -179,7 +179,7 @@ html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; borde
 .icon-lg { width: 96px; height: 96px; }
 .icon-lg .ico { width: 46px; height: 46px; }
 html.dark .card .icon, html.dark .icon { background: #16351c; color: #7fd44f; }
-.card.link-card:hover { border-color: var(--lime); transform: translateY(-2px); transition: .15s; }
+.card.link-card:hover { box-shadow: 0 10px 24px rgba(6,103,34,.16); transform: translateY(-2px); transition: .15s; }
 .partner-card { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .partner-logo { height: 62px; max-width: 100%; object-fit: contain; margin-bottom: 4px; }
 .partner-caption { color: var(--muted); font-size: .9rem; margin: 0; }
@@ -299,9 +299,9 @@ table.data .empty-cell, table.data td.empty-cell { text-align: center; color: va
 /* A note or an empty state spans the whole register: it keeps a reading measure and rides with the frame. */
 table.data .span-note { position: sticky; left: 12px; max-inline-size: 900px; }
 /* The trainer's week sheet is the paper the office signs — a ruled totals band and a place to sign. */
-table.data.sheet tfoot td { background: var(--lime-soft); border-top: 2px solid var(--green); }
-table.data.sheet .sign-line { display: inline-block; min-inline-size: 74px; border-bottom: 1px solid #98a79c; }
-table.data.sheet .warn-note { color: #8a3b12; }
+table.data.week-sheet tfoot td { background: var(--lime-soft); border-top: 2px solid var(--green); }
+table.data.week-sheet .sign-line { display: inline-block; min-inline-size: 74px; border-bottom: 1px solid #98a79c; }
+table.data.week-sheet .warn-note { color: #8a3b12; }
 table.data .bar { margin: 5px 0 0; }
 table.data .photo-thumb { margin-top: 6px; }
 table.data .tag { display: inline-block; line-height: 1.3; white-space: nowrap; }
@@ -335,7 +335,7 @@ html.dark .status.graduated { background: #123044; color: #9fd6f7; }
 html.dark .status.deployed { background: #123523; color: #93e6b3; }
 html.dark .status.suspended { background: #3d2416; color: #f5b98a; }
 .dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 16px; }
-.dept-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 20px; position: relative; }
+.dept-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; position: relative; }
 .dept-card.live { border-top: 4px solid var(--lime); }
 .dept-card.soon { opacity: .62; }
 .dept-card .mod { font-size: .75rem; color: var(--muted); font-weight: 800; }
@@ -414,7 +414,7 @@ html.dark .back { background: #1d3122; color: #9ad87f; border-color: #2c4a32; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { display: inline-block; background: var(--lime-soft); color: var(--green-dark); border-radius: 8px; padding: 3px 10px; font-size: .82rem; font-weight: 700; }
 html.dark .chip { background: #1d3122; color: #9ad87f; }
-.doc-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 11px; text-decoration: none; margin-bottom: 9px; background: var(--bg); transition: .15s; }
+.doc-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 11px; text-decoration: none; margin-bottom: 9px; background: var(--bg); transition: .15s; }
 .doc-card:hover { border-color: var(--lime); transform: translateY(-1px); box-shadow: var(--shadow); }
 .dc-name { font-weight: 700; color: var(--ink); font-size: .9rem; }
 .dc-open { color: var(--green); font-size: .78rem; font-weight: 800; white-space: nowrap; }
@@ -432,6 +432,27 @@ html.dark .chip { background: #1d3122; color: #9ad87f; }
 .ctp-dialog h3 { margin: 0 0 8px; font-size: 1.1rem; }
 .ctp-dialog p { margin: 0 0 20px; color: var(--muted); font-size: .92rem; }
 .ctp-dialog .dlg-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Fill-in cards that open on the screen instead of at the foot of the page */
+.sheet { position: fixed; inset: 0; z-index: 190; display: none; padding: 34px 18px; overflow-y: auto; }
+.sheet.open { display: block; }
+.sheet-back { position: fixed; inset: 0; background: rgba(4,20,9,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.sheet-card { position: relative; background: var(--card); border-top: 5px solid var(--green); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.3); width: min(820px, 100%); margin: 0 auto; padding: 22px 24px 24px; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.sheet-head h3 { margin: 0; font-size: 1.16rem; color: var(--green-dark); }
+html.dark .sheet-head h3 { color: var(--lime); }
+.sheet-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: .95rem; line-height: 1; padding: 5px 8px; border-radius: 8px; }
+.sheet-x:hover { background: var(--line); color: var(--green-dark); }
+.sheet-sub { margin: 6px 0 16px; color: var(--muted); font-size: .9rem; }
+.sheet-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+body.sheet-lock { overflow: hidden; }
+
+/* The Paybill line an overview page ends on — the numbers are what a person reads back at a counter. */
+.paybill-card { margin-top: 22px; border-left: 4px solid var(--lime); }
+.paybill-line { margin: 0; color: var(--muted); font-size: .95rem; }
+.paybill-line b { color: var(--green-dark); font-size: 1.18rem; letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+html.dark .paybill-line b { color: var(--lime); }
+@media (max-width: 720px) { .sheet { padding: 12px 8px; } .sheet-card { padding: 16px; } }
 .toast-wrap { position: fixed; right: 22px; bottom: 22px; display: flex; flex-direction: column; gap: 10px; z-index: 210; max-width: 380px; }
 .toast { background: var(--green-dark); color: #fff; border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 16px; font-size: .88rem; box-shadow: 0 14px 34px rgba(3,48,14,.35); display: flex; align-items: flex-start; gap: 10px; animation: toast-in .25s ease; }
 .toast.error { border-left-color: #ff8a80; background: #5c1a15; }
@@ -481,7 +502,7 @@ input.ord { width: 56px; min-height: 32px; padding: 4px 7px; font-size: .82rem; 
 .del-row { margin-left: auto; }
 
 /* Module 1 workspace panel on dashboard */
-.workspace { margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--lime); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; }
+.workspace { margin-top: 22px; background: var(--card); border-left: 5px solid var(--lime); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; }
 .ws-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
 .ws-head .mod { font-size: .72rem; font-weight: 800; color: var(--green); letter-spacing: .08em; }
 .ws-head h2 { margin: 2px 0 0; font-size: 1.25rem; }
@@ -498,7 +519,7 @@ html.dark .ws-tile b { color: var(--lime); }
 /* The workspace landing a job title works from: one identity band, a count-led queue strip, then each title's
    screens as compact tiles — a line glyph, the page name, one line of plain words. */
 .ov { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 22px; }
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 22px; }
 .ov-id h1 { margin: 0; font-size: 1.5rem; }
 .ov-roles { display: flex; gap: 7px; flex-wrap: wrap; margin: 8px 0 0; }
 .ov-chip { font-size: .76rem; font-weight: 800; letter-spacing: .03em; color: var(--green);
@@ -523,7 +544,7 @@ html.dark .ws-tile b { color: var(--lime); }
 html.dark .ov-queue { background: #2b2413; }
 html.dark .ov-queue.calm { background: #16241a; }
 
-.ov-desk { margin-top: 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+.ov-desk { margin-top: 20px; background: var(--card); border-radius: var(--radius);
   box-shadow: var(--shadow); padding: 18px 22px 20px; }
 .ov-desk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 .ov-desk-head h2 { margin: 0; font-size: 1.06rem; color: var(--green-dark); }
@@ -552,7 +573,7 @@ html.dark .ov-cell.hot { background: #2b2413; }
 .page-lede b { color: var(--green-dark); font-weight: 700; }
 html.dark .page-lede b { color: var(--lime); }
 .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap;
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
   padding: 16px 20px; margin-bottom: 16px; }
 .head-row h1 { margin: 0; font-size: 1.5rem; letter-spacing: -.015em; }
 .head-row .ah-meta { margin: 6px 0 0; }
@@ -574,7 +595,7 @@ html.dark .page-lede b { color: var(--lime); }
 .inline-form .chk { min-height: 38px; }
 .inline-form > label, .inline-form > .hint { white-space: nowrap; min-height: 38px; display: flex; align-items: center; }
 .chk { display: flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--muted); margin: 0; }
-.invite-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 13px 16px; margin-bottom: 10px; }
+.invite-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--card); border-radius: 12px; padding: 13px 16px; margin-bottom: 10px; }
 .invite-row.revoked { opacity: .6; }
 .invite-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .invite-actions form { margin: 0; }
@@ -609,13 +630,13 @@ html.dark .page-lede b { color: var(--lime); }
 .field-grid .btn, .field-grid button { justify-self: start; }
 .invite-actions:has(.field-grid) { flex: 1 1 100%; }
 .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
-.stat { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 16px; display: flex; flex-direction: column; gap: 3px; }
+.stat { background: var(--card); border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 16px; display: flex; flex-direction: column; gap: 3px; }
 .stat small { color: var(--muted); font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .stat b { font-size: 1.3rem; color: var(--green-dark); font-variant-numeric: tabular-nums; }
 html.dark .stat b { color: var(--lime); }
 @media (max-width: 720px) { .stat-row { grid-template-columns: 1fr; } }
 .leave-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 14px; margin-bottom: 22px; }
-.leave-type { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 15px; display: flex; flex-direction: column; gap: 8px; }
+.leave-type { background: var(--card); border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 15px; display: flex; flex-direction: column; gap: 8px; }
 .leave-type > b { font-size: .95rem; color: var(--green-dark); }
 html.dark .leave-type > b { color: var(--lime); }
 .leave-type .nums { display: flex; flex-direction: column; gap: 3px; }
@@ -796,7 +817,7 @@ html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .proj-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 18px; align-items: start; }
 @media (max-width: 900px) { .proj-grid { grid-template-columns: 1fr; } }
 .proj-list { display: flex; flex-direction: column; gap: 12px; }
-.proj-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 14px 18px; transition: .15s; }
+.proj-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--card); border-left: 4px solid var(--lime); border-radius: 12px; padding: 14px 18px; transition: .15s; }
 .proj-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .proj-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .member-body { background: var(--bg); }
@@ -875,7 +896,7 @@ details[open] > summary { margin-bottom: 10px; }
 /* CTP trainee interface — the member's own portal */
 .ctp-hero .ctp-term { margin-top: 4px; font-size: .88rem; }
 .page-lede { color: var(--muted); margin: 6px 0 18px; max-width: 92ch; }
-.page-intro { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--card, #fff); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: var(--radius); padding: 13px 18px; margin-bottom: 18px; font-size: .92rem; color: var(--muted); }
+.page-intro { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--card, #fff); border-left: 4px solid var(--lime); border-radius: var(--radius); padding: 13px 18px; margin-bottom: 18px; font-size: .92rem; color: var(--muted); }
 .section-head { margin: 26px 0 12px; }
 .more { margin: 14px 0 0; font-weight: 700; }
 .callout { border-left: 4px solid #e08a1e; }
@@ -982,7 +1003,7 @@ html.dark table.data.indicator td.num { color: var(--lime); }
 
 /* Module 12 — the county tile map (§15.4) and its key */
 .kenya-grid { display: grid; grid-template-columns: repeat(var(--cols, 10), minmax(56px, 1fr)); grid-auto-rows: minmax(52px, auto); gap: 6px; margin: 16px 0 10px; }
-.map-tile { border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 5px 4px; text-decoration: none; color: var(--ink); text-align: center; transition: transform .12s ease, border-color .12s ease; }
+.map-tile { background: var(--card); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 5px 4px; text-decoration: none; color: var(--ink); text-align: center; transition: transform .12s ease, border-color .12s ease; }
 .map-tile b { font-size: 1rem; }
 .map-tile small { font-size: .66rem; line-height: 1.12; color: var(--muted); }
 .map-tile:hover { border-color: var(--lime); transform: translateY(-1px); }

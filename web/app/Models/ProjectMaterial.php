@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 / Projects — one material the programme provides for a project (§14.5, §14.6 step 6).
+ * Module 11 / Projects — one material the programme provides for a project.
  * The office lists these when it posts the project so the fundi knows what they are given and what it is
  * worth; the lines actually handed over are the figure the payout deducts. A line is never deleted — a material
  * that turns out not to be needed simply stays un-supplied, so the plan stays visible beside the money.

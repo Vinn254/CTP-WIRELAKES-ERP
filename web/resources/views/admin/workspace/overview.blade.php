@@ -67,4 +67,6 @@
         <p class="help">A super admin assigns your roles and departments on <b>Staff &amp; roles</b>.</p>
     </div>
 @endif
+
+<div class="card paybill-card">@include('partials.paybill')</div>
 @endsection

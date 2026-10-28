@@ -108,4 +108,6 @@
 
 <h2 class="section-head" style="margin-top:28px;">My latest applications <span class="tag gray">{{ $applications->count() }}</span></h2>
 @include('portal.partials.applications', ['limit' => 3])
+
+<div class="card paybill-card">@include('partials.paybill')</div>
 @endsection

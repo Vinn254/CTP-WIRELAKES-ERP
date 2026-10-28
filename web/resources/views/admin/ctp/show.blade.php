@@ -75,7 +75,7 @@
                         <a href="https://www.google.com/maps?q={{ $ctp->gps_lat }},{{ $ctp->gps_lng }}" target="_blank" rel="noopener">
                             {{ number_format($ctp->gps_lat, 5) }}, {{ number_format($ctp->gps_lng, 5) }} ↗
                         </a>
-                        <div class="hint">Feeds the M&amp;E map (Module 12) and community assignment (Module 3).</div>
+                        <div class="hint">Feeds the M&amp;E map and community assignment.</div>
                     @else
                         <span class="hint">Not captured — field visits cannot be mapped without it.</span>
                     @endif

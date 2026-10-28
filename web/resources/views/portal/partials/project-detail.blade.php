@@ -80,7 +80,7 @@
         <div class="section-head"><h3>Materials the programme provides ({{ $lines->count() }})</h3></div>
         <p class="hint">Every line is something the organisation supplies for this job, with what it costs.
             Whatever is recorded as handed over is <b>deducted from the payout</b> — you are paid the agreed amount
-            less what you were given, never twice for the same cable (§14.6 step 6).</p>
+            less what you were given, never twice for the same cable.</p>
         <table class="data money-table">
             <thead>
                 <tr><th>Material</th><th>Quantity</th><th>Cost each</th><th>Value</th><th>Given out</th></tr>

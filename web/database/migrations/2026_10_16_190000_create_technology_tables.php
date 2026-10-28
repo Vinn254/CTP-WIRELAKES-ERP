@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 9 — Technology Services (§12). One asset register, one project register and one fault-ticket line, each cut
+ * Module 9 — Technology Services. One asset register, one project register and one fault-ticket line, each cut
  * by the five sub-areas (ICT, Networking, Robotics, Programming, AI). The five share the same fundis, the same finance
  * and the same M&E, so they share these three tables and differ only by their category — not by five near-empty copies.
  */
@@ -13,8 +13,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // §12.2–12.6 — a device, licence or kit. It carries its own location, warranty and licence dates so the
-        // alerts (§12.7) can be read off the register, and it can be assigned to a community or organisation.
+        // –12.6 — a device, licence or kit. It carries its own location, warranty and licence dates so the
+        // alerts can be read off the register, and it can be assigned to a community or organisation.
         Schema::create('technology_assets', function (Blueprint $table) {
             $table->id();
             $table->string('asset_code', 40)->unique();
@@ -24,9 +24,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('serial_number', 120)->nullable();
             $table->string('status', 20)->default('operational');
-            // §12.7 — the QR payload printed on the asset tag; it is scanned back to this record.
+            //  — the QR payload printed on the asset tag; it is scanned back to this record.
             $table->string('qr_payload', 400)->nullable();
-            // An asset handed to a community, an organisation or a named holder (§12.7).
+            // An asset handed to a community, an organisation or a named holder.
             $table->string('assigned_type', 20)->nullable();
             $table->unsignedBigInteger('assigned_id')->nullable();
             $table->string('assigned_name', 200)->nullable();
@@ -35,12 +35,12 @@ return new class extends Migration
             $table->date('purchase_date')->nullable();
             $table->decimal('purchase_cost_ksh', 14, 2)->default(0);
             $table->string('supplier', 200)->nullable();
-            // §12.2 — warranty and software licence tracking, each with its own renewal date.
+            //  — warranty and software licence tracking, each with its own renewal date.
             $table->date('warranty_expires_on')->nullable();
             $table->string('licence_key', 200)->nullable();
             $table->unsignedSmallInteger('licence_seats')->nullable();
             $table->date('licence_renews_on')->nullable();
-            // §12.7 — a refurbished device comes in from Module 10; a dead one is decommissioned and routed back.
+            //  — a refurbished device comes in from Module 10; a dead one is decommissioned and routed back.
             $table->string('source', 20)->default('purchase');
             $table->foreignId('ewaste_collection_id')->nullable()->constrained('ewaste_collections')->nullOnDelete();
             $table->date('decommissioned_on')->nullable();
@@ -53,7 +53,7 @@ return new class extends Migration
             $table->index('warranty_expires_on');
         });
 
-        // §12.4–12.6 — the robotics, programming and AI work the programme delivers. A project runs through the AI
+        // –12.6 — the robotics, programming and AI work the programme delivers. A project runs through the AI
         // lifecycle (problem → data → design → develop → test → deploy → monitor); the same status column carries it.
         Schema::create('technology_projects', function (Blueprint $table) {
             $table->id();
@@ -64,7 +64,7 @@ return new class extends Migration
             $table->text('problem')->nullable();
             $table->string('technology', 300)->nullable();
             $table->unsignedSmallInteger('team_size')->default(0);
-            // A Robotics / AI E-Fundi mentors the team (§12.4); the community the work belongs to feeds Module 12.
+            // A Robotics / AI E-Fundi mentors the team; the community the work belongs to feeds Module 12.
             $table->foreignId('mentor_fundi_id')->nullable()->constrained('fundi_registrations')->nullOnDelete();
             $table->foreignId('community_id')->nullable()->constrained('communities')->nullOnDelete();
             // A technology project that also runs as a job comes through Module 6; keep the thread.
@@ -77,7 +77,7 @@ return new class extends Migration
             $table->index(['category', 'status']);
         });
 
-        // §12.2, §12.7 — a repair or fault ticket on an asset, opened in the field, assigned to a fundi, closed out.
+        // ,  — a repair or fault ticket on an asset, opened in the field, assigned to a fundi, closed out.
         Schema::create('technology_tickets', function (Blueprint $table) {
             $table->id();
             $table->string('reference', 30)->unique();

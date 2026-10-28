@@ -38,7 +38,7 @@
  @if (! $project->exists)
  <div class="field" style="grid-column:1 / -1;">
  <label>Materials the programme provides — and what each costs</label>
- <div class="help">Put a quantity and a cost on every item the organisation is handing over for this job. The fundi sees this list, and the total of what is actually given is deducted from their payout (§14.6 step 6). Anything the job needs that the fundi brings themselves is not listed here.</div>
+ <div class="help">Put a quantity and a cost on every item the organisation is handing over for this job. The fundi sees this list, and the total of what is actually given is deducted from their payout. Anything the job needs that the fundi brings themselves is not listed here.</div>
  <table class="data">
  <thead>
  <tr><th>Material</th><th style="width:120px;">Quantity</th><th style="width:150px;">Unit</th><th style="width:170px;">Cost each (KSh)</th></tr>
@@ -123,7 +123,7 @@
  <option value="{{ $c->id }}" @selected((int) old('community_id', $project->community_id) === $c->id)>{{ $c->community_code ?: $c->name }} — {{ $c->name }}, {{ $c->county }}</option>
  @endforeach
  </select>
- <div class="help">Ties the project to a Module 3 community: it lands on that community&rsquo;s timeline and counts toward its investment value.</div>
+ <div class="help">Ties the project to a community: it lands on that community&rsquo;s timeline and counts toward its investment value.</div>
  </div>
 
  <div class="field">
@@ -159,7 +159,7 @@
 
 <script>
 const cats = @json(collect(Project::CATEGORIES)->map(fn ($c) => $c['hint']));
-document.querySelector('[name=category]').addEventListener('change', function () {
+document.querySelector('[name=category]').addEventListener('change', function{
  document.getElementById('catHint').textContent = cats[this.value] ?? '';
 });
 </script>

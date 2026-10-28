@@ -55,15 +55,15 @@ class MemberPortal
             'communities' => $member instanceof CtpRegistration ? static::communities($member) : collect(),
             'invoices' => $invoices,
             'invoiceCount' => $invoices->where('status', 'open')->count(),
-            // §9.4 — an E-Fundi's sidebar carries the asks waiting on their answer; a CTP never has one.
+            //  — an E-Fundi's sidebar carries the asks waiting on their answer; a CTP never has one.
             'inviteCount' => $member instanceof FundiRegistration
                 ? ProjectMatch::for($member)->awaiting()->count()
                 : 0,
-            // §10.4 step 1 — the orders waiting on the worker's own signature, whichever member they are.
+            //  — the orders waiting on the worker's own signature, whichever member they are.
             'workOrderCount' => Execution::awaitingWorker($member),
-            // §11.4 step 5 — the inspection items the worker still owes a photograph of the fix for.
+            //  — the inspection items the worker still owes a photograph of the fix for.
             'fixCount' => Construction::fixesFor($member)->count(),
-            // §12.7 — the repair jobs on technology assets assigned to this fundi to fix.
+            //  — the repair jobs on technology assets assigned to this fundi to fix.
             'techJobCount' => Technology::jobCount($member),
         ];
     }
@@ -81,7 +81,7 @@ class MemberPortal
             ->get();
     }
 
-    /** Trainings a CTP can put themselves forward for — posted, still in date and with room (§7.5 step 1). */
+    /** Trainings a CTP can put themselves forward for — posted, still in date and with room. */
     public static function openCohorts()
     {
         return Cohort::openForEnrol()

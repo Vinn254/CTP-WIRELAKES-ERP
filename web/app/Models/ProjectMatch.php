@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 6 §9.4 — one E-Fundi against one project in one round. The row says what the system found, whether the
+ * Module 6  — one E-Fundi against one project in one round. The row says what the system found, whether the
  * fundi was asked, and what they answered inside the 48 hours. A second run of the search is a second round, never an
  * overwrite, so the desk can show what changed between the two.
  */
 class ProjectMatch extends Model
 {
-    /** §9.4 step 4 — the window a matched fundi has to answer. */
+    /**  — the window a matched fundi has to answer. */
     public const WINDOW_HOURS = 48;
 
     public const STATUSES = [
@@ -94,7 +94,7 @@ class ProjectMatch extends Model
         return $this->status === 'invited' && ! $this->responded_on && $this->dueOn() && $this->dueOn()->isPast();
     }
 
-    /** '23 hours left' / '4 hours left' / 'Time up' — the countdown §9.4 step 4 puts on the card. */
+    /** '23 hours left' / '4 hours left' / 'Time up' — the countdown  puts on the card. */
     public function timeLabel(): string
     {
         if ($this->responded_on) {

@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 7 — one milestone on a work order (§10.2, §10.5). A percentage of the agreed amount that is only
- * released when a supervisor or manager has signed that stage off (§10.4 step 4). The share is stored rather than
+ * Module 7 — one milestone on a work order. A percentage of the agreed amount that is only
+ * released when a supervisor or manager has signed that stage off. The share is stored rather than
  * derived, so a custom split the office chose stays readable after the amounts change.
  */
 class WorkOrderMilestone extends Model

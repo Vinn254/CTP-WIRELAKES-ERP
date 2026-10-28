@@ -14,7 +14,7 @@ use App\Support\Technology;
 use Illuminate\Http\Request;
 
 /**
- * Module 9 — Technology Services (§12). The office runs the three registers: the asset register, the project register
+ * Module 9 — Technology Services. The office runs the three registers: the asset register, the project register
  * and the repair tickets. The fundi answers their own tickets on the member side.
  */
 class TechnologyController extends Controller
@@ -23,7 +23,7 @@ class TechnologyController extends Controller
         'assets' => ['label' => 'Asset register', 'note' => 'Every device, licence and kit, cut by sub-area'],
         'projects' => ['label' => 'Technology projects', 'note' => 'Robotics, programming and AI work the programme delivers'],
         'tickets' => ['label' => 'Repair tickets', 'note' => 'Faults opened against an asset, assigned and closed'],
-        'alerts' => ['label' => 'Warranty & licence alerts', 'note' => 'Cover running out inside '.Technology::ALERT_WINDOW_DAYS.' days (§12.7)'],
+        'alerts' => ['label' => 'Warranty & licence alerts', 'note' => 'Cover running out inside '.Technology::ALERT_WINDOW_DAYS.' days'],
     ];
 
     public function index(Request $request)
@@ -112,7 +112,7 @@ class TechnologyController extends Controller
         $asset = Technology::decommission($asset, $request);
 
         return back()->with('status', $asset->asset_code.' retired'.($asset->ewaste_collection_id
-            ? ' and routed to E-Waste ('.$asset->ewasteCollection->reference.'), feeding Module 10 (§12.7).'
+            ? ' and routed to E-Waste ('.$asset->ewasteCollection->reference.'), feeding the E-Waste register.'
             : '. It stays on the register with the reason.'));
     }
 
@@ -141,7 +141,7 @@ class TechnologyController extends Controller
     {
         $ticket = Technology::closeTicket($ticket);
 
-        return back()->with('status', $ticket->reference.' closed. It stays on the asset\'s repair history (§12.7).');
+        return back()->with('status', $ticket->reference.' closed. It stays on the asset\'s repair history.');
     }
 
     public function createProject()

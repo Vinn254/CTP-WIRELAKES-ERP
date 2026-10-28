@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * Module 7 — the worker's own side of the order (§10.4 steps 1, 3, 5 and §10.6 step 2). Everything here is resolved
+ * Module 7 — the worker's own side of the order. Everything here is resolved
  * from the signed-in member's record: an order that is not theirs does not exist. The office does the rest (the
  * materials, the sign-offs, the hirer's inspection and the money) on the delivery desk.
  */
@@ -59,7 +59,7 @@ class WorkOrderPortalController extends Controller
         ]);
     }
 
-    /** §10.4 step 1 — accept the order, sign it and confirm the day work starts. */
+    /**  — accept the order, sign it and confirm the day work starts. */
     public function accept(Request $request, WorkOrder $order)
     {
         $this->theirOrder($order);
@@ -69,7 +69,7 @@ class WorkOrderPortalController extends Controller
             .', starting '.$order->start_on->format('d M Y').'. Issue materials against it at the store, then log your days here.');
     }
 
-    /** §10.4 step 3 — a day on the job: what was done, the percentage, and a photo of it. */
+    /**  — a day on the job: what was done, the percentage, and a photo of it. */
     public function log(Request $request, WorkOrder $order)
     {
         $this->theirOrder($order);
@@ -87,7 +87,7 @@ class WorkOrderPortalController extends Controller
             .'. The office and the supervisor read this log.');
     }
 
-    /** §10.4 step 5 — the work is done; the completion request goes to the hirer for inspection. */
+    /**  — the work is done; the completion request goes to the hirer for inspection. */
     public function complete(Request $request, WorkOrder $order)
     {
         $this->theirOrder($order);
@@ -97,7 +97,7 @@ class WorkOrderPortalController extends Controller
             .'. The office arranges the hirer\'s inspection — if they raise an issue instead, you will see it here and have 48 hours to answer.');
     }
 
-    /** §10.6 step 2 — the worker's answer to the hirer's issue. */
+    /**  — the worker's answer to the hirer's issue. */
     public function answer(Request $request, WorkOrder $order, WorkOrderDispute $dispute)
     {
         $this->theirOrder($order);
@@ -109,7 +109,7 @@ class WorkOrderPortalController extends Controller
 
         Execution::answerDispute($dispute, $request, $member);
 
-        return back()->with('status', 'Your answer is on the dispute. The Programme Manager mediates and a Director decides (§10.6).');
+        return back()->with('status', 'Your answer is on the dispute. The Programme Manager mediates and a Director decides.');
     }
 
     public function photo(WorkOrder $order, WorkOrderUpdate $update)

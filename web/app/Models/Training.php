@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * One of the trainings the programme itself runs (§7.4). A cohort is an intake of one of these and a trainer
+ * One of the trainings the programme itself runs. A cohort is an intake of one of these and a trainer
  * is licensed against these — staff never type a course name. A training the office adds here appears in
  * every "post a training" and "what can you teach" list straight away.
  */

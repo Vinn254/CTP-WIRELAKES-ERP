@@ -28,11 +28,16 @@
     @endforeach
 </div>
 
-<div class="card" style="margin-bottom:22px;">
-    <h3>Book leave</h3>
+<div class="head-acts" style="margin-bottom:22px;">
+    <button class="btn btn-sm btn-lime" type="button" data-sheet="book">Book leave</button>
+</div>
+
+@include('partials.sheet-start', ['name' => 'book', 'title' => 'Book leave',
+    'sub' => 'Only the days you have left are booked. Human Resources answers every application.'])
     <form method="POST" action="{{ route($applyRoute) }}" class="fee-form"
           data-confirm="Send this application to Human Resources?" data-title="Book leave">
         @csrf
+        <input type="hidden" name="_sheet" value="book">
         @include('partials.errors')
         <div class="form-grid-3">
             <div class="field">
@@ -71,11 +76,14 @@
             <textarea name="reason" rows="2" maxlength="1000"
                       placeholder="Anything the desk should know">{{ old('reason') }}</textarea>
         </div>
-        <button class="btn btn-primary" type="submit">Send to Human Resources</button>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Send to Human Resources</button>
+        </div>
     </form>
-    <p class="hint">Only the days you have left are booked. Annual leave builds by {{ Leave::ANNUAL_ACCRUAL }} days
-        for every month worked; the other types are given in full for the year.</p>
-</div>
+    <p class="hint">Annual leave builds by {{ Leave::ANNUAL_ACCRUAL }} days for every month worked; the other types
+        are given in full for the year.</p>
+@include('partials.sheet-end')
 
 <h2 class="sec-title">Your applications</h2>
 @if ($history->isEmpty())

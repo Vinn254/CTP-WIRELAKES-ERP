@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — a purchase order (§14.4 steps 4–7). One order goes to one supplier for one approved request: the
+ * Module 11 — a purchase order. One order goes to one supplier for one approved request: the
  * delivery note the storekeeper signs and the invoice the supplier sends are both recorded on this row, so the
  * match in step 7 is three figures on one page rather than three pieces of paper in three drawers.
  */
@@ -47,7 +47,7 @@ class PurchaseOrder extends Model
             'unit_cost_ksh' => 'required|numeric|min:0|max:100000000',
             'note' => 'nullable|string|max:1000',
         ], [
-            'supplier_id.required' => 'A purchase order names the supplier it goes to (§14.4 step 4).',
+            'supplier_id.required' => 'A purchase order names the supplier it goes to.',
         ], [
             'supplier_id' => 'Supplier',
             'quantity' => 'Quantity ordered',
@@ -62,7 +62,7 @@ class PurchaseOrder extends Model
             'delivery_note_ref' => 'required|string|max:80',
             'receipt_note' => 'nullable|string|max:1000',
         ], [
-            'delivery_note_ref.required' => 'The storekeeper signs against a delivery note — its number is what the invoice is matched to (§14.4 step 7).',
+            'delivery_note_ref.required' => 'The storekeeper signs against a delivery note — its number is what the invoice is matched to.',
         ], [
             'received_qty' => 'Quantity received',
             'delivery_note_ref' => 'Delivery note number',

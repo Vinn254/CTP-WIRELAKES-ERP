@@ -315,7 +315,7 @@ class MemberFieldApiController extends Controller
 
     // ---- Purchase request (E-Fundi only) ---------------------------------
 
-    /** GET /api/procurement — the E-Fundi's own requests and how far each has travelled on the §14.4 path. */
+    /** GET /api/procurement — the E-Fundi's own requests and how far each has travelled on the  path. */
     public function procurement(): JsonResponse
     {
         $member = $this->member();
@@ -376,14 +376,14 @@ class MemberFieldApiController extends Controller
         return response()->json([
             'message' => $pr->reference.' is raised for '.$pr->item_name.' ('.$pr->quantityLabel()
                 .'), charged to '.$pr->budgetLabel()
-                .'. The Programme Manager decides first (§14.4 step 2) — you will see the answer on this screen.',
+                .'. The Programme Manager decides first — you will see the answer on this screen.',
             'request' => $this->request($pr->fresh()),
         ], 201);
     }
 
     // ---- My earnings (E-Fundi) ------------------------------------------
 
-    /** GET /api/earnings — the two income streams kept apart, read-only (§14.6). */
+    /** GET /api/earnings — the two income streams kept apart, read-only. */
     public function earnings(): JsonResponse
     {
         $fundi = $this->fundi();

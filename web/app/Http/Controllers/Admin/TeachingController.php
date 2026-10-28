@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\FundiRegistration;
 use App\Models\ModuleCompletion;
-use App\Models\TimeLog;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\Trainer;
-use App\Support\TimeSheet;
 use App\Support\TrainingTrack;
 use App\Support\Workspace;
 use Illuminate\Http\Request;
@@ -37,50 +35,6 @@ class TeachingController extends Controller
             'trainers' => $trainers,
             'cohorts' => $trainers->flatMap(fn ($t) => $t->cohorts),
         ]);
-    }
-
-    /**
-     * The trainer's own week sheet. A day is written one at a time and corrected in place; the week is signed once
-     * and answered by the Training desk as a whole.
-     */
-    public function week(Request $request)
-    {
-        $trainer = $this->chosen($request);
-        $start = TimeLog::weekStartOf($request->input('week', today()->toDateString()));
-        $sheet = TimeSheet::sheet($trainer, $start);
-
-        return view('admin.teaching.week', [
-            'sheet' => $sheet,
-            'trainer' => $trainer,
-            'postings' => $this->postings(),
-            'trainings' => $trainer->trainings,
-            'cohorts' => $trainer->cohorts()->where('status', '!=', 'draft')->orderByDesc('starts_on')->get(),
-            'back' => $start->copy()->subWeek()->toDateString(),
-            'onward' => $start->copy()->addWeek()->toDateString(),
-            'today' => $sheet['start']->toDateString(),
-            'history' => TimeSheet::weeksFor($trainer),
-            'canEdit' => in_array($sheet['status'], ['draft', 'returned'], true),
-        ]);
-    }
-
-    public function saveDay(Request $request)
-    {
-        $trainer = $this->chosen($request);
-        $week = TimeLog::weekStartOf($request->input('log_date'));
-
-        return redirect()
-            ->route('admin.teaching.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
-            ->with('status', TimeSheet::saveDay($trainer, $request));
-    }
-
-    public function signWeek(Request $request)
-    {
-        $trainer = $this->chosen($request);
-        $week = TimeLog::weekStartOf($request->input('week'));
-
-        return redirect()
-            ->route('admin.teaching.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
-            ->with('status', TimeSheet::sign($trainer, $week));
     }
 
     /** One trainee on the trainer's own roll, worked with the office's own record partials. */
@@ -164,20 +118,6 @@ class TeachingController extends Controller
             .'train. The office posts a trainer site by site under Trainers before a cohort is handed over.');
 
         return $postings;
-    }
-
-    /** The posting whose week is being worked — always one of this account's own, never one taken from the url. */
-    private function chosen(Request $request): Trainer
-    {
-        $postings = $this->postings();
-        $id = $request->input('trainer');
-
-        if (! $id) {
-            return $postings->first();
-        }
-
-        return $postings->firstWhere('id', (int) $id)
-            ?? abort(404, 'That week belongs to another trainer.');
     }
 
     /** The E-Fundi record behind the account, when the trainer is one. Marks are still credited to it. */

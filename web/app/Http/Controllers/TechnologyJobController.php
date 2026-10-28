@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
- * Module 9 — the fundi's own repair jobs (§12.7). A ticket assigned to this worker is answered here: what was done to
+ * Module 9 — the fundi's own repair jobs. A ticket assigned to this worker is answered here: what was done to
  * fix it. The office confirms and closes it; nothing on this screen closes a job.
  */
 class TechnologyJobController extends Controller
@@ -40,6 +40,6 @@ class TechnologyJobController extends Controller
 
         Technology::resolveTicket($ticket, $request, $member->id);
 
-        return back()->with('status', $ticket->reference.' recorded as fixed. The office confirms and closes it (§12.7).');
+        return back()->with('status', $ticket->reference.' recorded as fixed. The office confirms and closes it.');
     }
 }

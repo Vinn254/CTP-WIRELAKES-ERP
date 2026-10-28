@@ -159,7 +159,7 @@ class ProjectController extends Controller
 
         return back()->with('status', $material->name.' recorded as handed over for '
             .($material->project->reference ?? 'the project').' — '.$material->totalLabel()
-            .' now sits in the payout deduction. Goods from a stock card are also booked out on the card (§14.5).');
+            .' now sits in the payout deduction. Goods from a stock card are also booked out on the card.');
     }
 
     /** Correct the quantity or the cost on a line that has not been handed over yet. */

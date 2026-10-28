@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * One line on the e-waste register (§13.4): what was found, where, how much, in what condition and who put it
+ * One line on the e-waste register: what was found, where, how much, in what condition and who put it
  * in. Most of what the programme collects is electronics, so the condition decides whether it goes to repair,
  * refurbishment, recycling or safe disposal.
  */
@@ -16,7 +16,7 @@ class EWasteCollection extends Model
 {
     /** The name does not pluralise the way Laravel guesses, so the table is stated. */
     protected $table = 'ewaste_collections';
-    /** The items the programme deals with — §13.2. The office extends this list when a new kind arrives. */
+    /** The items the programme deals with — . The office extends this list when a new kind arrives. */
     public const ITEM_TYPES = [
         'computer' => 'Computers',
         'laptop' => 'Laptops',

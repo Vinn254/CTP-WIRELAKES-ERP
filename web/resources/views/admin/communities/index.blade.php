@@ -19,18 +19,18 @@
 
 <form method="GET" class="filter-bar">
     <input type="search" name="q" value="{{ $search }}" placeholder="Search COM ID, community, ward or county" aria-label="Search COM ID, community, ward or county">
+    <label class="field">
+        <span>Community status</span>
+        <select name="status" onchange="this.form.submit()">
+            @foreach ($tabs as $s => $lbl)
+                <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+            @endforeach
+        </select>
+    </label>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.communities.index', ['status' => $status]) }}">Clear</a>@endif
     <a class="btn btn-sm btn-primary" href="{{ route('admin.communities.create') }}">Add community</a>
 </form>
-
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.communities.index', ['status' => $s, 'q' => $search]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
 
 <table class="data">
     <thead>

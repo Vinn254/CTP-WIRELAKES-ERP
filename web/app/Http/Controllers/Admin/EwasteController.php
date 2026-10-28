@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Module 10 — the e-waste register (§13.3). The field registers a collection, an E-Fundi forwards it and this
+ * Module 10 — the e-waste register. The field registers a collection, an E-Fundi forwards it and this
  * screen is where the programme office weighs it in. Sorting, testing and the repair / refurbish / recycle /
  * disposal route are the next steps on the same row — a line is never deleted or duplicated.
  */

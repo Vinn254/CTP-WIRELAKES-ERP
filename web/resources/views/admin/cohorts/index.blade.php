@@ -21,16 +21,20 @@
 <form method="GET" class="filter-bar">
     <button class="btn btn-sm btn-primary" type="button" onclick="location.href='{{ route('admin.cohorts.create') }}'">Post a training</button>
     <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.results') }}">Cohort results</a>
+    @if ($year)
+        <input type="hidden" name="year" value="{{ $year }}">
+    @endif
+    <label class="field">
+        <span>Cohort status</span>
+        <select name="status" onchange="this.form.submit()">
+            @foreach ($tabs as $s => $lbl)
+                <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+            @endforeach
+        </select>
+    </label>
+    <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
     <span class="hint" style="margin-left:8px;">A cohort starts as a draft — only an open one reaches the CTP portal.</span>
 </form>
-
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.cohorts.index', ['status' => $s, 'year' => $year ?: null]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
 
 @if ($years->count() > 1 || $year)
     <div class="tabs year-tabs">

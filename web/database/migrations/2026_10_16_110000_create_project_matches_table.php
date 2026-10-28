@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 6 — the matching desk (§9.4, §9.6). One row is one E-Fundi shortlisted, invited or hand-picked for one
+ * Module 6 — the matching desk. One row is one E-Fundi shortlisted, invited or hand-picked for one
  * project in one round. A re-run writes round 2 rather than overwriting round 1, so the desk can show that the first
  * search found nobody and what was changed for the second. Nothing here is a duplicate of the project or the member
  * record: it points at both and only holds the match itself.

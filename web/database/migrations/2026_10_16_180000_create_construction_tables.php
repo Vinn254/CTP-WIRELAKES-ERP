@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 8 — Construction & Infrastructure (§11). The construction file a project gets when the work is buildable
+ * Module 8 — Construction & Infrastructure. The construction file a project gets when the work is buildable
  * rather than a day's job: what the site is like, what the design costs, who turned up, what the inspector found and
  * what changed after the price was agreed. Money is still Module 11's and the order's own progress is still Module 7's —
  * this file holds the engineering record those two read from.
@@ -14,7 +14,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // §11.2 — an assessment is a visit on a date, by a person. A later visit is a new row, never an edit.
+        //  — an assessment is a visit on a date, by a person. A later visit is a new row, never an edit.
         Schema::create('site_assessments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->index(['project_id', 'visited_on']);
         });
 
-        // §11.2 — the bill of quantities. Every line carries its own unit cost so the total is a sum, not a typed figure.
+        //  — the bill of quantities. Every line carries its own unit cost so the total is a sum, not a typed figure.
         Schema::create('boq_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
@@ -45,7 +45,7 @@ return new class extends Migration
             $table->decimal('quantity', 12, 3)->default(0);
             $table->decimal('unit_cost_ksh', 14, 2)->default(0);
             $table->unsignedInteger('position')->default(0);
-            // A line the design did not have is marked with the variation that brought it in (§11.5).
+            // A line the design did not have is marked with the variation that brought it in.
             $table->string('source', 20)->default('design');
             $table->foreignId('variation_order_id')->nullable();
             // A line that should not be built is withdrawn with a reason and stays on the file — a BoQ is never emptied.
@@ -57,7 +57,7 @@ return new class extends Migration
             $table->index(['project_id', 'position']);
         });
 
-        // §11.2 — labour. Fundis and sub-contractors counted by day and hour, against the project and its order.
+        //  — labour. Fundis and sub-contractors counted by day and hour, against the project and its order.
         Schema::create('labour_entries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
@@ -76,7 +76,7 @@ return new class extends Migration
             $table->index(['project_id', 'worked_on']);
         });
 
-        // §11.4 — an inspection is scheduled, then reported item by item, then signed off. A failed item keeps the
+        //  — an inspection is scheduled, then reported item by item, then signed off. A failed item keeps the
         // worker's proof and the re-check on the same row so the loop is readable.
         Schema::create('site_inspections', function (Blueprint $table) {
             $table->id();
@@ -104,7 +104,7 @@ return new class extends Migration
             $table->string('item', 500);
             $table->string('result', 20)->default('pending');
             $table->string('note', 1000)->nullable();
-            // §11.4 steps 5–6 — the worker's proof of the fix, and the re-check that clears it.
+            //  — the worker's proof of the fix, and the re-check that clears it.
             $table->string('proof_path', 500)->nullable();
             $table->string('proof_name', 160)->nullable();
             $table->string('proof_size', 30)->nullable();
@@ -117,7 +117,7 @@ return new class extends Migration
             $table->index(['inspection_id', 'result']);
         });
 
-        // §11.5 — a change to agreed scope. Staff raise it, a Director approves or rejects it, and the approved cost
+        //  — a change to agreed scope. Staff raise it, a Director approves or rejects it, and the approved cost
         // moves the work order and adds its lines to the BoQ.
         Schema::create('variation_orders', function (Blueprint $table) {
             $table->id();

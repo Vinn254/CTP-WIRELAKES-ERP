@@ -100,7 +100,7 @@
 <h2 style="margin-top:26px;">Materials the programme provides <span class="tag">{{ $project->providedMaterials->count() }}</span></h2>
 
 <div class="card">
- <p class="help">What the organisation hands over for this job, with a cost on every line. The fundi sees exactly this table on the project. Once a line is recorded as handed over, its value is what the payout deducts (§14.6 step 6) — so the worker is never paid the full agreed amount for a job whose materials the programme bought.</p>
+ <p class="help">What the organisation hands over for this job, with a cost on every line. The fundi sees exactly this table on the project. Once a line is recorded as handed over, its value is what the payout deducts — so the worker is never paid the full agreed amount for a job whose materials the programme bought.</p>
 
  @if ($project->providedMaterials->isEmpty())
  <p class="hint">Nothing is listed yet. Add the cable, boards and fittings the programme is supplying before the work starts.</p>
@@ -190,7 +190,7 @@
     <option value="">Select a card</option>
     @foreach ($cards as $c)<option value="{{ $c->id }}">{{ $c->sku }} — {{ $c->name }} ({{ \App\Support\Finance::ksh((float) $c->unit_cost_ksh) }} each)</option>@endforeach
    </select>
-   <div class="help">The name, unit and cost come off the card. Booking the goods out on the card itself is what moves the store quantity (§14.5) — this line only says the job was given it.</div>
+   <div class="help">The name, unit and cost come off the card. Booking the goods out on the card itself is what moves the store quantity — this line only says the job was given it.</div>
   </div>
   <div class="field"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
   <div class="field"><label>Cost each (KSh)</label><input type="number" name="unit_cost_ksh" step="0.01" min="0" placeholder="Leave empty to use the card's cost"></div>
@@ -249,7 +249,7 @@
 <script>
 const workerSelect = document.getElementById('workerSelect');
 if (workerSelect) {
- workerSelect.addEventListener('change', function () {
+ workerSelect.addEventListener('change', function{
  document.getElementById('swapType').value = workerSelect.selectedOptions[0].dataset.type;
  });
 }

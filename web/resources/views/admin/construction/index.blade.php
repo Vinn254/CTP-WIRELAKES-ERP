@@ -20,17 +20,15 @@
     @endforeach
 </div>
 
-<div class="tabs">
-    @foreach ($tabs as $key => $t)
-        <a class="tab {{ $tab === $key ? 'on' : '' }}"
-           href="{{ route('admin.construction.index', array_filter(['tab' => $key, 'q' => $search])) }}">
-            {{ $t['label'] }} <span class="hint">({{ $counts[$key] ?? 0 }})</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.construction.index') }}" class="filter-bar">
-    <input type="hidden" name="tab" value="{{ $tab }}">
+    <label class="field">
+        <span>File status</span>
+        <select name="tab" onchange="this.form.submit()">
+            @foreach ($tabs as $key => $t)
+                <option value="{{ $key }}" @selected($tab === $key)>{{ $t['label'] }} ({{ $counts[$key] ?? 0 }})</option>
+            @endforeach
+        </select>
+    </label>
     <div>
         <label for="q">Project, trade or place</label>
         <input type="search" name="q" id="q" value="{{ $search }}" placeholder="PRJ-2026-00001, masonry, Nakuru" aria-label="Search: PRJ-2026-00001, masonry, Nakuru">
@@ -102,7 +100,7 @@
                     No construction file here yet. A file opens on any project whose trade is buildable work
                     ({{ collect($trades)->take(4)->implode(', ') }}…) —
                     post or award one on {!! dept_ref('admin.projects.index', 'Projects') !!}, then read the site
-                    before pricing it (§11.2).
+                    before pricing it.
                 </td></tr>
             @endforelse
         </tbody>

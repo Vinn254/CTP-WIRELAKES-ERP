@@ -96,7 +96,7 @@
                 <span class="tag">{{ $held->count() }} held</span>
             </div>
             @if ($held->isEmpty())
-                <p class="hint">No skill recorded yet — matching (§8.5) cannot place a fundi without at least one.</p>
+                <p class="hint">No skill recorded yet — matching cannot place a fundi without at least one.</p>
             @else
                 <p><span class="chips">@foreach ($held as $s)<span class="chip">{{ $s }}</span>@endforeach</span></p>
             @endif
@@ -168,7 +168,7 @@
                 <h3>Sites they train at</h3>
                 <span class="tag">{{ $sites->count() }}</span>
             </div>
-            <p class="hint">Each row is Module 4's teaching role, approved <b>site by site</b>. The office decides them under
+            <p class="hint">Each row is the teaching role on the Training desk, approved <b>site by site</b>. The office decides them under
                 <b>Training &amp; Certification &rsaquo; Trainers</b> — this screen only shows what the fundi is carrying.</p>
             @forelse ($sites as $s)
                 <div class="row-line">
@@ -195,7 +195,7 @@
                 </div>
             @empty
                 <p class="hint">No applications yet. An E-Fundi is the senior worker: they put themselves forward for open
-                    projects from their own portal (Module 6).</p>
+                    projects from their own portal.</p>
             @endforelse
         </div>
     </div>
@@ -312,7 +312,7 @@
             <h3>Standing</h3>
             @if (! $isExecutive)
                 <p class="hint">Staff can prepare the record; <b>only a programme executive</b> suspends, blacklists or
-                    reinstates an E-Fundi (§8.4).</p>
+                    reinstates an E-Fundi.</p>
             @elseif ($isBlocked)
                 <form method="POST" action="{{ route('admin.fundis.reinstate', $fundi) }}" class="mini-form"
                       data-confirm="Reinstate {{ $fundi->full_name }} as an active E-Fundi and unlock their login?" data-title="Reinstate">

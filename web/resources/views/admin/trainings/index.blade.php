@@ -2,8 +2,15 @@
 @section('title', 'Training')
 
 @section('content')
-<h1>Training</h1>
-<p class="page-lede">The courses the programme teaches, with the modules each one sets.</p>
+<div class="head-row">
+    <div>
+        <h1>Training</h1>
+        <p class="page-lede">The courses the programme teaches, with the modules each one sets.</p>
+    </div>
+    <div class="head-actions">
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-training">Add a training</button>
+    </div>
+</div>
 
 @include('partials.errors')
 
@@ -15,11 +22,12 @@
     <div class="stat"><small>Trainer listings</small><b>{{ $trainings->sum('trainers_count') }}</b></div>
 </div>
 
-<details class="card need-form" @if ($errors->any()) open @endif>
-    <summary>Add a training the programme will run</summary>
+@include('partials.sheet-start', ['name' => 'add-training', 'title' => 'Add a training the programme will run',
+    'sub' => 'The catalogue is closed: a training is listed here before a cohort can be opened on it.'])
     <form method="POST" action="{{ route('admin.trainings.store') }}" class="fee-form"
           data-confirm="Add this training to the programme list?" data-title="Add training">
         @csrf
+        <input type="hidden" name="_sheet" value="add-training">
         <div class="form-grid">
             <div class="field">
                 <label>Training name <span class="req">*</span></label>
@@ -44,9 +52,12 @@
             <label>What the trainee learns</label>
             <textarea name="summary" rows="2" maxlength="500">{{ old('summary') }}</textarea>
         </div>
-        <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Add training</button>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Add training</button>
+        </div>
     </form>
-</details>
+@include('partials.sheet-end')
 
 <table class="data">
     <thead>

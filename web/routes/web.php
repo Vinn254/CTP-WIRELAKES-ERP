@@ -14,10 +14,12 @@ use App\Http\Controllers\Admin\ExecutionController;
 use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\DirectoryController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\LeaveController;
 use App\Http\Controllers\Admin\MarketplaceController;
+use App\Http\Controllers\Admin\MyTimeLogController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\MeGisController;
 use App\Http\Controllers\Admin\NeedController;
@@ -26,6 +28,7 @@ use App\Http\Controllers\Admin\ProgrammeController;
 use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
+use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
@@ -184,6 +187,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/staff/invites/{invite}/revoke', [StaffController::class, 'revoke'])->name('staff.invite.revoke');
     Route::post('/staff/users/{user}', [StaffController::class, 'updateRole'])->name('staff.users.update');
 
+    // The staff directory and the onboarding desk: everyone working in the organisation, and the applicants
+    // Human Resources turns into staff. Pay, next of kin and the C14 never leave this desk.
+    Route::get('/staff/directory', [DirectoryController::class, 'index'])->name('directory.index');
+    Route::get('/staff/directory/{record}', [DirectoryController::class, 'show'])->whereNumber('record')->name('directory.show');
+    Route::post('/staff/directory/{record}', [DirectoryController::class, 'update'])->whereNumber('record')->name('directory.update');
+    Route::get('/staff/directory/{record}/c14', [DirectoryController::class, 'c14'])->whereNumber('record')->name('directory.c14');
+    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+    Route::post('/onboarding/{application}', [OnboardingController::class, 'store'])->whereNumber('application')->name('onboarding.store');
+
     // Leave. Human Resources keeps the register and answers every application; the seven balances and the booking
     // form sit on each worker's own page, which is also what an E-Fundi opens in the portal. A CTP is never offered it.
     Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
@@ -258,12 +270,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::patch('/trainers/{trainer}', [TrainerController::class, 'update'])->whereNumber('trainer')->name('trainers.update');
     Route::post('/trainers/{trainer}/decision', [TrainerController::class, 'decide'])->whereNumber('trainer')->name('trainers.decide');
 
-    // The trainer's week sheet. This desk signs the week off; Human Resources is given a read-only copy of the same paper.
+    // The week sheets of the whole organisation. Human Resources answers a signed week — the sheet is the proof pay
+    // is built on — and every other desk is given a read-only copy of the same paper.
     Route::get('/timelogs', [TimeLogController::class, 'index'])->name('timelogs.index');
-    Route::get('/timelogs/{trainer}/week/{week}', [TimeLogController::class, 'week'])->whereNumber('trainer')
+    Route::get('/timelogs/{user}/week/{week}', [TimeLogController::class, 'week'])->whereNumber('user')
         ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
-    Route::post('/timelogs/{trainer}/week/{week}/decide', [TimeLogController::class, 'decide'])->whereNumber('trainer')
+    Route::post('/timelogs/{user}/week/{week}/decide', [TimeLogController::class, 'decide'])->whereNumber('user')
         ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.decide');
+
+    // A worker's own sheet: pick the month and the week of it, write Monday to Friday, sign the week.
+    Route::get('/my-time-log', [MyTimeLogController::class, 'index'])->name('mytime.index');
+    Route::post('/my-time-log/day', [MyTimeLogController::class, 'saveDay'])->name('mytime.day');
+    Route::post('/my-time-log/week', [MyTimeLogController::class, 'sign'])->name('mytime.sign');
 
     Route::get('/cohorts', [CohortController::class, 'index'])->name('cohorts.index');
     Route::get('/cohorts/results', [CohortController::class, 'results'])->name('cohorts.results');
@@ -293,10 +311,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // A staff account that also trains CTPs works its own roll here, from the same sign-in as its department desks.
     Route::get('/teaching', [TeachingController::class, 'index'])->name('teaching.index');
-    // The trainer's own week sheet: one line per day worked, then the whole week signed and sent to the Training desk.
-    Route::get('/teaching/week', [TeachingController::class, 'week'])->name('teaching.week');
-    Route::post('/teaching/week/day', [TeachingController::class, 'saveDay'])->name('teaching.day');
-    Route::post('/teaching/week/sign', [TeachingController::class, 'signWeek'])->name('teaching.sign');
+    // The desk's own week sheet is the one every office account fills — My time log.
     Route::get('/teaching/{enrollment}', [TeachingController::class, 'trainee'])->whereNumber('enrollment')->name('teaching.trainee');
     Route::post('/teaching/{enrollment}/progress', [TeachingController::class, 'progress'])->whereNumber('enrollment')->name('teaching.progress');
     Route::post('/teaching/{enrollment}/modules/{module}', [TeachingController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('teaching.module.mark');
@@ -328,7 +343,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/fundis/{fundi}/block', [FundiController::class, 'block'])->whereNumber('fundi')->name('fundis.block');
     Route::post('/fundis/{fundi}/reinstate', [FundiController::class, 'reinstate'])->whereNumber('fundi')->name('fundis.reinstate');
 
-    // Module 6 — the marketplace (§9). Posting and applications stay on the project; this desk finds the right fundi and records their answer.
+    // Module 6 — the marketplace. Posting and applications stay on the project; this desk finds the right fundi and records their answer.
     Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
     Route::get('/marketplace/{project}', [MarketplaceController::class, 'show'])->whereNumber('project')->name('marketplace.show');
     Route::post('/marketplace/{project}/run', [MarketplaceController::class, 'run'])->whereNumber('project')->name('marketplace.run');
@@ -337,7 +352,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/marketplace/{project}/award/{match}', [MarketplaceController::class, 'award'])->whereNumber('project')->whereNumber('match')->name('marketplace.award');
     Route::post('/marketplace/{project}/auto-award', [MarketplaceController::class, 'autoAward'])->whereNumber('project')->name('marketplace.autoaward');
 
-    // Module 7 — delivery (§10). The order an award turns into, the materials issued against it, what happened on site,
+    // Module 7 — delivery. The order an award turns into, the materials issued against it, what happened on site,
     // the hirer's inspection as the office recorded it, the dispute path, and the hand into Module 11's payout register.
     Route::get('/execution', [ExecutionController::class, 'index'])->name('execution.index');
     Route::get('/execution/{order}', [ExecutionController::class, 'show'])->whereNumber('order')->name('execution.show');
@@ -364,7 +379,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/execution/{order}/dispute/{dispute}/evidence', [ExecutionController::class, 'disputeEvidence'])
         ->whereNumber('order')->whereNumber('dispute')->name('execution.dispute.evidence');
 
-    // Module 8 — Construction & Infrastructure. The engineering file a buildable project carries (§11).
+    // Module 8 — Construction & Infrastructure. The engineering file a buildable project carries.
     Route::get('/construction', [ConstructionController::class, 'index'])->name('construction.index');
     Route::get('/construction/{project}', [ConstructionController::class, 'show'])->whereNumber('project')->name('construction.show');
     Route::post('/construction/{project}/assess', [ConstructionController::class, 'assess'])->whereNumber('project')->name('construction.assess');
@@ -381,7 +396,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/construction/inspection/{inspection}/photo', [ConstructionController::class, 'inspectionPhoto'])->whereNumber('inspection')->name('construction.inspection.photo');
     Route::get('/construction/item/{item}/proof', [ConstructionController::class, 'itemProof'])->whereNumber('item')->name('construction.item.proof');
 
-    // Module 9 — Technology Services. The asset register, the project register and the repair tickets (§12).
+    // Module 9 — Technology Services. The asset register, the project register and the repair tickets.
     Route::get('/technology', [TechnologyController::class, 'index'])->name('technology.index');
     Route::get('/technology/assets/create', [TechnologyController::class, 'createAsset'])->name('technology.asset.create');
     Route::post('/technology/assets', [TechnologyController::class, 'storeAsset'])->name('technology.asset.store');
@@ -454,7 +469,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/finance/payouts/{payout}/resume', [PayoutController::class, 'resume'])->whereNumber('payout')->name('payouts.resume');
     Route::post('/finance/payouts/{payout}/reject', [PayoutController::class, 'reject'])->whereNumber('payout')->name('payouts.reject');
 
-    // Module 12 — M&E, GIS and reports (§15). Read-only views of the other modules' registers, plus the trail and the programme switches.
+    // Module 12 — M&E, GIS and reports. Read-only views of the other modules' registers, plus the trail and the programme switches.
     Route::get('/impacts', [MeGisController::class, 'index'])->name('impacts.index');
     Route::get('/gis', [MeGisController::class, 'map'])->name('gis.map');
 
@@ -485,10 +500,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         Route::get('/finance/payouts/{payout}/in/{department}', [PayoutController::class, 'show'])->whereNumber('payout')->name('payouts.show');
         Route::get('/activity/in/{department}', [ActivityController::class, 'index'])->name('activity.index');
         Route::get('/activity/export/in/{department}', [ActivityController::class, 'csv'])->name('activity.export');
-        // Human Resources reads a trainer's signed week here as proof of the work — the same rows Training signed off.
+        // Every desk reads the same signed week sheet — Human Resources approves it, the rest see what their people logged.
         Route::get('/timelogs/in/{department}', [TimeLogController::class, 'index'])->name('timelogs.index');
-        Route::get('/timelogs/{trainer}/week/{week}/in/{department}', [TimeLogController::class, 'week'])
-            ->whereNumber('trainer')->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
+        Route::get('/timelogs/{user}/week/{week}/in/{department}', [TimeLogController::class, 'week'])
+            ->whereNumber('user')->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
         // Every desk sees who of its own is away, on the same rows Human Resources answers.
         Route::get('/leave/in/{department}', [LeaveController::class, 'index'])->name('leave.index');
     });
@@ -529,7 +544,7 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/ewaste', [PortalController::class, 'storeEwaste'])->name('ewaste.store');
     Route::post('/ewaste/{collection}/forward', [PortalController::class, 'forwardEwaste'])->whereNumber('collection')->name('ewaste.forward');
     Route::get('/ewaste/{collection}/photo', [PortalController::class, 'ewastePhoto'])->whereNumber('collection')->name('ewaste.photo');
-    // Module 11 — a member raises a purchase request (§14.4 step 1) and an E-Fundi reads their two income streams (§14.6).
+    // Module 11 — a member raises a purchase request and an E-Fundi reads their two income streams.
     Route::get('/procurement', [PortalController::class, 'procurement'])->name('procurement');
     Route::post('/procurement', [PortalController::class, 'storeProcurement'])->name('procurement.store');
     Route::get('/earnings', [PortalController::class, 'earnings'])->name('earnings');
@@ -543,14 +558,14 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/communities/beneficiary', [PortalController::class, 'storeBeneficiary'])->name('beneficiary.store');
     Route::get('/projects', [PortalController::class, 'projects'])->name('projects');
     Route::get('/applications', [PortalController::class, 'applications'])->name('applications');
-    // Module 6 — the matching desk puts a project to a fundi, and they answer here (§9.4 step 4).
+    // Module 6 — the matching desk puts a project to a fundi, and they answer here.
     Route::get('/invitations', [PortalController::class, 'invitations'])->name('invitations');
     Route::post('/invitations/{match}/respond', [PortalController::class, 'respondInvite'])->whereNumber('match')->name('invite.respond');
     Route::get('/projects/{project}', [PortalController::class, 'project'])->name('project');
     Route::post('/projects/{project}/apply', [PortalController::class, 'apply'])->name('apply');
     Route::post('/applications/{application}/withdraw', [PortalController::class, 'withdraw'])->name('withdraw');
 
-    // Module 7 — the worker's own side of the order (§10.4 steps 1, 3, 5 and §10.6 step 2).
+    // Module 7 — the worker's own side of the order.
     Route::get('/work', [WorkOrderPortalController::class, 'index'])->name('work');
     Route::get('/work/{order}', [WorkOrderPortalController::class, 'show'])->whereNumber('order')->name('work.show');
     Route::post('/work/{order}/accept', [WorkOrderPortalController::class, 'accept'])->whereNumber('order')->name('work.accept');
@@ -563,12 +578,12 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/work/{order}/dispute/{dispute}/evidence', [WorkOrderPortalController::class, 'evidence'])
         ->whereNumber('order')->whereNumber('dispute')->name('work.dispute.evidence');
 
-    // Module 8 — the worker answers an inspection item the inspector failed, with the photograph of the rework (§11.4 step 5).
+    // Module 8 — the worker answers an inspection item the inspector failed, with the photograph of the rework.
     Route::get('/fixes', [InspectionFixController::class, 'index'])->name('fixes');
     Route::post('/fixes/{item}/proof', [InspectionFixController::class, 'prove'])->whereNumber('item')->name('fixes.prove');
     Route::get('/fixes/{item}/photo', [InspectionFixController::class, 'proof'])->whereNumber('item')->name('fixes.proof');
 
-    // Module 9 — the fundi's own repair jobs. A ticket assigned to them is answered here; the office confirms and closes it (§12.7).
+    // Module 9 — the fundi's own repair jobs. A ticket assigned to them is answered here; the office confirms and closes it.
     Route::get('/tech', [TechnologyJobController::class, 'index'])->name('tech.jobs');
     Route::post('/tech/{ticket}/resolve', [TechnologyJobController::class, 'resolve'])->whereNumber('ticket')->name('tech.resolve');
 });

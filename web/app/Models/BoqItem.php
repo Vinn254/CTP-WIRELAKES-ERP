@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 8 §11.2 — one line of the bill of quantities. The total of a design is never typed: it is the sum of these
+ * Module 8  — one line of the bill of quantities. The total of a design is never typed: it is the sum of these
  * lines, so a BoQ that has been priced can be checked line by line by anyone reading it.
  */
 class BoqItem extends Model

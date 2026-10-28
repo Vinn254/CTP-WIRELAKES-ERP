@@ -49,7 +49,7 @@
 <div class="grid-2 review-grid">
     <div class="stack">
         <div class="card">
-            <h3>The purchase path (§14.4)</h3>
+            <h3>The purchase path</h3>
             <p class="hint">Every step names the officer who owns it. A step only opens once the row is actually on
                 it, so nothing is paid before it is received and nothing is ordered without a quotation on file.</p>
             <ol class="steps">
@@ -198,7 +198,7 @@
                 </form>
             @else
                 <p class="hint">{{ $pr->reference }} is {{ $pr->statusLabel() }} — quotations are attached after the
-                    Programme Manager approves the request (§14.4 step 2).</p>
+                    Programme Manager approves the request.</p>
             @endif
         </div>
 
@@ -361,7 +361,7 @@
                         </button>
                         @if (! $isExec)
                             <div class="hint" style="margin-top:8px;">The paperwork is matched — hand the payment to
-                                the Finance Officer to release (§14.4 step 8).</div>
+                                the Finance Officer to release.</div>
                         @endif
                     </form>
                 @endif

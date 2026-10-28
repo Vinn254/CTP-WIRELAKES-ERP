@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Module 8 — Construction & Infrastructure (§11). The engineering file that sits on a buildable project: the site
+ * Module 8 — Construction & Infrastructure. The engineering file that sits on a buildable project: the site
  * read, the priced design, the labour counted, the inspections and any change to what was agreed.
  *
  * It deliberately owns less than it might. The order's own progress and its photographs stay on Module 7's log; the
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class Construction
 {
-    /** §11.3 — the trades the programme books for construction work. */
+    /**  — the trades the programme books for construction work. */
     public const SPECIALTIES = [
         'masonry' => 'Masonry',
         'carpentry' => 'Carpentry',
@@ -83,7 +83,7 @@ class Construction
         return round($project->labourEntries->sum(fn (LabourEntry $day) => $day->costKsh()), 2);
     }
 
-    /** §11.2 — the first visit, written up. Every visit after it is another row; none of them is edited away. */
+    /**  — the first visit, written up. Every visit after it is another row; none of them is edited away. */
     public static function recordAssessment(Project $project, Request $request): SiteAssessment
     {
         $data = SiteAssessment::dataFrom($request);
@@ -98,7 +98,7 @@ class Construction
     }
 
     /**
-     * §11.2 — the bill of quantities. The repeater sends the whole priced design at once: new lines are added, lines
+     *  — the bill of quantities. The repeater sends the whole priced design at once: new lines are added, lines
      * already on the file are corrected in place (the trail records every quantity and price change), and a line that
      * should not be built is withdrawn with a reason rather than deleted. Lines an approved variation brought in are
      * read-only — that figure was agreed with the hirer, so a change to it is a new variation.
@@ -106,7 +106,7 @@ class Construction
     public static function saveBoq(Project $project, Request $request): void
     {
         $rows = BoqItem::rowsFrom($request);
-        abort_if($rows === [], 422, 'Every line needs a description before the BoQ can be saved (§11.2).');
+        abort_if($rows === [], 422, 'Every line needs a description before the BoQ can be saved.');
 
         DB::transaction(function () use ($project, $rows) {
             $locked = $project->boqItems()->where('source', 'variation')->pluck('id')->all();
@@ -126,7 +126,7 @@ class Construction
                         abort_unless(! $changed, 422,
                             '"'.str($line->description)->limit(70).'” came out of the approved variation '
                             .($line->variation->reference ?? '').'. A figure the hirer agreed is not re-typed here — '
-                            .'raise another variation for the change (§11.5).');
+                            .'raise another variation for the change.');
 
                         continue;
                     }
@@ -141,13 +141,13 @@ class Construction
         });
     }
 
-    /** §11.2 — a line taken off the build, kept on the file with the reason and who took it off. */
+    /**  — a line taken off the build, kept on the file with the reason and who took it off. */
     public static function removeBoqLine(BoqItem $line, Request $request): BoqItem
     {
         $data = $request->validate([
             'withdraw_note' => 'required|string|max:1000',
         ], [
-            'withdraw_note.required' => 'Say why this line is off the build. A withdrawn BoQ line stays on the file with its reason (§11.2).',
+            'withdraw_note.required' => 'Say why this line is off the build. A withdrawn BoQ line stays on the file with its reason.',
         ], ['withdraw_note' => 'Why it is withdrawn']);
 
         abort_if($line->isLocked(), 422,
@@ -163,7 +163,7 @@ class Construction
         return $line;
     }
 
-    /** §11.2 — a day's labour counted against the project and the order it was done on. */
+    /**  — a day's labour counted against the project and the order it was done on. */
     public static function recordLabour(Project $project, Request $request): LabourEntry
     {
         $data = LabourEntry::dataFrom($request);
@@ -184,7 +184,7 @@ class Construction
         ]);
     }
 
-    /** §11.4 step 1 — the Construction Manager schedules the visit and lists what is to be checked. */
+    /**  — the Construction Manager schedules the visit and lists what is to be checked. */
     public static function scheduleInspection(Project $project, Request $request): SiteInspection
     {
         $data = $request->validate([
@@ -193,7 +193,7 @@ class Construction
             'inspector_user' => 'nullable|integer|exists:users,id',
             'items' => 'required|string|max:6000',
         ], [
-            'items.required' => 'List what the inspector is to check, one thing per line — an inspection with no items has nothing to mark (§11.4).',
+            'items.required' => 'List what the inspector is to check, one thing per line — an inspection with no items has nothing to mark.',
             'purpose.required' => 'What is this visit for? A foundation check and a completion check are different reports.',
         ], [
             'scheduled_on' => 'Date scheduled for',
@@ -222,12 +222,12 @@ class Construction
             }
         }
 
-        abort_if(! $inspection->items()->exists(), 422, 'List what the inspector is to check, one thing per line (§11.4).');
+        abort_if(! $inspection->items()->exists(), 422, 'List what the inspector is to check, one thing per line.');
 
         return $inspection;
     }
 
-    /** §11.4 steps 2–3 — the visit is reported: every item marked, the note and the photos filed against the project. */
+    /**  — the visit is reported: every item marked, the note and the photos filed against the project. */
     public static function reportInspection(SiteInspection $inspection, Request $request): SiteInspection
     {
         $inspection->mustBe('scheduled', 'reported');
@@ -240,8 +240,8 @@ class Construction
             'items.*.result' => 'required_with:items|in:pass,fail,n_a',
             'items.*.note' => 'nullable|string|max:1000',
         ], [
-            'report_note.required' => 'Write the report. The mark on each item says what was found; the note says what it means for the build (§11.4 step 3).',
-            'items.*.result.in' => 'Every item has to be marked pass, fail or not applicable before the report is filed (§11.4 step 4).',
+            'report_note.required' => 'Write the report. The mark on each item says what was found; the note says what it means for the build.',
+            'items.*.result.in' => 'Every item has to be marked pass, fail or not applicable before the report is filed.',
         ], [
             'inspected_on' => 'Date of the visit',
             'report_note' => 'The report',
@@ -259,7 +259,7 @@ class Construction
 
             if ($row['result'] === 'fail' && blank($row['note'] ?? null)) {
                 abort(422, '"'.str($item->item)->limit(80).'” was marked failed — say what is wrong with it. '
-                    .'A failure the worker cannot read is not an instruction (§11.4 step 4).');
+                    .'A failure the worker cannot read is not an instruction.');
             }
 
             $item->update([
@@ -269,7 +269,7 @@ class Construction
             $marked++;
         }
 
-        // §11.4 step 4 — the report is only a report when every listed item has been marked.
+        //  — the report is only a report when every listed item has been marked.
         abort_if($marked === 0, 422, 'Mark at least one item pass, fail or not applicable — the report is read with those marks.');
         abort_if($inspection->items()->where('result', 'pending')->exists(), 422,
             'This report still has '.$inspection->items()->where('result', 'pending')->count()
@@ -295,7 +295,7 @@ class Construction
         return $inspection;
     }
 
-    /** §11.4 step 5 — the worker answers a failed item with the proof of the fix. */
+    /**  — the worker answers a failed item with the proof of the fix. */
     public static function proveFix(SiteInspectionItem $item, Request $request, int $fundiId): SiteInspectionItem
     {
         abort_unless($item->result === 'fail', 422, 'Only a failed item needs proof of a fix.');
@@ -309,7 +309,7 @@ class Construction
             'proof_note' => 'required|string|max:1000',
             'proof' => 'required|image|max:8192',
         ], [
-            'proof.required' => 'Attach the photograph of the rework — that is what the inspector re-checks against (§11.4 step 5).',
+            'proof.required' => 'Attach the photograph of the rework — that is what the inspector re-checks against.',
             'proof_note.required' => 'Say what you did to put it right.',
         ], ['proof_note' => 'What was done', 'proof' => 'Photo of the fix']);
 
@@ -318,18 +318,18 @@ class Construction
         return $item;
     }
 
-    /** §11.4 step 6 — the inspector re-checks a failed item and it either passes or stays failed for another round. */
+    /**  — the inspector re-checks a failed item and it either passes or stays failed for another round. */
     public static function recheckItem(SiteInspectionItem $item, Request $request): SiteInspectionItem
     {
         $data = $request->validate([
             'result' => 'required|in:pass,n_a,fail',
             'note' => 'required|string|max:1000',
         ], [
-            'note.required' => 'Write what the re-check found. A failed item is only cleared by an inspector saying so (§11.4 step 6).',
+            'note.required' => 'Write what the re-check found. A failed item is only cleared by an inspector saying so.',
         ], ['result' => 'On the re-check', 'note' => 'What the re-check found']);
 
         abort_if($item->result === 'fail' && blank($item->proof_path), 422,
-            'This item has no proof of a fix on it yet. The worker answers a failure first (§11.4 step 5), then it is re-checked — '
+            'This item has no proof of a fix on it yet. The worker answers a failure first, then it is re-checked — '
             .'an inspector cannot clear a failure the site has not answered.');
 
         $item->update([
@@ -342,7 +342,7 @@ class Construction
     }
 
     /**
-     * §11.4 — a report is signed off when every item has been marked and nothing that failed is still standing:
+     *  — a report is signed off when every item has been marked and nothing that failed is still standing:
      * each failure needs the worker's proof and a dated re-check. The signature is the inspector's own.
      */
     public static function signOffInspection(SiteInspection $inspection, Request $request): SiteInspection
@@ -356,14 +356,14 @@ class Construction
         ], ['sign_off_note' => 'Signing note']);
 
         if ($open = $inspection->items()->where('result', 'pending')->count()) {
-            abort(422, $open.' item(s) on this report still have no mark. A report is signed off on checked items (§11.4).');
+            abort(422, $open.' item(s) on this report still have no mark. A report is signed off on checked items.');
         }
 
         $waiting = $inspection->openFailures();
 
         if ($waiting) {
             abort(422, $waiting.' failed item(s) have not been re-checked yet. The worker uploads proof and the inspector '
-                .'re-checks each one before this report can be signed off (§11.4 steps 5–6).');
+                .'re-checks each one before this report can be signed off.');
         }
 
         $inspection->update([
@@ -376,14 +376,14 @@ class Construction
         return $inspection;
     }
 
-    /** §11.5 step 1 — the change is raised against the order the work is running on. */
+    /**  — the change is raised against the order the work is running on. */
     public static function raiseVariation(Project $project, Request $request): VariationOrder
     {
         $data = VariationOrder::dataFrom($request);
         $order = static::orderFor($project);
 
         abort_if(! $order, 422, 'There is no work order on '.$project->reference.' to vary yet — the project has to be '
-            .'awarded and its order issued before a change can be priced (§11.5).');
+            .'awarded and its order issued before a change can be priced.');
 
         return VariationOrder::create($data + [
             'reference' => VariationOrder::nextReference(),
@@ -395,7 +395,7 @@ class Construction
     }
 
     /**
-     * §11.5 steps 2–4 — a Director approves or rejects. Approval is the only thing that moves money from this module:
+     *  — a Director approves or rejects. Approval is the only thing that moves money from this module:
      * the order's agreed amount rises, the unsigned stages of a milestone split are re-priced around it, the BoQ gains
      * its line, and a payout already handed to Finance is corrected with it. A payout that is approved or released is
      * refused — that figure has been through the release gate and is settled on the finance register, not here.
@@ -412,7 +412,7 @@ class Construction
             'decision' => 'required|in:approved,rejected',
             'decision_note' => 'required|string|max:1000',
         ], [
-            'decision_note.required' => 'Write the reason. A hirer and a fundi both read this figure (§11.5).',
+            'decision_note.required' => 'Write the reason. A hirer and a fundi both read this figure.',
         ], ['decision' => 'Decision', 'decision_note' => 'The decision']);
 
         $order = $variation->workOrder;
@@ -482,7 +482,7 @@ class Construction
     }
 
     /**
-     * §11.4 step 5 — the failed items on this worker's own orders that still wait for the photograph of the rework.
+     *  — the failed items on this worker's own orders that still wait for the photograph of the rework.
      * Resolved from the signed-in member's record, never from a url: an item on somebody else's site does not exist here.
      */
     public static function fixesFor($member)

@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 /** A CTP's seat in a cohort — the seat (state) and how far through training they are (stage) are separate. */
 class Enrollment extends Model
 {
-    /** Below this, a trainee cannot be certified (§7.5 step 2). */
+    /** Below this, a trainee cannot be certified. */
     public const ATTENDANCE_MINIMUM = 80;
 
     public const STATES = [

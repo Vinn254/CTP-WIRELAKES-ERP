@@ -40,7 +40,6 @@
         @php $waiting = Departments::waiting($d['slug']); @endphp
         <div class="dept-card {{ $d['live'] ? 'live' : 'soon' }}">
             <span class="badge tag {{ $d['live'] ? '' : 'gray' }}">{{ $d['live'] ? 'Active' : 'Phase 2' }}</span>
-            <div class="mod">{{ $d['tag'] }}</div>
             <h3>{{ $d['name'] }}</h3>
             <p>{{ $d['desc'] }}</p>
             @if ($d['live'])
@@ -52,4 +51,6 @@
         </div>
     @endforeach
 </div>
+
+<div class="card paybill-card">@include('partials.paybill')</div>
 @endsection

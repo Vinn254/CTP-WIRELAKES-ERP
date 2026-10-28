@@ -9,7 +9,7 @@ class Setting extends Model
     protected $fillable = ['key', 'value'];
 
     /**
-     * The programme switches the code actually reads (§15.6). A key that no code looks at is not offered here:
+     * The programme switches the code actually reads. A key that no code looks at is not offered here:
      * a setting nothing uses would be worse than no setting, because it looks like it works.
      */
     public const EDITABLE = [

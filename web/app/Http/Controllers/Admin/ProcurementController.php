@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * Module 11 — the procurement register (§14.4). One row per purchase request, walking the eight steps from
+ * Module 11 — the procurement register. One row per purchase request, walking the eight steps from
  * whoever raised it to the payment the Finance Officer recorded. Every step names its actor and refuses to run out
  * of order, so a request cannot be paid before it is received or ordered without a quotation on file.
  */
@@ -77,7 +77,7 @@ class ProcurementController extends Controller
         ]);
 
         return back()->with('status', $pr->reference.' was raised for '.$pr->item_name.' ('.$pr->quantityLabel()
-            .'), charged to '.$pr->budgetLabel().'. It waits for the Programme Manager\'s decision (§14.4 step 2).');
+            .'), charged to '.$pr->budgetLabel().'. It waits for the Programme Manager\'s decision.');
     }
 
     public function show(PurchaseRequest $purchaseRequest)
@@ -104,7 +104,7 @@ class ProcurementController extends Controller
             'approve' => 'required|in:yes,no',
             'note' => 'required_if:approve,no|nullable|string|max:1000|min:10',
         ], [
-            'note.required_if' => 'A request is rejected on a reason the person who raised it can read (§14.4 step 2).',
+            'note.required_if' => 'A request is rejected on a reason the person who raised it can read.',
             'note.min' => 'One line on why the programme is not buying it.',
         ], ['note' => 'Reason']);
 
@@ -114,7 +114,7 @@ class ProcurementController extends Controller
 
         return back()->with('status', $purchaseRequest->reference.' was '
             .($approve ? 'approved' : 'rejected with the reason recorded').'. '.$purchaseRequest->statusLabel()
-            .($approve ? ' — the Procurement Officer now gets quotations from approved suppliers (§14.4 step 3).' : '.'));
+            .($approve ? ' — the Procurement Officer now gets quotations from approved suppliers.' : '.'));
     }
 
     public function quote(Request $request, PurchaseRequest $purchaseRequest)
@@ -157,7 +157,7 @@ class ProcurementController extends Controller
 
         return back()->with('status', $order->reference.' was written for '
             .($order->supplier->name ?? 'the supplier').' at '.$order->amountLabel()
-            .'. Sending it to the supplier is the next step (§14.4 step 4).');
+            .'. Sending it to the supplier is the next step.');
     }
 
     public function issueOrder(PurchaseOrder $order)
@@ -165,7 +165,7 @@ class ProcurementController extends Controller
         Procurement::issue($order);
 
         return back()->with('status', $order->reference.' was sent to '.($order->supplier->name ?? 'the supplier')
-            .'. The storekeeper receives the goods against a delivery note (§14.4 steps 5–6).');
+            .'. The storekeeper receives the goods against a delivery note.');
     }
 
     /** Step 6 — the storekeeper signs the delivery note and the quantity goes on the stock card. */
@@ -180,7 +180,7 @@ class ProcurementController extends Controller
             .rtrim(rtrim(number_format((float) $order->quantity, 2), '0'), '.').' '.$pr->unit
             .' signed in on delivery note '.$data['delivery_note_ref']
             .($pr->item->exists ? '. Stock card '.$pr->item->sku.' now holds '.$pr->item->quantityLabel() : '')
-            .'. The order is matched to the supplier invoice next (§14.4 step 7).');
+            .'. The order is matched to the supplier invoice next.');
     }
 
     public function matchOrder(Request $request, PurchaseOrder $order)
@@ -211,6 +211,6 @@ class ProcurementController extends Controller
 
         return back()->with('status', $order->reference.' was paid '.$order->amountLabel().' to '
             .($order->supplier->name ?? 'the supplier').' by '.$method.' on '.$when
-            .'. The ledger carries the expense against '.$order->request->budgetLabel().' (§14.4 step 8).');
+            .'. The ledger carries the expense against '.$order->request->budgetLabel().'.');
     }
 }

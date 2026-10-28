@@ -14,7 +14,7 @@ use App\Support\Payouts;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — the payout register (§14.6). Two paths on one screen, kept visibly apart: project income waiting on
+ * Module 11 — the payout register. Two paths on one screen, kept visibly apart: project income waiting on
  * the hirer's payment and approved by Finance, training income waiting on the end-of-cohort report and approved by
  * the Programme Manager before Finance releases it from the training budget. A payout that cannot move is held
  * with its reason, never deleted or duplicated.
@@ -72,8 +72,8 @@ class PayoutController extends Controller
         return back()->with('status', $payout->reference.' opened as '.$payout->streamLabel()
             .' for '.($payout->fundi->full_name ?? 'an E-Fundi').'. '.$payout->stageLabel().' — '
             .($payout->stream === 'training'
-                ? 'the Programme Manager confirms the certified trainees once the end-of-cohort report is in (§14.6).'
-                : 'the payout is calculated once Finance confirms the hirer has paid (§14.6).'));
+                ? 'the Programme Manager confirms the certified trainees once the end-of-cohort report is in.'
+                : 'the payout is calculated once Finance confirms the hirer has paid.'));
     }
 
     public function show(Payout $payout)
@@ -98,7 +98,7 @@ class PayoutController extends Controller
         return back()->with('status', $payout->reference.': the hirer\'s payment of '
             .Finance::ksh((float) $request->input('amount_received_ksh')).' is confirmed in the system ('
             .$request->input('hirer_payment_ref').'). The payout is calculated at '.$payout->refresh()->netLabel()
-            .' and queued for approval (§14.6 step 5).');
+            .' and queued for approval.');
     }
 
     public function confirmReport(Request $request, Payout $payout)
@@ -107,7 +107,7 @@ class PayoutController extends Controller
 
         return back()->with('status', $payout->reference.': the end-of-cohort report is in and '
             .$payout->certified_count.' certified trainee(s) are confirmed. '.$payout->calculation
-            .' — the Programme Manager approves, then Finance releases it from the training budget (§14.6).');
+            .' — the Programme Manager approves, then Finance releases it from the training budget.');
     }
 
     public function approve(Payout $payout)
@@ -116,7 +116,7 @@ class PayoutController extends Controller
 
         return back()->with('status', $payout->reference.' was approved by '.$payout->approverLabel().' ('
             .($payout->approver->name ?? 'the office').') for '.Finance::ksh((float) $payout->net_ksh)
-            .'. Finance now releases it — '.($payout->stream === 'training' ? 'out of the training budget.' : 'out of the project budget.').' (§14.6)');
+            .'. Finance now releases it — '.($payout->stream === 'training' ? 'out of the training budget.' : 'out of the project budget.').'');
     }
 
     public function release(Request $request, Payout $payout)
@@ -126,7 +126,7 @@ class PayoutController extends Controller
         return back()->with('status', $payout->reference.' released: '.Finance::ksh((float) $payout->net_ksh)
             .' to '.($payout->fundi->full_name ?? 'the fundi').' by '.$payout->methodLabel()
             .' (confirmation '.$payout->provider_ref.'). It is on the ledger against '.$payout->budgetLabel()
-            .' and on the fundi\'s earnings history (§14.6 steps 6–8).');
+            .' and on the fundi\'s earnings history.');
     }
 
     public function hold(Request $request, Payout $payout)

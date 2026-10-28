@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-/** Where training is delivered — a partner school, a community site or a programme centre (§7.3). */
+/** Where training is delivered — a partner school, a community site or a programme centre. */
 class TrainingVenue extends Model
 {
     public const TYPES = [

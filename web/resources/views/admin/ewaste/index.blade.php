@@ -16,17 +16,15 @@
     <div class="stat"><small>Hazardous</small><b>{{ $totals['hazardous'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach ($filters as $key => $label)
-        <a class="tab {{ $status === $key ? 'on' : '' }}"
-           href="{{ route('admin.ewaste.index', ['f' => $key, 'item' => $item, 'county' => $county, 'q' => $search]) }}">
-            {{ $label }}<span class="n">{{ $key === 'all' ? $counts['all'] : $counts[$key] }}</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.ewaste.index') }}" class="filter-bar">
-    <input type="hidden" name="f" value="{{ $status }}">
+    <label class="field">
+        <span>Collection status</span>
+        <select name="f" onchange="this.form.submit()">
+            @foreach ($filters as $key => $label)
+                <option value="{{ $key }}" @selected($status === $key)>{{ $label }} ({{ $key === 'all' ? $counts['all'] : $counts[$key] }})</option>
+            @endforeach
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search collection ID, note or who collected it" aria-label="Search collection ID, note or who collected it">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($item !== 'all' || $county !== 'all' || $search !== '')

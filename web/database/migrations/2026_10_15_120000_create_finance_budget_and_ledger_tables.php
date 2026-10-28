@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 11 — the money backbone (§14.2, §14.3). A budget line is one programme category for one financial year;
+ * Module 11 — the money backbone. A budget line is one programme category for one financial year;
  * every shilling that moves afterwards is a ledger entry that either feeds a budget line (an expense charged to it)
  * or arrives as funding. The lists stay closed so the totals on the budget page always add up to the same eight
  * categories the programme is planned around.
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string('reference', 30)->unique();
             $table->unsignedSmallInteger('fiscal_year');
             $table->string('direction', 10);
-            // What kind of money it is — the closed list in §14.3.
+            // What kind of money it is — the closed list in .
             $table->string('kind', 40);
             // Which budget line an expense is charged against (null on funding in).
             $table->string('budget_category', 32)->nullable();
@@ -58,7 +58,7 @@ return new class extends Migration
             $table->index(['source_type', 'source_id']);
         });
 
-        // §14.2 — the programme plan for the current year, as the office first meets it.
+        //  — the programme plan for the current year, as the office first meets it.
         $rows = [];
         foreach (BudgetLine::PLAN_2026 as $category => $amount) {
             $rows[] = [$category, $amount];
@@ -68,7 +68,7 @@ return new class extends Migration
             'fiscal_year' => 2026,
             'category' => $r[0],
             'amount_ksh' => $r[1],
-            'note' => $i === 0 ? 'Taken from the programme budget in the blueprint (§14.2).' : null,
+            'note' => $i === 0 ? 'Taken from the programme budget in the blueprint.' : null,
             'created_at' => now(),
             'updated_at' => now(),
         ])->all());

@@ -15,7 +15,7 @@ use App\Support\KenyaMap;
 use Illuminate\Http\Request;
 
 /**
- * Module 12 — monitoring and evaluation (§15.2–§15.4). The dashboard and the map read the other modules' tables
+ * Module 12 — monitoring and evaluation. The dashboard and the map read the other modules' tables
  * at request time and store nothing, so an indicator can never be edited to a nicer number.
  */
 class MeGisController extends Controller
@@ -35,7 +35,7 @@ class MeGisController extends Controller
     }
 
     /**
-     * §15.4 as a county tile map: every record in the programme carries a county name, so the map is drawn from
+     *  as a county tile map: every record in the programme carries a county name, so the map is drawn from
      * the counties themselves. One layer at a time is shaded, and a tile opens that county's records on the layer.
      */
     public function map(Request $request)

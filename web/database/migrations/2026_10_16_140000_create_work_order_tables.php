@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 7 — Project Execution & Payment (§10). The work order is the paper the award turns into: who is doing the
+ * Module 7 — Project Execution & Payment. The work order is the paper the award turns into: who is doing the
  * work, what they are delivering, when it starts and ends, how it is paid for and what has actually happened on site.
  * Money is not calculated here — the payout register in Module 11 stays the only place a figure is worked out.
  */
@@ -26,18 +26,18 @@ return new class extends Migration
             $table->text('deliverables')->nullable();
             $table->date('start_on')->nullable();
             $table->date('deadline')->nullable();
-            // §10.5 — how the agreed amount is released. The split is stored so a custom 50/20/30 stays visible.
+            //  — how the agreed amount is released. The split is stored so a custom 50/20/30 stays visible.
             $table->string('schedule', 20)->default('fixed');
             $table->json('split')->nullable();
             $table->decimal('agreed_amount_ksh', 14, 2)->nullable();
             $table->string('materials_note', 1000)->nullable();
-            // §10.4 step 1 — the fundi accepts the order, types their signature and confirms the start date.
+            //  — the fundi accepts the order, types their signature and confirms the start date.
             $table->timestamp('accepted_on')->nullable();
             $table->string('signature', 160)->nullable();
             $table->string('accept_note', 1000)->nullable();
             $table->unsignedTinyInteger('percent_complete')->default(0);
             $table->timestamp('completion_requested_on')->nullable();
-            // §10.4 step 6 — the hirer inspects. The office records what they said, with the signed sheet attached.
+            //  — the hirer inspects. The office records what they said, with the signed sheet attached.
             $table->timestamp('confirmed_on')->nullable();
             $table->string('confirmed_by_name', 160)->nullable();
             $table->string('confirmation_note', 1000)->nullable();
@@ -61,7 +61,7 @@ return new class extends Migration
             $table->decimal('amount_ksh', 14, 2)->nullable();
             $table->date('due_on')->nullable();
             $table->string('status', 20)->default('pending');
-            // §10.4 step 4 — a supervisor or manager signs a milestone off; the office types who and when.
+            //  — a supervisor or manager signs a milestone off; the office types who and when.
             $table->timestamp('signed_on')->nullable();
             $table->foreignId('signed_by_user')->nullable()->constrained('users')->nullOnDelete();
             $table->string('note', 1000)->nullable();
@@ -73,7 +73,7 @@ return new class extends Migration
         Schema::create('work_order_updates', function (Blueprint $t) {
             $t->id();
             $t->foreignId('work_order_id')->constrained('work_orders')->cascadeOnDelete();
-            // progress = the fundi's day, visit = a supervisor's site visit, completion = the final photos (§10.4 steps 3, 4, 5).
+            // progress = the fundi's day, visit = a supervisor's site visit, completion = the final photos.
             $t->string('kind', 20)->default('progress');
             $t->date('entry_date');
             $t->unsignedTinyInteger('percent')->nullable();
@@ -97,7 +97,7 @@ return new class extends Migration
             $table->string('issue_size', 30)->nullable();
             $table->foreignId('raised_by_user')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('raised_on');
-            // §10.6 — the fundi has 48 hours to answer, then the Programme Manager mediates and a Director decides.
+            //  — the fundi has 48 hours to answer, then the Programme Manager mediates and a Director decides.
             $table->timestamp('responded_on')->nullable();
             $table->text('response')->nullable();
             $table->foreignId('responded_by_fundi')->nullable()->constrained('fundi_registrations')->nullOnDelete();

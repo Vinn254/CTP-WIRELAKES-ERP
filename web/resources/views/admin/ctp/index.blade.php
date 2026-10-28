@@ -29,17 +29,17 @@
 
 <form method="GET" class="filter-bar">
     <input type="search" name="q" value="{{ $search }}" placeholder="Search ID, name, phone or county" aria-label="Search ID, name, phone or county">
+    <label class="field">
+        <span>CTP status</span>
+        <select name="status" onchange="this.form.submit()">
+            @foreach ($tabs as $s => $lbl)
+                <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+            @endforeach
+        </select>
+    </label>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.index', ['status' => $status]) }}">Clear</a>@endif
 </form>
-
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.promoters.index', ['status' => $s, 'q' => $search]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
 
 <table class="data">
     <thead>
@@ -79,7 +79,7 @@
     <span class="tag">{{ $alumniTotal }} {{ Str::plural('alumnus', $alumniTotal) }}</span>
 </div>
 <p class="hint">
-    A CTP comes to this list when the cohort marks the end of their track (§7.5), and stays on it whether or not an
+    A CTP comes to this list when the cohort marks the end of their track, and stays on it whether or not an
     executive has signed the certificate yet. Moving one into a fundi pool <b>is</b> the transition: the record stays
     this same row, the grade written on it reads Junior or Senior Fundi from then on, and that is the grade they show
     as on their own portal, on their profile and on every office screen. Nothing is re-registered and nobody is
@@ -90,7 +90,7 @@
     <thead>
         <tr>
             <th>CTP ID</th><th>Name</th><th>County</th><th>Training finished</th><th>Certificate</th>
-            <th title="Attachment work this CTP has handed over on a project (Module 7)">Attachment work</th>
+            <th title="Attachment work this CTP has handed over on a project">Attachment work</th>
             <th>Mobilised</th><th>Move on as</th><th></th>
         </tr>
     </thead>

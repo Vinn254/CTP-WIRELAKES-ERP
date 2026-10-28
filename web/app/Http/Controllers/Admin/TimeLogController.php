@@ -4,69 +4,72 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TimeLog;
-use App\Models\Trainer;
+use App\Models\User;
 use App\Support\TimeSheet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * The trainer week sheet, as the office sees it (§7.8, and the paper the programme signs by hand).
+ * The week-sheet register, as the office sees it.
  *
- * A trainer writes one line per day and signs the week; this desk reads the same rows and answers the whole week in
- * one decision — approved, or returned naming what must be corrected. Human Resources is given a copy of both
- * screens and reads them without a say, because their proof of work is this sheet. The paper and the record are one
- * document: nothing here is written twice.
+ * A worker writes one line per day and signs the week; this desk answers the whole week in one decision — approved,
+ * or returned naming what must be corrected — because pay is built on these rows. Every other department is given a
+ * copy of the same paper and reads it without a say. The printed sheet and the record are one document: nothing here
+ * is written twice.
  */
 class TimeLogController extends Controller
 {
-    /** Every week a trainer has filled, newest first, with what is waiting on this desk counted up. */
+    /** Every week anyone has filled, newest first, with what is waiting on this desk counted up. */
     public function index(Request $request)
     {
         $all = TimeSheet::weeksFor();
         $status = $request->input('status', 'all');
+        $month = (string) $request->input('month', '');
+
+        $weeks = $all->when($month !== '', fn ($q) => $q->where('month', $month)->values())
+            ->when($status !== 'all', fn ($q) => $q->where('status', $status)->values());
 
         return view('admin.timelogs.index', [
-            'weeks' => $status === 'all' ? $all : $all->where('status', $status)->values(),
+            'weeks' => $weeks,
             'status' => $status,
+            'month' => $month,
+            'months' => $all->pluck('month')->unique()->values()->all(),
             'statuses' => TimeLog::STATUSES,
             'counts' => $all->countBy('status'),
-            'hours' => round($all->sum('hours'), 2),
+            'hours' => round($weeks->sum('hours'), 2),
+            'units' => (int) $weeks->sum('units'),
+            'people' => $weeks->pluck('worker')->filter()->unique('id')->count(),
         ]);
     }
 
-    /** One trainer's week, printed exactly as the ruled sheet reads. */
-    public function week(Request $request, Trainer $trainer, string $week)
+    /** One person's week, printed exactly as the ruled sheet reads. */
+    public function week(Request $request, User $user, string $week)
     {
-        $sheet = TimeSheet::sheet($trainer, $week);
+        $sheet = TimeSheet::sheet($user, $week);
 
         return view('admin.timelogs.week', [
             'sheet' => $sheet,
-            'trainer' => $trainer,
+            'worker' => $user,
             'week' => $sheet['start'],
+            'canDecide' => TimeSheet::decides($user),
             'back' => $sheet['start']->copy()->subWeek()->toDateString(),
             'onward' => $sheet['start']->copy()->addWeek()->toDateString(),
             'today' => TimeLog::weekStartOf(today())->toDateString(),
         ]);
     }
 
-    /** The Training desk signs the week off, or sends it back with the correction written on it. */
-    public function decide(Request $request, Trainer $trainer, string $week)
+    /** Approve the signed week, or send it back with the correction written on it. */
+    public function decide(Request $request, User $user, string $week)
     {
         $data = $request->validate([
             'decision' => 'required|in:approved,returned',
             'note' => 'nullable|string|max:500|required_if:decision,returned',
-        ], [], ['note' => 'What the trainer must correct', 'decision' => 'Decision']);
+        ], [], ['note' => 'What must be corrected', 'decision' => 'Decision']);
 
-        $week = $this->Monday($week)->toDateString();
+        $week = TimeLog::weekStartOf($week)->toDateString();
 
         return redirect()
-            ->route('admin.timelogs.week', [$trainer, $week])
-            ->with('status', TimeSheet::decide($trainer, $week, $data['decision'] === 'approved', $data['note'] ?? null));
-    }
-
-    /** The week a sheet belongs to, always the Monday it starts on. */
-    private function Monday(string $week): Carbon
-    {
-        return TimeLog::weekStartOf($week);
+            ->route('admin.timelogs.week', [$user, $week])
+            ->with('status', TimeSheet::decide($user, $week, $data['decision'] === 'approved', $data['note'] ?? null));
     }
 }

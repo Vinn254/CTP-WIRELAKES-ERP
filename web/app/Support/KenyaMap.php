@@ -3,7 +3,7 @@
 namespace App\Support;
 
 /**
- * §15.4 — the Kenya-wide view. Records carry a county name, not a map coordinate, so the country is drawn as one
+ *  — the Kenya-wide view. Records carry a county name, not a map coordinate, so the country is drawn as one
  * square per county placed roughly where it sits (north at the top, the coast on the right). A square is shaded by
  * how many records the chosen layer holds there, and opening it lists those records. No county is invented and no
  * square is drawn for a county the register does not know.
@@ -66,7 +66,7 @@ class KenyaMap
     }
 
     /**
-     * The counties sitting beside one on the board — §9.6 widening a search to neighbouring counties. The geography
+     * The counties sitting beside one on the board —  widening a search to neighbouring counties. The geography
      * is read off the same tile positions the map draws, so the two can never disagree about what borders what.
      *
      * @return list<string>

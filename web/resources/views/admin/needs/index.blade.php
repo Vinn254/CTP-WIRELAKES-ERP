@@ -27,19 +27,18 @@
         @endforeach
     </select>
     </span>
+    <span class="fld"><label for="status">Need status</label>
+    <select name="status" id="status" onchange="this.form.submit()">
+        @foreach ($tabs as $s => $lbl)
+            <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+        @endforeach
+    </select>
+    </span>
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search || $type !== 'all')
         <a class="btn btn-sm btn-ghost" href="{{ route('admin.needs.index', ['status' => $status]) }}">Clear</a>
     @endif
 </form>
-
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.needs.index', ['status' => $s, 'q' => $search, 'type' => $type]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
 
 @forelse ($needs as $need)
     <div class="card need-row">

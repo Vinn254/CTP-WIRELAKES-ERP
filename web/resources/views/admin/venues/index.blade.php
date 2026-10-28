@@ -6,8 +6,15 @@
 @endphp
 
 @section('content')
-<h1>Training venues</h1>
-<p class="page-lede">The sites where cohorts are delivered, with capacity and status.</p>
+<div class="head-row">
+    <div>
+        <h1>Training venues</h1>
+        <p class="page-lede">The sites where cohorts are delivered, with capacity and status.</p>
+    </div>
+    <div class="head-actions">
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-venue">Add a venue</button>
+    </div>
+</div>
 
 <div class="stat-row">
     <div class="stat"><small>Venues</small><b>{{ $venues->count() }}</b></div>
@@ -22,11 +29,12 @@
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.venues.index') }}">Clear</a>@endif
 </form>
 
-<details class="card need-form" @if ($errors->any()) open @endif>
-    <summary>Add a venue — a school, a site or a centre</summary>
+@include('partials.sheet-start', ['name' => 'add-venue', 'title' => 'Add a venue',
+    'sub' => 'A school, a site or a centre where a cohort is delivered.'])
     <form method="POST" action="{{ route('admin.venues.store') }}" class="fee-form"
           data-confirm="Add this training venue?" data-title="Add venue">
         @csrf
+        <input type="hidden" name="_sheet" value="add-venue">
         <div class="form-grid">
             <div class="field">
                 <label>Venue name <span class="req">*</span></label>
@@ -92,9 +100,12 @@
             <textarea name="summary" rows="3" maxlength="2000"></textarea>
         </div>
         <datalist id="venue-counties">@foreach ($counties as $name)<option value="{{ $name }}"></option>@endforeach</datalist>
-        <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Add venue</button>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Add venue</button>
+        </div>
     </form>
-</details>
+@include('partials.sheet-end')
 
 <table class="data">
     <thead>

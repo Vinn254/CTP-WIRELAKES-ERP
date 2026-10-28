@@ -35,35 +35,35 @@ use App\Models\WorkOrder;
 class Departments
 {
     public const ALL = [
-        ['slug' => 'membership', 'tag' => 'Module 1', 'name' => 'Website & Membership',
+        ['slug' => 'membership', 'name' => 'Website & Membership',
             'desc' => 'Public pages, CTP / E-Fundi applications, member accounts, projects and assignments', 'live' => true],
-        ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoters',
+        ['slug' => 'promoters', 'name' => 'CTP Promoters',
             'desc' => 'CTP profiles and IDs, tracks, mobilisation 15/30, suspension and deployment', 'live' => true],
-        ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Communities',
+        ['slug' => 'communities', 'name' => 'Communities',
             'desc' => 'Community profiles and IDs, needs assessment, beneficiaries, the CTPs who mobilise each place', 'live' => true],
-        ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
+        ['slug' => 'training', 'name' => 'Training & Certification',
             'desc' => 'Partner schools and sites, cohorts CTPs apply for, trainers, attendance, progress, certificates', 'live' => true],
-        ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Registry',
+        ['slug' => 'efundi', 'name' => 'E-Fundi Registry',
             'desc' => 'E-Fundi profiles and IDs, grades, trade skills, counties, availability and standing', 'live' => true],
-        ['slug' => 'marketplace', 'tag' => 'Module 6', 'name' => 'Project Marketplace',
+        ['slug' => 'marketplace', 'name' => 'Project Marketplace',
             'desc' => 'Match a posted project to the right E-Fundi, ask them, and award the one who takes it', 'live' => true],
-        ['slug' => 'execution', 'tag' => 'Module 7', 'name' => 'Project Execution',
+        ['slug' => 'execution', 'name' => 'Project Execution',
             'desc' => 'Work orders, materials issued, progress on site, milestones, the hirer\'s inspection and disputes', 'live' => true],
-        ['slug' => 'construction', 'tag' => 'Module 8', 'name' => 'Construction Works',
+        ['slug' => 'construction', 'name' => 'Construction Works',
             'desc' => 'Site assessment, the bill of quantities, labour on site, inspections and variations', 'live' => true],
-        ['slug' => 'technology', 'tag' => 'Module 9', 'name' => 'Technology Services',
+        ['slug' => 'technology', 'name' => 'Technology Services',
             'desc' => 'ICT, Networking, Robotics, Programming and AI — the asset register, the projects and the repair tickets', 'live' => true],
-        ['slug' => 'ewaste', 'tag' => 'Module 10', 'name' => 'E-Waste Collection',
+        ['slug' => 'ewaste', 'name' => 'E-Waste Collection',
             'desc' => 'Collection, weighing, refurbish, disposal', 'live' => true],
-        ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance & Budget',
+        ['slug' => 'finance', 'name' => 'Finance & Budget',
             'desc' => 'The programme budget, the money register, invoices and the two payout streams', 'live' => true],
-        ['slug' => 'me_gis', 'tag' => 'Module 12', 'name' => 'Monitoring, Maps & Reports',
+        ['slug' => 'me_gis', 'name' => 'Monitoring, Maps & Reports',
             'desc' => 'The impact dashboard, the county map, a report per role, the trail and the programme switches', 'live' => true],
-        ['slug' => 'procurement', 'tag' => 'Module 13', 'name' => 'Procurement & Stores',
+        ['slug' => 'procurement', 'name' => 'Procurement & Stores',
             'desc' => 'Requests, quotations, purchase orders, suppliers and the stock on the shelf', 'live' => true],
-        ['slug' => 'hr', 'tag' => 'Module 14', 'name' => 'Human Resources',
+        ['slug' => 'hr', 'name' => 'Human Resources',
             'desc' => 'Office accounts and roles, the careers board and the trainers\' signed weeks', 'live' => true],
-        ['slug' => 'mobile', 'tag' => 'Module 15', 'name' => 'Mobile App',
+        ['slug' => 'mobile', 'name' => 'Mobile App',
             'desc' => 'Field app for CTPs and Fundis', 'live' => false],
     ];
 
@@ -96,7 +96,6 @@ class Departments
             ['label' => 'Training', 'icon' => 'award', 'route' => ['admin.trainings.index']],
             ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],
             ['label' => 'Trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
-            ['label' => 'Trainer time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
         ],
         'efundi' => [
@@ -130,6 +129,9 @@ class Departments
         ],
         'hr' => [
             ['label' => 'Careers & applicants', 'icon' => 'award', 'route' => ['admin.careers.index'], 'badge' => 'careers'],
+            ['label' => 'Onboarding', 'icon' => 'check', 'route' => ['admin.onboarding.index'], 'badge' => 'onboarding'],
+            ['label' => 'Staff directory', 'icon' => 'users', 'route' => ['admin.directory.index']],
+            ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
             ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
         ],
@@ -161,7 +163,7 @@ class Departments
         'admin.trainings.' => 'training',
         'admin.venues.' => 'training',
         'admin.trainers.' => 'training',
-        'admin.timelogs.' => 'training',
+        'admin.timelogs.' => 'hr',
         'admin.registers.' => 'training',
         'admin.certification.' => 'training',
         'admin.fundis.' => 'efundi',
@@ -186,6 +188,8 @@ class Departments
         // Careers is how the office finds a person, and the accounts office is where the login is made — both are
         // people's records, so they are Human Resources' screens, not Module 1's.
         'admin.careers.' => 'hr',
+        'admin.directory.' => 'hr',
+        'admin.onboarding.' => 'hr',
         'admin.staff.' => 'hr',
         'admin.leave.' => 'hr',
         // admin.myleave.* deliberately has no owner: a worker's own balance goes with them to every desk they hold.
@@ -203,6 +207,9 @@ class Departments
         'admin.hirers.index' => 'Organisations that projects are posted for',
         'admin.donations.index' => 'Every pledge made on the public donate page',
         'admin.staff.index' => 'Invite staff and set their roles',
+        'admin.onboarding.index' => 'Applicants given the job, written up as staff with their file',
+        'admin.directory.index' => 'Everyone who works here — next of kin, the C14 on record and pay',
+        'admin.directory.show' => 'One person’s staff file, kept up to date by this desk',
         'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
         'admin.promoters.create' => 'Open a CTP application on someone’s behalf when they cannot reach the website',
         'admin.communities.index' => 'Every community, its CTP, its needs and who benefited there',
@@ -213,19 +220,20 @@ class Departments
         'admin.trainings.index' => 'The trainings the programme runs, and the modules expected under each',
         'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
         'admin.trainers.index' => 'Who takes each training — an E-Fundi, a staff account or an applicant — and what they are paid',
-        'admin.timelogs.index' => 'The week each trainer signs — the days worked, what was done, and the office\'s approval',
+        'admin.timelogs.index' => 'Every week anyone on staff has filled — the days worked, what was done, and Human Resources\' approval for pay',
         'admin.timelogs.week' => 'The signed week as the paper reads: day, clock times, work, initials, hours and units',
-        'admin.host.timelogs.index' => 'The same signed weeks, read here — who is on a site and what they logged',
+        'admin.host.timelogs.index' => 'The same signed weeks, read here — who of the people you work with logged what',
         'admin.host.timelogs.week' => 'The same week sheet, read here as proof of the work before pay',
+        'admin.mytime.index' => 'Your own week sheet — pick the month and the week of it, write Monday to Friday, sign the week',
         'admin.leave.index' => 'Every application on the register — approve it or send it back with what to fix',
         'admin.host.leave.index' => 'The leave the people of this desk hold, read here',
         'admin.myleave.index' => 'Your balances, the days left, and an application to Human Resources',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
-        'admin.marketplace.index' => 'Run the search, put the project to the top of the shortlist, and award it to a fundi who took it (§9.4)',
-        'admin.execution.index' => 'The order an award turns into: materials issued, days on site, stages signed off, the hirer\'s inspection and any dispute (§10.4)',
-        'admin.construction.index' => 'The engineering file behind a build: the site read, the priced BoQ, labour counted, inspections re-checked and variations decided (§11)',
-        'admin.technology.index' => 'The five sub-areas on one desk: every device and licence on the asset register, the robotics/software/AI projects, and the repair tickets the fundis answer (§12)',
+        'admin.marketplace.index' => 'Run the search, put the project to the top of the shortlist, and award it to a fundi who took it',
+        'admin.execution.index' => 'The order an award turns into: materials issued, days on site, stages signed off, the hirer\'s inspection and any dispute',
+        'admin.construction.index' => 'The engineering file behind a build: the site read, the priced BoQ, labour counted, inspections re-checked and variations decided',
+        'admin.technology.index' => 'The five sub-areas on one desk: every device and licence on the asset register, the robotics/software/AI projects, and the repair tickets the fundis answer',
         'admin.ewaste.index' => 'What the field collected, what it weighed in at and what condition it is in',
         'admin.budget.index' => 'What each programme category was given this year, and what has been charged against it',
         'admin.ledger.index' => 'Every shilling in and out, with the budget line it sits on',
@@ -233,13 +241,13 @@ class Departments
         'admin.procurement.index' => 'Requests, quotations, purchase orders, deliveries and payments — one path per request',
         'admin.suppliers.index' => 'The suppliers quotations are taken from, and who has already been paid',
         'admin.inventory.index' => 'Stock cards by SKU, what is on the shelf, what is below its reorder level and what left the store',
-        'admin.payouts.index' => 'Project income and training income, kept on two separate release paths (§14.6)',
-        'admin.impacts.index' => 'The five things the programme measures, counted from the registers the other modules write (§15.2)',
-        'admin.gis.map' => 'One square per county, shaded by the layer you pick, opening the records held there (§15.4)',
-        'admin.reports.index' => 'The report each role works from, printed or exported as a file (§15.5, §15.6)',
-        'admin.activity.index' => 'Who changed what, when — written by the records themselves, never typed in (§15.6)',
+        'admin.payouts.index' => 'Project income and training income, kept on two separate release paths',
+        'admin.impacts.index' => 'The five things the programme measures, counted from the registers the other modules write',
+        'admin.gis.map' => 'One square per county, shaded by the layer you pick, opening the records held there',
+        'admin.reports.index' => 'The report each role works from, printed or exported as a file',
+        'admin.activity.index' => 'Who changed what, when — written by the records themselves, never typed in',
         'admin.host.activity.index' => 'The same trail, read here: every sign-in, code, decision and record change in the programme',
-        'admin.programme.index' => 'The Paybill, contact details and payment amounts the code reads; an executive changes them (§15.6)',
+        'admin.programme.index' => 'The Paybill, contact details and payment amounts the code reads; an executive changes them',
     ];
 
     /**
@@ -264,12 +272,12 @@ class Departments
         // the M&E screen, never a link out of the department.
         'admin.host.activity.index' => ['admin.activity.index', ['membership']],
         'admin.host.activity.export' => ['admin.activity.export', ['membership']],
-        // The Training desk signs a trainer's week; every other office reads the very same sheet — HR as proof of the
-        // work before pay, the rest to know who of the people they work with is on a site.
+        // Human Resources approves the week; every other desk reads the very same sheet as its own copy — Training to
+        // see who is on a site, Finance as the work paid for, the rest to know what their people logged.
         'admin.host.timelogs.index' => ['admin.timelogs.index', ['membership', 'promoters', 'communities', 'efundi',
-            'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement', 'hr']],
+            'training', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
         'admin.host.timelogs.week' => ['admin.timelogs.week', ['membership', 'promoters', 'communities', 'efundi',
-            'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement', 'hr']],
+            'training', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
         // Human Resources answers a leave application; each desk sees the ones its own people hold, read here.
         'admin.host.leave.index' => ['admin.leave.index', ['membership', 'promoters', 'communities', 'training', 'efundi',
             'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
@@ -320,16 +328,16 @@ class Departments
     }
 
     /**
-     * The screens of a department. Two people's registers are copied into every desk — the weeks the trainers sign
-     * and the leave their own people hold — so reading either never moves someone out of the department they work
-     * in, and every worker can book their own leave from whichever desk they are standing at.
+     * The screens of a department. Two registers are copied into every desk — the signed weeks and the leave the
+     * desk's own people hold — so reading either never moves someone out of the department they work in, and every
+     * worker fills their own week sheet and books their own leave from whichever desk they are standing at.
      */
     public static function nav(string $slug): array
     {
         $items = self::NAV[$slug] ?? [];
 
-        if ($slug !== 'training') {
-            $items[] = ['label' => 'Trainer time logs', 'icon' => 'clock',
+        if ($slug !== 'hr') {
+            $items[] = ['label' => 'Time logs', 'icon' => 'clock',
                 'route' => ['admin.host.timelogs.index', $slug], 'badge' => 'timelogs'];
         }
 
@@ -337,6 +345,7 @@ class Departments
             $items[] = ['label' => 'Leave', 'icon' => 'check', 'route' => ['admin.host.leave.index', $slug]];
         }
 
+        $items[] = ['label' => 'My time log', 'icon' => 'clock', 'route' => ['admin.mytime.index']];
         $items[] = ['label' => 'My leave', 'icon' => 'mail', 'route' => ['admin.myleave.index']];
 
         return $items;
@@ -445,9 +454,10 @@ class Departments
             'needs' => Need::where('status', 'proposed')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
             'careers' => JobApplication::where('status', 'received')->count(),
+            'onboarding' => JobApplication::whereIn('status', JobApplication::ONBOARDABLE)->count(),
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),
-            'timelogs' => TimeLog::where('status', 'submitted')->distinct()->count(['trainer_id', 'week_start']),
+            'timelogs' => TimeLog::where('status', 'submitted')->distinct()->count(['user_id', 'week_start']),
             'leave' => LeaveRequest::where('status', 'pending')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),

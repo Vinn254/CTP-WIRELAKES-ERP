@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 11 — E-Fundi payouts (§14.6). Project income and training income are kept on one table but on two
+ * Module 11 — E-Fundi payouts. Project income and training income are kept on one table but on two
  * deliberately different paths: a project payout waits for the hirer's payment and is approved and released by
  * Finance; a training payout waits for the end-of-cohort report, is confirmed and approved by the Programme
  * Manager and only then released from the training budget. The columns each formula needs are kept apart so

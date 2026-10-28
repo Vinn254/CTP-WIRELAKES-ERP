@@ -1,12 +1,11 @@
 @php
     /** @var array $sheet */
-    $trainer = $sheet['trainer'];
+    $worker = $sheet['worker'];
     $editing = $editing ?? false;
-    $editLink = $editLink ?? fn ($date) => '#';
 @endphp
 <div class="table-scroll">
-    <table class="data sheet">
-        <caption>{{ $trainer->personName() }} — week of {{ $sheet['label'] }}</caption>
+    <table class="data week-sheet">
+        <caption>{{ $worker->name }} — week of {{ $sheet['label'] }}</caption>
         <thead>
             <tr>
                 <th>DAY/DATE</th>
@@ -48,7 +47,7 @@
                         @if ($row && $row->status === 'approved')
                             <b>{{ $row->approvedBy?->name ?? 'Approved' }}</b>
                         @elseif ($row && $row->status === 'submitted')
-                            <span class="hint">Signed by {{ $row->signedBy?->name ?? 'the trainer' }}</span>
+                            <span class="hint">Signed by {{ $row->signedBy?->name ?? 'the worker' }}</span>
                         @elseif ($row)
                             <span class="sign-line">&nbsp;</span>
                         @else
@@ -59,13 +58,8 @@
                     <td class="num nowrap">{{ $row ? (int) $row->units : '-' }}</td>
                     @if ($editing)
                         <td class="actions">
-                            @if ($row)
-                                <a class="btn btn-sm btn-outline"
-                                   href="{{ $editLink($day['date']) }}">Correct</a>
-                            @else
-                                <a class="btn btn-sm btn-outline"
-                                   href="{{ $editLink($day['date']) }}">Write</a>
-                            @endif
+                            <button class="btn btn-sm btn-outline" type="button"
+                                    data-sheet="day-{{ $day['date'] }}">{{ $row ? 'Correct' : 'Write' }}</button>
                         </td>
                     @endif
                 </tr>

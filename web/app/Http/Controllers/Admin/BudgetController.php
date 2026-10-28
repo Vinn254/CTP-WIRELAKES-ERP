@@ -9,7 +9,7 @@ use App\Support\Finance;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — the programme budget (§14.2). One line per category per financial year, with what has actually been
+ * Module 11 — the programme budget. One line per category per financial year, with what has actually been
  * charged against it read off the ledger. The office sets the amounts; the categories stay the closed list the
  * programme is planned around so the total always means the same thing year to year.
  */

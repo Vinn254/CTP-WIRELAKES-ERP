@@ -22,8 +22,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * The worker's own screens over the API — My work orders (Module 7 §10.4/§10.6), Items to put right
- * (Module 8 §11.4 step 5), My repair jobs (Module 9 §12.7) and the profile photo. Every row is resolved from
+ * The worker's own screens over the API — My work orders (Module 7 /), Items to put right
+ * (Module 8 ), My repair jobs (Module 9 ) and the profile photo. Every row is resolved from
  * the signed-in member's record, exactly as the portal controllers do, and each write calls the same support
  * method the website calls.
  */
@@ -114,7 +114,7 @@ class MemberWorkApiController extends Controller
         ]);
     }
 
-    /** POST /api/work/{order}/accept — §10.4 step 1: sign it and confirm the start day. */
+    /** POST /api/work/{order}/accept — : sign it and confirm the start day. */
     public function accept(Request $request, WorkOrder $order): JsonResponse
     {
         $this->theirOrder($order);
@@ -128,7 +128,7 @@ class MemberWorkApiController extends Controller
         ]);
     }
 
-    /** POST /api/work/{order}/log — §10.4 step 3: a day on the job, with a photo of it. */
+    /** POST /api/work/{order}/log — : a day on the job, with a photo of it. */
     public function log(Request $request, WorkOrder $order): JsonResponse
     {
         $this->theirOrder($order);
@@ -149,7 +149,7 @@ class MemberWorkApiController extends Controller
         ], 201);
     }
 
-    /** POST /api/work/{order}/complete — §10.4 step 5: the work is done; the hirer inspects next. */
+    /** POST /api/work/{order}/complete — : the work is done; the hirer inspects next. */
     public function complete(Request $request, WorkOrder $order): JsonResponse
     {
         $this->theirOrder($order);
@@ -164,7 +164,7 @@ class MemberWorkApiController extends Controller
         ]);
     }
 
-    /** POST /api/work/{order}/dispute/{dispute}/answer — §10.6 step 2: the worker's side of it. */
+    /** POST /api/work/{order}/dispute/{dispute}/answer — : the worker's side of it. */
     public function answer(Request $request, WorkOrder $order, WorkOrderDispute $dispute): JsonResponse
     {
         $this->theirOrder($order);
@@ -177,7 +177,7 @@ class MemberWorkApiController extends Controller
         Execution::answerDispute($dispute, $request, $member);
 
         return response()->json([
-            'message' => 'Your answer is on the dispute. The Programme Manager mediates and a Director decides (§10.6).',
+            'message' => 'Your answer is on the dispute. The Programme Manager mediates and a Director decides.',
             'dispute' => $this->dispute($dispute->fresh()),
         ]);
     }
@@ -230,7 +230,7 @@ class MemberWorkApiController extends Controller
         Construction::proveFix($item, $request, $member->id);
 
         return response()->json([
-            'message' => 'Proof of the fix on "'.$item->item.'" filed for the inspector to re-check (§11.4 step 6).',
+            'message' => 'Proof of the fix on "'.$item->item.'" filed for the inspector to re-check.',
         ], 201);
     }
 
@@ -249,7 +249,7 @@ class MemberWorkApiController extends Controller
 
     // ---- My repair jobs --------------------------------------------------
 
-    /** GET /api/tech — the technology tickets assigned to this fundi to fix (§12.7). */
+    /** GET /api/tech — the technology tickets assigned to this fundi to fix. */
     public function jobs(): JsonResponse
     {
         $member = $this->member();
@@ -282,7 +282,7 @@ class MemberWorkApiController extends Controller
         Technology::resolveTicket($ticket, $request, $member->id);
 
         return response()->json([
-            'message' => $ticket->reference.' recorded as fixed. The office confirms and closes it (§12.7).',
+            'message' => $ticket->reference.' recorded as fixed. The office confirms and closes it.',
         ]);
     }
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — an E-Fundi payout (§14.6). Project income and training income are two different paths on one
+ * Module 11 — an E-Fundi payout. Project income and training income are two different paths on one
  * register: a project payout waits for the hirer's money and is calculated out of the agreed amount after the
  * deductions; a training payout waits for the end-of-cohort report and is calculated from certified trainees.
  * Keeping them on separate rows with separate formulas is what stops the training budget paying for project work.
@@ -16,8 +16,8 @@ use Illuminate\Http\Request;
 class Payout extends Model
 {
     public const STREAMS = [
-        'project' => 'Project income (Module 7)',
-        'training' => 'Training income (Module 4)',
+        'project' => 'Project income',
+        'training' => 'Training income',
     ];
 
     public const STAGES = [
@@ -72,7 +72,7 @@ class Payout extends Model
             'payee_account' => 'nullable|string|max:120',
             'note' => 'nullable|string|max:1000',
         ], [
-            'stream.required' => 'Say which income stream this is — project work and training delivery are paid through different paths (§14.6).',
+            'stream.required' => 'Say which income stream this is — project work and training delivery are paid through different paths.',
             'fundi_id.required' => 'A payout names the E-Fundi it is released to.',
         ], [
             'agreed_amount_ksh' => 'Agreed amount for the project',
@@ -135,13 +135,13 @@ class Payout extends Model
         return $this->belongsTo(User::class, 'released_by_user')->withDefault();
     }
 
-    /** §14.6 — the two formulas, kept in one place so the register, the fundi's earnings and the ledger agree. */
+    /**  — the two formulas, kept in one place so the register, the fundi's earnings and the ledger agree. */
     public function calculate(): array
     {
         if ($this->stream === 'training') {
             if ($this->certified_count === null || $this->per_trainee_fee_ksh === null) {
                 return ['gross' => 0.0, 'net' => 0.0, 'calculation' =>
-                    'Not calculated yet — the payout is worked out once the end-of-cohort report is in and the number of certified trainees is confirmed (§14.6 step 2).'];
+                    'Not calculated yet — the payout is worked out once the end-of-cohort report is in and the number of certified trainees is confirmed.'];
             }
 
             $fee = (float) $this->per_trainee_fee_ksh * (int) $this->certified_count;
@@ -282,7 +282,7 @@ class Payout extends Model
         return $stream === 'training' ? 'trainer_payout' : 'fundi_payout';
     }
 
-    /** PAY-2026-00003 — the payout ID the fundi is told, so a payment can always be traced (§14.6 step 7). */
+    /** PAY-2026-00003 — the payout ID the fundi is told, so a payment can always be traced. */
     public static function nextReference(): string
     {
         $year = now()->year;

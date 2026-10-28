@@ -10,7 +10,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — the ledger (§14.3). Every shilling in and out is one line here. Lines posted by the system (a paid
+ * Module 11 — the ledger. Every shilling in and out is one line here. Lines posted by the system (a paid
  * purchase order, a released payout) say where they came from and are not retyped; a line the office got wrong is
  * corrected with an opposite line rather than deleted, so the mistake stays visible.
  */

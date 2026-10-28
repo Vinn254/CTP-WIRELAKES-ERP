@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * Module 11 — the two payout paths (§14.6) in one place. A project payout cannot be approved until the hirer's
+ * Module 11 — the two payout paths in one place. A project payout cannot be approved until the hirer's
  * payment is confirmed in the system; a training payout cannot be calculated until the end-of-cohort report is in
  * and the certified count is confirmed. Both are released by Finance, and releasing one posts its own line on the
  * ledger against the right budget — training money never pays for project work and the other way round.
@@ -43,7 +43,7 @@ class Payouts
             'stage' => $isTraining ? 'awaiting_report' : 'awaiting_hirer_payment',
             'per_trainee_fee_ksh' => $data['per_trainee_fee_ksh'] ?? $trainer?->rate_ksh,
             // What the programme handed over for the job is a deduction — the project's own material lines decide it,
-            // so the office never types a figure that disagrees with what the store gave out (§14.6 step 6).
+            // so the office never types a figure that disagrees with what the store gave out.
             'materials_ksh' => $isTraining
                 ? ($data['materials_ksh'] ?? 0)
                 : (($data['materials_ksh'] ?? null) ?: self::materialsFor($data['project_id'] ?? null)),
@@ -65,7 +65,7 @@ class Payouts
     public static function confirmHirerPayment(Payout $payout, Request $request): Payout
     {
         abort_unless($payout->stream === 'project', 422,
-            $payout->reference.' is a training payout — it waits for the end-of-cohort report, not a hirer payment (§14.6).');
+            $payout->reference.' is a training payout — it waits for the end-of-cohort report, not a hirer payment.');
         $payout->mustBe('awaiting_hirer_payment', 'held');
 
         $data = $request->validate([
@@ -74,7 +74,7 @@ class Payouts
             'amount_received_ksh' => 'required|numeric|min:0|max:1000000000',
             'record_on_ledger' => 'nullable|boolean',
         ], [
-            'hirer_paid_on.required' => 'A project payout is only released after the hirer has paid the organisation (§14.6).',
+            'hirer_paid_on.required' => 'A project payout is only released after the hirer has paid the organisation.',
             'hirer_payment_ref.required' => 'Give the payment reference the Finance Officer found the receipt under.',
         ], [
             'hirer_paid_on' => 'Date the payment was received',
@@ -116,7 +116,7 @@ class Payouts
     public static function confirmReport(Payout $payout, Request $request): Payout
     {
         abort_unless($payout->stream === 'training', 422,
-            $payout->reference.' is a project payout — it waits for the hirer\'s payment, not a cohort report (§14.6).');
+            $payout->reference.' is a project payout — it waits for the hirer\'s payment, not a cohort report.');
         $payout->mustBe('awaiting_report', 'held');
 
         $data = $request->validate([
@@ -126,7 +126,7 @@ class Payouts
             'hosting_fee_ksh' => 'nullable|numeric|min:0|max:100000000',
             'report_note' => 'nullable|string|max:1000',
         ], [
-            'certified_count.required' => 'The trainer is paid for the trainees who passed the assessment, so confirm that number (§14.6 step 2).',
+            'certified_count.required' => 'The trainer is paid for the trainees who passed the assessment, so confirm that number.',
         ], [
             'report_submitted_on' => 'Report submitted on',
             'certified_count' => 'Certified trainees',
@@ -174,7 +174,7 @@ class Payouts
             'released_on' => 'required|date',
             'note' => 'nullable|string|max:1000',
         ], [
-            'provider_ref.required' => 'The M-Pesa or bank confirmation code is what makes this payout traceable (§14.6 step 7).',
+            'provider_ref.required' => 'The M-Pesa or bank confirmation code is what makes this payout traceable.',
             'payee_phone.required' => 'An M-Pesa payout needs the number it went to.',
             'payee_account.required' => 'A bank payout needs the account it went to.',
         ], [
@@ -269,7 +269,7 @@ class Payouts
     }
 
     /**
-     * Module 8 §11.5 — an approved variation changes what the hirer agreed to pay, and the payout is the same money
+     * Module 8  — an approved variation changes what the hirer agreed to pay, and the payout is the same money
      * record. The agreed figure is carried over and the calculation rewritten. A payout already approved or released
      * is not touched: Construction refuses the approval and points at this register instead.
      */

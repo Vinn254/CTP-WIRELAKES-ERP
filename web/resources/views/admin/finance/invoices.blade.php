@@ -10,7 +10,7 @@
         <p class="page-lede">Money the programme asks for — billed here, settled on the money register.</p>
     </div>
     <div class="head-acts">
-        <a class="btn btn-sm btn-lime" href="#raise">+ Raise invoice</a>
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="raise">+ Raise invoice</button>
         <a class="btn btn-sm btn-outline" href="{{ route('admin.invoices.index', ['f' => 'open']) }}">What is unpaid</a>
     </div>
 </div>
@@ -22,17 +22,15 @@
     <div class="stat"><small>Invoices on the desk</small><b>{{ $totals['count'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach (['all' => 'Every invoice', 'open' => 'Not paid', 'settled' => 'Settled', 'cancelled' => 'Cancelled'] as $key => $label)
-        <a class="tab {{ $status === $key ? 'on' : '' }}"
-           href="{{ route('admin.invoices.index', ['f' => $key, 'who' => $who, 'q' => $search]) }}">
-            {{ $label }}<span class="n">{{ $counts[$key] }}</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.invoices.index') }}" class="filter-bar">
-    <input type="hidden" name="f" value="{{ $status }}">
+    <label class="field">
+        <span>Invoice status</span>
+        <select name="f" onchange="this.form.submit()">
+            @foreach (['all' => 'Every invoice', 'open' => 'Not paid', 'settled' => 'Settled', 'cancelled' => 'Cancelled'] as $key => $label)
+                <option value="{{ $key }}" @selected($status === $key)>{{ $label }} ({{ $counts[$key] }})</option>
+            @endforeach
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, what it is for or who it is billed to"
            aria-label="Search reference, title or who it is billed to">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
@@ -96,13 +94,12 @@
 
 {{ $invoices->links() }}
 
-<div class="card entry-card" id="raise">
-    <h3>Raise an invoice</h3>
-    <p class="hint">The document is generated with the programme logo and the Paybill the payer must use. Send it from
-        the invoice once it is raised, or print it and hand it over.</p>
+@include('partials.sheet-start', ['name' => 'raise', 'title' => 'Raise an invoice',
+    'sub' => 'The document carries the programme logo and the Paybill the payer must use.'])
     <form method="POST" action="{{ route('admin.invoices.store') }}" class="fee-form"
           data-confirm="Raise this invoice?" data-title="Raise invoice">
         @csrf
+        <input type="hidden" name="_sheet" value="raise">
         <div class="form-grid-2">
             <div class="field">
                 <label>Billed to <span class="req">*</span></label>
@@ -190,9 +187,12 @@
             <label>Note on the document</label>
             <input type="text" name="note" maxlength="1000" placeholder="Anything the payer should read under the total.">
         </div>
-        <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Raise the invoice</button>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Raise the invoice</button>
+        </div>
     </form>
-</div>
+@include('partials.sheet-end')
 
 <p class="hint">{{ Finance::paybillLine() }} It is set under Programme settings and printed on every invoice.
     An invoice is a request for money, not a movement of it — recording what came in is what

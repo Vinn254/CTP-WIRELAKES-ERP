@@ -6,7 +6,7 @@ use App\Support\Audit;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Module 12 §15.6 — every watched record writes its own trail line when it is opened, changed or closed off.
+ * Module 12  — every watched record writes its own trail line when it is opened, changed or closed off.
  * Observers rather than a call in each controller, so a change made anywhere in the app is recorded, not only
  * the changes someone remembered to report.
  */

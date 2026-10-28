@@ -11,7 +11,7 @@ use App\Models\StockMovement;
 use App\Models\Supplier;
 
 /**
- * Module 11 — the procurement path (§14.4) in one place. The office screens all call these, so a purchase request
+ * Module 11 — the procurement path in one place. The office screens all call these, so a purchase request
  * cannot be paid before it is received, and goods cannot reach a shelf without the purchase order that brought
  * them. Every step leaves its mark on the same request row: nothing is deleted and nothing is raised twice.
  */
@@ -30,7 +30,7 @@ class Procurement
         'ewaste' => 'ewaste',
     ];
 
-    /** The budget a stock card is charged to when materials go out of the store (§14.3). */
+    /** The budget a stock card is charged to when materials go out of the store. */
     public const STOCK_TO_BUDGET = [
         'technology' => 'ict',
         'construction' => 'construction',
@@ -71,7 +71,7 @@ class Procurement
 
         $supplier = Supplier::findOrFail($data['supplier_id']);
         abort_unless($supplier->status === 'approved', 422,
-            $supplier->name.' is not on the approved supplier list, so their price cannot be used as a quotation (§14.4 step 3).');
+            $supplier->name.' is not on the approved supplier list, so their price cannot be used as a quotation.');
 
         $quotation = $request->quotations()->create([
             'supplier_id' => $supplier->id,

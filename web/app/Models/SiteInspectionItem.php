@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 8 §11.4 step 2 — one thing the inspector was asked to check, and what they found. A fail is not deleted to
+ * Module 8  — one thing the inspector was asked to check, and what they found. A fail is not deleted to
  * make a report pass: it is answered by the worker's proof and the inspector's dated re-check on the same line.
  */
 class SiteInspectionItem extends Model

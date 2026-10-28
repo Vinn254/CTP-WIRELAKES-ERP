@@ -15,14 +15,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Module 7 — the delivery desk (§10). One register of every work order an award has produced, and one sheet per
+ * Module 7 — the delivery desk. One register of every work order an award has produced, and one sheet per
  * order where the office does the seven things that are not the worker's: fix the plan, issue materials, sign a
  * stage off, record a site visit, record what the hirer said when they inspected, run a dispute to its decision,
  * and hand the confirmed job to Module 11's payout register.
  */
 class ExecutionController extends Controller
 {
-    /** The register's tabs. Each is a set of §10.4 states, not a new state of its own. */
+    /** The register's tabs. Each is a set of  states, not a new state of its own. */
     private const TABS = [
         'all' => ['label' => 'Every order', 'statuses' => null],
         'awaiting' => ['label' => 'Waiting to be accepted', 'statuses' => ['issued']],
@@ -87,7 +87,7 @@ class ExecutionController extends Controller
         ]);
     }
 
-    /** §10.2 — the office sets what the order actually says. A signed stage is never re-planned over (§10.5). */
+    /**  — the office sets what the order actually says. A signed stage is never re-planned over. */
     public function plan(Request $request, WorkOrder $order)
     {
         $order->mustBe('issued', 'accepted', 'in_progress');
@@ -101,7 +101,7 @@ class ExecutionController extends Controller
             'agreed_amount_ksh' => 'required|numeric|min:0|max:1000000000',
             'materials_note' => 'nullable|string|max:1000',
         ], [
-            'scope.required' => 'A work order has to state the work — the worker signs against what is written here (§10.2).',
+            'scope.required' => 'A work order has to state the work — the worker signs against what is written here.',
             'deliverables.required' => 'Say what must be handed over at the end, so the hirer has something to inspect.',
         ], [
             'scope' => 'Scope of work',
@@ -150,7 +150,7 @@ class ExecutionController extends Controller
         return $raw;
     }
 
-    /** §10.4 step 2 — the storekeeper hands a line over against the order; a stock card is booked out with it. */
+    /**  — the storekeeper hands a line over against the order; a stock card is booked out with it. */
     public function issueMaterial(Request $request, WorkOrder $order, ProjectMaterial $material)
     {
         $order->mustBe('accepted', 'in_progress', 'issued', 'disputed');
@@ -158,10 +158,10 @@ class ExecutionController extends Controller
         Execution::issueMaterial($order, $material, $request);
 
         return back()->with('status', $material->name.' issued for '.$order->reference.' — '
-            .$material->totalLabel().' now sits in the payout deduction (§10.3).');
+            .$material->totalLabel().' now sits in the payout deduction.');
     }
 
-    /** §10.4 step 4 — a supervisor signs a stage off. */
+    /**  — a supervisor signs a stage off. */
     public function signMilestone(Request $request, WorkOrder $order, WorkOrderMilestone $milestone)
     {
         $this->theirMilestone($order, $milestone);
@@ -179,7 +179,7 @@ class ExecutionController extends Controller
         return back()->with('status', $milestone->name.' is open again on '.$order->reference.'. The trail carries both moves.');
     }
 
-    /** §10.4 step 4 — the office records a site visit on the worker's log. */
+    /**  — the office records a site visit on the worker's log. */
     public function visit(Request $request, WorkOrder $order)
     {
         $order->mustBe('accepted', 'in_progress', 'completion_submitted', 'disputed');
@@ -192,16 +192,16 @@ class ExecutionController extends Controller
             .' recorded on '.$order->reference.'.');
     }
 
-    /** §10.4 steps 6–7 — the hirer inspected and said yes. There is no hirer login, so the office types what was said. */
+    /**  — the hirer inspected and said yes. There is no hirer login, so the office types what was said. */
     public function confirm(Request $request, WorkOrder $order)
     {
         Execution::confirmCompletion($order, $request);
 
         return back()->with('status', $order->reference.' confirmed by '.trim((string) $order->confirmed_by_name)
-            .' — the project is closed as delivered, and the job can be handed to Finance for the payout (§10.4 steps 8–10).');
+            .' — the project is closed as delivered, and the job can be handed to Finance for the payout.');
     }
 
-    /** §10.6 — the hirer would not confirm. The office records the issue and the 48 hours start. */
+    /**  — the hirer would not confirm. The office records the issue and the 48 hours start. */
     public function dispute(Request $request, WorkOrder $order)
     {
         $dispute = Execution::raiseIssue($order, $request);
@@ -217,10 +217,10 @@ class ExecutionController extends Controller
         Execution::mediate($dispute, $request);
 
         return back()->with('status', 'Mediation recorded on the dispute against '.$order->reference
-            .'. A programme executive decides the outcome (§10.6).');
+            .'. A programme executive decides the outcome.');
     }
 
-    /** §10.6 — a Director decides. Executive only, like every other decision that ends a record. */
+    /**  — a Director decides. Executive only, like every other decision that ends a record. */
     public function decide(Request $request, WorkOrder $order, WorkOrderDispute $dispute)
     {
         $this->theirDispute($order, $dispute);
@@ -231,14 +231,14 @@ class ExecutionController extends Controller
             .'. The order now reads '.str_replace('_', ' ', $order->fresh()->status).'.');
     }
 
-    /** §10.4 steps 8–10 — the confirmed job becomes a payout row on Module 11's register. */
+    /**  — the confirmed job becomes a payout row on Module 11's register. */
     public function handover(Request $request, WorkOrder $order)
     {
         $payout = Execution::handover($order, $request);
 
         return redirect()->route('admin.payouts.show', $payout)->with('status',
             $order->reference.' handed to Finance — '.$payout->reference.' is open on the payout register, waiting for '
-            .'the hirer\'s money to be confirmed before anything is released (§14.6).');
+            .'the hirer\'s money to be confirmed before anything is released.');
     }
 
     public function close(Request $request, WorkOrder $order)

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-/** A person, household or business in a community that a project reached (§6.3). */
+/** A person, household or business in a community that a project reached. */
 class Beneficiary extends Model
 {
     public const TYPES = [

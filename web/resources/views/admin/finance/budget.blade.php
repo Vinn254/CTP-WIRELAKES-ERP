@@ -15,13 +15,17 @@
     <div class="stat"><small>Categories over budget</small><b>{{ $plan->filter(fn ($r) => $r['amount'] > 0 && $r['spent'] > $r['amount'])->count() }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach ($years as $y)
-        <a class="tab {{ (int) $y === $year ? 'on' : '' }}" href="{{ route('admin.budget.index', ['year' => $y]) }}">
-            {{ $y }}<span class="n">{{ $y === $year ? $plan->count() : '' }}</span>
-        </a>
-    @endforeach
-</div>
+<form method="GET" action="{{ route('admin.budget.index') }}" class="filter-bar inline-filter">
+    <label class="field">
+        <span>Budget year</span>
+        <select name="year" onchange="this.form.submit()">
+            @foreach ($years as $y)
+                <option value="{{ $y }}" @selected((int) $y === $year)>{{ $y }}@if ($y === $year) ({{ $plan->count() }})@endif</option>
+            @endforeach
+        </select>
+    </label>
+    <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
+</form>
 
 <table class="data">
     <thead>
@@ -81,7 +85,7 @@
                                 {{ auth()->user()->role === 'superadmin' ? 'Set it' : 'Only an executive account can set this' }}
                             </button>
                             @if (auth()->user()->role !== 'superadmin')
-                                <div class="hint" style="margin-top:8px;">Staff prepare the plan; a programme executive signs the budget lines (§14.2).</div>
+                                <div class="hint" style="margin-top:8px;">Staff prepare the plan; a programme executive signs the budget lines.</div>
                             @endif
                         </form>
                     </details>
@@ -93,7 +97,7 @@
             <td><b>{{ Finance::ksh($planned) }}</b></td>
             <td><b>{{ Finance::ksh($spent) }}</b></td>
             <td><b>{{ Finance::ksh($left) }}</b></td>
-            <td colspan="3" class="hint">The plan the programme is run on — §14.2.</td>
+            <td colspan="3" class="hint">The plan the programme is run on —.</td>
             <td></td>
         </tr>
     </tbody>
@@ -124,7 +128,7 @@
                 own lines as they are released.</p>
         @endforelse
         <p class="hint">A category is only ever charged with money that belongs to it: a trainer is paid from the
-            training line, never from a project build (§14.6).</p>
+            training line, never from a project build.</p>
     </div>
 </div>
 @endsection

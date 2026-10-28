@@ -10,23 +10,23 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * Module 6 — the matching desk (§9.4). The search reads the E-Fundi register the way §8 keeps it: grade against the
+ * Module 6 — the matching desk. The search reads the E-Fundi register the way  keeps it: grade against the
  * project category, the skills the typed trade actually names, the counties the fundi says they cover, whether they
  * say they are free, and what they have already done. Nothing here invents a rating — the programme has no review
  * scores, so the standing bar is built from the register's own facts and every factor is written out on the row.
  */
 class Marketplace
 {
-    /** §9.4 step 2 — the factors the search scores on and the most each can add. */
+    /**  — the factors the search scores on and the most each can add. */
     public const FACTORS = ['skills' => 40, 'county' => 25, 'availability' => 15, 'experience' => 10, 'jobs' => 10];
 
     /** The standing bar a fundi must clear to be shortlisted, as a share of the points available on the project. */
     public const BAR = 55;
 
-    /** §9.4 step 3 — how many of the top of the shortlist are asked. */
+    /**  — how many of the top of the shortlist are asked. */
     public const INVITE_TOP = 5;
 
-    /** A lowered bar (§9.6) is not free — the desk only lets an executive take it that far. */
+    /** A lowered bar is not free — the desk only lets an executive take it that far. */
     public const MIN_BAR = 30;
 
     /** The skills the project asks for, read off the trade and the title against the programme's own skill list. */
@@ -70,7 +70,7 @@ class Marketplace
         $points = 0.0;
         $possible = array_sum(self::FACTORS);
 
-        // The three tests §9.4 runs before it scores anything at all.
+        // The three tests  runs before it scores anything at all.
         $reason = match (true) {
             ! Project::fits(['tier' => $fundi->tier, 'ctp' => false], $project->category) =>
                 'Their grade does not cover a '.($project->categoryLabel()).'.',
@@ -128,8 +128,7 @@ class Marketplace
     }
 
     /**
-     * Run the search and keep the result as a new round (§9.4 step 2, and §9.6 — a second run is round 2, never an
-     * overwrite of round 1). Returns the round number and how many fundis were kept.
+     * Run the search and keep the result as a new round. Returns the round number and how many fundis were kept.
      *
      * @param  array{widen?: bool, bar?: int}  $opts
      */
@@ -162,7 +161,7 @@ class Marketplace
         return ['round' => $round, 'kept' => $kept];
     }
 
-    /** §9.4 step 3 — ask the top of the round. The 48 hours start when the invite is put out, not when it is read. */
+    /**  — ask the top of the round. The 48 hours start when the invite is put out, not when it is read. */
     public static function invite(Project $project, int $round, int $top = self::INVITE_TOP): int
     {
         $ids = ProjectMatch::where('project_id', $project->id)->where('round', $round)
@@ -175,7 +174,7 @@ class Marketplace
         return $n;
     }
 
-    /** A fundi answering inside the window (§9.4 step 4). Anything else is refused with the reason a person can read. */
+    /** A fundi answering inside the window. Anything else is refused with the reason a person can read. */
     public static function respond(ProjectMatch $match, string $answer, ?string $note): ProjectMatch
     {
         abort_unless($match->status === 'invited', 422, match ($match->status) {
@@ -198,7 +197,7 @@ class Marketplace
 
     /**
      * An invite whose 48 hours have passed is closed off the moment the desk or the fundi next opens it. It stays on
-     * the round as a no-reply — the record that the search went out and nobody answered is what §9.6 acts on.
+     * the round as a no-reply — the record that the search went out and nobody answered is what  acts on.
      */
     public static function closeExpired(int $projectId): int
     {
@@ -225,9 +224,9 @@ class Marketplace
     }
 
     /**
-     * §9.4 step 6 — the project goes to a fundi who took it, or to a hand-pick. The project's own award rule is the
+     *  — the project goes to a fundi who took it, or to a hand-pick. The project's own award rule is the
      * one place an award happens (Project::awardTo), so a marketplace award and an award from the project page cannot
-     * disagree. Being handed a job also takes the fundi off the available list (§8.3).
+     * disagree. Being handed a job also takes the fundi off the available list.
      */
     public static function award(ProjectMatch $match): ProjectApplication
     {

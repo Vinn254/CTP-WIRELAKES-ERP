@@ -13,7 +13,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 
 /**
- * The training register (§7.8). A trainer is whoever the programme licenses to deliver a training, and that is
+ * The training register. A trainer is whoever the programme licenses to deliver a training, and that is
  * three kinds of person: an E-Fundi from the fundi pool, a staff account, or an applicant taken on at Careers.
  * All three sit on the same list and work the same desk — only the record holding the person differs. An E-Fundi
  * must be senior to carry a cohort; the office licenses the other two by hand.

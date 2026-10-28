@@ -19,7 +19,7 @@
         </p>
     </div>
     <div>
-        <a class="btn btn-sm btn-outline" href="{{ route('admin.teaching.week') }}">My week sheet</a>
+        <a class="btn btn-sm btn-outline" href="{{ route('admin.mytime.index') }}">My time log</a>
     </div>
 </div>
 

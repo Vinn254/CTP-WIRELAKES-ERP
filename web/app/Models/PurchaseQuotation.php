@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — one quotation on a purchase request (§14.4 step 3). Prices are attached as evidence of what the
+ * Module 11 — one quotation on a purchase request. Prices are attached as evidence of what the
  * market charged, so a quote is never edited into another figure: a wrong one is removed and the supplier quotes
  * again. Exactly one quote on a request is the one bought against.
  */
@@ -30,7 +30,7 @@ class PurchaseQuotation extends Model
             'quoted_on' => 'required|date',
             'note' => 'nullable|string|max:1000',
         ], [
-            'supplier_id.required' => 'Quotations only count when they come from a supplier on the approved list (§14.4 step 3).',
+            'supplier_id.required' => 'Quotations only count when they come from a supplier on the approved list.',
         ], [
             'supplier_id' => 'Supplier',
             'amount_ksh' => 'Quoted price',

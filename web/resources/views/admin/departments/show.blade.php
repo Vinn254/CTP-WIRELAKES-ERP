@@ -9,7 +9,7 @@
 <div class="workspace">
     <div class="ws-head">
         <div>
-            <span class="mod">{{ auth()->user()->isSuperAdmin() ? $department['tag'].' · Live' : 'Live' }}</span>
+            <span class="mod">Live</span>
             <h2>{{ $department['name'] }}</h2>
         </div>
         @if ($department['slug'] === 'membership')
@@ -29,4 +29,6 @@
         @endforeach
     </div>
 </div>
+
+<div class="card paybill-card">@include('partials.paybill')</div>
 @endsection

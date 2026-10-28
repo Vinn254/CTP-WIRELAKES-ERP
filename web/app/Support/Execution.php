@@ -20,7 +20,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Module 7 — the delivery path (§10.4). An award becomes a work order, the store issues materials against it, the
+ * Module 7 — the delivery path. An award becomes a work order, the store issues materials against it, the
  * worker logs days and photos, a supervisor signs milestones off, the hirer inspects (the office records what they
  * said), a refused job goes into the dispute flow, and a confirmed one hands over to Module 11's payout register.
  * No figure is calculated in here: the payout does the money maths, the material lines do the deduction.
@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Storage;
 class Execution
 {
     /**
-     * §10.2 — the order is generated when a project is assigned. Called from Project::awardTo, so whichever screen
+     *  — the order is generated when a project is assigned. Called from Project::awardTo, so whichever screen
      * awarded the job (the project page or the Module 6 desk) the order exists. Re-awarding to a different worker
      * opens a second order; the one the previous worker held is cancelled with the reason, never rewritten.
      */
@@ -80,7 +80,7 @@ class Execution
         return $order;
     }
 
-    /** §10.2 — what has to be handed over at the end, written from the project the office posted. */
+    /**  — what has to be handed over at the end, written from the project the office posted. */
     private static function defaultDeliverables(Project $project): string
     {
         return collect([
@@ -91,7 +91,7 @@ class Execution
     }
 
     /**
-     * §10.5 — the split becomes the stages. The stages still on the list are matched to the new shares by position, so
+     *  — the split becomes the stages. The stages still on the list are matched to the new shares by position, so
      * a fourth stage is added or the last one taken off rather than the whole plan being rewritten underneath. Nothing
      * a supervisor signed is touched: re-planning over a signature needs the sign-off lifted first, and the office is
      * told so instead of the signed figure being quietly changed. A stage a new split drops is marked off the list,
@@ -132,7 +132,7 @@ class Execution
                 if ((int) $row->share_percent !== (int) $share) {
                     abort(422, $row->name.' on '.$order->reference.' was signed off at '
                         .(int) $row->share_percent.'% — '.$row->amountLabel().'. A signature is not re-planned: lift the '
-                        .'sign-off first if this stage\'s share really changes (§10.5).');
+                        .'sign-off first if this stage\'s share really changes.');
                 }
 
                 $row->update(['due_on' => $fields['due_on']]);
@@ -164,7 +164,7 @@ class Execution
         };
     }
 
-    /** §10.4 step 1 — the worker accepts, signs digitally and confirms the start date. Only they can do it. */
+    /**  — the worker accepts, signs digitally and confirms the start date. Only they can do it. */
     public static function accept(WorkOrder $order, Request $request): WorkOrder
     {
         $order->mustBe('issued');
@@ -174,7 +174,7 @@ class Execution
             'start_on' => 'required|date',
             'accept_note' => 'nullable|string|max:1000',
         ], [
-            'signature.required' => 'Type your name as your signature — the order is signed when you accept it (§10.4 step 1).',
+            'signature.required' => 'Type your name as your signature — the order is signed when you accept it.',
             'start_on.required' => 'Confirm the day you are starting. The deadline is measured from it.',
         ], [
             'signature' => 'Digital signature',
@@ -192,7 +192,7 @@ class Execution
     }
 
     /**
-     * §10.4 steps 3–4 — a day logged, by the worker or as a supervisor's visit. The order keeps the highest figure
+     *  — a day logged, by the worker or as a supervisor's visit. The order keeps the highest figure
      * reported on it and never goes down: a wrong percentage is answered by the next line, not by rewriting the old one.
      */
     public static function log(WorkOrder $order, array $data, Request $request, ?FundiRegistration $by): WorkOrderUpdate
@@ -228,7 +228,7 @@ class Execution
         return (int) $order->percent_complete;
     }
 
-    /** §10.3 — the storekeeper hands a material line over against the order. A line from a stock card also goes off the shelf. */
+    /**  — the storekeeper hands a material line over against the order. A line from a stock card also goes off the shelf. */
     public static function issueMaterial(WorkOrder $order, ProjectMaterial $material, Request $request): ProjectMaterial
     {
         $data = $request->validate([
@@ -254,7 +254,7 @@ class Execution
 
             abort_if((float) $card->qty_on_hand < (float) $material->quantity, 422,
                 $card->name.' has only '.$card->quantityLabel().' on the shelf and this line needs '
-                .$material->quantityLabel().'. Raise a purchase request in Module 11, or issue a smaller quantity on a second line.');
+                .$material->quantityLabel().'. Raise a purchase request in Finance, or issue a smaller quantity on a second line.');
 
             StockMovement::create([
                 'inventory_item_id' => $card->id,
@@ -276,7 +276,7 @@ class Execution
         return $material;
     }
 
-    /** §10.4 step 4 — a supervisor or manager signs a stage off. */
+    /**  — a supervisor or manager signs a stage off. */
     public static function signMilestone(WorkOrderMilestone $milestone, Request $request): WorkOrderMilestone
     {
         abort_if($milestone->isSigned(), 422, $milestone->name.' was already signed off on '
@@ -314,7 +314,7 @@ class Execution
         return $milestone;
     }
 
-    /** §10.4 step 5 — the worker says the job is done. The final photos are logged on the same screen. */
+    /**  — the worker says the job is done. The final photos are logged on the same screen. */
     public static function requestCompletion(WorkOrder $order, Request $request): WorkOrder
     {
         $order->mustBe('accepted', 'in_progress');
@@ -323,7 +323,7 @@ class Execution
             'note' => 'required|string|max:5000',
             'photo' => 'nullable|image|max:8192',
         ], [
-            'note.required' => 'Write what was completed. The hirer reads this when they inspect (§10.4 step 6).',
+            'note.required' => 'Write what was completed. The hirer reads this when they inspect.',
         ], ['note' => 'What was completed', 'photo' => 'Final photo']);
 
         $entry = WorkOrderUpdate::create([
@@ -347,7 +347,7 @@ class Execution
     }
 
     /**
-     * §10.4 steps 6–7 — the hirer inspects. They have no account, so the office records what was said with the
+     *  — the hirer inspects. They have no account, so the office records what was said with the
      * signed sheet attached. Confirmed work marks the project completed and the payout can be opened.
      */
     public static function confirmCompletion(WorkOrder $order, Request $request): WorkOrder
@@ -355,19 +355,19 @@ class Execution
         $order->mustBe('completion_submitted', 'disputed');
 
         // The office records the hirer's words, but it cannot use that record to walk past a dispute that is still
-        // standing: the dispute has an outcome and a decision on it before the work can read as confirmed (§10.6).
+        // standing: the dispute has an outcome and a decision on it before the work can read as confirmed.
         if ($open = static::activeDispute($order)) {
             abort(422, $order->reference.' has an issue on it that no Director has decided yet — '
                 .'"'.str($open->issue)->limit(120).'".'
                 .($open->responded_on ? '' : ' The worker has not answered it either.')
-                .' Confirm the work only once the dispute carries an outcome (§10.6).');
+                .' Confirm the work only once the dispute carries an outcome.');
         }
 
         $data = WorkOrder::confirmationFrom($request);
 
         if ($order->schedule === 'milestone' && $outstanding = $order->milestonesOutstanding()) {
             abort(422, $order->reference.' still has '.$outstanding.' '
-                .str('stage')->plural($outstanding).' on the split that nobody signed off (§10.4 step 4). '
+                .str('stage')->plural($outstanding).' on the split that nobody signed off. '
                 .'Sign the '.str('stage')->plural($outstanding).' off, lift a wrong sign-off, or put the order into dispute.');
         }
 
@@ -380,7 +380,7 @@ class Execution
         ]);
         $order->storeConfirmationSheet($request);
 
-        // §10.4 step 7 — the job is done, so the project leaves the award queue. The completion itself is the date
+        //  — the job is done, so the project leaves the award queue. The completion itself is the date
         // on this order, which is what M&E and the payout both read.
         $order->project->update(['status' => 'closed']);
 
@@ -392,7 +392,7 @@ class Execution
         return $order;
     }
 
-    /** §10.4 step 6 — the hirer raises an issue instead, which opens the dispute flow (§10.6). */
+    /**  — the hirer raises an issue instead, which opens the dispute flow. */
     public static function raiseIssue(WorkOrder $order, Request $request): WorkOrderDispute
     {
         $order->mustBe('completion_submitted', 'confirmed');
@@ -412,7 +412,7 @@ class Execution
         return $dispute;
     }
 
-    /** §10.6 step 2 — the worker answers. Late answers are recorded too; the mediation reads them either way. */
+    /**  — the worker answers. Late answers are recorded too; the mediation reads them either way. */
     public static function answerDispute(WorkOrderDispute $dispute, Request $request, FundiRegistration $fundi): WorkOrderDispute
     {
         abort_unless($dispute->isAwaitingWorker(), 422,
@@ -422,7 +422,7 @@ class Execution
 
         $data = $request->validate([
             'response' => 'required|string|max:5000',
-        ], ['response.required' => 'Say your side of it — the Programme Manager reads both statements before mediating (§10.6).'],
+        ], ['response.required' => 'Say your side of it — the Programme Manager reads both statements before mediating.'],
             ['response' => 'Your answer']);
 
         $dispute->update([
@@ -434,7 +434,7 @@ class Execution
         return $dispute;
     }
 
-    /** §10.6 step 3 — the Programme Manager mediates. Staff record it; the decision is an executive's. */
+    /**  — the Programme Manager mediates. Staff record it; the decision is an executive's. */
     public static function mediate(WorkOrderDispute $dispute, Request $request): WorkOrderDispute
     {
         $data = $request->validate([
@@ -450,7 +450,7 @@ class Execution
     }
 
     /**
-     * §10.6 step 3 — a Director decides. The five outcomes are closed, and each has a fixed consequence on the
+     *  — a Director decides. The five outcomes are closed, and each has a fixed consequence on the
      * order: work goes back, or the job is treated as confirmed, or it closes with no payout. The money itself is
      * Module 11's; a penalty recorded here is what the payout handover carries across.
      */
@@ -466,7 +466,7 @@ class Execution
             'penalty_ksh' => 'nullable|numeric|min:0|max:1000000000',
             'outcome_note' => 'required|string|max:1000',
         ], [
-            'outcome.required' => 'Pick one of the five outcomes §10.6 allows — a dispute is never closed without an outcome.',
+            'outcome.required' => 'Pick one of the five outcomes  allows — a dispute is never closed without an outcome.',
             'outcome_note.required' => 'Write what the decision means for the worker and the hirer.',
         ], [
             'outcome' => 'Outcome',
@@ -511,7 +511,7 @@ class Execution
             'refund' => $order->update([
                 'status' => 'closed',
                 'closed_on' => now(),
-                'closure_note' => 'Dispute decided: refund. No payout is opened — Finance settles the refund in Module 11.',
+                'closure_note' => 'Dispute decided: refund. No payout is opened — Finance settles the refund.',
             ]),
             default => $order->update(['status' => 'confirmed', 'completed_on' => $order->completed_on ?? now()]),
         };
@@ -521,11 +521,11 @@ class Execution
         if ($data['outcome'] === 'refund' && $open = static::payoutFor($order)) {
             abort_unless(in_array($open->stage, ['rejected', 'held'], true), 422,
                 $open->reference.' is still open on the Finance register for '.($order->reference ?? 'the order')
-                .'. Put it on hold or reject it there first — a refund is settled by Finance (§14.6), not by this decision.');
+                .'. Put it on hold or reject it there first — a refund is settled by Finance, not by this decision.');
         }
 
         // The deduction a Director decides after the handover belongs on the payout the order already sits on,
-        // so the two records show one figure (§10.6 -> §14.6).
+        // so the two records show one figure.
         if ($payout) {
             Payouts::carryPenalty($payout, static::penalties($order));
         }
@@ -553,9 +553,9 @@ class Execution
     }
 
     /**
-     * §10.4 steps 8–10 — the hand into Module 11. The payout row is opened there, on its own register, already
+     *  — the hand into Module 11. The payout row is opened there, on its own register, already
      * behind the gate that waits for the hirer's money. Materials are not typed in: they are the value of what the
-     * store actually handed over (§14.6 step 6).
+     * store actually handed over.
      */
     public static function handover(WorkOrder $order, Request $request): Payout
     {
@@ -576,7 +576,7 @@ class Execution
 
         abort_unless($order->assignee_type === 'fundi', 422,
             'This order was awarded to a CTP as attachment work, so there is no E-Fundi payout to open — '
-            .'attachment is training, and it is credited on the trainee\'s record instead (§10.2).');
+            .'attachment is training, and it is credited on the trainee\'s record instead.');
 
         $penalty = static::penalties($order);
         $agreed = (float) $order->agreed_amount_ksh;
@@ -623,7 +623,7 @@ class Execution
 
         if ($order->assignee_type === 'fundi' && ! static::payoutFor($order)) {
             abort(422, $order->reference.' is confirmed but no payout is open for it on the Finance register. '
-                .'Hand it to Finance first (§10.4 steps 8–10) — a closed order with no payout row leaves the worker unpaid.');
+                .'Hand it to Finance first — a closed order with no payout row leaves the worker unpaid.');
         }
 
         $data = $request->validate([
@@ -655,7 +655,7 @@ class Execution
         return $order;
     }
 
-    /** A fundi who has finished, been stopped or been decided off a job goes back on the available list (§8.3). */
+    /** A fundi who has finished, been stopped or been decided off a job goes back on the available list. */
     private static function freeWorker(WorkOrder $order, string $note): void
     {
         if ($order->fundi->exists ?? false) {
@@ -683,7 +683,7 @@ class Execution
         $payout = static::payoutFor($order);
 
         return match (true) {
-            $order->status === 'issued' => 'Waiting for '.$order->assignee_name.' to accept and sign (§10.4 step 1).',
+            $order->status === 'issued' => 'Waiting for '.$order->assignee_name.' to accept and sign.',
             $order->status === 'disputed' => (static::activeDispute($order)?->isAwaitingWorker()
                 ? 'The worker has to answer the hirer\'s issue within 48 hours.'
                 : 'Mediation is with the Programme Manager; a Director decides the outcome.'),
@@ -708,7 +708,7 @@ class Execution
     }
 
     /**
-     * What a page of workers has actually delivered, read off their own orders (§10.4). One read for a whole
+     * What a page of workers has actually delivered, read off their own orders. One read for a whole
      * register rather than one per row: what each finished, whether the work landed inside the deadline written on
      * the order, what is still running, and what a Director had to decide on its disputes. The programme keeps no
      * review score, so "how they got on" is built from these facts alone — every figure traces back to an order row.
@@ -767,7 +767,7 @@ class Execution
         ];
     }
 
-    /** Orders that are waiting on the worker themselves: unsigned, or a dispute they have not answered (§10.4 step 1, §10.6 step 2). */
+    /** Orders that are waiting on the worker themselves: unsigned, or a dispute they have not answered. */
     public static function awaitingWorker(Model $member): int
     {
         $type = $member instanceof CtpRegistration ? 'ctp' : 'fundi';

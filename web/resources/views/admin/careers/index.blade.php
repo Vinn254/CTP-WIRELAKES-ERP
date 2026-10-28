@@ -13,7 +13,7 @@
         <p class="page-lede">Openings the programme puts out for a job or project work, and the people who applied.</p>
     </div>
     <div class="head-acts">
-        <a class="btn btn-sm btn-lime" href="#post">+ Post an opening</a>
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="post">+ Post an opening</button>
         <a class="btn btn-sm btn-outline" href="{{ route('careers') }}" target="_blank">View the public page</a>
     </div>
 </div>
@@ -25,13 +25,17 @@
     <div class="stat"><small>Postings on the desk</small><b>{{ $counts['all'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach (['all' => 'Every posting', 'open' => 'Open', 'draft' => 'Draft', 'closed' => 'Closed'] as $key => $label)
-        <a class="tab {{ $status === $key ? 'on' : '' }}" href="{{ route('admin.careers.index', ['f' => $key]) }}">
-            {{ $label }}<span class="n">{{ $counts[$key] ?? 0 }}</span>
-        </a>
-    @endforeach
-</div>
+<form method="GET" action="{{ route('admin.careers.index') }}" class="filter-bar inline-filter">
+    <label class="field">
+        <span>Posting status</span>
+        <select name="f" onchange="this.form.submit()">
+            @foreach (['all' => 'Every posting', 'open' => 'Open', 'draft' => 'Draft', 'closed' => 'Closed'] as $key => $label)
+                <option value="{{ $key }}" @selected($status === $key)>{{ $label }} ({{ $counts[$key] ?? 0 }})</option>
+            @endforeach
+        </select>
+    </label>
+    <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
+</form>
 
 <table class="data">
     <thead>
@@ -62,14 +66,12 @@
 
 {{ $openings->links() }}
 
-<div class="card entry-card" id="post">
-    <h3>Post an opening</h3>
-    <p class="hint">This is for work the programme is hiring for — a trainer for another project, a technician, a
-        piece of project work. It is not one of the trainings on the catalogue: those run through CTP and E-Fundi
-        registration. Save it as a draft to write it up, then open it when you want the public page to carry it.</p>
+@include('partials.sheet-start', ['name' => 'post', 'title' => 'Post an opening',
+    'sub' => 'Work the programme is hiring for. Save a draft, then open it when the public page should carry it.'])
     <form method="POST" action="{{ route('admin.careers.store') }}" class="fee-form"
           data-confirm="Post this opening to the careers page?" data-title="Post an opening">
         @csrf
+        <input type="hidden" name="_sheet" value="post">
         <div class="form-grid-2">
             <div class="field full">
                 <label>Title on the public page <span class="req">*</span></label>
@@ -112,13 +114,13 @@
             <textarea name="requirements" rows="3" maxlength="1000"
                       placeholder="Skills, certificates, experience — anything a person must bring.">{{ old('requirements') }}</textarea>
         </div>
-        <div class="head-acts" style="margin-top:14px;">
+        <div class="sheet-actions">
             <button class="btn btn-sm btn-outline" type="submit" name="publish" value="0">Save as draft</button>
             <button class="btn btn-sm btn-lime" type="submit" name="publish" value="1">Post it</button>
         </div>
     </form>
-</div>
+@include('partials.sheet-end')
 
 <p class="hint">A closed posting stays on the public page without its form, and what people applied to is never
-    deleted — amend a posting on its own page and the applications already in stay as they were.</p>
+    deleted.</p>
 @endsection

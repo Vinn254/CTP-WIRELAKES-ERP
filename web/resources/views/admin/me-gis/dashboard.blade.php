@@ -67,7 +67,7 @@
 <div class="card">
     <h2 class="section-head">Projects on the nine budget lines</h2>
     <p class="help">
-        The programme reports work against the same nine lines finance budgets against (§14.2). A project falls on a
+        The programme reports work against the same nine lines finance budgets against. A project falls on a
         line by the trade typed when it was posted — the trades actually typed are shown so the grouping can be checked.
         Anything that cannot be matched is listed on its own rather than dropped, so a missing trade does not silently
         reduce the totals.

@@ -33,9 +33,6 @@ class Workspace
                 'items' => [
                     ['label' => 'My teaching', 'icon' => 'award', 'route' => ['admin.teaching.index'],
                         'note' => 'The cohorts you take and the marks you record for them', 'department' => 'training'],
-                    ['label' => 'My week sheet', 'icon' => 'clock', 'route' => ['admin.teaching.week'],
-                        'note' => 'The days you worked, signed at the end of the week for the office to approve',
-                        'department' => 'training', 'badge' => null],
                 ],
             ];
         }
@@ -65,6 +62,23 @@ class Workspace
                     'items' => $items,
                 ];
             }
+        }
+
+        // The own desk goes with the person, not the title: a week sheet and a leave book, wherever they sit.
+        $listed = collect($groups)->flatMap(fn (array $g) => collect($g['items'])
+            ->map(fn (array $i) => $i['route'][0] ?? ''));
+
+        if (! $listed->contains('admin.mytime.index')) {
+            $groups[] = [
+                'label' => 'My own desk',
+                'note' => 'The week you fill and sign, and the leave you book with Human Resources',
+                'items' => [
+                    ['label' => 'My time log', 'icon' => 'clock', 'route' => ['admin.mytime.index'],
+                        'note' => 'Pick the month and the week of it, write Monday to Friday, sign the week'],
+                    ['label' => 'My leave', 'icon' => 'mail', 'route' => ['admin.myleave.index'],
+                        'note' => 'Your balances and an application to Human Resources'],
+                ],
+            ];
         }
 
         return $groups;

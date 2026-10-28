@@ -10,8 +10,8 @@
         <p class="page-lede">All programme money in and out, one line per entry.</p>
     </div>
     <div class="head-acts">
-        <a class="btn btn-sm btn-lime" href="#money-in">+ Money in</a>
-        <a class="btn btn-sm btn-outline" href="#money-out">+ Money out</a>
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="money-in">+ Money in</button>
+        <button class="btn btn-sm btn-outline" type="button" data-sheet="money-out">+ Money out</button>
     </div>
 </div>
 
@@ -23,24 +23,23 @@
     <div class="stat"><small>Lines on the register</small><b>{{ $counts['all'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach (['all' => 'Every line', 'income' => 'Money in', 'expense' => 'Money out'] as $key => $label)
-        <a class="tab {{ $direction === $key ? 'on' : '' }}"
-           href="{{ route('admin.ledger.index', ['f' => $key, 'kind' => $kind, 'budget' => $budget, 'year' => $year, 'q' => $search]) }}">
-            {{ $label }}<span class="n">{{ $counts[$key] }}</span>
-        </a>
-    @endforeach
-    @foreach ($years as $y)
-        <a class="tab {{ (int) $y === $year ? 'on' : '' }}"
-           href="{{ route('admin.ledger.index', ['f' => $direction, 'kind' => $kind, 'budget' => $budget, 'year' => $y, 'q' => $search]) }}">
-            {{ $y }}<span class="n">year</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.ledger.index') }}" class="filter-bar">
-    <input type="hidden" name="f" value="{{ $direction }}">
-    <input type="hidden" name="year" value="{{ $year }}">
+    <label class="field">
+        <span>Money in or out</span>
+        <select name="f" onchange="this.form.submit()">
+            @foreach (['all' => 'Every line', 'income' => 'Money in', 'expense' => 'Money out'] as $key => $label)
+                <option value="{{ $key }}" @selected($direction === $key)>{{ $label }} ({{ $counts[$key] }})</option>
+            @endforeach
+        </select>
+    </label>
+    <label class="field">
+        <span>Year</span>
+        <select name="year" onchange="this.form.submit()">
+            @foreach ($years as $y)
+                <option value="{{ $y }}" @selected((int) $y === $year)>{{ $y }}</option>
+            @endforeach
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, title or note" aria-label="Search reference, title or note">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($kind !== 'all' || $budget !== 'all' || $search !== '')
@@ -121,15 +120,13 @@
 
 {{ $entries->links() }}
 
-<div class="two-col">
-    <div class="card entry-card" id="money-in">
-        <h3>Record money in</h3>
-        <p class="hint">Funding is not charged to a budget line — it arrives. Say what it is so the budget page can
-            count it for the year.</p>
-        <form method="POST" action="{{ route('admin.ledger.store') }}" class="fee-form"
-              data-confirm="Record this money in on the register?" data-title="Record money in">
-            @csrf
-            <input type="hidden" name="direction" value="income">
+@include('partials.sheet-start', ['name' => 'money-in', 'title' => 'Record money in',
+    'sub' => 'Funding is not charged to a budget line — it arrives, so say what it is.'])
+    <form method="POST" action="{{ route('admin.ledger.store') }}" class="fee-form"
+          data-confirm="Record this money in on the register?" data-title="Record money in">
+        @csrf
+        <input type="hidden" name="_sheet" value="money-in">
+        <input type="hidden" name="direction" value="income">
             <div class="field">
                 <label>What came in <span class="req">*</span></label>
                 <select name="kind" required>
@@ -174,18 +171,20 @@
                 <label>Note</label>
                 <input type="text" name="note" maxlength="1000" placeholder="Receipt, cheque or M-Pesa reference.">
             </div>
-            <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Record money in</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Record money in</button>
+            </div>
         </form>
-    </div>
+@include('partials.sheet-end')
 
-    <div class="card entry-card" id="money-out">
-        <h3>Record money out</h3>
-        <p class="hint">Every expense sits on a budget line (§14.2) — training money does not pay for a build. Pick
-            the line, and the budget page will show it charged.</p>
-        <form method="POST" action="{{ route('admin.ledger.store') }}" class="fee-form"
-              data-confirm="Record this expense on the register?" data-title="Record money out">
-            @csrf
-            <input type="hidden" name="direction" value="expense">
+@include('partials.sheet-start', ['name' => 'money-out', 'title' => 'Record money out',
+    'sub' => 'Every expense sits on a budget line — training money does not pay for a build.'])
+    <form method="POST" action="{{ route('admin.ledger.store') }}" class="fee-form"
+          data-confirm="Record this expense on the register?" data-title="Record money out">
+        @csrf
+        <input type="hidden" name="_sheet" value="money-out">
+        <input type="hidden" name="direction" value="expense">
             <div class="field">
                 <label>What went out <span class="req">*</span></label>
                 <select name="kind" required>
@@ -251,11 +250,13 @@
                 <label>Note</label>
                 <input type="text" name="note" maxlength="1000" placeholder="Invoice number, who authorised it.">
             </div>
-            <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Record money out</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Record money out</button>
+            </div>
         </form>
-    </div>
-</div>
+@include('partials.sheet-end')
 
 <p class="hint">Recording a line on the register is a bookkeeping action and staff do it; setting a budget and
-    releasing money out of the programme are signed by a programme executive (§14.2, §14.4 step 8, §14.6 steps 5–7).</p>
+    releasing money out of the programme are signed by a programme executive.</p>
 @endsection

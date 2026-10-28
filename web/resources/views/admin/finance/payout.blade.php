@@ -50,7 +50,7 @@
 <div class="grid-2 review-grid">
     <div class="stack">
         <div class="card">
-            <h3>{{ $isProject ? 'The project payout path (§14.6)' : 'The training payout path (§14.6)' }}</h3>
+            <h3>{{ $isProject ? 'The project payout path' : 'The training payout path' }}</h3>
             <p class="hint">Each step is signed by the officer named under it. {{ $payout->approverLabel() }}
                 approves this stream; only the Finance Officer releases the money.</p>
             <ol class="steps">
@@ -94,7 +94,7 @@
                                 </tbody>
                             </table>
                             <div class="hint">These are the project's own material lines marked as handed over — the
-                                deduction is their total, so the office and the store cannot disagree (§14.6 step 6).</div>
+                                deduction is their total, so the office and the store cannot disagree.</div>
                         @elseif ((float) $payout->materials_ksh)
                             <div class="hint">Entered by the office; the project has no material lines marked as handed over.</div>
                         @endif
@@ -133,7 +133,7 @@
     <div class="stack">
         @if ($isProject && in_array($stage, ['awaiting_hirer_payment', 'held'], true))
             <div class="card">
-                <h3>Confirm the hirer has paid (§14.6 step 4)</h3>
+                <h3>Confirm the hirer has paid</h3>
                 <p class="hint">A fundi is paid out of what the organisation actually received. The amount the hirer
                     paid cannot be below the agreed amount on the payout.</p>
                 <form method="POST" action="{{ route('admin.payouts.hirer', $payout) }}" class="fee-form"
@@ -170,7 +170,7 @@
 
         @if (! $isProject && in_array($stage, ['awaiting_report', 'held'], true))
             <div class="card">
-                <h3>File the report and confirm the certified count (§14.6 steps 1–2)</h3>
+                <h3>File the report and confirm the certified count</h3>
                 <p class="hint">The trainer is paid for the trainees who passed the assessment. Confirm that number
                     from the end-of-cohort report; the payout is then calculated and queued.</p>
                 <form method="POST" action="{{ route('admin.payouts.report', $payout) }}" class="fee-form"
@@ -215,10 +215,10 @@
                 <p class="hint">
                     @if ($isProject)
                         A project payout is approved by the Finance Officer — money has already come in from the
-                        hirer and this releases the fundi's share (§14.6 step 5).
+                        hirer and this releases the fundi's share.
                     @else
                         The Programme Manager reviews the report and confirms the certified count, then Finance
-                        releases it from the training budget (§14.6 step 3).
+                        releases it from the training budget.
                     @endif
                 </p>
                 <form method="POST" action="{{ route('admin.payouts.approve', $payout) }}" class="fee-form"
@@ -233,7 +233,7 @@
 
         @if ($stage === 'approved')
             <div class="card">
-                <h3>Release the money (§14.6)</h3>
+                <h3>Release the money</h3>
                 <p class="hint">Money leaves the programme here, so it is a Finance Officer (programme executive)
                     action. The confirmation code is what makes the payout traceable, and releasing it posts its own
                     line on the money register against {{ $payout->budgetLabel() }}.</p>
@@ -325,7 +325,7 @@
                     <div class="field">
                         <label>Reason the fundi can read <span class="req">*</span></label>
                         <input type="text" name="rejection_reason" required minlength="10" maxlength="1000"
-                               placeholder="e.g. Work was not completed; the job was reassigned in Module 7.">
+                               placeholder="e.g. Work was not completed; the job was reassigned on the delivery sheet.">
                     </div>
                     <button class="btn btn-outline btn-block" type="submit" style="margin-top:12px;"
                         @if ($isProject && ! $isExec) disabled @endif>

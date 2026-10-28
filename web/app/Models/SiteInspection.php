@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Module 8 §11.4 — a site inspection. It is scheduled first, then reported item by item, then signed off. An item
+ * Module 8  — a site inspection. It is scheduled first, then reported item by item, then signed off. An item
  * that fails is flagged on the inspection and keeps its own proof and re-check, so a signed-off report still shows
  * what went wrong and what was done about it.
  */
@@ -68,7 +68,7 @@ class SiteInspection extends Model
         return $this->items->where('result', 'fail')->values();
     }
 
-    /** §11.4 step 4 — the report is only complete when every item has been marked. */
+    /**  — the report is only complete when every item has been marked. */
     public function unmarkedCount(): int
     {
         return (int) $this->items->where('result', 'pending')->count();

@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * A person the programme has licensed to train at ONE SITE (§7.8, §8.8). That person is not always an E-Fundi:
+ * A person the programme has licensed to train at ONE SITE. That person is not always an E-Fundi:
  * a facilitator the office employs and an applicant taken on at Careers stand in the same queue, and all three
  * work the one trainer desk. What shapes the desk is the programmes they are licensed for, never the record they
  * come from. The row is only the teaching role at a named venue — which trainings they can take there, the hours
@@ -27,7 +27,7 @@ class Trainer extends Model
         'suspended' => 'Suspended',
     ];
 
-    /** Only a senior fundi carries the trade far enough to teach it (§8.2). A junior, intern or
+    /** Only a senior fundi carries the trade far enough to teach it. A junior, intern or
      *  attachment applicant works under a senior — they do not run a cohort. The rule is checked only
      *  of an E-Fundi holder: a staff account or an accepted applicant is licensed by the office directly. */
     public const TEACHING_TIERS = ['senior_fundi'];

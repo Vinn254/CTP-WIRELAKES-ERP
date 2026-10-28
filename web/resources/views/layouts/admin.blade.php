@@ -53,12 +53,12 @@
                     <a href="{{ route('admin.teaching.index') }}" class="{{ request()->routeIs('admin.teaching.index') || request()->routeIs('admin.teaching.trainee') ? 'active' : '' }}">
                         @include('partials.icon', ['n' => 'award']) My teaching
                     </a>
-                    <a href="{{ route('admin.teaching.week') }}" class="{{ request()->routeIs('admin.teaching.week') ? 'active' : '' }}">
-                        @include('partials.icon', ['n' => 'clock']) My week sheet
+                    <a href="{{ route('admin.mytime.index') }}" class="{{ request()->routeIs('admin.mytime.index') ? 'active' : '' }}">
+                        @include('partials.icon', ['n' => 'clock']) My time log
                     </a>
                 @endif
                 @if ($dept)
-                    <div class="nav-group">{{ $dept['tag'] }} · {{ $dept['name'] }}</div>
+                    <div class="nav-group">{{ $dept['name'] }}</div>
                     <a href="{{ route('admin.department', $dept['slug']) }}" class="{{ request()->routeIs('admin.department') ? 'active' : '' }}">
                         @include('partials.icon', ['n' => 'chevron']) Overview
                     </a>
@@ -83,7 +83,7 @@
         </nav>
         <div class="side-foot">
             <span class="side-ver">{{ $isSuper
-                ? ($dept ? $dept['tag'].' · '.$dept['name'] : count(Departments::visibleFor($me)).' departments · 1 programme')
+                ? ($dept ? $dept['name'] : count(Departments::visibleFor($me)).' departments · 1 programme')
                 : ($dept ? $dept['name'] : (\App\Support\Roles::labelsFor($me) ?: 'Department staff')) }}</span>
         </div>
     </aside>
@@ -112,7 +112,7 @@
             @include('partials.flash')
             @if ($owningRoute)
                 <div class="card callout" style="margin-bottom:16px;">
-                    <b>{{ $dept['tag'] ?? '' }} · {{ $dept['name'] ?? '' }} copy</b> — this record belongs to
+                    <b>{{ $dept['name'] ?? '' }} copy</b> — this record belongs to
                     {{ $ownerName }}, and reading it here changes nothing.
                     @if (Departments::canSee($me, $ownerSlug))
                         <a href="{{ route($owningRoute, collect($route?->parameters())->except('department')->all()) }}">

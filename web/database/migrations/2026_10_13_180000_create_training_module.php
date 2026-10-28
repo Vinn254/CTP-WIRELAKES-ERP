@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 4 — Training & Certification (§7). A training runs as a cohort at a venue (a partner school,
+ * Module 4 — Training & Certification. A training runs as a cohort at a venue (a partner school,
  * a community site or a programme centre) or under a fundi-trainer in their own area; CTPs take seats,
  * progress is recorded through the cohort until it is certified, and an executive approves the certificate.
  */

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
- * Module 8 — the worker's side of an inspection (§11.4 step 5). An item the inspector failed is answered here by the
+ * Module 8 — the worker's side of an inspection. An item the inspector failed is answered here by the
  * person whose order it sits on: what they did, with the photograph of the rework. The office re-checks it on the
  * construction file; nothing on this screen marks an item passed.
  */
@@ -52,7 +52,7 @@ class InspectionFixController extends Controller
 
         Construction::proveFix($item, $request, $member->id);
 
-        return back()->with('status', 'Proof of the fix on "'.$item->item.'" filed for the inspector to re-check (§11.4 step 6).');
+        return back()->with('status', 'Proof of the fix on "'.$item->item.'" filed for the inspector to re-check.');
     }
 
     public function proof(SiteInspectionItem $item)

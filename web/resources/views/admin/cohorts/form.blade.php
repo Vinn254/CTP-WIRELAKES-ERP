@@ -80,7 +80,7 @@
                     </option>
                 @endforeach
             </select>
-            <div class="help">Linking it puts the cohort on that community's timeline (Module 3).</div>
+            <div class="help">Linking it puts the cohort on that community's timeline.</div>
         </div>
         <div class="field">
             <label>County <span class="req">*</span></label>

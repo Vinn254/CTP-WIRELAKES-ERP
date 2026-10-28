@@ -17,15 +17,20 @@ class JobApplication extends Model
         'reviewing' => 'Under review',
         'shortlisted' => 'Shortlisted',
         'contacted' => 'Contacted back',
+        'picked' => 'Given the job',
+        'onboarded' => 'Onboarded to staff',
         'declined' => 'Not taken forward',
     ];
+
+    /** The two answers that send a person to the Human Resources onboarding desk. */
+    public const ONBOARDABLE = ['shortlisted', 'picked'];
 
     protected $fillable = [
         'job_opening_id', 'name', 'email', 'phone', 'id_number', 'town', 'experience',
         'cv_path', 'cv_name', 'cv_size', 'cover_note', 'status', 'review_note', 'contacted_on', 'reviewed_by_user',
     ];
 
-    protected $casts = ['contacted_on' => 'date'];
+    protected $casts = ['contacted_on' => 'date', 'onboarded_at' => 'datetime'];
 
     public function opening()
     {
@@ -35,6 +40,17 @@ class JobApplication extends Model
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by_user');
+    }
+
+    /** The staff file this application turned into, once the onboarding desk wrote one. */
+    public function staffRecord()
+    {
+        return $this->hasOne(StaffRecord::class, 'job_application_id');
+    }
+
+    public function onboarder()
+    {
+        return $this->belongsTo(User::class, 'onboarded_by_user');
     }
 
     /** What a visitor is allowed to type into the public form. */

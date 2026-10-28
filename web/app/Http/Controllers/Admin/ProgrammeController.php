@@ -10,7 +10,7 @@ use App\Support\MailCheck;
 use Illuminate\Http\Request;
 
 /**
- * Module 12 §15.6 — the programme switches. Only the keys the code already reads are offered, and changing one is
+ * Module 12  — the programme switches. Only the keys the code already reads are offered, and changing one is
  * an executive's action, the same rule as issuing a certificate or releasing money. Page wording and branding stay
  * in the content editor, which is Module 1's screen.
  */
@@ -51,7 +51,7 @@ class ProgrammeController extends Controller
     public function update(Request $request)
     {
         abort_unless(Finance::isExecutive(), 403,
-            'Programme settings are changed by a programme executive (§15.6). Staff can see the current values.');
+            'Programme settings are changed by a programme executive. Staff can see the current values.');
 
         $data = $request->validate(
             collect(Setting::EDITABLE)->mapWithKeys(fn ($meta, $key) => [$key => match ($meta['type']) {

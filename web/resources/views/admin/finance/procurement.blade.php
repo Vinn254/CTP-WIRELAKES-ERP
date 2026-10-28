@@ -15,17 +15,15 @@
     <div class="stat"><small>Owed to suppliers</small><b>{{ Finance::ksh($totals['unpaid']) }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach ($filters as $key => $label)
-        <a class="tab {{ $status === $key ? 'on' : '' }}"
-           href="{{ route('admin.procurement.index', ['f' => $key, 'budget' => $budget, 'q' => $search]) }}">
-            {{ $label }}<span class="n">{{ $counts[$key] ?? 0 }}</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.procurement.index') }}" class="filter-bar">
-    <input type="hidden" name="f" value="{{ $status }}">
+    <label class="field">
+        <span>Request status</span>
+        <select name="f" onchange="this.form.submit()">
+            @foreach ($filters as $key => $label)
+                <option value="{{ $key }}" @selected($status === $key)>{{ $label }} ({{ $counts[$key] ?? 0 }})</option>
+            @endforeach
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search reference, item or justification" aria-label="Search reference, item or justification">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($budget !== 'all' || $search !== '')
@@ -89,7 +87,7 @@
 {{ $requests->links() }}
 
 <div class="card">
-    <h3>Raise a purchase request (§14.4 step 1)</h3>
+    <h3>Raise a purchase request</h3>
     <p class="hint">This is the same form an E-Fundi uses in their portal — and the form the office uses on behalf of
         a CTP, which never raises one itself. Say why the programme needs it — the decision is
         made on the justification, not the item name — and pick the budget line it is charged to.</p>

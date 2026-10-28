@@ -75,7 +75,7 @@
             <tr>
                 <td><b>Mobilisation credit</b></td>
                 <td>{{ collect($mobilisation)->map(fn ($l, $n) => $n.' people — '.$l)->join('; ') }}</td>
-                <td><span class="hint">Built into the CTP lifecycle (Module 2 §5.4), so a fee waiver and the credit can never disagree.</span></td>
+                <td><span class="hint">Built into the CTP lifecycle, so a fee waiver and the credit can never disagree.</span></td>
             </tr>
             <tr>
                 <td><b>Who signs what off</b></td>
@@ -85,7 +85,7 @@
             <tr>
                 <td><b>Courses that can be run</b></td>
                 <td>The trainings catalogue, extended by the office</td>
-                <td><span class="hint">A closed list on the Training department's own screen (Module 4) — not a free-text setting.</span></td>
+                <td><span class="hint">A closed list on the Training department's own screen — not a free-text setting.</span></td>
             </tr>
         </tbody>
     </table>

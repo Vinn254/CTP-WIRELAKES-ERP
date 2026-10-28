@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 8 §11.2 — labour on the site: who turned up, under whose contract, for how many hours. A day's attendance
+ * Module 8  — labour on the site: who turned up, under whose contract, for how many hours. A day's attendance
  * is a line, so the cost of labour on a project is counted from the days actually worked.
  */
 class LabourEntry extends Model
@@ -62,7 +62,7 @@ class LabourEntry extends Model
             'rate_ksh' => 'nullable|numeric|min:0|max:1000000',
             'note' => 'nullable|string|max:500',
         ], [
-            'worker_name.required' => 'Name the person who worked. A day counted without a name cannot be paid or proved (§11.2).',
+            'worker_name.required' => 'Name the person who worked. A day counted without a name cannot be paid or proved.',
             'hours.required' => 'How many hours did they put in that day?',
         ], [
             'worked_on' => 'Date worked',

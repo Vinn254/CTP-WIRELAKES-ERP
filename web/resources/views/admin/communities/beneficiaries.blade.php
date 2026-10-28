@@ -27,17 +27,20 @@
 
 <form method="GET" class="filter-bar">
     <input type="search" name="q" value="{{ $search }}" placeholder="Search a name" aria-label="Search a name">
+    @if ($community)
+        <input type="hidden" name="community" value="{{ $community->id }}">
+    @endif
+    <label class="field">
+        <span>Beneficiary type</span>
+        <select name="type" onchange="this.form.submit()">
+            @foreach ($tabs as $s => $lbl)
+                <option value="{{ $s }}" @selected($type === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+            @endforeach
+        </select>
+    </label>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.beneficiaries.index', ['type' => $type]) }}">Clear</a>@endif
 </form>
-
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $type === $s ? 'on' : '' }}" href="{{ route('admin.beneficiaries.index', ['type' => $s, 'q' => $search, 'community' => $community?->id]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
 
 <table class="data">
     <thead>

@@ -10,7 +10,7 @@ use App\Models\Partner;
 use App\Models\TrainingVenue;
 use Illuminate\Http\Request;
 
-/** Module 4 §7.3 — the places training is delivered: partner schools, community sites, programme centres. */
+/** Module 4  — the places training is delivered: partner schools, community sites, programme centres. */
 class VenueController extends Controller
 {
     public function index(Request $request)

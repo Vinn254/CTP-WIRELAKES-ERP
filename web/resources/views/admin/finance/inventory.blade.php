@@ -15,26 +15,24 @@
     <div class="stat"><small>Purchases already open</small><b>{{ $requests }}</b></div>
 </div>
 
-<div class="tabs">
-    <a class="tab {{ $category === 'all' && $flag === 'all' ? 'on' : '' }}"
-       href="{{ route('admin.inventory.index') }}">Every card<span class="n">{{ $totals['cards'] }}</span></a>
-    @foreach ($categories as $key => $label)
-        <a class="tab {{ $category === $key ? 'on' : '' }}"
-           href="{{ route('admin.inventory.index', ['cat' => $key, 'f' => $flag, 'q' => $search]) }}">
-            {{ $label }}<span class="n"></span>
-        </a>
-    @endforeach
-    <a class="tab {{ $flag === 'low' ? 'on' : '' }}"
-       href="{{ route('admin.inventory.index', ['cat' => $category, 'f' => 'low', 'q' => $search]) }}">
-        Needs reordering<span class="n">{{ $low }}</span></a>
-    <a class="tab {{ $flag === 'empty' ? 'on' : '' }}"
-       href="{{ route('admin.inventory.index', ['cat' => $category, 'f' => 'empty', 'q' => $search]) }}">
-        Empty<span class="n">{{ $empties }}</span></a>
-</div>
-
 <form method="GET" action="{{ route('admin.inventory.index') }}" class="filter-bar">
-    <input type="hidden" name="cat" value="{{ $category }}">
-    <input type="hidden" name="f" value="{{ $flag }}">
+    <label class="field">
+        <span>Stock category</span>
+        <select name="cat" onchange="this.form.submit()">
+            <option value="all" @selected($category === 'all' && $flag === 'all')>Every card ({{ $totals['cards'] }})</option>
+            @foreach ($categories as $key => $label)
+                <option value="{{ $key }}" @selected($category === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+    </label>
+    <label class="field">
+        <span>Standing</span>
+        <select name="f" onchange="this.form.submit()">
+            <option value="all" @selected($flag === 'all')>Any standing</option>
+            <option value="low" @selected($flag === 'low')>Needs reordering ({{ $low }})</option>
+            <option value="empty" @selected($flag === 'empty')>Empty ({{ $empties }})</option>
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search SKU, item or where it is kept" aria-label="Search SKU, item or where it is kept">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search !== '')
@@ -78,8 +76,7 @@
             </tr>
         @empty
             <tr><td colspan="10" class="empty-cell">
-                No card on this filter. Goods arrive on a card themselves when a purchase order is received
-                (§14.4 step 6) — a card added here is for stock the store already holds.
+                No card on this filter. Goods arrive on a card themselves when a purchase order is received — a card added here is for stock the store already holds.
             </td></tr>
         @endforelse
     </tbody>
@@ -148,5 +145,5 @@
 
 <p class="hint">Drawing materials for a project or a cohort is recorded on the card itself — an issue out posts its
     value on the <a href="{{ route('admin.ledger.index', ['f' => 'expense', 'kind' => 'materials_issued']) }}">money
-    register</a> against {{ StockMovement::REASONS['project_issue'] }} (§14.3, §14.5).</p>
+    register</a> against {{ StockMovement::REASONS['project_issue'] }}.</p>
 @endsection

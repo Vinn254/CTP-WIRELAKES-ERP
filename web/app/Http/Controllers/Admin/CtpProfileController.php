@@ -202,7 +202,7 @@ class CtpProfileController extends Controller
         return redirect()->route('admin.promoters.show', $ctp)->with('status', 'Profile of '.$ctp->full_name.' updated.');
     }
 
-    /** The lifecycle moves in §2.6 — suspension also locks the member account. */
+    /** The lifecycle moves in  — suspension also locks the member account. */
     public function setStatus(Request $request, CtpRegistration $ctp)
     {
         $data = $request->validate([

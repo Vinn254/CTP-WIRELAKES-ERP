@@ -79,8 +79,7 @@
                     </form>
                 </div>
             @empty
-                <p class="hint">Nobody is on the roster yet — this community is who Module 4 books a cohort through
-                    and Module 12 counts field work for.</p>
+                <p class="hint">Nobody is on the roster yet.</p>
             @endforelse
 
             <form method="POST" action="{{ route('admin.communities.ctp', $community) }}" class="mini-form"
@@ -247,8 +246,7 @@
 
         <div class="card">
             <h3>Training here</h3>
-            <p class="hint">Module 4 books a cohort into a community as its site — the people trained here are the
-            CTPs on this roster.</p>
+            <p class="hint">A cohort is booked into a community as its site — the people trained here are the CTPs on this roster.</p>
             @forelse ($community->cohorts as $c)
                 <div class="row-line">
                     <a href="{{ dept_link('admin.cohorts.show', ['cohort' => $c]) }}"><b>{{ $c->courseLabel() }}</b></a>
@@ -319,15 +317,6 @@
             @endforelse
         </div>
 
-        <div class="card">
-            <h3>What this record feeds</h3>
-            <ul class="rules">
-                <li>The lead CTP is who Module 2 is measured by and Module 12 counts field work for.</li>
-                <li>Prioritised needs become candidates for cohorts in Module 4 and e-waste drives in Module 10.</li>
-                <li>Projects carry this community for matching in Module 6 and execution in Module 7.</li>
-                <li>Beneficiaries and investment are the impact numbers in Module 12.</li>
-            </ul>
-        </div>
     </div>
 </div>
 @endsection

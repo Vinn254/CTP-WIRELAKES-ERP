@@ -12,7 +12,7 @@ use App\Models\VariationOrder;
 use App\Support\Construction;
 
 /**
- * Module 8 — the construction file (§11). One desk per buildable project: the site read, the priced design, the
+ * Module 8 — the construction file. One desk per buildable project: the site read, the priced design, the
  * labour counted, the inspections and the changes to what was agreed. Staff run all of it except the variation
  * decision, which a programme executive issues.
  */
@@ -90,7 +90,7 @@ class ConstructionController extends Controller
         ]);
     }
 
-    // §11.2 — the site visit, written up.
+    //  — the site visit, written up.
     public function assess(\Illuminate\Http\Request $request, Project $project)
     {
         Construction::recordAssessment($project, $request);
@@ -124,7 +124,7 @@ class ConstructionController extends Controller
             .\Illuminate\Support\Carbon::parse($day->worked_on)->format('d M Y').' — '.$day->hours.' hours.');
     }
 
-    // §11.4 step 1.
+    // .
     public function schedule(\Illuminate\Http\Request $request, Project $project)
     {
         $inspection = Construction::scheduleInspection($project, $request);
@@ -161,16 +161,16 @@ class ConstructionController extends Controller
         return back()->with('status', 'Inspection report signed off. The report, its items and the failures it cleared stay on the file.');
     }
 
-    // §11.5 step 1 — staff raise the change with its cost.
+    //  — staff raise the change with its cost.
     public function variation(\Illuminate\Http\Request $request, Project $project)
     {
         $variation = Construction::raiseVariation($project, $request);
 
         return back()->with('status', $variation->reference.' raised on '.($variation->workOrder->reference ?? 'the order')
-            .' for '.\App\Support\Finance::ksh((float) $variation->extra_cost_ksh).'. A programme executive approves or rejects it (§11.5).');
+            .' for '.\App\Support\Finance::ksh((float) $variation->extra_cost_ksh).'. A programme executive approves or rejects it.');
     }
 
-    /** §11.5 steps 2–4 — the decision, and everything an approval moves. */
+    /**  — the decision, and everything an approval moves. */
     public function decide(\Illuminate\Http\Request $request, VariationOrder $variation)
     {
         $variation = Construction::decideVariation($variation, $request);

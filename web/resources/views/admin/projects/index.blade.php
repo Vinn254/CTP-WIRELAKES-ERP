@@ -22,13 +22,17 @@
  <div class="stat"><small>Applications waiting</small><b>{{ $pendingApplications }}</b></div>
 </div>
 
-<div class="tabs">
+<form method="GET" action="{{ route('admin.projects.index') }}" class="filter-bar inline-filter">
+ <label class="field">
+ <span>Project status</span>
+ <select name="status" onchange="this.form.submit()">
  @foreach ($tabs as $s => $lbl)
- <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.projects.index', ['status' => $s]) }}">
- {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
- </a>
+ <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
  @endforeach
-</div>
+ </select>
+ </label>
+ <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
+</form>
 
 <table class="data">
  <thead>

@@ -74,13 +74,16 @@
 @endif
 
 @if ($canTeach)
-    <details class="card add-record">
-        <summary>+ Apply to train at a site</summary>
-        <p class="help">Tell the office which site you can teach at and what you are strong in. Each site is its own
-            application and its own approval — a cohort is only handed to a trainer the office approved at that venue.</p>
+    <div class="head-acts" style="margin-bottom:18px;">
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="apply-train">+ Apply to train at a site</button>
+    </div>
+
+    @include('partials.sheet-start', ['name' => 'apply-train', 'title' => 'Apply to train at a site',
+        'sub' => 'Each site is its own application and its own approval.'])
         <form method="POST" action="{{ route('portal.trainer.apply') }}" class="fee-form"
               data-confirm="Send this to the programme office?" data-title="Apply to train">
             @csrf
+            <input type="hidden" name="_sheet" value="apply-train">
             <div class="form-grid-2">
                 <div class="field">
                     <label>Site you would teach at <span class="req">*</span></label>
@@ -124,9 +127,12 @@
                 <textarea name="note" rows="3" maxlength="500" placeholder="Years on the job, the tools you have, sites you have worked."></textarea>
             </div>
             <datalist id="trainer-counties">@foreach ($counties as $name)<option value="{{ $name }}"></option>@endforeach</datalist>
-            <button class="btn btn-primary" type="submit" style="margin-top:12px;">Send to the programme office</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Send to the programme office</button>
+            </div>
         </form>
-    </details>
+    @include('partials.sheet-end')
 @endif
 
 @if ($taught->isNotEmpty())

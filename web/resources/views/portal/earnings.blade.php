@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="page-intro">
-    <p class="sub">Two kinds of money come to an E-Fundi and they are kept apart on purpose (§14.6).
+    <p class="sub">Two kinds of money come to an E-Fundi and they are kept apart on purpose.
         <b>Project income</b> is your share of a job: the amount agreed for the work, <i>minus</i> materials the
         programme supplied, the service commission, the mobilization credit and any deduction — and it is only
         released once the hirer has paid the organisation. <b>Training income</b> is what you are paid for running a

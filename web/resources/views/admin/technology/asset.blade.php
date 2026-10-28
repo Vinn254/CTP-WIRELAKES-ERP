@@ -36,7 +36,7 @@
         <p style="margin:12px 0 0;border-left:4px solid var(--muted);padding-left:10px;">
             <b>Retired {{ $asset->decommissioned_on?->format('d M Y') }}.</b> {{ $asset->decommission_note }}
             @if ($asset->ewaste_collection_id)
-                — routed to {!! dept_ref('admin.ewaste.index', 'E-Waste '.($asset->ewasteCollection->reference ?: 'collection')) !!} (§12.7).
+                — routed to {!! dept_ref('admin.ewaste.index', 'E-Waste '.($asset->ewasteCollection->reference ?: 'collection')) !!}.
             @else
                 — kept on the register with the reason.
             @endif
@@ -90,7 +90,7 @@
                     <button class="btn btn-sm btn-primary" type="submit">Confirm and close</button>
                 </form>
             @else
-                <p class="hint">Closed {{ $t->closed_on?->format('d M Y H:i') }} — kept on the asset's repair history (§12.7).</p>
+                <p class="hint">Closed {{ $t->closed_on?->format('d M Y H:i') }} — kept on the asset's repair history.</p>
             @endif
         </div>
     @empty
@@ -98,10 +98,12 @@
     @endforelse
 
     @if (! $asset->isRetired())
-        <details class="card need-form">
-            <summary>Open a repair ticket on {{ $asset->asset_code }}</summary>
+        <p class="head-acts"><button class="btn btn-sm btn-lime" type="button" data-sheet="ticket">Open a repair ticket</button></p>
+        @include('partials.sheet-start', ['name' => 'ticket', 'title' => 'Open a repair ticket',
+            'sub' => 'Say what is wrong, so a fundi can pick it up.'])
             <form method="POST" action="{{ route('admin.technology.asset.ticket', $asset) }}" class="fee-form" data-title="Open ticket">
                 @csrf
+                <input type="hidden" name="_sheet" value="ticket">
                 <div class="form-grid">
                     <div class="field">
                         <label>Short title <span class="req">*</span></label>
@@ -124,19 +126,22 @@
                     <label>The fault <span class="req">*</span></label>
                     <textarea name="fault" rows="2" required maxlength="5000" placeholder="What is wrong, so a fundi can pick it up"></textarea>
                 </div>
-                <button class="btn btn-sm btn-primary" type="submit">Open the ticket</button>
+                <div class="sheet-actions">
+                    <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                    <button class="btn btn-sm btn-lime" type="submit">Open the ticket</button>
+                </div>
             </form>
-        </details>
+        @include('partials.sheet-end')
     @endif
 </div>
 
 @if (! $asset->isRetired())
-    <div class="card">
-        <div class="section-head"><h3>Take it out of service</h3></div>
-        <p class="help">Retiring writes the reason on the register and, if you point it at one, hands the physical item to
-            E-Waste (Module 10). An asset with an open ticket cannot be retired — close or fix the ticket first (§12.7).</p>
+    <p class="head-acts"><button class="btn btn-sm btn-outline" type="button" data-sheet="retire">Take it out of service</button></p>
+    @include('partials.sheet-start', ['name' => 'retire', 'title' => 'Retire '.$asset->asset_code,
+        'sub' => 'It leaves the live register. An asset with an open ticket cannot be retired.'])
         <form method="POST" action="{{ route('admin.technology.asset.decommission', $asset) }}" class="fee-form" data-confirm="Retire {{ $asset->asset_code }}? It leaves the live register." data-title="Retire asset">
             @csrf
+            <input type="hidden" name="_sheet" value="retire">
             <div class="field">
                 <label>Why it is out of service <span class="req">*</span></label>
                 <textarea name="decommission_note" rows="2" required maxlength="500" placeholder="Beyond repair, written off, replaced…"></textarea>
@@ -145,16 +150,20 @@
                 <label>Route to an E-Waste record (optional)</label>
                 <input type="number" name="ewaste_collection_id" min="1" placeholder="collection record id">
             </div>
-            <button class="btn btn-sm btn-outline" type="submit">Retire the asset</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-outline" type="submit">Retire the asset</button>
+            </div>
         </form>
-    </div>
+    @include('partials.sheet-end')
 @endif
 
-<div class="card">
-    <details @if ($errors->any()) open @endif>
-        <summary><b>Edit these details</b></summary>
-        <form method="POST" action="{{ route('admin.technology.asset.update', $asset) }}" class="fee-form" data-title="Update asset">
-            @csrf
+<p class="head-acts"><button class="btn btn-sm btn-lime" type="button" data-sheet="edit-asset">Amend these details</button></p>
+@include('partials.sheet-start', ['name' => 'edit-asset', 'title' => 'Amend the asset record',
+    'sub' => 'The code never changes; what is written about it does.'])
+    <form method="POST" action="{{ route('admin.technology.asset.update', $asset) }}" class="fee-form" data-title="Update asset">
+        @csrf
+        <input type="hidden" name="_sheet" value="edit-asset">
             <div class="form-grid">
                 <div class="field">
                     <label>Sub-area <span class="req">*</span></label>
@@ -253,8 +262,10 @@
                 <label>Notes</label>
                 <textarea name="notes" rows="2" maxlength="5000">{{ old('notes', $asset->notes) }}</textarea>
             </div>
-            <button class="btn btn-sm btn-primary" type="submit">Save changes</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Save changes</button>
+            </div>
         </form>
-    </details>
-</div>
+@include('partials.sheet-end')
 @endsection

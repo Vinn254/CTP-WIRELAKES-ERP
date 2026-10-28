@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Invoicing on top of Module 11. An invoice is a demand for money, never a movement of it: the payment against it
- * is what posts the income line on the money register, so the register stays the single source of money (§14.3).
+ * is what posts the income line on the money register, so the register stays the single source of money.
  * A donor, a CTP, an E-Fundi or anyone else can be billed; a member only ever sees their own.
  */
 return new class extends Migration

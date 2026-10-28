@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Module 12 §15.6 — one line saying that something happened in the programme, on whose account, and what it was.
+ * Module 12  — one line saying that something happened in the programme, on whose account, and what it was.
  * The trail keeps the name of the person even if their account is later closed, and it is never edited or deleted:
  * a wrong entry is answered by the next entry.
  */

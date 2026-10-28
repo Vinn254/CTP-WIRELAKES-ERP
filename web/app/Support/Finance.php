@@ -29,7 +29,7 @@ class Finance
     public static function requireRelease(?string $what = null): void
     {
         abort_unless(static::isExecutive(), 403,
-            ($what ?: 'Paying this out').' is a programme executive\'s action (§14.4 step 8, §14.6 steps 5–7). '
+            ($what ?: 'Paying this out').' is a programme executive\'s action. '
             .'Staff prepare the request and the paperwork; the money is only released by an executive account.');
     }
 

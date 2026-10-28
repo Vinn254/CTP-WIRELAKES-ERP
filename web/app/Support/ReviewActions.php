@@ -50,7 +50,7 @@ class ReviewActions
     }
 
     /**
-     * Money a member pays is money in (§14.3). One line per member, posted from the application itself,
+     * Money a member pays is money in. One line per member, posted from the application itself,
      * so the ledger is never typed twice; a fee taken back later is answered with an opposite line.
      */
     private static function postMembershipLine(CtpRegistration|FundiRegistration $member): void

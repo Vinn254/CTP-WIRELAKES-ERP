@@ -25,7 +25,7 @@ class CtpRegistration extends Model
         'junior' => 'Junior practical-check track',
     ];
 
-    /** The lifecycle in §2.6 of the Module 2 workflow — three roles run on this one record. */
+    /** The lifecycle in  of the Module 2 workflow — three roles run on this one record. */
     public const STATUSES = [
         'pending_payment' => 'Pending payment',
         'pending_review' => 'Pending review',

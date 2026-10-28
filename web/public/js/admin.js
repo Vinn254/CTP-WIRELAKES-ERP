@@ -214,3 +214,41 @@
         });
     });
 })();
+
+// A fill-in card opens on the screen as a popup, so the register you are reading stays where it was.
+(function () {
+    function card(name) { return document.getElementById('sheet-' + name); }
+
+    function show(el) {
+        el.classList.add('open');
+        document.body.classList.add('sheet-lock');
+        var first = el.querySelector('input:not([type=hidden]),select,textarea');
+        if (first) first.focus();
+    }
+
+    function close(el) {
+        el.classList.remove('open');
+        document.body.classList.remove('sheet-lock');
+    }
+
+    document.addEventListener('click', function (e) {
+        var opener = e.target.closest('[data-sheet]');
+        if (opener) {
+            e.preventDefault();
+            var el = card(opener.getAttribute('data-sheet'));
+            if (el) show(el);
+
+            return;
+        }
+
+        var shut = e.target.closest('[data-close-sheet]');
+        if (shut) {
+            var sheet = shut.closest('.sheet');
+            if (sheet) close(sheet);
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') document.querySelectorAll('.sheet.open').forEach(close);
+    });
+})();

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 10 — the e-waste register (§13). A collection starts life in the field: a CTP or an E-Fundi registers
+ * Module 10 — the e-waste register. A collection starts life in the field: a CTP or an E-Fundi registers
  * what they found, with its condition and a photo. An E-Fundi takes it to a collection point and forwards it, and
  * the programme office weighs it in. The reference is issued on registration so the field and the store always
  * talk about the same item.

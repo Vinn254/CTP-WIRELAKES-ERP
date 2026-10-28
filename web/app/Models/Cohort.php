@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-/** One run of one of the programme's trainings at one place — the unit CTPs apply for (§7.4). */
+/** One run of one of the programme's trainings at one place — the unit CTPs apply for. */
 class Cohort extends Model
 {
     public const STATUSES = [

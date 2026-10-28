@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — a stock card (§14.5). SKU, description, unit, quantity on hand, reorder level, where it sits and
+ * Module 11 — a stock card. SKU, description, unit, quantity on hand, reorder level, where it sits and
  * what it cost. The quantity is never typed in: it is the sum of the movements on the card, so the store can
  * always be explained back to a purchase order, a project that drew materials or a count.
  */

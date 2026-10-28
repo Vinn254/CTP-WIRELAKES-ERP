@@ -58,7 +58,7 @@ class Community extends Model
         return $this->hasMany(Beneficiary::class)->latest('benefited_on');
     }
 
-    /** Training run here — Module 4 books a cohort against this place (§7.3). */
+    /** Training run here — Module 4 books a cohort against this place. */
     public function cohorts(): HasMany
     {
         return $this->hasMany(Cohort::class);

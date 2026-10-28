@@ -1,86 +1,106 @@
 @php
     use App\Models\TimeLog;
+    use App\Support\Departments;
 
-    // The day being written: the one clicked on the sheet, the one last posted, or the day the page offered.
-    $picked = request('day', old('log_date', $defaultDay));
-    $row = $sheet['logs']->first(fn ($r) => $r->log_date->toDateString() === $picked);
+    /** @var array $day */
+    $row = $day['row'];
+    $name = 'day-'.$day['date'];
+    $picked = old('log_date', $day['date']);
+    $dept = old('department', $row?->department ?: ($defaults['department'] ?? ''));
+    $depts = collect(Departments::all())->pluck('name')->when($dept !== '', fn ($q) => $q->push($dept)->unique());
+    $today = now()->toDateString();
 @endphp
-<details class="card need-form" @if ($row || old('log_date') || $errors->any()) open @endif>
-    <summary>{{ $row ? 'Correct '.$picked.' on the sheet' : 'Write a day on the sheet' }}</summary>
-    <form method="POST" action="{{ $action }}" class="fee-form"
-          data-confirm="Save this day to the week sheet?" data-title="Save day">
-        @csrf
-        <input type="hidden" name="trainer" value="{{ $trainer->id }}">
-        <div class="form-grid-3">
-            <div class="field">
-                <label>Date <span class="req">*</span></label>
-                <input type="date" name="log_date" required value="{{ $picked }}"
-                       max="{{ now()->toDateString() }}">
-            </div>
-            <div class="field">
-                <label>Time in</label>
-                <input type="time" name="time_in" value="{{ old('time_in', $row?->clockIn() === '-' ? '' : $row?->clockIn()) }}">
-            </div>
-            <div class="field">
-                <label>Time out</label>
-                <input type="time" name="time_out" value="{{ old('time_out', $row?->clockOut() === '-' ? '' : $row?->clockOut()) }}">
-                <div class="help">Hours are counted from these two. A day caps at 8 hours.</div>
-            </div>
+@include('partials.sheet-start', ['name' => $name,
+    'title' => ($row ? 'Correct ' : 'Write ').$day['day'].' '.\Illuminate\Support\Carbon::parse($day['date'])->format('d M Y')])
+<form method="POST" action="{{ $action }}" class="fee-form"
+      data-confirm="Save this day to the week sheet?" data-title="Save day">
+    @csrf
+    <input type="hidden" name="_sheet" value="{{ $name }}">
+    @foreach ($carry as $key => $value)
+        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+    @endforeach
+    <div class="form-grid-3">
+        <div class="field">
+            <label>Day of this week <span class="req">*</span></label>
+            <select name="log_date" required>
+                @foreach ($sheet['days'] as $option)
+                    <option value="{{ $option['date'] }}" @selected($picked === $option['date'])>
+                        {{ $option['day'] }} — {{ \Illuminate\Support\Carbon::parse($option['date'])->format('d M Y') }}
+                    </option>
+                @endforeach
+            </select>
+            <div class="help">Monday to Friday of {{ $sheet['label'] }}.</div>
         </div>
         <div class="field">
-            <label>Tasks accomplished <span class="req">*</span></label>
-            <textarea name="task" rows="2" maxlength="500" required
-                      placeholder="What you actually did that day">{{ old('task', $row?->task) }}</textarea>
+            <label>Time in</label>
+            <input type="time" name="time_in" value="{{ old('time_in', $row?->clockIn() === '-' ? '' : $row?->clockIn()) }}"
+                   max="{{ $today }}">
         </div>
-        <div class="form-grid-3">
+        <div class="field">
+            <label>Time out</label>
+            <input type="time" name="time_out" value="{{ old('time_out', $row?->clockOut() === '-' ? '' : $row?->clockOut()) }}"
+                   max="{{ $today }}">
+            <div class="help">Hours are counted from these two. A day caps at 8 hours.</div>
+        </div>
+    </div>
+    <div class="field">
+        <label>Tasks accomplished <span class="req">*</span></label>
+        <textarea name="task" rows="3" maxlength="500" required
+                  placeholder="What you actually did that day">{{ old('task', $row?->task) }}</textarea>
+    </div>
+    <div class="form-grid-3">
+        <div class="field">
+            <label>Initials <span class="req">*</span></label>
+            <input type="text" name="initials" maxlength="10" required
+                   value="{{ old('initials', $row?->initials ?: ($defaults['initials'] ?? '')) }}" placeholder="e.g. JMK">
+        </div>
+        <div class="field">
+            <label>Dept</label>
+            <select name="department">
+                <option value="">Not named</option>
+                @foreach ($depts as $option)
+                    <option value="{{ $option }}" @selected($dept === $option)>{{ $option }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="field">
+            <label>Units</label>
+            <input type="number" name="units" min="0" max="99" value="{{ old('units', $row?->units) }}"
+                   placeholder="Sessions or modules delivered">
+        </div>
+    </div>
+    @if ($trainings->isNotEmpty())
+        <div class="form-grid-2">
             <div class="field">
-                <label>Initials <span class="req">*</span></label>
-                <input type="text" name="initials" maxlength="10" required value="{{ old('initials', $row?->initials) }}"
-                       placeholder="e.g. JMK">
+                <label>Programme</label>
+                <select name="training_id">
+                    <option value="">Not one of the programmes</option>
+                    @foreach ($trainings as $training)
+                        <option value="{{ $training->id }}" @selected((int) old('training_id', $row?->training_id) === $training->id)>
+                            {{ $training->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <div class="help">Only the programmes this account is licensed for.</div>
             </div>
             <div class="field">
-                <label>Dept</label>
-                <input type="text" name="department" maxlength="90" value="{{ old('department', $row?->department) }}"
-                       placeholder="e.g. Training">
-            </div>
-            <div class="field">
-                <label>Units</label>
-                <input type="number" name="units" min="0" max="99" value="{{ old('units', $row?->units) }}"
-                       placeholder="Sessions or modules delivered">
+                <label>Cohort</label>
+                <select name="cohort_id">
+                    <option value="">No single cohort</option>
+                    @foreach ($cohorts as $cohort)
+                        <option value="{{ $cohort->id }}" @selected((int) old('cohort_id', $row?->cohort_id) === $cohort->id)>
+                            {{ $cohort->reference }} — {{ $cohort->courseLabel() }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
-        @if ($trainings->isNotEmpty())
-            <div class="form-grid-2">
-                <div class="field">
-                    <label>Programme</label>
-                    <select name="training_id">
-                        <option value="">Not one of the programmes</option>
-                        @foreach ($trainings as $training)
-                            <option value="{{ $training->id }}" @selected((int) old('training_id', $row?->training_id) === $training->id)>
-                                {{ $training->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="help">Only the programmes this posting is licensed for.</div>
-                </div>
-                <div class="field">
-                    <label>Cohort</label>
-                    <select name="cohort_id">
-                        <option value="">No single cohort</option>
-                        @foreach ($cohorts as $cohort)
-                            <option value="{{ $cohort->id }}" @selected((int) old('cohort_id', $row?->cohort_id) === $cohort->id)>
-                                {{ $cohort->reference }} — {{ $cohort->courseLabel() }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-        @endif
+    @endif
+    <div class="sheet-actions">
+        <button class="btn btn-ghost" type="button" data-close-sheet>Cancel</button>
         <button class="btn btn-primary" type="submit">{{ $row ? 'Save the correction' : 'Write the day' }}</button>
-        @if ($row)
-            <a class="btn btn-sm btn-outline" href="{{ $self }}">Back to the week</a>
-        @endif
-    </form>
-    <p class="hint">{{ TimeLog::STATUSES['draft'] }} until you sign the whole week. A day you have already written is
-        corrected here, never added a second time.</p>
-</details>
+    </div>
+</form>
+<p class="hint">{{ TimeLog::STATUSES['draft'] }} until you sign the whole week. A day already on the sheet is
+    corrected here, never added a second time.</p>
+@include('partials.sheet-end')

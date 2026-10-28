@@ -26,7 +26,7 @@
     </div>
     <div class="ah-contact">
         <a class="btn btn-sm btn-outline" href="{{ route('careers.opening', $opening) }}" target="_blank">See the public page</a>
-        <a class="btn btn-sm btn-ghost" href="#amend">Amend the posting</a>
+        <button class="btn btn-sm btn-ghost" type="button" data-sheet="amend">Amend the posting</button>
     </div>
 </div>
 
@@ -58,7 +58,9 @@
     @endif
 
     @foreach ($applications as $a)
-        <div class="dl-group">{{ $a->name }} — applied {{ $a->created_at->format('d M Y') }}</div>
+        <div class="dl-group">{{ $a->name }} — applied {{ $a->created_at->format('d M Y') }}
+            <button class="btn btn-sm btn-lime" type="button" data-sheet="review-{{ $a->id }}">Review</button>
+        </div>
         <table class="data">
             <tbody>
                 <tr>
@@ -93,19 +95,22 @@
                 @endif
             </tbody>
         </table>
-        <details class="need-form">
-            <summary>Review {{ $a->name }}</summary>
+        @include('partials.sheet-start', ['name' => 'review-'.$a->id, 'title' => 'Review '.$a->name,
+            'sub' => 'Write down where this application stands and what was said.'])
             <form method="POST" action="{{ route('admin.careers.review', $a) }}" class="fee-form"
                   data-confirm="Save this review?" data-title="Review application">
                 @csrf
+                <input type="hidden" name="_sheet" value="review-{{ $a->id }}">
                 <div class="form-grid-2">
                     <div class="field">
                         <label>Where this application is</label>
                         <select name="status">
                             @foreach (JobApplication::STATUSES as $key => $label)
+                                @continue($key === 'onboarded' && $a->status !== $key)
                                 <option value="{{ $key }}" @selected($a->status === $key)>{{ $label }}</option>
                             @endforeach
                         </select>
+                        <div class="hint">A person is onboarded from the Human Resources desk, not here.</div>
                     </div>
                     <div class="field">
                         <label>Contacted on</label>
@@ -118,9 +123,12 @@
                                   placeholder="Why they were shortlisted, what was said on the call, what is missing.">{{ $a->review_note }}</textarea>
                     </div>
                 </div>
-                <button class="btn btn-sm btn-lime" type="submit">Save the review</button>
+                <div class="sheet-actions">
+                    <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                    <button class="btn btn-sm btn-lime" type="submit">Save the review</button>
+                </div>
             </form>
-        </details>
+        @include('partials.sheet-end')
     @endforeach
 </div>
 
@@ -146,49 +154,58 @@
     <div class="card" id="amend">
         <div class="section-head"><h3>Amend the posting</h3></div>
         <p class="hint">The reference never changes and people who already applied keep their application.</p>
-        <form method="POST" action="{{ route('admin.careers.update', $opening) }}" class="fee-form"
-              data-confirm="Save these changes to the posting?" data-title="Amend posting">
-            @csrf
-            <div class="form-grid-2">
-                <div class="field full">
-                    <label>Title <span class="req">*</span></label>
-                    <input type="text" name="title" required maxlength="190" value="{{ old('title', $opening->title) }}">
-                </div>
-                <div class="field">
-                    <label>Kind</label>
-                    <select name="kind">
-                        @foreach (JobOpening::KINDS as $key => $label)
-                            <option value="{{ $key }}" @selected($opening->kind === $key)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="field">
-                    <label>Area of work</label>
-                    <input type="text" name="area" maxlength="90" value="{{ old('area', $opening->area) }}">
-                </div>
-                <div class="field">
-                    <label>County</label>
-                    <input type="text" name="county" maxlength="90" value="{{ old('county', $opening->county) }}">
-                </div>
-                <div class="field">
-                    <label>Positions</label>
-                    <input type="number" name="positions" min="1" max="999" value="{{ old('positions', $opening->positions) }}">
-                </div>
-                <div class="field">
-                    <label>Applications close</label>
-                    <input type="date" name="closing_on" value="{{ $opening->closing_on?->format('Y-m-d') }}">
-                </div>
-            </div>
-            <div class="field" style="margin-top:10px;">
-                <label>What the work is <span class="req">*</span></label>
-                <textarea name="description" rows="4" required maxlength="1000">{{ old('description', $opening->description) }}</textarea>
-            </div>
-            <div class="field" style="margin-top:10px;">
-                <label>What we are looking for</label>
-                <textarea name="requirements" rows="3" maxlength="1000">{{ old('requirements', $opening->requirements) }}</textarea>
-            </div>
-            <button class="btn btn-sm btn-lime" type="submit" style="margin-top:12px;">Save changes</button>
-        </form>
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="amend">Amend the posting</button>
     </div>
 </div>
+
+@include('partials.sheet-start', ['name' => 'amend', 'title' => 'Amend the posting',
+    'sub' => 'The reference never changes and every application already made stays.'])
+    <form method="POST" action="{{ route('admin.careers.update', $opening) }}" class="fee-form"
+          data-confirm="Save these changes to the posting?" data-title="Amend posting">
+        @csrf
+        <input type="hidden" name="_sheet" value="amend">
+        <div class="form-grid-2">
+            <div class="field full">
+                <label>Title <span class="req">*</span></label>
+                <input type="text" name="title" required maxlength="190" value="{{ old('title', $opening->title) }}">
+            </div>
+            <div class="field">
+                <label>Kind</label>
+                <select name="kind">
+                    @foreach (JobOpening::KINDS as $key => $label)
+                        <option value="{{ $key }}" @selected($opening->kind === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="field">
+                <label>Area of work</label>
+                <input type="text" name="area" maxlength="90" value="{{ old('area', $opening->area) }}">
+            </div>
+            <div class="field">
+                <label>County</label>
+                <input type="text" name="county" maxlength="90" value="{{ old('county', $opening->county) }}">
+            </div>
+            <div class="field">
+                <label>Positions</label>
+                <input type="number" name="positions" min="1" max="999" value="{{ old('positions', $opening->positions) }}">
+            </div>
+            <div class="field">
+                <label>Applications close</label>
+                <input type="date" name="closing_on" value="{{ $opening->closing_on?->format('Y-m-d') }}">
+            </div>
+        </div>
+        <div class="field" style="margin-top:10px;">
+            <label>What the work is <span class="req">*</span></label>
+            <textarea name="description" rows="4" required maxlength="1000">{{ old('description', $opening->description) }}</textarea>
+        </div>
+        <div class="field" style="margin-top:10px;">
+            <label>What we are looking for</label>
+            <textarea name="requirements" rows="3" maxlength="1000">{{ old('requirements', $opening->requirements) }}</textarea>
+        </div>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Save changes</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
 @endsection

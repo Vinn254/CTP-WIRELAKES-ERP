@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — an approved supplier (§14.4 step 3). Quotations only come from the suppliers on this list, and a
+ * Module 11 — an approved supplier. Quotations only come from the suppliers on this list, and a
  * supplier that stops supplying is taken off the list rather than deleted: the purchase orders they already
  * delivered stay readable.
  */

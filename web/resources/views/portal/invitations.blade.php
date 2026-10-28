@@ -19,7 +19,7 @@
 @section('content')
 <div class="page-intro">
     <p class="sub">The programme office puts a posted project to the E-Fundis whose grade, skills, county and
-        availability fit it (§9.4). When it reaches you, you have <b>{{ $window }} hours</b> to take it or turn it
+        availability fit it. When it reaches you, you have <b>{{ $window }} hours</b> to take it or turn it
         down — the clock starts when the office sends the ask, not when you read it. Taking it is not the award:
         the office assigns the project, and it then appears under <a href="{{ route('portal.projects') }}">My projects</a>
         with the work order to follow. Silence is recorded as no answer, and the project goes to someone else.</p>
@@ -77,7 +77,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                <p class="hint">Whatever is recorded as handed over is deducted from your payout (§14.6) — you are paid
+                <p class="hint">Whatever is recorded as handed over is deducted from your payout — you are paid
                     for the work, not for materials the programme bought.</p>
             @endif
 

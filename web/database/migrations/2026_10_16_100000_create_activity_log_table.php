@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Module 12 §15.6 — the audit trail: who did what, when. Records the other modules hold are never edited here;
+ * Module 12  — the audit trail: who did what, when. Records the other modules hold are never edited here;
  * this table only says that something changed, on whose account, and what it was.
  */
 return new class extends Migration

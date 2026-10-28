@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
- * Module 5 — an E-Fundi: the programme's technical workforce (§8). The person and their skill record
+ * Module 5 — an E-Fundi: the programme's technical workforce. The person and their skill record
  * live here and nowhere else; the teaching role (Module 4), the job applications (Module 6) and the
  * money (Module 11) are separate rows that point back at this one.
  */
@@ -46,12 +46,12 @@ class FundiRegistration extends Model
     ];
 
     /**
-     * §8.4 — a fundi who is blocked is reopened, never deleted. Only a Director (a programme
+     *  — a fundi who is blocked is reopened, never deleted. Only a Director (a programme
      * executive) lifts a suspension or a blacklist, and the reason stays on the record.
      */
     public const BLOCKING = ['suspended', 'blacklisted'];
 
-    /** §8.3 availability. The fundi sets it themselves; a job assignment moves it through Module 7. */
+    /**  availability. The fundi sets it themselves; a job assignment moves it through Module 7. */
     public const AVAILABILITY = [
         'available' => 'Available for work',
         'on_job' => 'On a job',
@@ -59,7 +59,7 @@ class FundiRegistration extends Model
     ];
 
     /**
-     * What each grade is allowed to do in the programme (§8.2). A senior fundi carries the trade and is
+     * What each grade is allowed to do in the programme. A senior fundi carries the trade and is
      * the only grade that can train CTPs; a junior, an intern or an attachment applicant works under a
      * senior — they apply for the jobs their grade covers, mobilise in their area and collect e-waste.
      */
@@ -133,7 +133,7 @@ class FundiRegistration extends Model
         return $tier ? trim(Str::before(trim(self::TIERS[$tier] ?? $tier), '—')) : '';
     }
 
-    /** The grade this person reads as on their own profile and on every office screen (§8.2). */
+    /** The grade this person reads as on their own profile and on every office screen. */
     public function gradeLabel(): string
     {
         return self::tierLabel($this->tier) ?: 'E-Fundi';
@@ -152,7 +152,7 @@ class FundiRegistration extends Model
     }
 
     /**
-     * The teaching roles this fundi holds (Module 4). One row per SITE — §7.8 has a fundi training in
+     * The teaching roles this fundi holds (Module 4). One row per SITE —  has a fundi training in
      * their own workshop or a community site, so being approved at Nyanda says nothing about Chemelod.
      */
     public function trainers(): HasMany
@@ -166,7 +166,7 @@ class FundiRegistration extends Model
         return $this->morphMany(ProjectApplication::class, 'applicant', 'applicant_type', 'applicant_id');
     }
 
-    /** Module 6 §9.4 — the times the matching desk put a project to this fundi, and what they answered. */
+    /** Module 6  — the times the matching desk put a project to this fundi, and what they answered. */
     public function invites(): HasMany
     {
         return $this->hasMany(ProjectMatch::class, 'fundi_id');

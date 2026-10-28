@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 8 §11.5 — work the design did not carry. A Construction Manager raises it with its cost; a Director approves
+ * Module 8  — work the design did not carry. A Construction Manager raises it with its cost; a Director approves
  * or rejects it; an approved order is what moves the work order's agreed amount and adds its lines to the BoQ. A
  * rejected order stays on the file, because "we asked and it was refused" is part of the record.
  */
@@ -73,7 +73,7 @@ class VariationOrder extends Model
             'extra_materials' => 'nullable|string|max:1000',
             'extra_days' => 'nullable|integer|min:0|max:3650',
         ], [
-            'scope.required' => 'Write the additional work out — a variation with no scope cannot be priced or approved (§11.5).',
+            'scope.required' => 'Write the additional work out — a variation with no scope cannot be priced or approved.',
             'reason.required' => 'Say why the design has to change: what was found on site, or what the hirer asked for.',
             'extra_cost_ksh.required' => 'Give the additional cost. An approved variation always carries a figure.',
         ], [

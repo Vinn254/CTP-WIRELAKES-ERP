@@ -13,17 +13,15 @@
     <div class="stat"><small>Off the list</small><b>{{ $counts['inactive'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach ($filters as $key => $label)
-        <a class="tab {{ $status === $key ? 'on' : '' }}"
-           href="{{ route('admin.suppliers.index', ['f' => $key, 'q' => $search]) }}">
-            {{ $label }}<span class="n">{{ $counts[$key] ?? 0 }}</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.suppliers.index') }}" class="filter-bar">
-    <input type="hidden" name="f" value="{{ $status }}">
+    <label class="field">
+        <span>List status</span>
+        <select name="f" onchange="this.form.submit()">
+            @foreach ($filters as $key => $label)
+                <option value="{{ $key }}" @selected($status === $key)>{{ $label }} ({{ $counts[$key] ?? 0 }})</option>
+            @endforeach
+        </select>
+    </label>
     <input type="search" name="q" value="{{ $search }}" placeholder="Search name, code or contact" aria-label="Search name, code or contact">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if ($search !== '')
@@ -134,7 +132,7 @@
         @empty
             <tr><td colspan="10" class="empty-cell">
                 No supplier on this filter. Add one below — a request cannot be quoted until there is a name here to
-                quote it (§14.4 step 3).
+                quote it.
             </td></tr>
         @endforelse
     </tbody>

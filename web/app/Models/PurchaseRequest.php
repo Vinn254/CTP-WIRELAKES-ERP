@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — a purchase request (§14.4). This is the row the whole procurement path hangs on: an E-Fundi at work
+ * Module 11 — a purchase request. This is the row the whole procurement path hangs on: an E-Fundi at work
  * on a project raises it (a CTP mobilises, it never supplies — the office raises what a CTP needs), the Programme
  * Manager decides, quotations are attached, a purchase order goes out, goods are received, the invoice is matched and
  * the supplier is paid. A request is never deleted or re-raised — a rejected one stays on the register with its reason.
@@ -27,7 +27,7 @@ class PurchaseRequest extends Model
         'paid' => 'Supplier paid and recorded',
     ];
 
-    /** The eight steps of §14.4, in the order the register walks them. */
+    /** The eight steps of , in the order the register walks them. */
     public const PATH = [
         ['status' => 'submitted', 'actor' => 'An E-Fundi on a site, or the office', 'action' => 'Raises the purchase request with item, quantity, justification and the project to charge'],
         ['status' => 'approved', 'actor' => 'Programme Manager', 'action' => 'Reviews and approves it — or rejects it with a reason'],
@@ -52,7 +52,7 @@ class PurchaseRequest extends Model
     ];
 
     /**
-     * §14.4 step 1 on the member side. Only an E-Fundi works on a site and needs materials, so only an E-Fundi may
+     *  on the member side. Only an E-Fundi works on a site and needs materials, so only an E-Fundi may
      * raise a request; a CTP mobilises the community and never supplies. The office raises on a CTP's behalf.
      */
     public static function assertMemberMayRaise($member): void
@@ -80,7 +80,7 @@ class PurchaseRequest extends Model
             'inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
         ], [
             'justification.min' => 'Say why the programme needs this — a decision is made on the justification, not the item name.',
-            'budget_category.required' => 'Every request is charged to a budget line (§14.4 step 1).',
+            'budget_category.required' => 'Every request is charged to a budget line.',
         ], [
             'item_name' => 'What is needed',
             'estimated_cost_ksh' => 'What it will cost',
@@ -183,7 +183,7 @@ class PurchaseRequest extends Model
         ])->filter()->join(' · ') ?: 'General programme need';
     }
 
-    /** Where this row sits on the §14.4 path, for the eight-step panel. */
+    /** Where this row sits on the  path, for the eight-step panel. */
     public function stepIndex(): int
     {
         $order = array_keys(self::STATUSES);

@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 /** One flagged need in a community — the line the programme manager prioritises and can turn into a project. */
 class Need extends Model
 {
-    /** The checklist in §6.4, widened to the need families the programme actually funds. */
+    /** The checklist in , widened to the need families the programme actually funds. */
     public const TYPES = [
         'ict' => 'ICT equipment (computers, printers)',
         'internet' => 'Internet connectivity',

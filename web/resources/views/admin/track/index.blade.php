@@ -13,18 +13,16 @@
     <div class="stat"><small>In certification</small><b>{{ $counts['certified'] }}</b></div>
 </div>
 
-<div class="tabs">
-    @foreach ($filters as $key => $label)
-        <a class="tab {{ $filter === $key ? 'on' : '' }}"
-           href="{{ route('admin.track.index', ['f' => $key] + ($cohortId ? ['cohort' => $cohortId] : [])) }}">
-            {{ $label }}<span class="n">{{ $counts[$key] }}</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.track.index') }}" class="fee-form" style="margin:0 0 14px;">
-    <input type="hidden" name="f" value="{{ $filter }}">
     <div class="form-grid-2">
+        <div class="field">
+            <label>Track status</label>
+            <select name="f" onchange="this.form.submit()">
+                @foreach ($filters as $key => $label)
+                    <option value="{{ $key }}" @selected($filter === $key)>{{ $label }} ({{ $counts[$key] }})</option>
+                @endforeach
+            </select>
+        </div>
         <div class="field">
             <label>Cohort</label>
             <select name="cohort">

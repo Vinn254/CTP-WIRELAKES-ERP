@@ -97,8 +97,7 @@
                 </tr>
             @empty
                 <tr><td colspan="8" class="empty-cell">
-                    No work order in this state yet. An order appears the moment a project is awarded to a worker
-                    (§10.2) — award one on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!}
+                    No work order in this state yet. An order appears the moment a project is awarded to a worker — award one on {!! dept_ref('admin.marketplace.index', 'the matching desk') !!}
                     or on <a href="{{ dept_link('admin.projects.index') }}">Projects</a>.
                 </td></tr>
             @endforelse
@@ -106,7 +105,7 @@
     </table>
     <div class="pagination">{{ $orders->links() }}</div>
     <p class="hint">
-        A stopped or closed order stays on this register with its reason (§10.4 step 12). Re-awarding a project to
+        A stopped or closed order stays on this register with its reason. Re-awarding a project to
         another worker does not rewrite the first order — it is marked stopped and the new worker gets their own.
     </p>
 </div>

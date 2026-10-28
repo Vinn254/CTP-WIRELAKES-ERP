@@ -18,22 +18,25 @@
 <h1>{{ $label }}</h1>
 <p class="page-lede">Review and approve new CTP and E-Fundi applications.</p>
 
-<div class="tabs">
-    @foreach ($types as $t => $lbl)
-        <a class="tab {{ $t === $type ? 'on' : '' }}" href="{{ route('admin.registrations.index', $t) }}">
-            {{ $lbl }}
-            @if ($pendingByType[$t] ?? 0)<span class="n" title="{{ $pendingByType[$t] }} pending">{{ $pendingByType[$t] }}</span>@endif
-        </a>
-    @endforeach
-</div>
-
-<div class="tabs">
-    @foreach ($statuses as $s => $lbl)
-        <a class="tab {{ $status === $s ? 'on' : '' }}" href="{{ route('admin.registrations.index', ['type' => $type, 'status' => $s]) }}">
-            {{ $lbl }}@if ($s !== 'all')<span class="n">{{ $counts[$s] ?? 0 }}</span>@endif
-        </a>
-    @endforeach
-</div>
+<form method="GET" action="{{ route('admin.registrations.index', $type) }}" class="filter-bar inline-filter">
+    <label class="field">
+        <span>Register</span>
+        <select name="type" onchange="location.href='{{ route('admin.registrations.index', ['type' => '__TYPE__']) }}'.replace('__TYPE__', this.value)+'?status='+encodeURIComponent(document.getElementById('reg-status').value);">
+            @foreach ($types as $t => $lbl)
+                <option value="{{ $t }}" @selected($t === $type)>{{ $lbl }}@if ($pendingByType[$t] ?? 0) ({{ $pendingByType[$t] }})@endif</option>
+            @endforeach
+        </select>
+    </label>
+    <label class="field">
+        <span>Application status</span>
+        <select name="status" id="reg-status" onchange="this.form.submit()">
+            @foreach ($statuses as $s => $lbl)
+                <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
+            @endforeach
+        </select>
+    </label>
+    <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
+</form>
 
 <table class="data">
     <thead>

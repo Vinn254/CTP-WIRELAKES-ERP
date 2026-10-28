@@ -79,7 +79,7 @@
                 </select>
             </div>
             <div class="field">
-                <label>Linked programme project (Module 6)</label>
+                <label>Linked programme project</label>
                 <select name="project_id">
                     <option value="">Runs on its own</option>
                     @foreach ($projects as $p)

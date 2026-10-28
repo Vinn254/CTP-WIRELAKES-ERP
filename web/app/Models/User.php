@@ -52,4 +52,10 @@ class User extends Authenticatable
     {
         return $this->role === 'superadmin';
     }
+
+    /** The personnel file Human Resources keeps for this account — next of kin, C14 and pay. */
+    public function staffRecord()
+    {
+        return $this->hasOne(StaffRecord::class);
+    }
 }

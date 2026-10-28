@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="page-intro">
-    <p class="sub">When the inspector visits your site and marks something <b>failed</b>, it comes here (§11.4 step 5).
+    <p class="sub">When the inspector visits your site and marks something <b>failed</b>, it comes here.
         You answer it with what you did and the photograph of the rework — the same item, not a new one. The inspector
         then re-checks it on the office's side; only they can mark it passed, and a report cannot be signed off while
         an item of yours is still standing.</p>
@@ -87,7 +87,7 @@
 @endif
 
 <div class="card">
-    <div class="section-head"><h3>How an inspection runs (§11.4)</h3></div>
+    <div class="section-head"><h3>How an inspection runs</h3></div>
     <ol class="steps">
         <li><b>The office schedules the visit</b><div class="hint">with the items to be checked listed</div></li>
         <li><b>The inspector marks each item</b><div class="hint">pass, fail, or not applicable on your site</div></li>

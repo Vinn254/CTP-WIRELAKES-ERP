@@ -23,13 +23,16 @@
     </div>
 </div>
 
-<details class="card add-record" @if ($errors->any() && old('item_type')) open @endif>
-    <summary>+ Add a collection</summary>
-    <p class="help">One line per kind of item. A mixed bag of cables and a pallet of monitors are not the same
-        collection — register them separately so the condition and the route stay true.</p>
+<div class="head-acts" style="margin-bottom:18px;">
+    <button class="btn btn-sm btn-lime" type="button" data-sheet="add-collection">+ Add a collection</button>
+</div>
+
+@include('partials.sheet-start', ['name' => 'add-collection', 'title' => 'Add a collection',
+    'sub' => 'One line per kind of item — a bag of cables and a pallet of monitors are registered separately.'])
     <form method="POST" action="{{ route('portal.ewaste.store') }}" enctype="multipart/form-data" class="fee-form"
           data-confirm="Put this on the e-waste register?" data-title="Register a collection">
         @csrf
+        <input type="hidden" name="_sheet" value="add-collection">
         <div class="form-grid-3">
             <div class="field">
                 <label>What it is <span class="req">*</span></label>
@@ -92,9 +95,12 @@
                       placeholder="e.g. 12 desktops written off by the school; 4 still boot. Stored dry at the chief's camp.">{{ old('note') }}</textarea>
         </div>
         <datalist id="ewaste-counties">@foreach ($counties as $name)<option value="{{ $name }}"></option>@endforeach</datalist>
-        <button class="btn btn-primary" type="submit" style="margin-top:12px;">Register this collection</button>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Register this collection</button>
+        </div>
     </form>
-</details>
+@include('partials.sheet-end')
 
 <div class="card">
     <div class="section-head"><h3>What {{ $isCtp ? 'you' : 'you as an E-Fundi' }} registered ({{ $mine->count() }})</h3></div>

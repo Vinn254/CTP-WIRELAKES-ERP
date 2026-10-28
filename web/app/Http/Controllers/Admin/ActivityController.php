@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Module 12 §15.6 — the trail. Read-only: an entry says what happened, and a mistake in the record behind it is
+ * Module 12  — the trail. Read-only: an entry says what happened, and a mistake in the record behind it is
  * answered by changing that record (which writes its own next line), never by editing history.
  *
  * The account side sits in the same table: every sign-in, refused sign-in, emailed code and reset link is a line

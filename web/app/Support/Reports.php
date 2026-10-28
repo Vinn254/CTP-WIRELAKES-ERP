@@ -28,7 +28,7 @@ use App\Models\TrainingVenue;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Module 12 — the reports §15.5, one per reader. A report is built as sections of columns and rows, so the same
+ * Module 12 — the reports , one per reader. A report is built as sections of columns and rows, so the same
  * figures print on screen, go into the CSV the office exports, and cannot be edited into a nicer shape: every row
  * is read out of the register another module owns.
  */
@@ -54,7 +54,7 @@ class Reports
         'ewaste' => ['reader' => 'E-waste manager', 'title' => 'E-waste report',
             'note' => 'Weight and items by type, what has not been weighed in, and the hazardous lines.'],
         'impact' => ['reader' => 'M&E officer', 'title' => 'Indicator report',
-            'note' => 'The §15.2 indicators as rows, counties ranked, and work grouped on the nine budget lines.'],
+            'note' => 'The  indicators as rows, counties ranked, and work grouped on the nine budget lines.'],
         'member' => ['reader' => 'CTP or E-Fundi', 'title' => 'A member reads their own record',
             'note' => 'Not a staff report — a member sees their own seats, projects and earnings in the member portal.'],
         'donor' => ['reader' => 'Donor or partner', 'title' => 'Donor report', 'pending' => true,
@@ -87,7 +87,7 @@ class Reports
                     $reader['note'].' — nothing is counted here that the modules do not already hold.',
                 ]])],
             },
-            'foot' => 'Built '.now()->format('d M Y H:i').'. Every figure is read from the registers the other modules write; none of it is stored here (§15.5).',
+            'foot' => 'Built '.now()->format('d M Y H:i').'. Every figure is read from the registers the other modules write; none of it is stored here.',
         ];
     }
 
@@ -310,7 +310,7 @@ class Reports
                 Payout::with('fundi:id,full_name')->whereIn('stage', ['queued', 'approved', 'held'])
                     ->orderBy('id')->limit(60)->get()
                     ->map(fn (Payout $p) => [$p->reference, $p->fundi->full_name ?? '—', $p->streamLabel(), $p->stageLabel(), $p->netLabel()])->all(),
-                'Only a programme executive releases these (§14.6 steps 5–7).'),
+                'Only a programme executive releases these.'),
             static::section('Waiting before it can be paid', ['Reference', 'Fundi', 'Why it is held', 'Net'],
                 Payout::with('fundi:id,full_name')->whereIn('stage', ['awaiting_hirer_payment', 'awaiting_report'])
                     ->orderBy('id')->limit(60)->get()
@@ -331,7 +331,7 @@ class Reports
             static::section('Open requests — where each one sits', ['Reference', 'Item', 'County', 'Step', 'Estimate'],
                 $open->map(fn (PurchaseRequest $r) => [
                     $r->reference, $r->item_name, $r->county ?: '—', $r->statusLabel(), $r->costLabel(),
-                ])->all(), 'The chain is submitted → approved → quoted → ordered → received → paid (§14.4).'),
+                ])->all(), 'The chain is submitted → approved → quoted → ordered → received → paid.'),
             static::section('Purchase orders', ['Reference', 'Supplier', 'Ordered', 'Received', 'Invoice', 'Stage'],
                 $orders->map(fn (PurchaseOrder $o) => [
                     $o->reference, $o->supplier->name ?? '—', $o->orderedLabel(), $o->receivedLabel(),
@@ -373,7 +373,7 @@ class Reports
                 $issued->map(fn (StockMovement $m) => [
                     $m->moved_on->format('d M Y'), $m->item->name ?? '—', $m->quantityLabel(), $m->valueLabel(),
                     $m->forLabel(), $m->reasonLabel(),
-                ])->all(), 'Each of these lines already posted its own entry on the money register (§14.5).'),
+                ])->all(), 'Each of these lines already posted its own entry on the money register.'),
         ];
     }
 
@@ -397,7 +397,7 @@ class Reports
                 collect(EWasteCollection::CONDITIONS)->map(fn ($label, $key) => [
                     $label, $q()->where('condition', $key)->count(),
                     round((float) $q()->where('condition', $key)->sum('weighed_weight_kg'), 1),
-                ])->all(), 'Hazardous lines leave only through a certified disposal partner (§13.4).'),
+                ])->all(), 'Hazardous lines leave only through a certified disposal partner.'),
             static::section('Counties', ['County', 'Lines', 'Kg verified'],
                 $q()->whereNotNull('county')->where('county', '!=', '')->select('county', DB::raw('count(*) as line_count'), DB::raw('sum(weighed_weight_kg) as kg'))
                     ->groupBy('county')->orderByDesc('line_count')->limit(47)->get()

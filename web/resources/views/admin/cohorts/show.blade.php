@@ -41,7 +41,7 @@
             <dt>Trainer</dt><dd>{{ $cohort->trainer?->personName() ?? 'Not assigned' }}
                 @if ($cohort->trainer)
                     <span class="chip">{{ $cohort->trainer->statusLabel() }}</span>
-                    @if ($cohort->trainer->rate_ksh > 0)<div class="hint">KSh {{ number_format((float) $cohort->trainer->rate_ksh) }} — Module 11 invoices this</div>@endif
+                    @if ($cohort->trainer->rate_ksh > 0)<div class="hint">KSh {{ number_format((float) $cohort->trainer->rate_ksh) }} — Finance invoices this</div>@endif
                 @endif</dd>
             <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ dept_link('admin.communities.show', ['community' => $cohort->community]) }}">{{ $cohort->community->name }}</a>@else<span class="hint">not tied to one</span>@endif</dd>
             <dt>Sessions</dt><dd>{{ $cohort->hoursLabel() }}</dd>
@@ -148,7 +148,7 @@
     'title' => 'Every run of '.$cohort->courseLabel(),
     'url' => fn ($r) => route('admin.cohorts.show', $r),
     'note' => 'The same course runs again next term and next year — each run keeps its own roll and its own results, '
-        .'and a CTP who trained in an earlier run keeps that record on their file.',
+.'and a CTP who trained in an earlier run keeps that record on their file.',
 ])
 
 @forelse ($seated as $e)
@@ -257,7 +257,7 @@
                         <input type="text" name="fee_reference" maxlength="60"
                                placeholder="M-Pesa code, bank slip or receipt number." value="{{ old('fee_reference', $e->fee_reference) }}">
                         <div class="help">Recording it as paid posts one income line on the money register under
-                            {{ $cohort->reference }} — this is where the programme's training income is counted (§14).</div>
+                            {{ $cohort->reference }} — this is where the programme's training income is counted.</div>
                     </div>
                     <button class="btn btn-sm btn-lime" type="submit" style="margin-top:10px;">Save the fee</button>
                 </form>
@@ -302,8 +302,6 @@
 @endif
 
 <p class="hint" style="margin-top:18px;">
-    The chain Module 4 works: CTP applies or is placed → office confirms the seat → trainer or office records
-    attendance, theory, practical and assessment → the office puts the trainee forward → an executive approves the
-    certificate and its code is issued. Attendance below {{ Enrollment::ATTENDANCE_MINIMUM }}% cannot be certified.
+    Attendance below {{ Enrollment::ATTENDANCE_MINIMUM }}% cannot be certified.
 </p>
 @endsection

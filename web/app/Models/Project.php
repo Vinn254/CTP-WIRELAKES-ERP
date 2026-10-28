@@ -63,7 +63,7 @@ class Project extends Model
         return $this->hasMany(ProjectApplication::class);
     }
 
-    /** The matching desk's rounds for this project (Module 6 §9.4). */
+    /** The matching desk's rounds for this project (Module 6 ). */
     public function matches(): HasMany
     {
         return $this->hasMany(ProjectMatch::class);
@@ -74,14 +74,14 @@ class Project extends Model
         return $this->hasOne(ProjectApplication::class)->where('status', 'approved');
     }
 
-    /** What the programme provides for this job (§14.5). Listed when the project is posted, deducted when the fundi is paid.
+    /** What the programme provides for this job. Listed when the project is posted, deducted when the fundi is paid.
      *  Named apart from the `materials` text column, which is the office's plain-word description of the same list. */
     public function providedMaterials(): HasMany
     {
         return $this->hasMany(ProjectMaterial::class);
     }
 
-    /** Module 8 — the construction file that opens on a buildable project (§11.2). */
+    /** Module 8 — the construction file that opens on a buildable project. */
     public function assessments(): HasMany
     {
         return $this->hasMany(SiteAssessment::class)->orderByDesc('visited_on')->orderByDesc('id');
@@ -241,7 +241,7 @@ class Project extends Model
 
     /**
      * The one way a project is given to a member, whichever screen reached it — an applicant the office picked on
-     * the project page, or a fundi who accepted an invite on the matching desk (§9.4 step 6). Anyone else waiting on
+     * the project page, or a fundi who accepted an invite on the matching desk. Anyone else waiting on
      * this project is declined with the reason, and reassigning tells the previous member instead of losing them.
      */
     public function awardTo(ProjectApplication $application): ProjectApplication
@@ -265,7 +265,7 @@ class Project extends Model
         $application->update(['status' => 'approved', 'reviewed_by' => auth()->id(), 'rejection_reason' => null]);
         $this->update(['status' => 'awarded', 'awarded_at' => now()]);
 
-        // §10.2 — an assignment is what a work order is generated from, so it happens here rather than on whichever
+        //  — an assignment is what a work order is generated from, so it happens here rather than on whichever
         // screen reached the award. A CTP attachment is recorded the same way a fundi job is.
         Execution::openFor($this, $application);
 

@@ -26,11 +26,11 @@
         $nav[] = ['label' => 'My communities', 'icon' => 'globe', 'route' => 'portal.communities', 'active' => ['portal.communities'], 'count' => ($communities ?? collect())->count()];
     } else {
         $nav[] = ['label' => 'My E-Fundi record', 'icon' => 'users', 'route' => 'portal.efundi', 'active' => ['portal.efundi']];
-        // §9.4 — the desk puts projects to an E-Fundi; a CTP is never offered this screen.
+        //  — the desk puts projects to an E-Fundi; a CTP is never offered this screen.
         $nav[] = ['label' => 'Invited to you', 'icon' => 'mail', 'route' => 'portal.invitations', 'active' => ['portal.invitations'], 'count' => ($inviteCount ?? 0)];
         if (isset($member) && $member->canTrain()) {
             $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
-            $nav[] = ['label' => 'My week sheet', 'icon' => 'clock', 'route' => 'portal.trainer.week', 'active' => ['portal.trainer.week']];
+            $nav[] = ['label' => 'My time log', 'icon' => 'clock', 'route' => 'portal.trainer.week', 'active' => ['portal.trainer.week']];
         }
     }
     // What the office has billed this member. A member who has never been invoiced is never shown a balance screen.
@@ -38,14 +38,14 @@
         $nav[] = ['label' => 'My invoices', 'icon' => 'mail', 'route' => 'portal.invoices', 'active' => ['portal.invoices'], 'count' => ($invoiceCount ?? 0)];
     }
     $nav[] = ['label' => 'E-Waste collection', 'icon' => 'globe', 'route' => 'portal.ewaste', 'active' => ['portal.ewaste']];
-    // §10.4 — the worker's own side of a job they were awarded. A CTP only ever sees an attachment order here.
+    //  — the worker's own side of a job they were awarded. A CTP only ever sees an attachment order here.
     $nav[] = ['label' => $isCtp ? 'My attachment work' : 'My work orders', 'icon' => 'briefcase', 'route' => 'portal.work', 'active' => ['portal.work', 'portal.work.show'], 'count' => ($workOrderCount ?? 0)];
-    // §11.4 step 5 — what the inspector flagged on their site and the worker still owes proof of.
+    //  — what the inspector flagged on their site and the worker still owes proof of.
     $nav[] = ['label' => 'Items to put right', 'icon' => 'check', 'route' => 'portal.fixes', 'active' => ['portal.fixes'], 'count' => ($fixCount ?? 0)];
     if (! $isCtp) {
-        // §12.7 — repair jobs on technology assets assigned to this fundi to fix.
+        //  — repair jobs on technology assets assigned to this fundi to fix.
         $nav[] = ['label' => 'My repair jobs', 'icon' => 'grid', 'route' => 'portal.tech.jobs', 'active' => ['portal.tech.jobs'], 'count' => ($techJobCount ?? 0)];
-        // §14.4 step 1 — only an E-Fundi works on a site and supplies, so a CTP is never offered this screen.
+        //  — only an E-Fundi works on a site and supplies, so a CTP is never offered this screen.
         $nav[] = ['label' => 'Purchase request', 'icon' => 'link', 'route' => 'portal.procurement', 'active' => ['portal.procurement']];
         $nav[] = ['label' => 'My earnings', 'icon' => 'briefcase', 'route' => 'portal.earnings', 'active' => ['portal.earnings']];
         // Leave is for the people who work in the programme — an E-Fundi holds a post, a CTP trainee does not.

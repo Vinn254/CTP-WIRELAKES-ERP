@@ -47,7 +47,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">What the file says so far (§11.1)</h2>
+    <h2 class="section-head">What the file says so far</h2>
     <div class="stat-row">
         <div class="stat"><small>BoQ — materials as priced</small><b>{{ Finance::ksh($boqTotal) }}</b></div>
         <div class="stat"><small>Labour counted on site</small><b>{{ Finance::ksh($labourCost) }}</b></div>
@@ -58,12 +58,12 @@
     <p class="hint">
         The BoQ total and the labour total are the sum of their lines, never a typed figure. They are what the office
         reads when it prices a variation or questions a payout; the payout itself is calculated on
-        {!! dept_ref('admin.payouts.index', 'the Module 11 register') !!}.
+        {!! dept_ref('admin.payouts.index', 'the Finance register') !!}.
     </p>
 </div>
 
 <div class="card">
-    <h2 class="section-head">Site assessment (§11.2)</h2>
+    <h2 class="section-head">Site assessment</h2>
     <p class="help">
         The first thing a construction job needs is somebody standing on the ground writing down what it is like —
         soil, access, water and power, the risks, and what should happen next. A later visit is another assessment
@@ -150,7 +150,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Bill of quantities (§11.2)</h2>
+    <h2 class="section-head">Bill of quantities</h2>
     <p class="help">
         Every line the build needs, priced: drawing or detail reference, the trade that does it, the unit, the
         quantity and the cost of one unit. The total below is what these lines add up to — a BoQ total is never typed.
@@ -273,9 +273,9 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Labour on site (§11.2)</h2>
+    <h2 class="section-head">Labour on site</h2>
     <p class="help">Each line is a day somebody worked, whose contract they were under, and the rate they are counted at.
-        The worker's own progress and photographs are logged on the delivery sheet (Module 7) — this is the attendance the
+        The worker's own progress and photographs are logged on the delivery sheet — this is the attendance the
         construction cost is built from.</p>
 
     @if ($canBuild)
@@ -353,7 +353,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Site inspections (§11.4)</h2>
+    <h2 class="section-head">Site inspections</h2>
     <p class="help">
         A visit is scheduled with the items to be checked listed, one per line. The inspector marks every item pass,
         fail or not applicable and writes the report; a failed item is answered by the worker with the photograph of the
@@ -524,7 +524,7 @@
                             </div>
                             <button class="btn btn-sm btn-outline" type="submit">Record the re-check</button>
                             @if (! $item->hasProof())
-                                <span class="hint">This item has no proof of a fix yet — the worker uploads it on their portal first (§11.4 step 5).</span>
+                                <span class="hint">This item has no proof of a fix yet — the worker uploads it on their portal first.</span>
                             @endif
                         </form>
                     </div>
@@ -542,7 +542,7 @@
                     </div>
                     <button class="btn btn-sm btn-primary" type="submit">Sign off the report</button>
                     @if ($ins->openFailures())
-                        <span class="hint">{{ $ins->openFailures() }} failed item(s) still need the worker's proof and a re-check (§11.4 steps 5–6).</span>
+                        <span class="hint">{{ $ins->openFailures() }} failed item(s) still need the worker's proof and a re-check.</span>
                     @endif
                 </form>
             @endif
@@ -551,7 +551,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Variations — work the design did not carry (§11.5)</h2>
+    <h2 class="section-head">Variations — work the design did not carry</h2>
     <p class="help">
         A Construction Manager raises the change with its cost, why the design has to move, the materials it needs and
         the days it adds. Only a programme executive approves or rejects it. An approved variation adds its line to the
@@ -590,7 +590,7 @@
         </form>
     @elseif ($canBuild)
         <p class="hint">A variation is priced against a work order. This project has none yet — it has to be awarded and
-            its order issued on {!! dept_ref('admin.execution.index', 'the delivery register') !!} first (§11.5).</p>
+            its order issued on {!! dept_ref('admin.execution.index', 'the delivery register') !!} first.</p>
     @endif
 
     @foreach ($variations as $v)
@@ -632,19 +632,12 @@
                     </form>
                 @else
                     <p class="hint">Staff raise a variation; only a programme executive decides it — the same gate that
-                        issues a certificate or releases money (§11.5 step 2).</p>
+                        issues a certificate or releases money.</p>
                 @endif
             @endif
         </div>
     @endforeach
 </div>
-
-<p class="hint">
-    What stays where: the site log, the worker's signature and the hirer's confirmation are on the delivery sheet
-    (Module 7); materials handed over, deductions and every figure the fundi is paid are on the Finance register
-    (Module 11). This file is the engineering record — the ground, the priced design, the labour, the inspections and
-    the changes.
-</p>
 
 <script>
     // The BoQ is a repeater: + drops another empty line and renumbers the table so every row keeps its index.

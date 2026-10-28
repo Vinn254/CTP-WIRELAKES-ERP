@@ -20,17 +20,15 @@
     @endforeach
 </div>
 
-<div class="tabs">
-    @foreach ($tabs as $key => $t)
-        <a class="tab {{ $tab === $key ? 'on' : '' }}"
-           href="{{ route('admin.technology.index', array_filter(['tab' => $key, 'category' => $category, 'q' => $search])) }}">
-            {{ $t['label'] }} <span class="hint">({{ $counts[$key] ?? 0 }})</span>
-        </a>
-    @endforeach
-</div>
-
 <form method="GET" action="{{ route('admin.technology.index') }}" class="filter-bar">
-    <input type="hidden" name="tab" value="{{ $tab }}">
+    <label class="field">
+        <span>Register</span>
+        <select name="tab" onchange="this.form.submit()">
+            @foreach ($tabs as $key => $t)
+                <option value="{{ $key }}" @selected($tab === $key)>{{ $t['label'] }} ({{ $counts[$key] ?? 0 }})</option>
+            @endforeach
+        </select>
+    </label>
     <div>
         <label for="category">Sub-area</label>
         <select name="category" id="category">
@@ -82,7 +80,7 @@
                 @empty
                     <tr><td colspan="6" class="empty-cell">
                         Nothing on the register yet. Add the first device, licence or kit — its sub-area decides which of
-                        the five it counts under (§12.2).
+                        the five it counts under.
                     </td></tr>
                 @endforelse
             </tbody>
@@ -115,7 +113,7 @@
                     </tr>
                 @empty
                     <tr><td colspan="6" class="empty-cell">
-                        No robotics, programming or AI work recorded yet (§12.4–12.6).
+                        No robotics, programming or AI work recorded yet.
                     </td></tr>
                 @endforelse
             </tbody>
@@ -143,7 +141,7 @@
                 @empty
                     <tr><td colspan="6" class="empty-cell">
                         No repair ticket is open. Open one from any asset on the
-                        <a href="{{ route('admin.technology.index', ['tab' => 'assets']) }}">asset register</a> (§12.7).
+                        <a href="{{ route('admin.technology.index', ['tab' => 'assets']) }}">asset register</a>.
                     </td></tr>
                 @endforelse
             </tbody>
@@ -178,7 +176,7 @@
                 @empty
                     <tr><td colspan="5" class="empty-cell">
                         Nothing runs out inside {{ Technology::ALERT_WINDOW_DAYS }} days. Record a warranty or licence
-                        end-date on an asset and it shows up here in good time (§12.7).
+                        end-date on an asset and it shows up here in good time.
                     </td></tr>
                 @endforelse
             </tbody>

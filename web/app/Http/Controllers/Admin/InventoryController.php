@@ -16,9 +16,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * Module 11 — the stock register (§14.5). Cards by category with the quantity on hand, the reorder level, where
+ * Module 11 — the stock register. Cards by category with the quantity on hand, the reorder level, where
  * the item sits and what it cost. Materials drawn for a project or a cohort leave through a movement, which also
- * posts the value on the ledger — that is what makes "materials issued from inventory" a tracked item (§14.3)
+ * posts the value on the ledger — that is what makes "materials issued from inventory" a tracked item
  * rather than a shelf that quietly empties.
  */
 class InventoryController extends Controller
@@ -126,12 +126,12 @@ class InventoryController extends Controller
 
         return back()->with('status', $pr->reference.' was raised from stock card '.$item->sku
             .' ('.$item->quantityLabel().' left against a reorder level of '.$item->reorder_level.' '
-            .$item->unit.'). It waits for the Programme Manager\'s decision (§14.4 step 2).');
+            .$item->unit.'). It waits for the Programme Manager\'s decision.');
     }
 
     /**
      * One movement on one card. An issue out to a project or a cohort also posts its value on the ledger, so the
-     * materials a project used are on the project's own account (§14.3).
+     * materials a project used are on the project's own account.
      */
     public function move(Request $request, InventoryItem $item)
     {

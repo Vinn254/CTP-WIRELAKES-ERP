@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 
 /**
- * Module 8 §11.2 — the first site visit written down: ground, access, utilities, the risks and what the manager
+ * Module 8  — the first site visit written down: ground, access, utilities, the risks and what the manager
  * recommended. A later visit is a new assessment, so the file keeps the sequence the decisions were made in.
  */
 class SiteAssessment extends Model
@@ -58,7 +58,7 @@ class SiteAssessment extends Model
             'recommendation' => 'required|in:'.implode(',', array_keys(self::RECOMMENDATIONS)),
             'photo' => 'nullable|image|max:8192',
         ], [
-            'findings.required' => 'Write what the visit found. A photograph with no reading of the site is not an assessment (§11.2).',
+            'findings.required' => 'Write what the visit found. A photograph with no reading of the site is not an assessment.',
             'recommendation.required' => 'Say what should happen next — proceed, re-design or hold.',
         ], [
             'visited_on' => 'Date of the visit',

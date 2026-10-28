@@ -41,13 +41,20 @@
     <p class="page-lede">Who of this desk’s people is on leave, read here as their own records.</p>
 @endif
 
-<div class="tabs">
-    @foreach ($tabs as $s => $lbl)
-        <a class="tab {{ $current === $s ? 'on' : '' }}" href="{{ route($self, $here + ['status' => $s]) }}">
-            {{ $lbl }}@if ($s !== '')<span class="n">{{ $rows->where('status', $s)->count() }}</span>@endif
-        </a>
-    @endforeach
-</div>
+<form method="GET" action="{{ route($self) }}" class="filter-bar inline-filter">
+    @if ($read)
+        <input type="hidden" name="department" value="{{ Departments::currentSlug() }}">
+    @endif
+    <label class="field">
+        <span>Leave status</span>
+        <select name="status" onchange="this.form.submit()">
+            @foreach ($tabs as $s => $lbl)
+                <option value="{{ $s }}" @selected($current === $s)>{{ $lbl }}@if ($s !== '') ({{ $rows->where('status', $s)->count() }})@endif</option>
+            @endforeach
+        </select>
+    </label>
+    <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
+</form>
 
 <div class="card" style="margin-bottom:22px;">
     <div class="section-head"><h3>What each type gives</h3></div>

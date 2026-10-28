@@ -8,7 +8,7 @@ use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — the approved supplier list (§14.4 step 3). Quotations are only accepted from the names here, so a
+ * Module 11 — the approved supplier list. Quotations are only accepted from the names here, so a
  * supplier is added on their details and payment information and taken off the list rather than deleted: the
  * purchase orders they already delivered stay readable.
  */
@@ -51,7 +51,7 @@ class SupplierController extends Controller
             'status' => 'approved', 'added_by_user' => auth()->id()]);
 
         return back()->with('status', $supplier->code.' — '.$supplier->name.' is on the approved list'
-            .' ('.$supplier->suppliesLabel().'). Quotations can now be taken from them (§14.4 step 3).');
+            .' ('.$supplier->suppliesLabel().'). Quotations can now be taken from them.');
     }
 
     public function update(Request $request, Supplier $supplier)

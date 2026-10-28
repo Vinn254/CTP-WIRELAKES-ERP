@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * Module 11 — the ledger (§14.3). Every shilling in and every shilling out is one line here, tied to the budget
+ * Module 11 — the ledger. Every shilling in and every shilling out is one line here, tied to the budget
  * line it is charged against and, where it belongs to something, to that project, cohort, supplier or member.
  * Purchases that were paid and payouts that were released post their own lines: the office never retypes them.
  */
@@ -98,7 +98,7 @@ class FinanceEntry extends Model
             'ctp_id' => 'nullable|integer|exists:ctp_registrations,id',
             'note' => 'nullable|string|max:1000',
         ], [
-            'kind.required' => 'Say what kind of money this is — the ledger only accepts the tracked items (§14.3).',
+            'kind.required' => 'Say what kind of money this is — the ledger only accepts the tracked items.',
             'method.pending' => 'Money that has not settled yet is still recorded, with its date.',
         ], [
             'kind' => 'What it is',

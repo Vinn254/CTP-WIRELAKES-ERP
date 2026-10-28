@@ -57,13 +57,13 @@
     </div>
     <p class="hint">
         <button class="btn btn-sm btn-ghost" type="button" id="pinHere">Use this device’s location</button>
-        <span id="pinNote" class="hint">The pin is what puts this community on the impact map (Module 12).</span>
+        <span id="pinNote" class="hint">The pin is what puts this community on the impact map.</span>
     </p>
 
     <div class="field" style="margin-top:14px;">
         <label>What this community is like</label>
         <textarea name="summary" rows="4" maxlength="4000" placeholder="Who lives here, what the young people do, what already exists.">{{ old('summary', $community->summary) }}</textarea>
-        <div class="help">Read before a cohort is booked here (Module 4) or a project is matched (Module 6).</div>
+        <div class="help">Read before a cohort is booked here or a project is matched.</div>
     </div>
 
     <datalist id="county-names">@foreach ($counties as $name)<option value="{{ $name }}"></option>@endforeach</datalist>

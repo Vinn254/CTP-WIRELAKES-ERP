@@ -77,8 +77,7 @@
             </tr>
         @empty
             <tr><td colspan="6" class="empty-cell">
-                Nothing recorded against these filters yet. The trail starts from the first change made after
-                Module 12 was opened, so older records show only what has been touched since.
+                Nothing recorded against these filters yet. The trail starts from the first change recorded, so older records show only what has been touched since.
             </td></tr>
         @endforelse
     </tbody>

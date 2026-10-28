@@ -56,7 +56,7 @@
 
         <div class="card">
             <h3>Bring goods in</h3>
-            <p class="hint">Goods normally arrive on a purchase order and are signed in there (§14.4 step 6). A movement
+            <p class="hint">Goods normally arrive on a purchase order and are signed in there. A movement
                 recorded on the card is for a collection brought in, a return, a transfer or a stock count.</p>
             <form method="POST" action="{{ route('admin.inventory.move', $item) }}" class="fee-form"
                   data-confirm="Record this movement onto {{ $item->sku }}?" data-title="Goods in">
@@ -107,8 +107,7 @@
     <div class="stack">
         <div class="card">
             <h3>Draw materials out</h3>
-            <p class="hint">An issue out posts its value on the money register against the budget the category feeds
-                (§14.3), so a project's materials are on the project's own account. The shelf never goes below zero —
+            <p class="hint">An issue out posts its value on the money register against the budget the category feeds, so a project's materials are on the project's own account. The shelf never goes below zero —
                 raise a purchase request for what is missing instead.</p>
             <form method="POST" action="{{ route('admin.inventory.move', $item) }}" class="fee-form"
                   data-confirm="Issue this material out of the store?" data-title="Materials out">
@@ -168,7 +167,7 @@
             <div class="card">
                 <h3>Reorder from this card</h3>
                 <p class="hint">A card that has run down is not deleted and not typed over — it raises a purchase
-                    request on the same register every other request walks (§14.4 step 1).</p>
+                    request on the same register every other request walks.</p>
                 <form method="POST" action="{{ route('admin.inventory.reorder', $item) }}" class="fee-form"
                       data-confirm="Raise a purchase request from {{ $item->sku }}?" data-title="Reorder">
                     @csrf
@@ -237,5 +236,5 @@
 </div>
 
 <p class="hint">A movement is never edited away: if a count was wrong it is corrected with an opposite movement on
-    the same card, so both the error and the fix stay visible (§14.5).</p>
+    the same card, so both the error and the fix stay visible.</p>
 @endsection

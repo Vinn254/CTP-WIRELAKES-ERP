@@ -49,9 +49,9 @@
     <a class="btn btn-sm btn-lime" href="{{ route('admin.invoices.document', $invoice) }}" target="_blank"
        rel="noopener">Open the document</a>
     @if ($invoice->status !== 'cancelled')
-        <a class="btn btn-sm btn-outline" href="#send">Send it by email</a>
+        <button class="btn btn-sm btn-outline" type="button" data-sheet="send">Send it by email</button>
         @if ($invoice->status === 'open')
-            <a class="btn btn-sm btn-outline" href="#record-payment">Record a payment</a>
+            <button class="btn btn-sm btn-outline" type="button" data-sheet="pay">Record a payment</button>
         @endif
     @endif
 </p>
@@ -84,23 +84,28 @@
                         </td>
                         <td class="actions">
                             @if (! $p->isVoid() && $invoice->status !== 'cancelled')
-                                <details class="need-form">
-                                    <summary>Payment was wrong</summary>
+                                @include('partials.sheet-start', ['name' => 'void-'.$p->id,
+                                    'title' => 'Void this payment',
+                                    'sub' => 'The payment keeps its row and its reason. An opposite line goes on the money register.'])
                                     <form method="POST" action="{{ route('admin.invoices.payment.void', $p) }}"
                                           class="fee-form" data-danger
                                           data-confirm="Void the {{ $p->amountLabel() }} payment of {{ $invoice->reference }}? An opposite line goes on the money register."
                                           data-title="Void payment">
                                         @csrf
+                                        <input type="hidden" name="_sheet" value="void-{{ $p->id }}">
                                         <div class="field">
                                             <label>What was wrong <span class="req">*</span></label>
                                             <input type="text" name="void_reason" required maxlength="500"
                                                    placeholder="e.g. Recorded twice — the same M-Pesa code came in once.">
                                         </div>
-                                        <button class="btn btn-danger btn-block" type="submit" style="margin-top:10px;">
-                                            Void this payment
-                                        </button>
+                                        <div class="sheet-actions">
+                                            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                                            <button class="btn btn-sm btn-danger" type="submit">Void this payment</button>
+                                        </div>
                                     </form>
-                                </details>
+                                @include('partials.sheet-end')
+                                <button class="btn btn-sm btn-outline" type="button"
+                                        data-sheet="void-{{ $p->id }}">Payment was wrong</button>
                             @endif
                         </td>
                     </tr>
@@ -139,78 +144,11 @@
 @endif
 
 <div class="two-col">
-    @if ($invoice->status !== 'cancelled')
-        <div class="card entry-card" id="send">
-            <h3>Send the invoice</h3>
-            <p class="hint">The document goes as the email, with the Paybill printed on it. Sending a copy moves no money.</p>
-            <form method="POST" action="{{ route('admin.invoices.email', $invoice) }}" class="fee-form"
-                  data-confirm="Send {{ $invoice->reference }} to this address?" data-title="Send invoice">
-                @csrf
-                <div class="field">
-                    <label>Send to <span class="req">*</span></label>
-                    <input type="email" name="to" required maxlength="150" value="{{ $invoice->email() }}"
-                           placeholder="who receives it">
-                </div>
-                <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Send by email</button>
-            </form>
-            <p class="hint">To hand over a copy instead, open the document and print it or save it as a PDF.</p>
-        </div>
-    @endif
-
-    @if ($invoice->status === 'open')
-        <div class="card entry-card" id="record-payment">
-            <h3>Record money received</h3>
-            <p class="hint">{{ $invoice->balanceLabel() }} is still owed on {{ $invoice->reference }}.
-                {{ Finance::paybillLine() }}</p>
-            <form method="POST" action="{{ route('admin.invoices.pay', $invoice) }}" class="fee-form"
-                  data-confirm="Record {{ $invoice->reference }}'s payment on the money register?" data-title="Record payment">
-                @csrf
-                <div class="form-grid-2">
-                    <div class="field">
-                        <label>Amount received (KSH) <span class="req">*</span></label>
-                        <input type="number" name="amount_ksh" required min="0.01" step="0.01" max="{{ $invoice->balanceKsh() }}">
-                    </div>
-                    <div class="field">
-                        <label>Date received <span class="req">*</span></label>
-                        <input type="date" name="happened_on" required value="{{ now()->toDateString() }}">
-                    </div>
-                    <div class="field">
-                        <label>How it was paid <span class="req">*</span></label>
-                        <select name="method" required>
-                            @foreach ($methods as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>M-Pesa or bank reference</label>
-                        <input type="text" name="reference" maxlength="60" placeholder="e.g. SLK4H29PQX">
-                    </div>
-                    <div class="field full">
-                        <label>Note</label>
-                        <input type="text" name="note" maxlength="500">
-                    </div>
-                </div>
-                <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Record the payment</button>
-            </form>
-        </div>
-    @endif
-
     @if ($isExec && $invoice->status !== 'cancelled' && $invoice->paidKsh() < 0.005)
         <div class="card entry-card">
             <h3>Cancel this invoice</h3>
-            <p class="hint">A programme executive's action. The invoice keeps its row and its reason — it is never
-                deleted, and it is reopened here if the decision was wrong.</p>
-            <form method="POST" action="{{ route('admin.invoices.cancel', $invoice) }}" class="fee-form"
-                  data-confirm="Cancel {{ $invoice->reference }} for {{ $invoice->memberName() }}?" data-title="Cancel invoice">
-                @csrf
-                <div class="field">
-                    <label>Why it is cancelled <span class="req">*</span></label>
-                    <input type="text" name="cancel_reason" required maxlength="500"
-                           placeholder="e.g. Raised twice — the same work is billed on INV-2026-00004.">
-                </div>
-                <button class="btn btn-danger btn-block" type="submit" style="margin-top:12px;">Cancel the invoice</button>
-            </form>
+            <p class="hint">A programme executive's action. The invoice keeps its row and its reason.</p>
+            <button class="btn btn-sm btn-danger" type="button" data-sheet="cancel">Cancel it</button>
         </div>
     @elseif ($isExec && $invoice->status !== 'cancelled')
         <div class="card gaps">
@@ -232,6 +170,87 @@
         </div>
     @endif
 </div>
+
+@if ($invoice->status !== 'cancelled')
+    @include('partials.sheet-start', ['name' => 'send', 'title' => 'Send '.$invoice->reference,
+        'sub' => 'To hand over a copy instead, open the document and print it or save it as a PDF.'])
+        <form method="POST" action="{{ route('admin.invoices.email', $invoice) }}" class="fee-form"
+              data-confirm="Send {{ $invoice->reference }} to this address?" data-title="Send invoice">
+            @csrf
+            <input type="hidden" name="_sheet" value="send">
+            <div class="field">
+                <label>Send to <span class="req">*</span></label>
+                <input type="email" name="to" required maxlength="150" value="{{ $invoice->email() }}"
+                       placeholder="who receives it">
+            </div>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Send by email</button>
+            </div>
+        </form>
+    @include('partials.sheet-end')
+@endif
+
+@if ($invoice->status === 'open')
+    @include('partials.sheet-start', ['name' => 'pay', 'title' => 'Record money received',
+        'sub' => 'Recording what came in is what settles an invoice.'])
+        <form method="POST" action="{{ route('admin.invoices.pay', $invoice) }}" class="fee-form"
+              data-confirm="Record {{ $invoice->reference }}'s payment on the money register?" data-title="Record payment">
+            @csrf
+            <input type="hidden" name="_sheet" value="pay">
+            <div class="form-grid-2">
+                <div class="field">
+                    <label>Amount received (KSH) <span class="req">*</span></label>
+                    <input type="number" name="amount_ksh" required min="0.01" step="0.01" max="{{ $invoice->balanceKsh() }}">
+                </div>
+                <div class="field">
+                    <label>Date received <span class="req">*</span></label>
+                    <input type="date" name="happened_on" required value="{{ now()->toDateString() }}">
+                </div>
+                <div class="field">
+                    <label>How it was paid <span class="req">*</span></label>
+                    <select name="method" required>
+                        @foreach ($methods as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="field">
+                    <label>M-Pesa or bank reference</label>
+                    <input type="text" name="reference" maxlength="60" placeholder="e.g. SLK4H29PQX">
+                </div>
+                <div class="field full">
+                    <label>Note</label>
+                    <input type="text" name="note" maxlength="500">
+                </div>
+            </div>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Record the payment</button>
+            </div>
+        </form>
+    @include('partials.sheet-end')
+@endif
+
+@if ($isExec && $invoice->status !== 'cancelled' && $invoice->paidKsh() < 0.005)
+    @include('partials.sheet-start', ['name' => 'cancel', 'title' => 'Cancel '.$invoice->reference,
+        'sub' => 'It is never deleted, and it is reopened here if the decision was wrong.'])
+        <form method="POST" action="{{ route('admin.invoices.cancel', $invoice) }}" class="fee-form"
+              data-confirm="Cancel {{ $invoice->reference }} for {{ $invoice->memberName() }}?" data-title="Cancel invoice">
+            @csrf
+            <input type="hidden" name="_sheet" value="cancel">
+            <div class="field">
+                <label>Why it is cancelled <span class="req">*</span></label>
+                <input type="text" name="cancel_reason" required maxlength="500"
+                       placeholder="e.g. Raised twice — the same work is billed on INV-2026-00004.">
+            </div>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Keep it</button>
+                <button class="btn btn-sm btn-danger" type="submit">Cancel the invoice</button>
+            </div>
+        </form>
+    @include('partials.sheet-end')
+@endif
 
 <p class="hint">Paybill {{ $paybill['number'] }}, account {{ $paybill['account'] }} — set under Programme settings and
     printed on the document. {{ $invoice->billedToLabel() }}

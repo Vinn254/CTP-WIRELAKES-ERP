@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Module 9 §12 — one technology asset. A device, a licence or a kit, cut by its sub-area (ICT, Networking, Robotics,
+ * Module 9  — one technology asset. A device, a licence or a kit, cut by its sub-area (ICT, Networking, Robotics,
  * Programming, AI), carrying its own warranty and licence dates, its assignment to a community or organisation, and
  * the e-waste record it was routed to when it was decommissioned.
  */

@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Module 12 — the indicators §15.2 measures. Nothing here is stored: every figure is read out of the tables the
+ * Module 12 — the indicators  measures. Nothing here is stored: every figure is read out of the tables the
  * other modules write, so a report can never drift from the records behind it. Where the blueprint asks for a
  * number no module keeps yet (an ICT centre, a refurbished device), the indicator says so instead of guessing.
  */
@@ -42,7 +42,7 @@ class Impact
     public const TECHNOLOGY_FAMILIES = ['ICT', 'Networking', 'Programming', 'Robotics', 'AI'];
 
     /**
-     * The nine lines the programme reports against — the same closed list finance budgets against (§14.2).
+     * The nine lines the programme reports against — the same closed list finance budgets against.
      * A project is placed here by the trade typed when it was posted; the first matching group wins.
      */
     public const SECTOR_KEYWORDS = [
@@ -57,7 +57,7 @@ class Impact
         'operations' => ['office', 'operations', 'admin', 'logistics'],
     ];
 
-    /** §15.3 — the live totals shown at the top of the master dashboard. */
+    /**  — the live totals shown at the top of the master dashboard. */
     public static function headline(?string $county = null): array
     {
         $released = static::releasedPayouts($county);
@@ -74,7 +74,7 @@ class Impact
         ];
     }
 
-    /** Every group of §15.2 with its indicators, ready for the dashboard. */
+    /** Every group of  with its indicators, ready for the dashboard. */
     public static function indicators(?string $county = null): array
     {
         $ctpWorking = static::count(CtpRegistration::whereIn('status', CtpRegistration::WORKING), $county);
@@ -134,7 +134,7 @@ class Impact
                 ['label' => 'Technology on the shelf', 'value' => $stock, 'unit' => 'count',
                     'note' => 'Pieces held across the stores. An item is only counted as deployed when it leaves the store on a goods-out'],
                 ['label' => 'ICT centres established', 'pending' => true,
-                    'note' => 'Module 9 keeps assets and centres. Nothing is counted here until that register exists (§15.2)'],
+                    'note' => 'Technology Services keeps assets and centres. Nothing is counted here until that register exists'],
             ],
             'infrastructure' => [
                 ['label' => 'Build and installation projects', 'value' => static::projectsInSectors($county, ['construction', 'electrical']), 'unit' => 'count',
@@ -144,7 +144,7 @@ class Impact
                 ['label' => 'Infrastructure needs prioritised', 'value' => static::needs($county, ['infrastructure']), 'unit' => 'count',
                     'note' => 'Needs the office has prioritised but not yet turned into a project'],
                 ['label' => 'Sites inspected, BOQs and variations', 'pending' => true,
-                    'note' => 'Module 8 keeps the site record. Until it opens, build work is measured by the projects and budget lines above'],
+                    'note' => 'Construction Works keeps the site record. Until it opens, build work is measured by the projects and budget lines above'],
             ],
             'e_waste' => [
                 ['label' => 'Weight collected and verified', 'value' => $weighed, 'unit' => 'kg',
@@ -156,13 +156,13 @@ class Impact
                 ['label' => 'Hazardous, awaiting certified disposal', 'value' => $hazardous, 'unit' => 'count',
                     'note' => 'These leave only through a disposal partner'],
                 ['label' => 'Devices refurbished and material recycled', 'pending' => true,
-                    'note' => 'The repair / refurbish / recycle decision is the next slice of Module 10 (§13.4)'],
+                    'note' => 'The repair / refurbish / recycle decision is the next slice of the E-Waste register'],
             ],
             'economic' => [
                 ['label' => 'Money in', 'value' => $income, 'unit' => 'money',
                     'note' => 'Every income line on the money register '.$where],
                 ['label' => 'Money out', 'value' => $expense, 'unit' => 'money',
-                    'note' => 'Charged against the budget lines (§14.2)'],
+                    'note' => 'Charged against the budget lines'],
                 ['label' => 'Balance', 'value' => $income - $expense, 'unit' => 'money',
                     'note' => 'What the register shows left'],
                 ['label' => 'Released to E-Fundis', 'value' => $released['amount_ksh'], 'unit' => 'money',
@@ -170,7 +170,7 @@ class Impact
                 ['label' => 'Fees collected from members', 'value' => $fees, 'unit' => 'money',
                     'note' => 'Membership and course fees on the register — the field never holds these'],
                 ['label' => 'Materials handed to members', 'value' => $materials, 'unit' => 'money',
-                    'note' => 'Value the programme provided on projects, taken off those payouts (§14.6 step 6)'],
+                    'note' => 'Value the programme provided on projects, taken off those payouts'],
                 ['label' => 'Businesses reached', 'value' => static::beneficiaries($county)->where('type', 'business')->count(), 'unit' => 'count',
                     'note' => 'Recorded as beneficiaries. A business the programme started is a record still to open'],
                 ['label' => 'Donations pledged on the website', 'value' => (float) Donation::sum('amount'), 'unit' => 'money',
@@ -227,7 +227,7 @@ class Impact
         return null;
     }
 
-    /** Where each layer of the §15.4 map has records, counted county by county. */
+    /** Where each layer of the  map has records, counted county by county. */
     public static function layers(): array
     {
         return [
@@ -262,7 +262,7 @@ class Impact
         return $out;
     }
 
-    /** The members, places and work one county holds — a county coordinator's report body (§15.5). */
+    /** The members, places and work one county holds — a county coordinator's report body. */
     public static function countyRows(string $county): array
     {
         return [

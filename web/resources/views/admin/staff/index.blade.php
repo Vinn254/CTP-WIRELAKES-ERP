@@ -9,24 +9,30 @@
 @endphp
 
 @section('content')
-<h1>Staff &amp; roles</h1>
-<p class="sub" style="color:var(--muted);margin:6px 0 20px;">
+<div class="head-row">
+    <div>
+        <h1>Staff &amp; roles</h1>
+        <p class="ah-meta"><span>{{ $users->count() }} accounts</span><span>{{ $invites->where('status', 'pending')->count() }} invitations waiting</span></p>
+    </div>
     @if ($canManage)
-        Invite colleagues, hand them one or more roles, and deactivate staff who leave. Every account made here is
-        an <b>Admin</b> that opens only the modules its roles grant — the one super admin account is already made and
-        is not changed from this screen.
-    @else
-        You are signed in without the Human Resources desk, so this list is read-only for you.
+        <div class="head-actions">
+            <button class="btn btn-sm btn-lime" type="button" data-sheet="invite">Invite a staff member</button>
+        </div>
     @endif
-</p>
+</div>
 
-<div class="card" style="margin-bottom:24px;">
-    <h3>Invite a staff member</h3>
-    @unless ($canManage)
-        <p class="hint">Ask someone at the Human Resources desk to send invitations.</p>
-    @else
+<p class="page-lede">@if ($canManage)
+    Every account made here is an <b>Admin</b> that opens only the modules its roles grant.
+@else
+    You are signed in without the Human Resources desk, so this list is read-only for you.
+@endif</p>
+
+@if ($canManage)
+    @include('partials.sheet-start', ['name' => 'invite', 'title' => 'Invite a staff member',
+        'sub' => 'They set their own password on the activation link, which is valid 14 days.'])
         <form method="POST" action="{{ route('admin.staff.invite') }}" class="invite-form">
             @csrf
+            <input type="hidden" name="_sheet" value="invite">
             <div class="inline-form field-grid">
                 <span class="fld"><label>Full name <span class="req">*</span></label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
                 <span class="fld"><label>Email <span class="req">*</span></label><input type="email" name="email" maxlength="160" value="{{ old('email') }}" required></span>
@@ -56,21 +62,20 @@
                     @foreach ($liveDepartments as $d)
                         <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
                             @checked(in_array($d['slug'], \App\Support\Roles::departmentsFor((array) old('roles', [])), true))>
-                            {{ $d['tag'] }} · {{ $deptLabels[$d['slug']] }}</label>
+                            {{ $deptLabels[$d['slug']] }}</label>
                     @endforeach
                     <div class="hint">Ticking a role fills this in. Add a department here to open one extra module
                         without giving the whole role; a super admin opens every one regardless.</div>
                 </div>
             </details>
 
-            <button class="btn btn-primary" type="submit">Create invitation</button>
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Create invitation</button>
+            </div>
         </form>
-        <div class="hint" style="margin-top:10px;">
-            The invitee opens the activation link (valid 14 days) and sets their own password. It is emailed to them
-            when the invitation is created; use <b>Copy link</b> below to send it another way.
-        </div>
-    @endunless
-</div>
+    @include('partials.sheet-end')
+@endif
 
 <h2 class="sec-title">Staff accounts</h2>
 <table class="data">
@@ -121,7 +126,7 @@
                                         @foreach ($liveDepartments as $d)
                                             <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
                                                 @checked(in_array($d['slug'], $u->departmentSlugs(), true))>
-                                                {{ $d['tag'] }}</label>
+                                                {{ $d['name'] }}</label>
                                         @endforeach
                                         <div class="hint">A role opens all of its modules. To drop one module a role
                                             grants, untick the role instead.</div>

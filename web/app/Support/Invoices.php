@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Invoicing rules (§14.3, §14.5). Staff raise an invoice and record what comes in; the money itself is only ever
+ * Invoicing rules. Staff raise an invoice and record what comes in; the money itself is only ever
  * counted on the money register, which each payment feeds with its own income line. A payment that was wrong is
  * voided with its reason and answered by an opposite register line, so the mistake stays visible.
  */

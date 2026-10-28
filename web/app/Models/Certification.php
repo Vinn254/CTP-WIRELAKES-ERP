@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
- * A certificate put forward for a trainee and approved by an executive (§7.5 step 6, §7.7). The code is
+ * A certificate put forward for a trainee and approved by an executive. The code is
  * issued once, on approval — a recommendation carries nothing a CTP can show anyone yet.
  */
 class Certification extends Model

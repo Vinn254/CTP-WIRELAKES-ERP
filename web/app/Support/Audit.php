@@ -29,6 +29,7 @@ use App\Models\Setting;
 use App\Models\SiteAssessment;
 use App\Models\SiteInspection;
 use App\Models\SiteInspectionItem;
+use App\Models\StaffRecord;
 use App\Models\StockMovement;
 use App\Models\TechnologyAsset;
 use App\Models\TechnologyProject;
@@ -44,7 +45,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
- * Module 12 §15.6 — who did what, when. Only the records a decision changes are watched, and only the fields that
+ * Module 12  — who did what, when. Only the records a decision changes are watched, and only the fields that
  * carry a decision are written out, so the trail says what happened without copying the file store into a log.
  */
 class Audit
@@ -55,7 +56,7 @@ class Audit
         ProjectMatch::class, Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
         InventoryItem::class, StockMovement::class, Setting::class,
-        Invoice::class, InvoicePayment::class, JobOpening::class, JobApplication::class,
+        Invoice::class, InvoicePayment::class, JobOpening::class, JobApplication::class, StaffRecord::class,
         WorkOrder::class, WorkOrderMilestone::class, WorkOrderDispute::class,
         SiteAssessment::class, BoqItem::class, LabourEntry::class,
         SiteInspection::class, SiteInspectionItem::class, VariationOrder::class,
@@ -85,6 +86,11 @@ class Audit
         'confirmation_path', 'confirmation_name', 'issue_path', 'issue_name', 'issue_size',
         'proof_path', 'proof_name', 'proof_size',
         'cv_path', 'cv_name', 'cv_size',
+        // A personnel file is the most personal record the office holds: the trail says the file was amended,
+        // never what the pay, the bank or the family contact now says.
+        'salary', 'bank_name', 'bank_branch', 'bank_account', 'c14_path', 'c14_name', 'c14_size',
+        'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone', 'kra_pin', 'nssf_number',
+        'nhif_number', 'id_number', 'address',
     ];
 
     public static function record(Model $subject, string $action, ?string $detail = null): void

@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Module 5 — E-Fundi Management (§8). The fundi record every other module reads: grade, trade skills,
+ * Module 5 — E-Fundi Management. The fundi record every other module reads: grade, trade skills,
  * the counties they serve, whether they are free for work, and the sites they train CTPs at. The teaching
  * role itself (and its approval) stays in Module 4; the money and the job assignment stay where they are.
  */
@@ -131,7 +131,7 @@ class FundiController extends Controller
         return back()->with('status', $fundi->full_name.' now has a profile photo — it shows on their record and in their portal.');
     }
 
-    /** Grade moves the whole record: what a fundi can be handed and whether they may train CTPs (§8.2). */
+    /** Grade moves the whole record: what a fundi can be handed and whether they may train CTPs. */
     public function setTier(Request $request, FundiRegistration $fundi)
     {
         $data = $request->validate([
@@ -167,7 +167,7 @@ class FundiController extends Controller
 
     /**
      * Suspend or blacklist — a blocked fundi drops out of matching and their login locks, but the record
-     * is never deleted (§8.4). Only a programme executive lifts a block, and the reason stays on file.
+     * is never deleted. Only a programme executive lifts a block, and the reason stays on file.
      */
     public function block(Request $request, FundiRegistration $fundi)
     {

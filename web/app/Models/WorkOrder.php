@@ -9,33 +9,33 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 
 /**
- * Module 7 — the work order (§10.2). What an award turns into on paper: who does the work, what they deliver,
+ * Module 7 — the work order. What an award turns into on paper: who does the work, what they deliver,
  * when it starts and ends, what the store gives them and how the agreed amount is released. Money is never
  * worked out here — the payout register in Module 11 is the only place a figure is calculated, and this row hands
  * over to it once the hirer has confirmed the work.
  */
 class WorkOrder extends Model
 {
-    /** §10.4 — the delivery states. A row is closed or cancelled with its reason, never deleted. */
+    /**  — the delivery states. A row is closed or cancelled with its reason, never deleted. */
     public const STATUSES = [
         'issued' => 'Issued — waiting for the E-Fundi to accept',
         'accepted' => 'Accepted and signed — work starting',
         'in_progress' => 'On site',
         'completion_submitted' => 'Completion asked — waiting on the hirer to inspect',
         'confirmed' => 'Confirmed by the hirer — handed to Finance',
-        'disputed' => 'In dispute (§10.6)',
+        'disputed' => 'In dispute',
         'closed' => 'Closed',
         'cancelled' => 'Cancelled',
     ];
 
-    /** §10.5 — the three schedules an amount can be released on. */
+    /**  — the three schedules an amount can be released on. */
     public const SCHEDULES = [
         'fixed' => 'Fixed price — one total amount, paid on completion',
         'milestone' => 'Milestone based — released against signed-off milestones',
         'time_materials' => 'Time and materials — paid as the hours and materials go',
     ];
 
-    /** §10.2 — the schedule an order starts with unless the office changes it: 30 on mobilization, 40 on milestone, 30 on completion. */
+    /**  — the schedule an order starts with unless the office changes it: 30 on mobilization, 40 on milestone, 30 on completion. */
     public const DEFAULT_SPLIT = [30, 40, 30];
 
     protected $fillable = [
@@ -91,7 +91,7 @@ class WorkOrder extends Model
         return $this->belongsTo(User::class, 'raised_by_user')->withDefault();
     }
 
-    /** The site visit that goes with each worker type (§10.4 step 4). */
+    /** The site visit that goes with each worker type. */
     public function assigneeLabel(): string
     {
         return $this->assignee_type === 'ctp' ? 'CTP attachment worker' : 'E-Fundi';
@@ -149,7 +149,7 @@ class WorkOrder extends Model
         return $this->project->materialsSuppliedKsh();
     }
 
-    /** §10.4 step 4 — the order is only fully signed off when every stage the split lists is. */
+    /**  — the order is only fully signed off when every stage the split lists is. */
     public function milestonesOutstanding(): int
     {
         return $this->milestones()->where('status', WorkOrderMilestone::PENDING)->count();
@@ -167,7 +167,7 @@ class WorkOrder extends Model
             .'It has to be: '.$wanted.'.');
     }
 
-    /** What the office types when it records the hirer's inspection (§10.4 step 6). */
+    /** What the office types when it records the hirer's inspection. */
     public static function confirmationFrom(Request $request): array
     {
         return $request->validate([
@@ -176,7 +176,7 @@ class WorkOrder extends Model
             'confirmed_on' => 'required|date',
             'sheet' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:8192',
         ], [
-            'confirmed_by_name.required' => 'Say who inspected the work for the hirer — that is the name the confirmation is recorded under (§10.4 step 6).',
+            'confirmed_by_name.required' => 'Say who inspected the work for the hirer — that is the name the confirmation is recorded under.',
             'confirmation_note.required' => 'Write what they said. A confirmation without the hirer\'s words on it is not a record.',
         ], [
             'confirmed_by_name' => 'Confirmed by (for the hirer)',

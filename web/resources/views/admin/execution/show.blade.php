@@ -51,7 +51,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">The order (§10.2)</h2>
+    <h2 class="section-head">The order</h2>
     <dl class="kv">
         <div><dt>Scope of work</dt><dd>{{ nl2br(e($order->scope ?: 'not written')) }}</dd></div>
         <div><dt>Deliverables</dt><dd>{{ nl2br(e($order->deliverables ?: 'not written')) }}</dd></div>
@@ -59,7 +59,7 @@
             <div class="hint">Released on {{ $order->splitLabel() }}
                 @if ($splitTotal !== 100) — <b>the shares do not add to 100%</b>@endif</div></dd></div>
         <div><dt>Agreed amount</dt><dd>{{ $order->agreedLabel() }}
-            <span class="hint">what the project was posted with — the payout is calculated from it in Module 11</span></dd></div>
+            <span class="hint">what the project was posted with — the payout is calculated from it in Finance</span></dd></div>
         <div><dt>Materials the programme provides</dt><dd>{{ $order->materials_note ?: 'none listed on the project' }}</dd></div>
         <div><dt>Accepted and signed</dt>
             <dd>@if ($order->accepted_on)
@@ -67,7 +67,7 @@
                     {{ $order->start_on?->format('d M Y') }}
                     <div class="hint">{{ $order->accept_note }}</div>
                 @else
-                    not yet — the worker signs it on their own portal screen (§10.4 step 1)
+                    not yet — the worker signs it on their own portal screen
                 @endif</dd></div>
         <div><dt>Opened by</dt><dd>{{ $order->raiser->name ?: 'the system' }}
             · {{ $order->created_at->format('d M Y') }}</dd></div>
@@ -126,7 +126,7 @@
                     <button class="btn btn-sm btn-outline" type="button" data-split-add="split-rows">+ another stage</button>
                     <span class="hint">Must add to 100. Saving lays the shares you set over the stages that nobody has
                         signed yet; a stage with a signature on it keeps its own figure, and the save is refused if your
-                        split would move or drop it — lift that sign-off first (§10.5).</span>
+                        split would move or drop it — lift that sign-off first.</span>
                 </div>
                 <div class="field">
                     <label for="materials_note">Materials note</label>
@@ -142,7 +142,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Materials issued against the order (§10.3)</h2>
+    <h2 class="section-head">Materials issued against the order</h2>
     <p class="help">
         The programme buys what the job needs and the storekeeper hands it over against this order. What is actually
         issued is the figure the payout deducts — the plan on the project page is not. A line that turns out not to be
@@ -196,12 +196,12 @@
     </table>
     <p class="hint">
         Planned {{ Finance::ksh($order->materialsPlannedKsh()) }} · issued {{ Finance::ksh($order->materialsIssuedKsh()) }}.
-        Issuing a line that names a stock card also books the quantity out on that card (§14.5).
+        Issuing a line that names a stock card also books the quantity out on that card.
     </p>
 </div>
 
 <div class="card">
-    <h2 class="section-head">Stages and sign-offs (§10.4 step 4)</h2>
+    <h2 class="section-head">Stages and sign-offs</h2>
     @if ($order->milestones->isEmpty())
         <p class="help">This order has no stages on it — {{ $order->schedule === 'fixed' ? 'a fixed-price job is paid on completion' : 'save a split on the order above to build them' }}.</p>
     @else
@@ -262,9 +262,8 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Site log (§10.4 steps 3–5)</h2>
-    <p class="help">The worker's own days come in from their portal. This desk adds the supervisor's visits
-        (§10.4 step 4) and the completion is what the hirer is asked to inspect.</p>
+    <h2 class="section-head">Site log</h2>
+    <p class="help">The worker's own days come in from their portal. This desk adds the supervisor's visits and the completion is what the hirer is asked to inspect.</p>
     @if (in_array($order->status, ['accepted', 'in_progress', 'completion_submitted', 'disputed'], true))
         <form method="POST" action="{{ route('admin.execution.visit', $order) }}" class="fee-form" enctype="multipart/form-data"
               data-title="Record a site visit">
@@ -318,7 +317,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">The hirer's inspection (§10.4 steps 6–7)</h2>
+    <h2 class="section-head">The hirer's inspection</h2>
     <p class="help">
         A hirer has no account, so the office records what they said when they inspected, with the signed sheet
         attached. Confirming closes the project as delivered and lets the job be handed to Finance; raising an issue
@@ -381,13 +380,12 @@
             <button class="btn btn-sm btn-outline" type="submit">Raise the issue (opens the dispute)</button>
         </form>
     @elseif (! $order->confirmed_on)
-        <p class="hint">The inspection is not open yet: the worker first logs the job to completion
-            (§10.4 step 5), and their request appears on this sheet.</p>
+        <p class="hint">The inspection is not open yet: the worker first logs the job to completion, and their request appears on this sheet.</p>
     @endif
 </div>
 
 <div class="card">
-    <h2 class="section-head">Disputes (§10.6)</h2>
+    <h2 class="section-head">Disputes</h2>
     @if ($order->disputes->isEmpty())
         <p class="help">No dispute on this order. One is opened here when the hirer refuses to confirm; the worker then
             has {{ WorkOrderDispute::WINDOW_HOURS }} hours to answer on their own portal, the Programme Manager mediates
@@ -470,7 +468,7 @@
 </div>
 
 <div class="card">
-    <h2 class="section-head">Money (§10.4 steps 8–12)</h2>
+    <h2 class="section-head">Money</h2>
     @if ($payout)
         <dl class="kv">
             <div><dt>Payout</dt><dd><a href="{{ dept_link('admin.payouts.show', ['payout' => $payout]) }}"><b>{{ $payout->reference }}</b></a>
@@ -492,20 +490,20 @@
         @endif
     @elseif ($order->assignee_type === 'ctp')
         <p class="help">This order was awarded as a <b>CTP attachment</b>, so there is no E-Fundi payout to open —
-            attachment is training and is credited on the trainee's record (§10.2). The hirer's invoice still sits with
+            attachment is training and is credited on the trainee's record. The hirer's invoice still sits with
             Finance on the project.</p>
     @elseif ($order->status === 'confirmed')
-        <p class="help">Handing the job over opens the payout row on Module 11's register, already behind the gate that
+        <p class="help">Handing the job over opens the payout row on the Finance register, already behind the gate that
             waits for the hirer's money. Materials are not typed in here: they are taken from what the store actually
             issued above.</p>
         <form method="POST" action="{{ route('admin.execution.handover', $order) }}" class="fee-form"
-              data-confirm="Open the payout for {{ $order->reference }} on the Module 11 register?" data-title="Hand to Finance">
+              data-confirm="Open the payout for {{ $order->reference }} on the Finance register?" data-title="Hand to Finance">
             @csrf
             <div class="form-grid-2">
                 <div class="field">
                     <label>Service commission (KSh)</label>
                     <input type="number" name="commission_ksh" min="0" step="0.01" value="0">
-                    <span class="hint">§10.4 step 10 — what the programme keeps</span>
+                    <span class="hint"> — what the programme keeps</span>
                 </div>
                 <div class="field">
                     <label>Mobilization credit (KSh)</label>
@@ -540,11 +538,6 @@
     @endif
 </div>
 
-<p class="hint">
-    What stays where: the materials <i>plan</i> and the applications are on the project (Module 1), the worker was found
-    on the matching desk (Module 6), and every figure the fundi is paid is calculated and released on the payout
-    register (Module 11). This sheet only records the delivery and the decisions on it.
-</p>
 <script>
     // The split is a repeater: + drops another stage box so a four-stage schedule is set in one save.
     document.addEventListener('click', function (e) {

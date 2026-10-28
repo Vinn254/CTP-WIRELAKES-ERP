@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 /**
  * A demand for money the office raises — on a donor, a CTP, an E-Fundi or anyone else. The invoice itself is never
  * a movement of money: what settles it is a payment line, and each payment posts its own income line on the money
- * register (§14.3), so the register stays the one place money is counted.
+ * register, so the register stays the one place money is counted.
  */
 class Invoice extends Model
 {

@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Module 12 — the reports §15.5, one for each reader. A report is never saved and never edited: it is the registers
+ * Module 12 — the reports , one for each reader. A report is never saved and never edited: it is the registers
  * read again at the moment it is asked for, so the same page can be handed out as a file and say the same thing.
  */
 class ReportController extends Controller
@@ -34,7 +34,7 @@ class ReportController extends Controller
         ]);
     }
 
-    /** §15.6 data export — the same figures the page prints, as a CSV download. */
+    /**  data export — the same figures the page prints, as a CSV download. */
     public function csv(Request $request, string $report): StreamedResponse
     {
         abort_unless(array_key_exists($report, Reports::READERS), 404, 'No such report.');

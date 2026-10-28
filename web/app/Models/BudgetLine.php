@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
- * Module 11 — one programme budget line (§14.2). A category, a financial year and the amount set for it. The
+ * Module 11 — one programme budget line. A category, a financial year and the amount set for it. The
  * categories are the closed list the programme is planned around, so a screen cannot invent a ninth pot of money;
  * the office changes the amount, never the list.
  */
 class BudgetLine extends Model
 {
-    /** §14.2, plus office and operations which every programme has to fund but the plan leaves at zero. */
+    /** , plus office and operations which every programme has to fund but the plan leaves at zero. */
     public const CATEGORIES = [
         'construction' => 'Construction',
         'electrical' => 'Electrical',
@@ -25,7 +25,7 @@ class BudgetLine extends Model
         'operations' => 'Office and operations',
     ];
 
-    /** The plan as the programme first meets it — §14.2, KSh 5,500,000 for 2026. */
+    /** The plan as the programme first meets it — , KSh 5,500,000 for 2026. */
     public const PLAN_2026 = [
         'construction' => 3000000,
         'electrical' => 500000,
