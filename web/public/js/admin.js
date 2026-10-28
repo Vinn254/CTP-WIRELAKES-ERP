@@ -231,12 +231,26 @@
         document.body.classList.remove('sheet-lock');
     }
 
+    // A row can open the same popup already filled with its own figures, so one form serves the whole page.
+    function fill(el, json) {
+        var data;
+        try { data = JSON.parse(json); } catch (err) { return; }
+        Object.keys(data).forEach(function (name) {
+            var field = el.querySelector('[name="' + name + '"]');
+            if (field && data[name] !== null) field.value = data[name];
+        });
+    }
+
     document.addEventListener('click', function (e) {
         var opener = e.target.closest('[data-sheet]');
         if (opener) {
             e.preventDefault();
             var el = card(opener.getAttribute('data-sheet'));
-            if (el) show(el);
+            if (el) {
+                var pre = opener.getAttribute('data-sheet-fill');
+                if (pre) fill(el, pre);
+                show(el);
+            }
 
             return;
         }

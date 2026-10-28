@@ -287,7 +287,7 @@ class Reports
             ->pluck('total', 'kind')->map(fn ($n) => Finance::ksh((float) $n))->all();
 
         $lines = [];
-        foreach (BudgetLine::CATEGORIES as $key => $label) {
+        foreach (BudgetLine::categories() as $key => $label) {
             $spent = FinanceEntry::spent($year, $key);
             $planned = (float) BudgetLine::where('fiscal_year', $year)->where('category', $key)->sum('amount_ksh');
             if ($spent <= 0 && $planned <= 0) {

@@ -91,7 +91,7 @@ class FinanceEntry extends Model
             'amount_ksh' => 'required|numeric|min:0.01|max:1000000000',
             'happened_on' => 'required|date',
             'method' => 'required|in:'.implode(',', array_keys(self::METHODS)),
-            'budget_category' => 'nullable|in:'.implode(',', array_keys(BudgetLine::CATEGORIES)),
+            'budget_category' => 'nullable|in:'.implode(',', array_keys(BudgetLine::categories())),
             'project_id' => 'nullable|integer|exists:projects,id',
             'cohort_id' => 'nullable|integer|exists:cohorts,id',
             'community_id' => 'nullable|integer|exists:communities,id',

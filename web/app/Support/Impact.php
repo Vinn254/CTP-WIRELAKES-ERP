@@ -185,7 +185,7 @@ class Impact
         $projects = Project::when($county, fn ($q) => $q->where('county', $county))->get(['trade', 'status']);
         $out = [];
 
-        foreach (BudgetLine::CATEGORIES as $key => $label) {
+        foreach (BudgetLine::categories() as $key => $label) {
             $matched = $projects->filter(fn (Project $p) => static::sectorOf($p->trade) === $key);
 
             $out[$key] = [

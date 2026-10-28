@@ -445,6 +445,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // Module 11 — Finance, Procurement & Inventory. The plan, the ledger, the purchase path, the store and the two payout streams.
     Route::get('/finance/budget', [BudgetController::class, 'index'])->name('budget.index');
     Route::post('/finance/budget', [BudgetController::class, 'save'])->name('budget.save');
+    Route::post('/finance/budget/programme', [BudgetController::class, 'storeProgramme'])->name('budget.programme');
 
     Route::get('/finance/ledger', [LedgerController::class, 'index'])->name('ledger.index');
     Route::post('/finance/ledger', [LedgerController::class, 'store'])->name('ledger.store');

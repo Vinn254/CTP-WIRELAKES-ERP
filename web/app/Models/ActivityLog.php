@@ -58,6 +58,7 @@ class ActivityLog extends Model
         FinanceEntry::class => 'Money register line',
         Invoice::class => 'Invoice',
         BudgetLine::class => 'Budget line',
+        Programme::class => 'Programme',
         PayrollRun::class => 'Payroll month',
         PayrollLine::class => 'Staff pay line',
         InventoryItem::class => 'Stock card',

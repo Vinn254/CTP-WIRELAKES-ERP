@@ -47,7 +47,7 @@ class PayoutController extends Controller
             'stage' => $stage,
             'search' => $search,
             'stages' => Payout::STAGES,
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
             'fundis' => FundiRegistration::where('status', 'active')->orderBy('full_name')
                 ->get(['id', 'full_name', 'ef_code', 'phone']),
             'projects' => Project::where('status', '!=', 'draft')->orderByDesc('id')->limit(200)
@@ -83,7 +83,7 @@ class PayoutController extends Controller
 
         return view('admin.finance.payout', [
             'payout' => $payout,
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
             'ledger' => FinanceEntry::where('source_type', Payout::class)->where('source_id', $payout->id)
                 ->orWhere(fn ($q) => $q->where('fundi_id', $payout->fundi_id)
                     ->where('direction', 'expense')->whereIn('kind', ['fundi_payout', 'trainer_payout']))

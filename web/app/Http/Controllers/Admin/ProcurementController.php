@@ -58,7 +58,7 @@ class ProcurementController extends Controller
                 'to_order' => $base()->where('status', 'quoted')->count(),
                 'unpaid' => (float) $base()->whereIn('status', ['received', 'matched'])->sum('estimated_cost_ksh'),
             ],
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
             'units' => InventoryItem::UNITS,
             'projects' => Project::orderByDesc('id')->limit(200)->get(['id', 'title', 'reference']),
             'cohorts' => Cohort::orderByDesc('id')->limit(200)->get(['id', 'reference']),
@@ -93,7 +93,7 @@ class ProcurementController extends Controller
             'pr' => $purchaseRequest,
             'suppliers' => Supplier::where('status', 'approved')->orderBy('name')->get(),
             'best' => $purchaseRequest->quotations->sortBy('amount_ksh')->first(),
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
         ]);
     }
 

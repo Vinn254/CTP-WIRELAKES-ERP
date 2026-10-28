@@ -71,7 +71,7 @@ class PurchaseRequest extends Model
             'quantity' => 'required|integer|min:1|max:1000000',
             'unit' => 'required|in:'.implode(',', array_keys(InventoryItem::UNITS)),
             'estimated_cost_ksh' => 'nullable|numeric|min:0|max:1000000000',
-            'budget_category' => 'required|in:'.implode(',', array_keys(BudgetLine::CATEGORIES)),
+            'budget_category' => 'required|in:'.implode(',', array_keys(BudgetLine::categories())),
             'justification' => 'required|string|max:1000|min:15',
             'needed_by' => 'nullable|date',
             'county' => 'nullable|string|max:100',

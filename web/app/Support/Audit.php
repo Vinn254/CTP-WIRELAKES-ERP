@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\ActivityLog;
 use App\Models\BoqItem;
+use App\Models\BudgetLine;
 use App\Models\Certification;
 use App\Models\Cohort;
 use App\Models\Community;
@@ -23,6 +24,7 @@ use App\Models\Need;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
 use App\Models\Payout;
+use App\Models\Programme;
 use App\Models\Project;
 use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
@@ -57,7 +59,7 @@ class Audit
         Community::class, Project::class, Need::class, Cohort::class,
         ProjectMatch::class, Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
-        PayrollRun::class, PayrollLine::class,
+        PayrollRun::class, PayrollLine::class, BudgetLine::class, Programme::class,
         InventoryItem::class, StockMovement::class, Setting::class,
         Invoice::class, InvoicePayment::class, JobOpening::class, JobApplication::class, StaffRecord::class,
         WorkOrder::class, WorkOrderMilestone::class, WorkOrderDispute::class,
@@ -156,6 +158,10 @@ class Audit
 
         if ($subject instanceof InvoicePayment) {
             return 'payment of '.$subject->amountLabel().' on '.($subject->invoice->reference ?? 'an invoice');
+        }
+
+        if ($subject instanceof Programme) {
+            return $subject->label.' — programme on the plan';
         }
 
         if ($subject instanceof PayrollRun) {

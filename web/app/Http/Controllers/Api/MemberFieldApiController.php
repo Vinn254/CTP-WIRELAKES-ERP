@@ -330,7 +330,7 @@ class MemberFieldApiController extends Controller
 
         return response()->json([
             'units' => InventoryItem::UNITS,
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
             'statuses' => PurchaseRequest::STATUSES,
             'path' => PurchaseRequest::PATH,
             'mine' => $mine->map(fn (PurchaseRequest $p) => $this->request($p))->values(),

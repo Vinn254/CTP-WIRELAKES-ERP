@@ -58,7 +58,7 @@ class Payout extends Model
             'fundi_id' => 'required|integer|exists:fundi_registrations,id',
             'project_id' => 'nullable|integer|exists:projects,id',
             'cohort_id' => 'nullable|integer|exists:cohorts,id',
-            'budget_category' => 'nullable|in:'.implode(',', array_keys(BudgetLine::CATEGORIES)),
+            'budget_category' => 'nullable|in:'.implode(',', array_keys(BudgetLine::categories())),
             'agreed_amount_ksh' => 'nullable|numeric|min:0|max:1000000000',
             'materials_ksh' => 'nullable|numeric|min:0|max:1000000000',
             'commission_ksh' => 'nullable|numeric|min:0|max:1000000000',

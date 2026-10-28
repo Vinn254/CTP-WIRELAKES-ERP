@@ -174,7 +174,7 @@ class Statements
         $spent = static::sum($year, 'expense');
 
         $budgets = [];
-        foreach (BudgetLine::CATEGORIES as $key => $label) {
+        foreach (BudgetLine::categories() as $key => $label) {
             $planned = (float) BudgetLine::where('fiscal_year', $year)->where('category', $key)->sum('amount_ksh');
             $used = static::sum($year, 'expense', null, $key);
             if ($planned > 0 || $used > 0) {

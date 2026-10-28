@@ -3,9 +3,17 @@
 
 @section('content')
 @include('partials.errors')
-@php use App\Support\Finance; @endphp
-<h1>Programme budget — {{ $year }}</h1>
-<p class="page-lede">Set and check the yearly budget for each programme category.</p>
+@php use App\Models\BudgetLine; use App\Support\Finance; @endphp
+<div class="head-row">
+    <div>
+        <h1>Programme budget — {{ $year }}</h1>
+        <p class="page-lede">Set and check the yearly budget for each programme category.</p>
+    </div>
+    <div class="head-acts">
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-budget">+ Add budget</button>
+        <button class="btn btn-sm btn-outline" type="button" data-sheet="add-programme">+ Add programme</button>
+    </div>
+</div>
 
 <div class="stat-row">
     <div class="stat"><small>Budgeted {{ $year }}</small><b>{{ Finance::ksh($planned) }}</b></div>
@@ -43,6 +51,7 @@
             <tr>
                 <td><b>{{ $row['label'] }}</b>
                     @if ($row['line']?->note)<div class="hint">{{ $row['line']->note }}</div>@endif
+                    @if ($row['programme'])<div class="hint">Added by the office on {{ $row['programme']->created_at->format('d M Y') }}</div>@endif
                 </td>
                 <td>{{ Finance::ksh($row['amount']) }}</td>
                 <td>
@@ -63,32 +72,12 @@
                     @else<span class="status pending_review">No money set</span>@endif
                 </td>
                 <td class="actions">
-                    <details class="need-form">
-                        <summary>{{ $row['line'] ? 'Change the amount' : 'Set a budget' }}</summary>
-                        <form method="POST" action="{{ route('admin.budget.save') }}" class="fee-form"
-                              data-confirm="Set {{ $row['label'] }} for {{ $year }}?" data-title="Set budget">
-                            @csrf
-                            <input type="hidden" name="fiscal_year" value="{{ $year }}">
-                            <input type="hidden" name="category" value="{{ $row['category'] }}">
-                            <div class="field">
-                                <label>Amount for {{ $year }} (KSH) <span class="req">*</span></label>
-                                <input type="number" name="amount_ksh" required min="0" step="1"
-                                       value="{{ (int) $row['amount'] }}">
-                            </div>
-                            <div class="field" style="margin-top:10px;">
-                                <label>What this line is for</label>
-                                <input type="text" name="note" maxlength="1000"
-                                       value="{{ old('note', $row['line']?->note) }}"
-                                       placeholder="e.g. Tools and materials for the 12 lab projects.">
-                            </div>
-                            <button class="btn btn-lime btn-block" type="submit" style="margin-top:10px;">
-                                {{ auth()->user()->role === 'superadmin' ? 'Set it' : 'Only an executive account can set this' }}
-                            </button>
-                            @if (auth()->user()->role !== 'superadmin')
-                                <div class="hint" style="margin-top:8px;">Staff prepare the plan; a programme executive signs the budget lines.</div>
-                            @endif
-                        </form>
-                    </details>
+                    <button class="btn btn-sm btn-outline" type="button" data-sheet="add-budget"
+                            data-sheet-fill="{{ json_encode([
+                                'category' => $row['category'],
+                                'amount_ksh' => (int) $row['amount'],
+                                'note' => $row['line']?->note,
+                            ]) }}">{{ $row['line'] ? 'Change the amount' : 'Set a budget' }}</button>
                 </td>
             </tr>
         @endforeach
@@ -97,13 +86,27 @@
             <td><b>{{ Finance::ksh($planned) }}</b></td>
             <td><b>{{ Finance::ksh($spent) }}</b></td>
             <td><b>{{ Finance::ksh($left) }}</b></td>
-            <td colspan="3" class="hint">The plan the programme is run on —.</td>
+            <td colspan="3" class="hint">The plan the programme is run on.</td>
             <td></td>
         </tr>
     </tbody>
 </table>
 
 <div class="two-col">
+    <div class="card">
+        <h3>Programmes on the plan</h3>
+        @php $added = $plan->filter(fn ($r) => $r['programme'])->values(); @endphp
+        @forelse ($added as $row)
+            <div class="row-line">
+                <b>{{ $row['label'] }}</b>
+                <span class="hint">{{ Finance::ksh($row['amount']) }} for {{ $year }}</span>
+            </div>
+            @if ($row['programme']->note)<p class="hint">{{ $row['programme']->note }}</p>@endif
+        @empty
+            <p class="hint">The plan carries the programmes it was drawn on. A new one the office takes up appears
+                here, and its name goes straight onto the register, purchase and payout forms.</p>
+        @endforelse
+    </div>
     <div class="card">
         <h3>Money in this year, by what it is</h3>
         @forelse ($incomes as $kind => $total)
@@ -131,4 +134,70 @@
             training line, never from a project build.</p>
     </div>
 </div>
+
+@include('partials.sheet-start', ['name' => 'add-programme', 'title' => 'Add a programme',
+    'sub' => 'A new programme joins the plan and every money form at once. It carries no money until a budget is set on it.'])
+    <form method="POST" action="{{ route('admin.budget.programme') }}" class="fee-form"
+          data-confirm="Put this programme on the plan?" data-title="Add programme">
+        @csrf
+        <input type="hidden" name="_sheet" value="add-programme">
+        <div class="field">
+            <label>Programme name <span class="req">*</span></label>
+            <input type="text" name="label" required maxlength="60" value="{{ old('label') }}"
+                   placeholder="e.g. Solar and green energy">
+        </div>
+        <div class="field" style="margin-top:10px;">
+            <label>What this programme is for</label>
+            <input type="text" name="note" maxlength="1000" value="{{ old('note') }}"
+                   placeholder="e.g. Solar installs with the Kisumu youth cohorts.">
+        </div>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Add programme</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
+
+@include('partials.sheet-start', ['name' => 'add-budget', 'title' => 'Set a budget',
+    'sub' => 'One programme, one year, one amount. A programme executive signs the money onto the plan.'])
+    <form method="POST" action="{{ route('admin.budget.save') }}" class="fee-form"
+          data-confirm="Set this budget line for {{ $year }}?" data-title="Set budget">
+        @csrf
+        <input type="hidden" name="_sheet" value="add-budget">
+        <div class="form-grid-2">
+            <div class="field">
+                <label>Budget year <span class="req">*</span></label>
+                <select name="fiscal_year">
+                    @foreach ($years as $y)
+                        <option value="{{ $y }}" @selected((int) $y === $year)>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="field">
+                <label>Programme <span class="req">*</span></label>
+                <select name="category">
+                    @foreach ($categories as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="field" style="margin-top:10px;">
+            <label>Amount for the year (KSH) <span class="req">*</span></label>
+            <input type="number" name="amount_ksh" required min="0" step="1" value="{{ old('amount_ksh') }}">
+        </div>
+        <div class="field" style="margin-top:10px;">
+            <label>What this line is for</label>
+            <input type="text" name="note" maxlength="1000" value="{{ old('note') }}"
+                   placeholder="e.g. Tools and materials for the 12 lab projects.">
+        </div>
+        @if (auth()->user()->role !== 'superadmin')
+            <div class="sheet-note">Staff prepare the plan; a programme executive signs the budget lines.</div>
+        @endif
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Set it</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
 @endsection

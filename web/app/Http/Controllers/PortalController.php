@@ -746,7 +746,7 @@ class PortalController extends Controller
         return view('portal.procurement', MemberPortal::board($member) + [
             'mine' => $mine,
             'units' => InventoryItem::UNITS,
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
             'statuses' => PurchaseRequest::STATUSES,
             'path' => PurchaseRequest::PATH,
             'awarded' => Project::whereHas('applications', fn ($q) => $q

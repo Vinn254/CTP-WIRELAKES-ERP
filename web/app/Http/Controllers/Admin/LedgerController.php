@@ -61,7 +61,7 @@ class LedgerController extends Controller
                 'expense' => $base()->where('direction', 'expense')->count(),
             ],
             'kinds' => FinanceEntry::KINDS,
-            'categories' => BudgetLine::CATEGORIES,
+            'categories' => BudgetLine::categories(),
             'methods' => FinanceEntry::METHODS,
             'projects' => Project::orderByDesc('id')->limit(200)->get(['id', 'title', 'reference']),
             'cohorts' => Cohort::orderByDesc('id')->limit(200)->get(['id', 'reference']),
