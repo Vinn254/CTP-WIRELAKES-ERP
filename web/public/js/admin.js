@@ -212,6 +212,8 @@
                 if (!ask(form)) e.preventDefault();
             });
         });
+
+        window.wlAsk = ask;
     });
 })();
 
@@ -249,6 +251,19 @@
             if (el) {
                 var pre = opener.getAttribute('data-sheet-fill');
                 if (pre) fill(el, pre);
+                // A register with one form per row shares a single popup: the row's own form is copied in.
+                var from = opener.getAttribute('data-sheet-form');
+                var source = from && document.querySelector(from);
+                var holder = source && el.querySelector('.sheet-body');
+                if (holder) {
+                    holder.innerHTML = source.innerHTML;
+                    holder.hidden = false;
+                    holder.querySelectorAll('form[data-confirm]').forEach(function (form) {
+                        form.addEventListener('submit', function (ev) {
+                            if (!window.wlAsk(form)) ev.preventDefault();
+                        });
+                    });
+                }
                 show(el);
             }
 

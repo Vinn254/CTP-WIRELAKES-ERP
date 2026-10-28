@@ -24,16 +24,29 @@
     $outsideWindow = $defaultDate !== now()->toDateString();
 @endphp
 
+@once
+@include('partials.sheet-start', ['name' => 'add-progress', 'title' => 'Add a record',
+    'sub' => 'One line on the trainee’s track — a session, a mark, an attendance day or a school report.'])
+ <div class="sheet-body" hidden></div>
+@include('partials.sheet-end')
+@endonce
+
 <div class="section-head record-head">
     <h4 class="dl-group" style="margin:0;">Training record ({{ $days->count() }})</h4>
     @if ($canRecord)
-        <details class="need-form add-record" @if (($open ?? false) && $errors->any()) open @endif>
-            <summary class="btn btn-sm btn-lime">+ Add a record for {{ $enrollment->ctp->full_name }}</summary>
+        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-progress"
+                data-sheet-form="#progress-form-{{ $enrollment->id }}">+ Add a record</button>
+        <div hidden id="progress-form-{{ $enrollment->id }}">
             <form method="POST" action="{{ $action }}" class="fee-form"
                   data-confirm="Record this on {{ $enrollment->ctp->full_name }}'s track?" data-title="Record progress">
                 @csrf
+                <input type="hidden" name="_sheet" value="add-progress">
                 @if ($mode === 'trainer')<input type="hidden" name="enrollment_id" value="{{ $enrollment->id }}">@endif
-                <div class="form-grid-3">
+                <div class="field">
+                    <label>Whose track <span class="req">*</span></label>
+                    <input type="text" value="{{ $enrollment->ctp->full_name }}" disabled>
+                </div>
+                <div class="form-grid-3" style="margin-top:10px;">
                     <div class="field">
                         <label>What happened <span class="req">*</span></label>
                         <select name="kind" required>
@@ -76,11 +89,14 @@
                         Today is outside that period, so the date is set to the nearest day the record allows.
                     @endif
                     {{ $byTrainer ? 'What you record goes straight on the CTP’s track and the office sees it the same moment.' : 'Use this for the marks a partner school sent in — the office records them on the school’s behalf.' }}</p>
-                <button class="btn btn-lime btn-block" type="submit" style="margin-top:10px;">
-                    {{ $byTrainer ? 'Record and send to the office' : 'Record on the track' }}
-                </button>
+                <div class="sheet-actions">
+                    <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                    <button class="btn btn-sm btn-lime" type="submit">
+                        {{ $byTrainer ? 'Record and send to the office' : 'Record on the track' }}
+                    </button>
+                </div>
             </form>
-        </details>
+        </div>
     @endif
 </div>
 

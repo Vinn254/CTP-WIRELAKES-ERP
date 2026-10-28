@@ -163,41 +163,9 @@
  </table>
  @endif
 
- <div class="two-col" style="margin-top:14px;">
- <details class="need-form">
- <summary>Add a material the programme is supplying</summary>
- <form method="POST" action="{{ route('admin.projects.materials.store', $project) }}" class="fee-form" data-title="Add material">
-  @csrf
-  <div class="field"><label>Material <span class="req">*</span></label>
-   <input type="text" name="name" maxlength="190" required placeholder="e.g. Cable, 2.5 mm single core — 90 m coil"></div>
-  <div class="form-grid-2">
-   <div class="field"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
-   <div class="field"><label>Unit</label>
-    <select name="unit">@foreach ($units as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select></div>
-  </div>
-  <div class="field"><label>Cost each (KSh) <span class="req">*</span></label><input type="number" name="unit_cost_ksh" step="0.01" min="0" required></div>
-  <div class="field"><label>Note</label><input type="text" name="note" maxlength="1000" placeholder="Where it comes from, who fits it."></div>
-  <button class="btn btn-primary btn-block" type="submit">Add the line</button>
- </form>
- </details>
-
- <details class="need-form">
- <summary>Take it from a stock card</summary>
- <form method="POST" action="{{ route('admin.projects.materials.store', $project) }}" class="fee-form" data-title="Issue from the store">
-  @csrf
-  <div class="field"><label>Stock card <span class="req">*</span></label>
-   <select name="inventory_item_id" required>
-    <option value="">Select a card</option>
-    @foreach ($cards as $c)<option value="{{ $c->id }}">{{ $c->sku }} — {{ $c->name }} ({{ \App\Support\Finance::ksh((float) $c->unit_cost_ksh) }} each)</option>@endforeach
-   </select>
-   <div class="help">The name, unit and cost come off the card. Booking the goods out on the card itself is what moves the store quantity — this line only says the job was given it.</div>
-  </div>
-  <div class="field"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
-  <div class="field"><label>Cost each (KSh)</label><input type="number" name="unit_cost_ksh" step="0.01" min="0" placeholder="Leave empty to use the card's cost"></div>
-  <div class="field"><label>Note</label><input type="text" name="note" maxlength="1000"></div>
-  <button class="btn btn-lime btn-block" type="submit">Add from the store</button>
- </form>
- </details>
+ <div class="head-acts" style="margin-top:14px;">
+  <button class="btn btn-sm btn-lime" type="button" data-sheet="add-material">+ Add a material</button>
+  <button class="btn btn-sm btn-outline" type="button" data-sheet="from-store">+ Take it from a stock card</button>
  </div>
 </div>
 
@@ -245,11 +213,54 @@
  <div class="card"><p class="page-lede">No member has applied for this project yet.</p></div>
 @endforelse
 
+@include('partials.sheet-start', ['name' => 'add-material', 'title' => 'Add a material',
+    'sub' => 'Something the programme is supplying for this job.'])
+ <form method="POST" action="{{ route('admin.projects.materials.store', $project) }}" class="fee-form" data-title="Add material">
+  @csrf
+  <input type="hidden" name="_sheet" value="add-material">
+  <div class="field"><label>Material <span class="req">*</span></label>
+   <input type="text" name="name" maxlength="190" required placeholder="e.g. Cable, 2.5 mm single core — 90 m coil"></div>
+  <div class="form-grid-2" style="margin-top:10px;">
+   <div class="field"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
+   <div class="field"><label>Unit</label>
+    <select name="unit">@foreach ($units as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select></div>
+  </div>
+  <div class="field" style="margin-top:10px;"><label>Cost each (KSh) <span class="req">*</span></label><input type="number" name="unit_cost_ksh" step="0.01" min="0" required></div>
+  <div class="field" style="margin-top:10px;"><label>Note</label><input type="text" name="note" maxlength="1000" placeholder="Where it comes from, who fits it."></div>
+  <div class="sheet-actions">
+   <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+   <button class="btn btn-sm btn-lime" type="submit">Add the line</button>
+  </div>
+ </form>
+@include('partials.sheet-end')
+
+@include('partials.sheet-start', ['name' => 'from-store', 'title' => 'Take it from a stock card',
+    'sub' => 'The name, unit and cost come off the card.'])
+ <form method="POST" action="{{ route('admin.projects.materials.store', $project) }}" class="fee-form" data-title="Issue from the store">
+  @csrf
+  <input type="hidden" name="_sheet" value="from-store">
+  <div class="field"><label>Stock card <span class="req">*</span></label>
+   <select name="inventory_item_id" required>
+    <option value="">Select a card</option>
+    @foreach ($cards as $c)<option value="{{ $c->id }}">{{ $c->sku }} — {{ $c->name }} ({{ \App\Support\Finance::ksh((float) $c->unit_cost_ksh) }} each)</option>@endforeach
+   </select>
+   <div class="help">Booking the goods out on the card itself is what moves the store quantity — this line only says the job was given it.</div>
+  </div>
+  <div class="field" style="margin-top:10px;"><label>Quantity <span class="req">*</span></label><input type="number" name="quantity" step="0.01" min="0.01" required></div>
+  <div class="field" style="margin-top:10px;"><label>Cost each (KSh)</label><input type="number" name="unit_cost_ksh" step="0.01" min="0" placeholder="Leave empty to use the card's cost"></div>
+  <div class="field" style="margin-top:10px;"><label>Note</label><input type="text" name="note" maxlength="1000"></div>
+  <div class="sheet-actions">
+   <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+   <button class="btn btn-sm btn-lime" type="submit">Add from the store</button>
+  </div>
+ </form>
+@include('partials.sheet-end')
+
 @once
 <script>
 const workerSelect = document.getElementById('workerSelect');
 if (workerSelect) {
- workerSelect.addEventListener('change', function{
+ workerSelect.addEventListener('change', function () {
  document.getElementById('swapType').value = workerSelect.selectedOptions[0].dataset.type;
  });
 }
