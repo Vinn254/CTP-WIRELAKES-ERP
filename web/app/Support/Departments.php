@@ -22,6 +22,7 @@ use App\Models\Payout;
 use App\Models\PayrollLine;
 use App\Models\ProjectApplication;
 use App\Models\ProjectMatch;
+use App\Models\Requisition;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
 use App\Models\TimeLog;
@@ -252,6 +253,8 @@ class Departments
         'admin.ledger.index' => 'Every shilling in and out, with the budget line it sits on',
         'admin.invoices.index' => 'Money the programme asks for — donors, CTPs and E-Fundis billed, what came in against each invoice',
         'admin.procurement.index' => 'Requests, quotations, purchase orders, deliveries and payments — one path per request',
+        'admin.requisitions.index' => 'What each desk is asking for — Procurement approves it, Finance pays it out or hands the goods over',
+        'admin.requisitions.show' => 'One requisition and its decision, from the ask to the money or the goods',
         'admin.suppliers.index' => 'The suppliers quotations are taken from, and who has already been paid',
         'admin.inventory.index' => 'Stock cards by SKU, what is on the shelf, what is below its reorder level and what left the store',
         'admin.payouts.index' => 'Project income and training income, kept on two separate release paths',
@@ -312,6 +315,18 @@ class Departments
         return array_values(array_filter(self::ALL, fn (array $d) => $d['live']));
     }
 
+    /** slug => name, for a filter or a "which desk is asking" select. */
+    public static function nameList(?array $slugs = null): array
+    {
+        $live = collect(self::live());
+
+        if ($slugs !== null) {
+            $live = $live->whereIn('slug', $slugs);
+        }
+
+        return $live->pluck('name', 'slug')->all();
+    }
+
     /** The module slugs one staff account may reach. A super admin gets every live one; an admin gets what they are
      *  assigned; anyone else (a member, an unscoped account) gets none. Never assumed — granted. */
     public static function visibleSlugs(?User $user): array
@@ -348,6 +363,11 @@ class Departments
     public static function nav(string $slug): array
     {
         $items = self::NAV[$slug] ?? [];
+
+        // Every desk asks for what it needs to work. Procurement checks and approves, Finance processes — the same
+        // register, read from each side.
+        $items[] = ['label' => 'Requisitions', 'icon' => 'link',
+            'route' => ['admin.requisitions.index'], 'badge' => 'requisitions'];
 
         if ($slug !== 'hr') {
             $items[] = ['label' => 'Time logs', 'icon' => 'clock',
@@ -480,6 +500,7 @@ class Departments
             'technology' => Technology::badge(),
             'collections' => EWasteCollection::whereIn('status', ['submitted', 'forwarded'])->count(),
             'requests' => PurchaseRequest::whereIn('status', ['submitted', 'quoted'])->count(),
+            'requisitions' => Requisition::whereIn('status', ['submitted', 'approved'])->count(),
             'orders' => PurchaseOrder::whereIn('status', ['received', 'matched'])->count(),
             'lowstock' => InventoryItem::where('status', 'active')->whereColumn('reorder_level', '>', 'qty_on_hand')->count(),
             'overbudget' => BudgetLine::where('fiscal_year', now()->year)->where('amount_ksh', '>', 0)->get()

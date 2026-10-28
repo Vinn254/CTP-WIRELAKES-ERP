@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\StaffPayController;
 use App\Http\Controllers\Admin\StatementController;
 use App\Http\Controllers\Admin\ProgrammeController;
 use App\Http\Controllers\Admin\ProcurementController;
+use App\Http\Controllers\Admin\RequisitionController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
 use App\Http\Controllers\Admin\OnboardingController;
@@ -478,6 +479,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/finance/order/{order}/email', [ProcurementController::class, 'orderEmail'])->whereNumber('order')->name('procurement.order.email');
     Route::get('/finance/quotation/{quotation}/document', [ProcurementController::class, 'quotationDocument'])->whereNumber('quotation')->name('procurement.quotation.document');
     Route::post('/finance/quotation/{quotation}/email', [ProcurementController::class, 'quotationEmail'])->whereNumber('quotation')->name('procurement.quotation.email');
+
+    // Requisitions: any desk asks for what it needs, Procurement approves, Finance processes. Deliberately given no
+    // owning department — raising one is not a Procurement-only action — so every staff account reaches the register
+    // and the controller gates who decides and who pays.
+    Route::get('/requisitions', [RequisitionController::class, 'index'])->name('requisitions.index');
+    Route::post('/requisitions', [RequisitionController::class, 'store'])->name('requisitions.store');
+    Route::get('/requisitions/{requisition}', [RequisitionController::class, 'show'])->whereNumber('requisition')->name('requisitions.show');
+    Route::post('/requisitions/{requisition}/decide', [RequisitionController::class, 'decide'])->whereNumber('requisition')->name('requisitions.decide');
+    Route::post('/requisitions/{requisition}/process', [RequisitionController::class, 'process'])->whereNumber('requisition')->name('requisitions.process');
 
     Route::get('/finance/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
     Route::post('/finance/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
