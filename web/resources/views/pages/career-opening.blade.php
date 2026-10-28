@@ -23,7 +23,7 @@
     </div>
 
     @if ($opening->isOpen())
-        <div class="card" style="margin-top:22px;">
+        <div class="card" id="apply" style="margin-top:22px;">
             <h2>Apply for this opening</h2>
             <p class="sub">You do not need an account. Fill this in and the programme office reads it with your CV —
                 they will call or email you back. Fields marked <span class="req">*</span> are needed to reach you.</p>

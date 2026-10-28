@@ -33,7 +33,11 @@
                         <li>Posted {{ $o->created_at->format('d M Y') }}</li>
                     </ul>
                     <span class="window">{{ $o->closingLabel() }}</span>
-                    <p style="margin:12px 0 0;"><a href="{{ route('careers.opening', $o) }}">See it and apply →</a></p>
+                    <p style="margin:12px 0 0;">
+                        <a class="btn btn-lime btn-sm" href="{{ route('careers.opening', $o) }}#apply">Apply</a>
+                        &nbsp;
+                        <a href="{{ route('careers.opening', $o) }}">Read the opening →</a>
+                    </p>
                 </div>
             @endforeach
         </div>
@@ -46,20 +50,20 @@
         <h2>Openings that have shut</h2>
         <p class="sub">Applications for these are with the office. A person who applied is contacted back directly —
             the list is kept here so you can see what the programme hires for.</p>
-        <div class="card">
-            <table class="data">
-                <thead><tr><th>Opening</th><th>Kind</th><th>Where</th><th>Closed</th></tr></thead>
-                <tbody>
-                    @foreach ($closed as $o)
-                        <tr>
-                            <td><a href="{{ route('careers.opening', $o) }}">{{ $o->title }}</a></td>
-                            <td>{{ $o->kindLabel() }}</td>
-                            <td>{{ $o->county ?: '—' }}</td>
-                            <td>{{ $o->closing_on ? $o->closing_on->format('d M Y') : ($o->status === 'closed' ? 'taken down' : '—') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="grid-3">
+            @foreach ($closed as $o)
+                <div class="card link-card">
+                    <span class="tag gray">{{ $o->kindLabel() }}</span>
+                    @if ($o->area)<span class="tag gray">{{ $o->area }}</span>@endif
+                    <h3>{{ $o->title }}</h3>
+                    <p>{{ \Illuminate\Support\Str::limit($o->description, 150) }}</p>
+                    <ul class="delivered-meta">
+                        <li>Where: {{ $o->county ?: '—' }}</li>
+                        <li>Closed: {{ $o->closing_on ? $o->closing_on->format('d M Y') : ($o->status === 'closed' ? 'taken down' : '—') }}</li>
+                    </ul>
+                    <p style="margin:12px 0 0;"><a href="{{ route('careers.opening', $o) }}">Read the opening →</a></p>
+                </div>
+            @endforeach
         </div>
     </section>
 @endif
