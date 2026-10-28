@@ -63,6 +63,12 @@ class TechnologyController extends Controller
             'queues' => Technology::queues(),
             'search' => $search,
             'openTicketAssets' => $tab === 'tickets' ? TechnologyTicket::where('status', 'closed')->count() : null,
+            // The register's popup sheets reuse the create forms, so they need the same lists create() passes.
+            'newAsset' => new TechnologyAsset(['status' => 'operational', 'source' => 'purchase', 'category' => 'ict']),
+            'assetCommunities' => Community::orderBy('name')->get(['id', 'name']),
+            'assetOrganisations' => HirerRegistration::orderBy('organisation')->get(['id', 'organisation']),
+            'newTechProject' => new TechnologyProject(['status' => 'identified', 'category' => 'ai']),
+            'techProjectLists' => $this->projectLists(),
         ]);
     }
 

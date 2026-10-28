@@ -48,6 +48,7 @@ class CommunityController extends Controller
             'search' => $search,
             'counts' => Community::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
             'proposedNeeds' => Need::where('status', 'proposed')->count(),
+            'counties' => \App\Models\County::orderBy('name')->pluck('name'),
         ]);
     }
 

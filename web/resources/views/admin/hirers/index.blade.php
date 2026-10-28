@@ -2,37 +2,21 @@
 @section('title', 'Hirers & organisations')
 
 @section('content')
-<h1>Hirers &amp; organisations</h1>
-<p class="page-lede">Organisations that bring projects to the programme.</p>
+<div class="head-row">
+ <div>
+ <h1>Hirers &amp; organisations</h1>
+ <p class="page-lede">Organisations that bring projects to the programme.</p>
+ </div>
+ <div class="head-actions">
+ <button class="btn btn-sm btn-primary" type="button" data-sheet="add-hirer">+ Add a hirer</button>
+ </div>
+</div>
 
 <datalist id="county-names">
  @foreach ($counties as $c)
  <option value="{{ $c }}"></option>
  @endforeach
 </datalist>
-
-<div class="card" style="margin-bottom:22px;">
- <h3>New hirer</h3>
- <form method="POST" action="{{ route('admin.hirers.store') }}" class="inline-form field-grid">
- @csrf
- <span class="fld"><label>Organisation <span class="req">*</span></label><input type="text" name="organisation" maxlength="120" value="{{ old('organisation') }}" required></span>
- <span class="fld"><label>Contact person <span class="req">*</span></label><input type="text" name="contact_name" maxlength="120" value="{{ old('contact_name') }}" required></span>
- <span class="fld"><label>Email (optional)</label><input type="email" name="email" maxlength="120" value="{{ old('email') }}"></span>
- <span class="fld"><label>Phone (optional)</label><input type="text" name="phone" maxlength="20" value="{{ old('phone') }}" placeholder="07XX XXX XXX"></span>
- <span class="fld"><label>County <span class="req">*</span></label><input type="text" name="county" list="county-names" maxlength="80" value="{{ old('county') }}" required placeholder="Type county"></span>
- <span class="fld"><label>Sub-county <span class="req">*</span></label><input type="text" name="sub_county" maxlength="100" value="{{ old('sub_county') }}" required placeholder="e.g. Nyando"></span>
- <span class="fld"><label>Ward <span class="req">*</span></label><input type="text" name="ward" maxlength="100" value="{{ old('ward') }}" required placeholder="e.g. Chemelil/Sango"></span>
- <span class="fld"><label>Type <span class="req">*</span></label>
- <select name="org_type" required>
- @foreach ($orgTypes as $k => $lbl)
- <option value="{{ $k }}" @selected(old('org_type') === $k)>{{ $lbl }}</option>
- @endforeach
- </select>
- </span>
- <button class="btn btn-primary" type="submit">Add hirer</button>
- </form>
- <div class="hint" style="margin-top:10px;">A Hirer ID (HIR-0001 style) is issued automatically.</div>
-</div>
 
 @forelse ($hirers as $h)
  <div class="invite-row {{ $h->status === 'active' ? '' : 'revoked' }}">
@@ -82,4 +66,31 @@
 @endforelse
 
 <div class="pagination">{{ $hirers->links() }}</div>
+
+@include('partials.sheet-start', ['name' => 'add-hirer', 'title' => 'New hirer',
+    'sub' => 'Organisations that bring projects to the programme.'])
+ <form method="POST" action="{{ route('admin.hirers.store') }}" class="inline-form field-grid">
+ @csrf
+ <input type="hidden" name="_sheet" value="add-hirer">
+ <span class="fld"><label>Organisation <span class="req">*</span></label><input type="text" name="organisation" maxlength="120" value="{{ old('organisation') }}" required></span>
+ <span class="fld"><label>Contact person <span class="req">*</span></label><input type="text" name="contact_name" maxlength="120" value="{{ old('contact_name') }}" required></span>
+ <span class="fld"><label>Email (optional)</label><input type="email" name="email" maxlength="120" value="{{ old('email') }}"></span>
+ <span class="fld"><label>Phone (optional)</label><input type="text" name="phone" maxlength="20" value="{{ old('phone') }}" placeholder="07XX XXX XXX"></span>
+ <span class="fld"><label>County <span class="req">*</span></label><input type="text" name="county" list="county-names" maxlength="80" value="{{ old('county') }}" required placeholder="Type county"></span>
+ <span class="fld"><label>Sub-county <span class="req">*</span></label><input type="text" name="sub_county" maxlength="100" value="{{ old('sub_county') }}" required placeholder="e.g. Nyando"></span>
+ <span class="fld"><label>Ward <span class="req">*</span></label><input type="text" name="ward" maxlength="100" value="{{ old('ward') }}" required placeholder="e.g. Chemelil/Sango"></span>
+ <span class="fld"><label>Type <span class="req">*</span></label>
+ <select name="org_type" required>
+ @foreach ($orgTypes as $k => $lbl)
+ <option value="{{ $k }}" @selected(old('org_type') === $k)>{{ $lbl }}</option>
+ @endforeach
+ </select>
+ </span>
+ <div class="sheet-actions">
+ <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+ <button class="btn btn-primary" type="submit">Add hirer</button>
+ </div>
+ </form>
+ <div class="hint" style="margin-top:10px;">A Hirer ID (HIR-0001 style) is issued automatically.</div>
+@include('partials.sheet-end')
 @endsection

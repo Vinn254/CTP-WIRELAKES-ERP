@@ -49,7 +49,7 @@
 
 @if ($tab === 'assets')
     <p style="margin:0 0 12px;">
-        <a class="btn btn-sm btn-primary" href="{{ route('admin.technology.asset.create') }}">+ Add an asset</a>
+        <button class="btn btn-sm btn-primary" type="button" data-sheet="add-asset">+ Add an asset</button>
     </p>
     <div class="card">
         <table class="data">
@@ -88,7 +88,7 @@
     </div>
 @elseif ($tab === 'projects')
     <p style="margin:0 0 12px;">
-        <a class="btn btn-sm btn-primary" href="{{ route('admin.technology.project.create') }}">+ New technology project</a>
+        <button class="btn btn-sm btn-primary" type="button" data-sheet="new-tech-project">+ New technology project</button>
     </p>
     <div class="card">
         <table class="data">
@@ -182,5 +182,40 @@
             </tbody>
         </table>
     </div>
+@endif
+
+@if ($tab === 'assets')
+    @include('partials.sheet-start', ['name' => 'add-asset', 'title' => 'Add an asset',
+        'sub' => 'Add one device, licence or kit to the register.'])
+    <form method="POST" action="{{ route('admin.technology.asset.store') }}" class="fee-form" data-confirm="Add this asset to the register?" data-title="Add asset">
+        @csrf
+        <input type="hidden" name="_sheet" value="add-asset">
+        @include('admin.technology.asset-fields', [
+            'asset' => $newAsset,
+            'categories' => $categories,
+            'communities' => $assetCommunities,
+            'organisations' => $assetOrganisations,
+        ])
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-primary" type="submit">Add to the register</button>
+        </div>
+    </form>
+    @include('partials.sheet-end')
+@endif
+
+@if ($tab === 'projects')
+    @include('partials.sheet-start', ['name' => 'new-tech-project', 'title' => 'New technology project',
+        'sub' => 'Record a technology build and its delivery stages.'])
+    <form method="POST" action="{{ route('admin.technology.project.store') }}" class="fee-form" data-confirm="Record this technology project?" data-title="Add project">
+        @csrf
+        <input type="hidden" name="_sheet" value="new-tech-project">
+        @include('admin.technology.project-fields', ['project' => $newTechProject, 'categories' => $categories] + $techProjectLists)
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-primary" type="submit">Record the project</button>
+        </div>
+    </form>
+    @include('partials.sheet-end')
 @endif
 @endsection

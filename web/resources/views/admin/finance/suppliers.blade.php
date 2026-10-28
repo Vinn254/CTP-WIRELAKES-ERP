@@ -4,8 +4,15 @@
 @section('content')
 @include('partials.errors')
 @php use App\Models\Supplier; @endphp
-<h1>Approved suppliers</h1>
-<p class="page-lede">The approved supplier list behind quotations and purchase orders.</p>
+<div class="head-row">
+    <div>
+        <h1>Approved suppliers</h1>
+        <p class="page-lede">The approved supplier list behind quotations and purchase orders.</p>
+    </div>
+    <div class="head-actions">
+        <button class="btn btn-sm btn-primary" type="button" data-sheet="add-supplier">+ Add a supplier</button>
+    </div>
+</div>
 
 <div class="stat-row">
     <div class="stat"><small>On the list</small><b>{{ $counts['all'] }}</b></div>
@@ -138,13 +145,12 @@
     </tbody>
 </table>
 
-<div class="card">
-    <h3>Add a supplier to the approved list</h3>
-    <p class="hint">A supplier is paid against paperwork, so they need a real name, a way to be reached and an
-        account or paybill the Finance Officer can pay into.</p>
+@include('partials.sheet-start', ['name' => 'add-supplier', 'title' => 'Add a supplier to the approved list',
+    'sub' => 'A supplier is paid against paperwork, so they need a real name, a way to be reached and an account or paybill the Finance Officer can pay into.'])
     <form method="POST" action="{{ route('admin.suppliers.store') }}" class="fee-form"
           data-confirm="Add this supplier to the approved list?" data-title="Add supplier">
         @csrf
+        <input type="hidden" name="_sheet" value="add-supplier">
         <div class="form-grid-2">
             <div class="field">
                 <label>Supplier name <span class="req">*</span></label>
@@ -194,7 +200,10 @@
             <label>Note</label>
             <input type="text" name="note" maxlength="1000" placeholder="Terms, lead time, who introduced them.">
         </div>
-        <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Add to the approved list</button>
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Add to the approved list</button>
+        </div>
     </form>
-</div>
+@include('partials.sheet-end')
 @endsection

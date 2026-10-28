@@ -53,6 +53,11 @@ class ProjectController extends Controller
             'candidates' => Project::assignableMembers(),
             'counts' => Project::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
             'pendingApplications' => ProjectApplication::where('status', 'pending_review')->count(),
+            // The register's popup sheet reuses the post form, so it needs the same data create() passes.
+            'newProject' => new Project(['status' => 'open']),
+            'counties' => County::orderBy('name')->pluck('name'),
+            'hirers' => $this->hirers(),
+            'communities' => $this->communities(),
         ]);
     }
 

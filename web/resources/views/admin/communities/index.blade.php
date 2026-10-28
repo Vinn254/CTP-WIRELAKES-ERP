@@ -7,8 +7,15 @@
 @endphp
 
 @section('content')
-<h1>Community register</h1>
-<p class="page-lede">Every community the programme works in and its status.</p>
+<div class="head-row">
+    <div>
+        <h1>Community register</h1>
+        <p class="page-lede">Every community the programme works in and its status.</p>
+    </div>
+    <div class="head-actions">
+        <button class="btn btn-sm btn-primary" type="button" data-sheet="add-community">Add community</button>
+    </div>
+</div>
 
 <div class="stat-row">
     <div class="stat"><small>Communities</small><b>{{ $counts->sum() }}</b></div>
@@ -29,7 +36,6 @@
     </label>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
     @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.communities.index', ['status' => $status]) }}">Clear</a>@endif
-    <a class="btn btn-sm btn-primary" href="{{ route('admin.communities.create') }}">Add community</a>
 </form>
 
 <table class="data">
@@ -79,4 +85,17 @@
 </table>
 
 <div class="pagination">{{ $communities->links() }}</div>
+
+@include('partials.sheet-start', ['name' => 'add-community', 'title' => 'Add a community',
+    'sub' => 'Name it, place it on the map and say how big it is.'])
+    <form method="POST" action="{{ route('admin.communities.store') }}" data-confirm="Add this community to the register?" data-title="Add community">
+        @csrf
+        <input type="hidden" name="_sheet" value="add-community">
+        @include('admin.communities.fields', ['community' => new \App\Models\Community, 'editing' => false])
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-primary" type="submit">Add community</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
 @endsection

@@ -19,7 +19,7 @@
 </div>
 
 <form method="GET" class="filter-bar">
-    <button class="btn btn-sm btn-primary" type="button" onclick="location.href='{{ route('admin.cohorts.create') }}'">Post a training</button>
+    <button class="btn btn-sm btn-primary" type="button" data-sheet="post-training">Post a training</button>
     <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.results') }}">Cohort results</a>
     @if ($year)
         <input type="hidden" name="year" value="{{ $year }}">
@@ -87,4 +87,20 @@
         @endforelse
     </tbody>
 </table>
+
+@include('partials.sheet-start', ['name' => 'post-training', 'title' => 'Post a training',
+    'sub' => 'Set the training, venue, trainer and seats for this intake.'])
+    <form method="POST" action="{{ route('admin.cohorts.store') }}">
+        @csrf
+        <input type="hidden" name="_sheet" value="post-training">
+        @include('admin.cohorts.fields', [
+            'cohort' => new \App\Models\Cohort(['theory_hours' => 40, 'practical_hours' => 60, 'seats' => 25]),
+            'editing' => false,
+        ])
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-primary" type="submit">Create as draft</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
 @endsection

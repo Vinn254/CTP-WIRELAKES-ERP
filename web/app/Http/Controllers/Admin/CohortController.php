@@ -30,7 +30,7 @@ class CohortController extends Controller
         $status = $request->input('status', 'all');
         $year = (int) $request->input('year');
 
-        return view('admin.cohorts.index', [
+        return view('admin.cohorts.index', $this->formData() + [
             'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->when($year, fn ($q) => $q->where('academic_year', $year))

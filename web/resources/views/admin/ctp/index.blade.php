@@ -21,7 +21,7 @@
 </div>
 
 <p style="margin:0 0 14px;">
-    <a class="btn btn-lime btn-sm" href="{{ route('admin.promoters.create') }}">+ Add a CTP from the office</a>
+    <button class="btn btn-lime btn-sm" type="button" data-sheet="add-ctp">+ Add a CTP from the office</button>
     <span class="hint" style="margin-left:10px;">
         For someone who cannot reach the website — the same application and review steps.
     </span>
@@ -163,4 +163,18 @@
 </table>
 
 <div class="pagination">{{ $alumni->links() }}</div>
+
+@include('partials.sheet-start', ['name' => 'add-ctp', 'title' => 'Add a CTP from the office',
+    'sub' => 'Enter a CTP application at the counter for someone offline.'])
+    <form method="POST" action="{{ route('admin.promoters.store') }}" enctype="multipart/form-data"
+          data-confirm="Add this CTP application from the office?" data-title="Add a CTP from the office">
+        @csrf
+        <input type="hidden" name="_sheet" value="add-ctp">
+        @include('admin.ctp.fields')
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-primary" type="submit">Add CTP application</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
 @endsection

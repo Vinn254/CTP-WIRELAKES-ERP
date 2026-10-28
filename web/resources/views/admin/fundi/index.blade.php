@@ -20,7 +20,7 @@
 </div>
 
 <p style="margin:0 0 14px;">
-    <a class="btn btn-lime btn-sm" href="{{ route('admin.fundis.create') }}">+ Add an E-Fundi from the office</a>
+    <button class="btn btn-lime btn-sm" type="button" data-sheet="add-fundi">+ Add an E-Fundi from the office</button>
     <span class="hint" style="margin-left:10px;">
         For someone who cannot reach the website — the same application and review steps.
         A person already on the register is reopened on their own record, never added a second time.
@@ -186,4 +186,18 @@
     stops answering or finishes a job without telling us. Grade changes what they can be handed to train — see
     <b>Training &amp; Certification &rsaquo; Trainers</b> for the site approvals themselves.
 </p>
+
+@include('partials.sheet-start', ['name' => 'add-fundi', 'title' => 'Add an E-Fundi from the office',
+    'sub' => 'Enter an E-Fundi application at the counter for someone offline.'])
+    <form method="POST" action="{{ route('admin.fundis.store') }}" enctype="multipart/form-data"
+          data-confirm="Add this E-Fundi application from the office?" data-title="Add an E-Fundi from the office">
+        @csrf
+        <input type="hidden" name="_sheet" value="add-fundi">
+        @include('admin.fundi.fields')
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-primary" type="submit">Add E-Fundi application</button>
+        </div>
+    </form>
+@include('partials.sheet-end')
 @endsection

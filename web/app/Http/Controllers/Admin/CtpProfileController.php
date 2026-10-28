@@ -46,7 +46,7 @@ class CtpProfileController extends Controller
             ->paginate(20, ['*'], 'apage')
             ->withQueryString();
 
-        return view('admin.ctp.index', [
+        return view('admin.ctp.index', array_merge($this->applicationData(), [
             'ctps' => $ctps,
             'alumni' => $alumni,
             'alumniTotal' => CtpRegistration::alumni()->count(),
@@ -54,9 +54,8 @@ class CtpProfileController extends Controller
             'status' => $status,
             'search' => $search,
             'counts' => CtpRegistration::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
-            'counties' => CtpRegistration::whereNotNull('county')->distinct()->orderBy('county')->pluck('county'),
             'tiers' => Project::CTP_POOL_TIERS,
-        ]);
+        ]));
     }
 
     public function show(CtpRegistration $ctp)

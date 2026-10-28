@@ -12,7 +12,7 @@
 <p class="page-lede">Post and manage projects for members to apply on.</p>
 
 <div class="page-actions">
- <a class="btn btn-primary" href="{{ route('admin.projects.create') }}">＋ Post a project</a>
+ <button class="btn btn-primary" type="button" data-sheet="post-project">＋ Post a project</button>
  <a class="btn btn-outline btn-sm" href="{{ route('admin.hirers.index') }}">Hirers &amp; organisations</a>
 </div>
 
@@ -90,4 +90,23 @@ document.querySelectorAll('.worker-form select').forEach(function (select) {
 });
 </script>
 @endonce
+
+@include('partials.sheet-start', ['name' => 'post-project', 'title' => 'Post a project',
+ 'sub' => 'Set the project details and who can apply.'])
+ <form method="POST" action="{{ route('admin.projects.store') }}" data-confirm="Post this project for members to apply on?" data-title="Post project">
+ @csrf
+ <input type="hidden" name="_sheet" value="post-project">
+ @include('admin.projects.fields', [
+ 'project' => $newProject,
+ 'editing' => false,
+ 'counties' => $counties,
+ 'hirers' => $hirers,
+ 'communities' => $communities,
+ ])
+ <div class="sheet-actions">
+ <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+ <button class="btn btn-primary" type="submit">Post project</button>
+ </div>
+ </form>
+@include('partials.sheet-end')
 @endsection
