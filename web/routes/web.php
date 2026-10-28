@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PayrollController;
 use App\Http\Controllers\Admin\StaffPayController;
+use App\Http\Controllers\Admin\StatementController;
 use App\Http\Controllers\Admin\ProgrammeController;
 use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -221,6 +222,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/staff-pay/{run}', [StaffPayController::class, 'show'])->whereNumber('run')->name('staffpay.show');
     Route::post('/staff-pay/{run}/return', [StaffPayController::class, 'returnTo'])->whereNumber('run')->name('staffpay.return');
     Route::post('/staff-pay/line/{line}/pay', [StaffPayController::class, 'pay'])->whereNumber('line')->name('staffpay.pay');
+
+    // The money statements Finance hands out — the register, the invoices, the orders, the payouts and the payroll
+    // read again in another order. Nothing is stored here, so the screen, the file and the printout say the same thing.
+    Route::get('/finance/reports', [StatementController::class, 'index'])->name('statements.index');
+    Route::get('/finance/reports/{statement}', [StatementController::class, 'show'])->name('statements.show');
+    Route::get('/finance/reports/{statement}/export', [StatementController::class, 'csv'])->name('statements.export');
 
     // Module 2 — CTP Promoter Management. Everything a CTP needs is decided here, not in Module 1.
     Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');

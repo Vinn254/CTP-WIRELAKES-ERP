@@ -24,26 +24,7 @@
     <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
 </div>
 
-@foreach ($report['sections'] as $section)
-    <div class="card">
-        <h2 class="section-head">{{ $section['heading'] }}</h2>
-        @if ($section['note'])<p class="help">{{ $section['note'] }}</p>@endif
-        <table class="data">
-            <thead>
-                <tr>@foreach ($section['columns'] as $col)<th>{{ $col }}</th>@endforeach</tr>
-            </thead>
-            <tbody>
-                @forelse ($section['rows'] as $row)
-                    <tr>@foreach ($row as $cell)<td>{{ $cell }}</td>@endforeach</tr>
-                @empty
-                    <tr><td colspan="{{ count($section['columns']) }}" class="empty-cell">
-                        Nothing recorded against this yet.
-                    </td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-@endforeach
+@include('partials.report-sections')
 
 <p class="hint">{{ $report['foot'] }}</p>
 @endsection
