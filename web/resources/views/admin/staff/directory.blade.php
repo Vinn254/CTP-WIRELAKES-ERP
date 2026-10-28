@@ -5,8 +5,8 @@
     use App\Support\Departments;
     use App\Support\Roles;
 
-    $tabs = ['all' => 'Every person', 'incomplete' => 'File missing something', 'c14' => 'No C14 on record',
-        'waiting' => 'Waiting for the login'];
+    $tabs = ['all' => 'Every person', 'incomplete' => 'File missing something', 'photo' => 'No profile photo',
+        'c14' => 'No C14 on record', 'waiting' => 'Waiting for the login'];
     $money = fn ($v) => $v === null ? '—' : 'KSh '.number_format((float) $v);
     $modules = fn ($u) => $u?->isSuperAdmin() ? 'Every module'
         : (count($u?->departmentSlugs() ?? []).'/'.count(Departments::live()));

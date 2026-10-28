@@ -11,6 +11,17 @@
     };
 @endphp
 <div class="form-grid-2">
+    <div class="field full">
+        <label>Profile photo <span class="req">*</span></label>
+        @if ($owner instanceof \App\Models\StaffRecord && $owner->hasPhoto())
+            <span class="avatar-lg has-photo"><a href="{{ route('admin.directory.photo', $owner) }}" data-zoom
+                aria-label="Open the profile photo"><img src="{{ route('admin.directory.photo', $owner) }}"
+                alt="{{ $owner->name }} — profile photo"></a></span>
+        @endif
+        <input type="file" name="photo" accept=".jpg,.jpeg,.png">
+        <div class="hint">A clear face picture, up to 2 MB — the one that shows on their directory row.
+            A new one replaces the photo on record.</div>
+    </div>
     <div class="field">
         <label>Name <span class="req">*</span></label>
         <input type="text" name="name" maxlength="150" required value="{{ $val('name') }}">
@@ -82,18 +93,10 @@
         <input type="text" name="address" maxlength="180" value="{{ $val('address') }}">
     </div>
     <div class="field full">
-        <label>Profile photo</label>
-        @if ($owner instanceof \App\Models\StaffRecord && $owner->hasPhoto())
-            <span class="avatar-lg has-photo"><a href="{{ route('admin.directory.photo', $owner) }}" data-zoom
-                aria-label="Open the profile photo"><img src="{{ route('admin.directory.photo', $owner) }}"
-                alt="{{ $owner->name }} — profile photo"></a></span>
-        @endif
-        <input type="file" name="photo" accept=".jpg,.jpeg,.png">
-        <div class="hint">A clear face picture, up to 2 MB. A new one replaces the photo on record.</div>
-    </div>
-    <div class="field full">
         <label>C14 document</label>
         <input type="file" name="c14" accept=".pdf,.jpg,.jpeg,.png">
-        <div class="hint">PDF or a clear photo, up to 5 MB. A new one replaces the file on record.</div>
+        <div class="hint">The C14 is the next-of-kin and dependants declaration filed with NSSF and SHIF — the people
+            to contact and to pay if anything happens to this member of staff. Attach the signed copy: PDF or a clear
+            photo, up to 5 MB. A new one replaces the file on record.</div>
     </div>
 </div>

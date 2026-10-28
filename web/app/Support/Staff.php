@@ -110,10 +110,10 @@ class Staff
         return [$record, $record->name.' is on the staff directory. '.$sent];
     }
 
-    /** The same card amends a file later: the fields are written, and the C14 replaces the one on record. */
+    /** The same card amends a file later: the fields are written, and a new photo or C14 replaces the one on record. */
     public static function amend(StaffRecord $record, Request $request, User $actor): string
     {
-        $data = static::validate($request);
+        $data = static::validate($request, false);
 
         $record->fill(collect($data)->only(self::FIELDS)->all());
 
@@ -134,7 +134,7 @@ class Staff
         return $record->name.'’s file is up to date.';
     }
 
-    public static function validate(Request $request): array
+    public static function validate(Request $request, bool $needPhoto = true): array
     {
         return $request->validate([
             'name' => 'required|string|max:150',
@@ -154,12 +154,14 @@ class Staff
             'next_of_kin_name' => 'nullable|string|max:150',
             'next_of_kin_relation' => 'nullable|string|max:60',
             'next_of_kin_phone' => 'nullable|string|max:30',
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo' => ($needPhoto ? 'required|' : 'nullable|').'image|mimes:jpg,jpeg,png|max:2048',
             'c14' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ], [
             'name.required' => 'Give the name the office will call.',
             'email.required' => 'An email address is where the activation link goes.',
             'phone.required' => 'A phone number is needed to reach this person.',
+            'photo.required' => 'Attach the profile photo — a clear face picture in a JPG or PNG.',
+            'photo.image' => 'The profile photo must be a JPG or PNG picture, not a document scan.',
         ], [
             'name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'job_title' => 'Job title',
             'started_on' => 'First day', 'salary' => 'Monthly pay', 'id_number' => 'ID number',

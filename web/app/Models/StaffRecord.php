@@ -108,7 +108,13 @@ class StaffRecord extends Model
             'next_of_kin_name' => 'next of kin', 'salary' => 'salary', 'started_on' => 'first day',
         ];
 
-        return collect($needed)->filter(fn ($_, $field) => ! $this->{$field} && $this->{$field} !== 0)->values()->all();
+        $short = collect($needed)->filter(fn ($_, $field) => ! $this->{$field} && $this->{$field} !== 0)->values()->all();
+
+        if (! $this->hasPhoto()) {
+            $short[] = 'profile photo';
+        }
+
+        return $short;
     }
 
     public function fileLabel(): string
