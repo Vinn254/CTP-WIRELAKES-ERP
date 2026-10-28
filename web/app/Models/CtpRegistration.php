@@ -43,7 +43,7 @@ class CtpRegistration extends Model
         'awaiting_payment' => 'Awaiting payment',
         'paid' => 'Paid',
         'waived' => 'Waived',
-        'sponsored' => 'Sponsored — no fee',
+        'sponsored' => 'Sponsored',
     ];
 
     /** How the person got into the programme: their own application, or the office typing it in. */
@@ -111,7 +111,7 @@ class CtpRegistration extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** The partner that covers this CTP's membership fee — a sponsored promoter pays nothing. */
+    /** The partner named on a CTP's record — the office settles what that partner covers. */
     public function sponsor(): BelongsTo
     {
         return $this->belongsTo(Partner::class, 'sponsor_id');
@@ -151,7 +151,8 @@ class CtpRegistration extends Model
     {
         return $this->enrollments()
             ->whereIn('state', ['pending', 'approved'])
-            ->with(['cohort.venue:id,name,county,sub_county,ward', 'cohort.trainer.fundi:id,full_name', 'certification'])
+            ->with(['cohort.venue:id,name,county,sub_county,ward', 'cohort.trainer.fundi:id,full_name',
+                'cohort.trainer.staff:id,name', 'cohort.trainer.applicant:id,name', 'certification'])
             ->latest('id');
     }
 
@@ -182,7 +183,7 @@ class CtpRegistration extends Model
         'passport_photo' => 'passport_photo_path',
     ];
 
-    /** The one-time fee a CTP pays to join, from the membership settings. */
+    /** The amount pre-filled when the office records money received on a CTP application. */
     public static function feeAmount(): float
     {
         return (float) Setting::get('membership_fee_ctp', '1000');
@@ -241,7 +242,8 @@ class CtpRegistration extends Model
 
         return static::create([
             'reference' => static::newReference(),
-            'status' => $sponsored ? 'pending_review' : 'pending_payment',
+            // No payment gates an application — it goes straight to the review queue.
+            'status' => 'pending_review',
             'fee_status' => $sponsored ? 'sponsored' : 'awaiting_payment',
             'fee_paid_at' => $sponsored ? now() : null,
             'referred_by' => $referrer?->id,
@@ -485,7 +487,7 @@ class CtpRegistration extends Model
     public function stageLabel(): string
     {
         return match (true) {
-            $this->status === 'pending_payment' => 'Pay the one-time membership fee to reach the review queue',
+            $this->status === 'pending_payment' => 'Programme office is reviewing your application and documents',
             $this->status === 'pending_review' => 'Programme office is reviewing your application and documents',
             $this->status === 'rejected' => 'Application closed — see the reason on your record',
             $this->status === 'suspended' => 'Suspended — speak to your County Coordinator',

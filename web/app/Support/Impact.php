@@ -120,9 +120,9 @@ class Impact
                     'note' => $seats > 0 ? round($certified / $seats * 100).'% of the seats given — signed off one at a time by an executive' : 'No certificate issued yet'],
                 ['label' => 'Communities confirmed', 'value' => static::count(Community::where('status', 'active'), $county), 'unit' => 'count',
                     'note' => 'People recorded as reached in them: '.$reached],
-                ['label' => 'Fundi-trainers approved', 'value' => (int) Trainer::where('status', 'approved')
+                ['label' => 'Trainers approved', 'value' => (int) Trainer::where('status', 'approved')
                     ->when($county, fn ($q) => $q->where('county', $county))->count(), 'unit' => 'count',
-                    'note' => 'Senior fundis who opted in to deliver cohorts (Module 5 §5.8)'],
+                    'note' => 'Approved at one site each — an E-Fundi, a staff account or an applicant'],
             ],
             'technology' => [
                 ['label' => 'Technology trainings run', 'value' => $techRuns, 'unit' => 'count',

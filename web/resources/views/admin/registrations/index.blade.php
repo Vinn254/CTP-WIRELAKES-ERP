@@ -4,9 +4,9 @@
 @php
     use Illuminate\Support\Str;
     $types = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
-    // Applicants who have not paid the one-time fee yet are not reviewable, so they get their own tab;
-    // the rest of the CTP lifecycle (suspended, graduated, deployed) is managed in Module 2 — CTP profiles.
-    $waiting = ['pending_payment' => 'Awaiting fee'];
+    // No application waits on a payment: every new one lands in the review queue. The rest of the CTP lifecycle
+    // (suspended, graduated, deployed) is managed in CTP Promoters → CTP profiles.
+    $waiting = ['pending_payment' => 'Waiting on a payment'];
     $statuses = match ($type) {
         'ctp' => $waiting + ['pending_review' => 'Pending', 'active' => 'Approved', 'all' => 'All'],
         'fundi' => $waiting + ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'],

@@ -48,10 +48,13 @@
             </a>
 
             @if ($isSuper)
-                @if (\App\Support\Workspace::teaching($me))
+                @if (\App\Models\Trainer::forAccount($me)->isNotEmpty())
                     <div class="nav-group">{{ \App\Support\Roles::all()['trainer']['name'] }}</div>
-                    <a href="{{ route('admin.teaching.index') }}" class="{{ request()->routeIs('admin.teaching.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.teaching.index') }}" class="{{ request()->routeIs('admin.teaching.index') || request()->routeIs('admin.teaching.trainee') ? 'active' : '' }}">
                         @include('partials.icon', ['n' => 'award']) My teaching
+                    </a>
+                    <a href="{{ route('admin.teaching.week') }}" class="{{ request()->routeIs('admin.teaching.week') ? 'active' : '' }}">
+                        @include('partials.icon', ['n' => 'clock']) My week sheet
                     </a>
                 @endif
                 @if ($dept)

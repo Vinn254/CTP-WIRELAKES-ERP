@@ -72,7 +72,7 @@
                     <span class="hint">{{ $payout->fundi->ef_code ?? '' }}</span></dd>
                 @if (! $isProject)
                     <dt>Trainer on the record</dt>
-                    <dd>{{ $payout->trainer?->fundi?->full_name ?? 'the intake has no trainer recorded' }}</dd>
+                    <dd>{{ $payout->trainer?->personName() ?? 'the intake has no trainer recorded' }}</dd>
                 @endif
                 <dt>For</dt><dd>{{ $payout->sourceLabel() }}</dd>
                 <dt>Charged to</dt><dd>{{ $payout->budgetLabel() }}</dd>

@@ -98,10 +98,10 @@ class ReviewController extends Controller
         ));
     }
 
-    /** Record a membership fee the applicant paid by M-Pesa bill, bank transfer or cash. */
+    /** Record money an applicant paid by M-Pesa bill, bank transfer or cash. */
     public function markFee(Request $request, string $type, int $id)
     {
-        abort_unless(in_array($type, ['ctp', 'fundi'], true), 404, 'Only CTP and E-Fundi applications pay a membership fee.');
+        abort_unless(in_array($type, ['ctp', 'fundi'], true), 404, 'Only CTP and E-Fundi applications carry a payment record.');
         $model = $this->model($type);
 
         return back()->with('status', ReviewActions::recordFee(

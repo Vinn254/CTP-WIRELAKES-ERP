@@ -31,7 +31,7 @@ class CohortController extends Controller
         $year = (int) $request->input('year');
 
         return view('admin.cohorts.index', [
-            'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
+            'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->when($year, fn ($q) => $q->where('academic_year', $year))
                 ->orderByDesc('starts_on')->orderBy('id')->get(),
@@ -104,7 +104,7 @@ class CohortController extends Controller
     public function results(Request $request)
     {
         $cohorts = Cohort::where('status', '!=', 'draft')
-            ->with(['training:id,name,code', 'venue:id,name,county', 'trainer.fundi:id,full_name',
+            ->with(['training:id,name,code', 'venue:id,name,county', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name',
                 'enrollments:id,cohort_id,state'])
             ->orderByDesc('academic_year')->orderByDesc('starts_on')->orderBy('id')->get();
 
@@ -130,7 +130,7 @@ class CohortController extends Controller
     /** The cohort page: the roster, the seat queue and every trainee's progress. */
     public function show(Cohort $cohort)
     {
-        $cohort->load(['training', 'venue', 'trainer.fundi', 'trainer.trainings', 'community']);
+        $cohort->load(['training', 'venue', 'trainer.fundi', 'trainer.staff', 'trainer.applicant', 'trainer.trainings', 'community']);
 
         return view('admin.cohorts.show', [
             'cohort' => $cohort,
@@ -326,7 +326,7 @@ class CohortController extends Controller
     private function runsOf(Cohort $cohort)
     {
         return Cohort::where('training_id', $cohort->training_id)
-            ->with(['trainer.fundi:id,full_name', 'venue:id,name',
+            ->with(['trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'venue:id,name',
                 'enrollments' => fn ($q) => $q->select('id', 'cohort_id', 'state', 'stage')])
             ->orderByDesc('academic_year')->orderByDesc('starts_on')->orderBy('id')->get();
     }
@@ -367,20 +367,21 @@ class CohortController extends Controller
             'A training needs a venue, a trainer or a community to run in — pick at least one.');
 
         if (! empty($data['trainer_id'])) {
-            $trainer = Trainer::with('fundi:id,full_name,status')->findOrFail($data['trainer_id']);
+            $trainer = Trainer::with(['fundi:id,full_name,status', 'staff:id,name', 'applicant:id,name'])->findOrFail($data['trainer_id']);
+            $who = $trainer->personName();
 
             abort_unless($trainer->status === 'approved', 422,
-                $trainer->fundi->full_name.' is not an approved trainer for '.$this->siteName($data).' — approve that site under Fundi-trainers first.');
+                $who.' is not an approved trainer for '.$this->siteName($data).' — approve that site under Trainers first.');
 
             // A trainer is approved site by site (§7.8), so an approval held at another venue does not carry over.
             if (! empty($data['venue_id'])) {
                 abort_unless((int) $trainer->venue_id === (int) $data['venue_id'], 422,
-                    $trainer->fundi->full_name.' is approved at '.$trainer->placeLabel().', not at '.$this->siteName($data).'. '
+                    $who.' is approved at '.$trainer->placeLabel().', not at '.$this->siteName($data).'. '
                         .'Hand them a cohort at the site the office approved, or take their application for '.$this->siteName($data).'.');
             }
 
             abort_unless(! empty($data['training_id']) && $trainer->canTeach((int) $data['training_id']), 422,
-                $trainer->fundi->full_name.' is not registered to teach '.$this->trainingName($data).'. Add that training to their record first.');
+                $who.' is not registered to teach '.$this->trainingName($data).'. Add that training to their record first.');
         }
     }
 
@@ -418,7 +419,8 @@ class CohortController extends Controller
         return [
             'trainings' => TrainingController::options(),
             'venues' => VenueController::options(),
-            'trainers' => Trainer::approved()->with(['fundi:id,full_name,ef_code', 'trainings:id,name'])->get(),
+            'trainers' => Trainer::approved()->with(['fundi:id,full_name,ef_code', 'staff:id,name',
+                'applicant:id,name', 'trainings:id,name'])->get(),
             'communities' => \App\Models\Community::where('status', 'active')
                 ->orderBy('county')->orderBy('name')->get(['id', 'name', 'county', 'sub_county', 'ward']),
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),

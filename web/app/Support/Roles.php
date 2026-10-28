@@ -16,28 +16,43 @@ class Roles
     public const PROFILES = [
         'system_administrator' => [
             'name' => 'System Administrator',
-            'desc' => 'Accounts, site content, every project desk and the impact reports',
-            'departments' => ['membership', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'me_gis'],
+            'desc' => 'Website & Membership · Human Resources · Marketplace · Execution · Construction · Technology · E-Waste · Reports',
+            'departments' => ['membership', 'hr', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'me_gis'],
         ],
         'academic_registrar' => [
             'name' => 'Academic Registrar',
-            'desc' => 'The learner record end to end: CTPs, communities, training and E-Fundi grades',
+            'desc' => 'CTP Promoters · Communities · Training & Certification · E-Fundi Registry',
             'departments' => ['promoters', 'communities', 'training', 'efundi'],
+        ],
+        'finance_officer' => [
+            'name' => 'Finance Officer',
+            'desc' => 'Finance & Budget, with Procurement & Stores in view',
+            'departments' => ['finance', 'procurement'],
+        ],
+        'procurement_officer' => [
+            'name' => 'Procurement Officer',
+            'desc' => 'Procurement & Stores — requests, suppliers, orders and stock',
+            'departments' => ['procurement'],
+        ],
+        'hr_officer' => [
+            'name' => 'Human Resources Officer',
+            'desc' => 'Human Resources — careers board, applicants and signed weeks — with Membership in view',
+            'departments' => ['hr', 'membership'],
         ],
         'finance_hr' => [
             'name' => 'Finance & HR',
-            'desc' => 'Budgets, the money register, purchases and stock, with the delivery register in view',
-            'departments' => ['finance', 'execution'],
+            'desc' => 'Finance & Budget · Procurement & Stores · Human Resources, with Execution in view',
+            'departments' => ['finance', 'procurement', 'hr', 'execution'],
         ],
         'projects_desk' => [
-            'name' => 'Projects Desk',
-            'desc' => 'Matching, delivery, construction, technology and e-waste',
+            'name' => 'Projects Officer',
+            'desc' => 'Marketplace · Execution · Construction · Technology · E-Waste',
             'departments' => ['marketplace', 'execution', 'construction', 'technology', 'ewaste'],
         ],
         // The one title that opens no module: it is a person's own teaching record, not a department's desk.
         'trainer' => [
-            'name' => 'Fundi Trainer',
-            'desc' => 'The cohorts you take, the trainings you deliver and the marks you record',
+            'name' => 'Trainer',
+            'desc' => 'The cohorts you take, the marks you record, the register you mark and the week you sign',
             'departments' => [],
         ],
     ];

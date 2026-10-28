@@ -298,6 +298,10 @@ table.data .ref { font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.data .empty-cell, table.data td.empty-cell { text-align: center; color: var(--muted); padding: 26px 14px; font-size: .9rem; }
 /* A note or an empty state spans the whole register: it keeps a reading measure and rides with the frame. */
 table.data .span-note { position: sticky; left: 12px; max-inline-size: 900px; }
+/* The trainer's week sheet is the paper the office signs — a ruled totals band and a place to sign. */
+table.data.sheet tfoot td { background: var(--lime-soft); border-top: 2px solid var(--green); }
+table.data.sheet .sign-line { display: inline-block; min-inline-size: 74px; border-bottom: 1px solid #98a79c; }
+table.data.sheet .warn-note { color: #8a3b12; }
 table.data .bar { margin: 5px 0 0; }
 table.data .photo-thumb { margin-top: 6px; }
 table.data .tag { display: inline-block; line-height: 1.3; white-space: nowrap; }
@@ -610,6 +614,19 @@ html.dark .page-lede b { color: var(--lime); }
 .stat b { font-size: 1.3rem; color: var(--green-dark); font-variant-numeric: tabular-nums; }
 html.dark .stat b { color: var(--lime); }
 @media (max-width: 720px) { .stat-row { grid-template-columns: 1fr; } }
+.leave-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.leave-type { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--lime); border-radius: 12px; padding: 13px 15px; display: flex; flex-direction: column; gap: 8px; }
+.leave-type > b { font-size: .95rem; color: var(--green-dark); }
+html.dark .leave-type > b { color: var(--lime); }
+.leave-type .nums { display: flex; flex-direction: column; gap: 3px; }
+.leave-type .nums span { display: flex; justify-content: space-between; gap: 10px; font-size: .8rem; color: var(--muted); }
+.leave-type .nums i { font-style: normal; font-weight: 800; color: var(--green-dark); font-variant-numeric: tabular-nums; }
+html.dark .leave-type .nums i { color: var(--lime); }
+.leave-type .accrual { border-top: 1px dashed var(--line); padding-top: 7px; font-size: .74rem; color: var(--muted); }
+.leave-type .accrual small { display: block; margin-top: 3px; }
+.leave-type.spent { border-left-color: var(--gold, #c9930a); }
+.leave-type.spent .nums i { color: var(--muted); }
+@media (max-width: 720px) { .leave-grid { grid-template-columns: 1fr; } }
 @media (max-width: 980px) {
   .admin-sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 60; transform: translateX(-100%); transition: transform .25s ease; }
   .admin-sidebar.open { transform: none; box-shadow: 0 0 60px rgba(0,0,0,.45); }

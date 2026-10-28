@@ -38,7 +38,7 @@
             <dt>Where</dt><dd>{{ $cohort->venue?->name ?? 'No fixed venue' }}
                 @if ($cohort->venue)<span class="hint">({{ $cohort->venue->typeLabel() }})</span>@endif
                 <div class="hint">{{ collect([$cohort->ward, $cohort->sub_county, $cohort->county])->filter()->join(', ') }}</div></dd>
-            <dt>Trainer</dt><dd>{{ $cohort->trainer?->fundi?->full_name ?? 'Not assigned' }}
+            <dt>Trainer</dt><dd>{{ $cohort->trainer?->personName() ?? 'Not assigned' }}
                 @if ($cohort->trainer)
                     <span class="chip">{{ $cohort->trainer->statusLabel() }}</span>
                     @if ($cohort->trainer->rate_ksh > 0)<div class="hint">KSh {{ number_format((float) $cohort->trainer->rate_ksh) }} — Module 11 invoices this</div>@endif

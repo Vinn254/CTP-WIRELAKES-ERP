@@ -64,7 +64,7 @@
                 <td><span class="tag">{{ $c->periodLabel() }}</span></td>
                 <td>{{ $c->venue?->name ?: ($c->trainer ? 'Trainer site' : 'Community site') }}
                     <div class="hint">{{ collect([$c->ward, $c->sub_county, $c->county])->filter()->join(', ') }}</div></td>
-                <td>{{ $c->trainer?->fundi?->full_name ?: '—' }}
+                <td>{{ $c->trainer?->personName() ?: '—' }}
                     @if ($c->venue)<div class="hint">{{ $c->venue->typeLabel() }}</div>@endif</td>
                 <td>{{ $c->dateLabel() }}<div class="hint">KSh {{ number_format((float) $c->fee_ksh) }}</div></td>
                 <td>{{ $approved + $pending }} / {{ $c->seats }}</td>

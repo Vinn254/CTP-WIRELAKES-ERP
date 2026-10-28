@@ -169,7 +169,7 @@
                 <span class="tag">{{ $sites->count() }}</span>
             </div>
             <p class="hint">Each row is Module 4's teaching role, approved <b>site by site</b>. The office decides them under
-                <b>Training &amp; Certification &rsaquo; Fundi-trainers</b> — this screen only shows what the fundi is carrying.</p>
+                <b>Training &amp; Certification &rsaquo; Trainers</b> — this screen only shows what the fundi is carrying.</p>
             @forelse ($sites as $s)
                 <div class="row-line">
                     <b>{{ $s->venue->name ?? 'A site' }}</b>
@@ -231,9 +231,9 @@
         </div>
 
         <div class="card">
-            <h3>Fee &amp; membership</h3>
+            <h3>Payment &amp; membership</h3>
             <dl class="kv">
-                <dt>Fee</dt><dd><span class="fee-tag {{ $fundi->fee_status }}">{{ FundiRegistration::FEE_STATUSES[$fundi->fee_status] ?? $fundi->fee_status }}</span></dd>
+                <dt>Payment</dt><dd><span class="fee-tag {{ $fundi->fee_status }}">{{ FundiRegistration::FEE_STATUSES[$fundi->fee_status] ?? $fundi->fee_status }}</span></dd>
                 @if ($fundi->fee_status !== 'awaiting_payment')
                     <dt>Amount</dt><dd>{{ $fundi->fee_amount ? 'KSh '.number_format((float) $fundi->fee_amount) : '—' }}</dd>
                     <dt>Method</dt><dd>{{ $fundi->fee_method ? Str::headline($fundi->fee_method) : '—' }}</dd>
@@ -243,13 +243,13 @@
                 <dt>E-Fundi ID</dt><dd>{{ $fundi->ef_code ?: 'Issued on approval' }}</dd>
             </dl>
             @if ($fundi->fee_status === 'awaiting_payment' && $openApplication)
-                <p class="hint">Record the KSh {{ number_format(FundiRegistration::feeAmount()) }} registration payment when the
-                    money reaches us — {{ \App\Support\Finance::paybillLine() }} The fundi is not sent back to Module 1 to do it.</p>
+                <p class="hint">{{ \App\Support\Finance::paybillLine() }} Nothing waits on a payment — record the money
+                    here only when it reaches us so it lands on the ledger.</p>
                 <form method="POST" action="{{ route('admin.fundis.fee', $fundi) }}" class="fee-form"
-                      data-confirm="Record this fee and send {{ $fundi->full_name }} to review?" data-title="Membership fee">
+                      data-confirm="Record this payment for {{ $fundi->full_name }}?" data-title="Payment">
                     @csrf
                     <div class="form-grid-2">
-                        <div class="field"><label>Fee <span class="req">*</span></label>
+                        <div class="field"><label>Status <span class="req">*</span></label>
                             <select name="fee_status" required>
                                 <option value="paid">Paid</option>
                                 <option value="waived">Waived by the office</option>
@@ -262,12 +262,11 @@
                                 <option value="other">Other</option>
                             </select></div>
                         <div class="field"><label>Amount (KSh)</label>
-                            <input type="number" step="0.01" min="0" name="fee_amount"
-                                   placeholder="{{ number_format(FundiRegistration::feeAmount(), 0) }}"></div>
+                            <input type="number" step="0.01" min="0" name="fee_amount" placeholder="e.g. 1000"></div>
                         <div class="field"><label>M-Pesa / transaction code</label>
                             <input type="text" name="fee_reference" maxlength="60" placeholder="e.g. SLK4H29PQ1"></div>
                     </div>
-                    <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Record fee &amp; send to review</button>
+                    <button class="btn btn-outline btn-block" type="submit" style="margin-top:12px;">Record payment</button>
                 </form>
             @endif
         </div>
@@ -275,7 +274,7 @@
         <div class="card">
             <h3>Application decision</h3>
             @if ($fundi->status === 'pending_payment')
-                <p class="hint">Record the fee above and the application moves into the review queue.</p>
+                <p class="hint">No payment gates this application — approve it below whenever the documents are in order.</p>
             @elseif ($fundi->status === 'pending_review')
                 <form method="POST" action="{{ route('admin.fundis.approve', $fundi) }}"
                       data-confirm="Approve {{ $fundi->full_name }}? Their EF ID is issued for good and an activation link is created."

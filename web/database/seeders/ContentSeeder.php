@@ -119,12 +119,12 @@ class ContentSeeder extends Seeder
             ['question' => ['Question', 'text'], 'answer' => ['Answer', 'textarea']],
             [
                 ['question' => 'What is a CTP?', 'answer' => 'A Community Technology Promoter — the on-the-ground agent who is simultaneously a trainee (learning a skill), a mobilizer (bringing people into the programme) and a community agent (identifying needs and registering communities).'],
-                ['question' => 'Who can become a CTP?', 'answer' => 'School leavers (training track) and junior graduates wanting practical experience (junior practical-check track). There is a one-time membership fee set by the programme.'],
+                ['question' => 'Who can become a CTP?', 'answer' => 'School leavers (training track) and junior graduates wanting practical experience (junior practical-check track).'],
                 ['question' => 'What is the difference between a Fundi-Intern, an Attachment applicant, a Junior Fundi and a Senior Fundi?', 'answer' => 'Fundi-Intern: graduated, no experience, seeking an internship. Attachment applicant: still in school and not yet graduated — only they can apply for industrial attachment. Junior Fundi: recent graduate who already has internship experience. Senior Fundi: long industry experience, fully eligible to lead projects and mentor.'],
                 ['question' => 'Do I have to be a CTP first to become a Fundi?', 'answer' => 'No. Fundi registration is a standalone path. Skilled workers apply directly with their certificates and a referee.'],
                 ['question' => 'What documents do I need to register?', 'answer' => 'CTP: national ID scan, passport photo, and any school certificate. Fundi: ID, business certificate (if any), trade certificates and up to 6 portfolio photos. Hirer: an ID or organisation document.'],
                 ['question' => 'Is registering as a hirer free?', 'answer' => 'Yes — hirer registration is free, but every organisation is verified by an admin to prevent fraud.'],
-                ['question' => 'How is the membership fee paid?', 'answer' => 'Via M-Pesa STK Push or bank transfer. The payment module is being switched on in the next phase; your application simply waits at "pending payment" until then.'],
+                ['question' => 'How do I pay what the programme asks for?', 'answer' => 'For any type of payment use the Paybill and account number the office gives you, and put your reference or national ID number as the reason so the payment is matched to your name. No application waits on a payment — it goes straight to review.'],
                 ['question' => 'How long does approval take?', 'answer' => 'Directors and admins review applications with all documents. You will be notified by email and SMS once a decision is made.'],
             ]);
 
@@ -164,7 +164,7 @@ class ContentSeeder extends Seeder
         $this->put('membership', 'fees', 'Membership fees', 'single',
             ['fee_ctp' => ['CTP fee (KSh)', 'price'], 'fee_fundi' => ['Fundi fee (KSh)', 'price'], 'fee_hirer' => ['Hirer fee (KSh — 0 = free)', 'price'], 'payment_note' => ['Payment note on success page', 'textarea']],
             [['fee_ctp' => '1000', 'fee_fundi' => '1000', 'fee_hirer' => '0',
-              'payment_note' => 'Membership fees are payable by M-Pesa or bank transfer. Online payment is being switched on in the next phase — our team will contact you with instructions.']]);
+              'payment_note' => 'For any type of payment use the Paybill and account number the office gives you, and put your reference or national ID number as the reason. No application waits on a payment — it goes straight to review.']]);
 
         $this->put('membership', 'ctp_tracks', 'CTP training tracks', 'repeater',
             ['code' => ['Code (do not change once live)', 'text'], 'label' => ['Label', 'text'], 'desc' => ['Help text', 'textarea']],

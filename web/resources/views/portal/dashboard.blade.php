@@ -84,14 +84,7 @@
     </div>
 @endif
 
-@if ($isCtp && $member->status === 'pending_payment')
-    <div class="card callout">
-        <h3>Your registration is not confirmed yet</h3>
-        <p class="help" style="margin:0;">Your CTP ID and portal access are issued once the programme office confirms
-            your payment. {{ \App\Support\Finance::paybillLine() }} Put your ID number as the reason and bring the
-            M-Pesa message to your County Coordinator if it is faster.</p>
-    </div>
-@elseif ($isCtp)
+@if ($isCtp)
     <div class="card">
         <h3>Where you are</h3>
         <p class="help">{{ $member->stageLabel() }} — your training path is under <b>My training</b>, and what you have
@@ -102,12 +95,11 @@
         </div>
         <p style="margin:14px 0 0;"><a class="btn btn-sm btn-outline" href="{{ route('portal.mobilisation') }}">Open my mobilisation</a></p>
     </div>
-@elseif ($member->status === 'pending_payment')
+@elseif (! in_array($member->status, ['active', 'deployed'], true))
     <div class="card callout">
-        <h3>Your registration is not confirmed yet</h3>
-        <p class="help" style="margin:0;">Your Fundi ID and access to the project marketplace are issued once the
-            programme office confirms your one-time payment of KSh {{ number_format((int) \App\Models\FundiRegistration::feeAmount()) }}.
-            {{ \App\Support\Finance::paybillLine() }} Put your ID number as the reason.</p>
+        <h3>Where your application stands</h3>
+        <p class="help" style="margin:0;">Status: <b>{{ $member->statusLabel() }}</b>. The programme office reviews your
+            documents and referee, then issues your Fundi ID and opens the project marketplace.</p>
     </div>
 @endif
 

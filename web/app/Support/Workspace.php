@@ -26,12 +26,17 @@ class Workspace
         $groups = [];
 
         // Their own teaching first: a trainer who also runs a department works both from one sidebar.
-        if (static::teaching($user)) {
+        if (Trainer::forAccount($user)->isNotEmpty()) {
             $groups[] = [
                 'label' => Roles::all()['trainer']['name'],
                 'note' => Roles::all()['trainer']['desc'],
-                'items' => [['label' => 'My teaching', 'icon' => 'award', 'route' => ['admin.teaching.index'],
-                    'note' => 'The cohorts you take and the marks you record for them', 'department' => 'training']],
+                'items' => [
+                    ['label' => 'My teaching', 'icon' => 'award', 'route' => ['admin.teaching.index'],
+                        'note' => 'The cohorts you take and the marks you record for them', 'department' => 'training'],
+                    ['label' => 'My week sheet', 'icon' => 'clock', 'route' => ['admin.teaching.week'],
+                        'note' => 'The days you worked, signed at the end of the week for the office to approve',
+                        'department' => 'training', 'badge' => null],
+                ],
             ];
         }
 
@@ -108,7 +113,7 @@ class Workspace
         $items = [];
 
         foreach ($departments as $slug) {
-            foreach (Departments::mine($user, Departments::nav($slug)) as $item) {
+            foreach (Departments::nav($slug) as $item) {
                 // Two departments are given a copy of the same register (the trail, say); a person sees it once.
                 $key = 'label:'.$item['label'];
 

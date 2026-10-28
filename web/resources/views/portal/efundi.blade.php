@@ -147,7 +147,6 @@
                 @if ($member->business_reg_no)<span class="hint">· {{ $member->business_reg_no }}</span>@endif</dd>
             <dt>Years trading</dt><dd>{{ $member->years_in_business !== null ? $member->years_in_business : '—' }}</dd>
             <dt>Standing</dt><dd><span class="status {{ $member->status === 'active' ? 'active' : ($openApplication ? 'pending_review' : 'closed') }}">{{ $member->statusLabel() }}</span></dd>
-            <dt>Membership fee</dt><dd><span class="fee-tag {{ $member->fee_status }}">{{ FundiRegistration::FEE_STATUSES[$member->fee_status] ?? $member->fee_status }}</span></dd>
         </dl>
         <p class="help">A grade, a document or a standing is the office's decision — ask them and they edit this record.
             Nothing is deleted: a suspended or rejected fundi is reopened on the same row.</p>

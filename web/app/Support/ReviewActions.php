@@ -27,7 +27,7 @@ class ReviewActions
         ], [], ['fee_method' => 'payment method', 'fee_amount' => 'amount', 'fee_reference' => 'reference']);
     }
 
-    /** Record a membership fee paid by M-Pesa bill, bank transfer or cash — or waive it. */
+    /** Record money an applicant paid by M-Pesa bill, bank transfer or cash — or waive it. */
     public static function recordFee(CtpRegistration|FundiRegistration $member, array $data): string
     {
         $member->update([
@@ -45,8 +45,8 @@ class ReviewActions
         }
 
         return $data['fee_status'] === 'paid'
-            ? 'Fee of KSh '.number_format((float) $member->fee_amount).' recorded — the application is now in the review queue, and the money is on the ledger.'
-            : 'Fee waived — the application is now in the review queue.';
+            ? 'Payment of KSh '.number_format((float) $member->fee_amount).' is on the ledger.'
+            : 'Payment waived on this application.';
     }
 
     /**
@@ -69,7 +69,7 @@ class ReviewActions
                 $who.'_id' => $member->id,
                 'source_type' => get_class($member),
                 'source_id' => $member->id,
-                'note' => 'One-time membership fee recorded on the application'
+                'note' => 'Money received on the application'
                     .($member->fee_reference ? ' under '.$member->fee_reference : '').'.',
             ]);
     }
@@ -77,8 +77,9 @@ class ReviewActions
     /** Approve an applicant: issue the member ID once and open their portal account. */
     public static function approve(Model $record, string $codeColumn, bool $account): string
     {
-        // A reversal is allowed: an applicant rejected in error can be approved later.
-        abort_unless(in_array($record->status, ['pending_review', 'rejected'], true), 422,
+        // A reversal is allowed: an applicant rejected in error can be approved later. An old application that
+        // was still waiting on a payment is reviewable too — no payment gates an approval now.
+        abort_unless(in_array($record->status, ['pending_payment', 'pending_review', 'rejected'], true), 422,
             'Only applications waiting for review (or already rejected) can be approved.');
 
         DB::transaction(function () use ($record, $codeColumn, $account) {

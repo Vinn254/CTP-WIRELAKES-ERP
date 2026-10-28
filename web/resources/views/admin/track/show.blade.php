@@ -25,7 +25,7 @@
     </div>
 <div class="ah-contact">
     <span class="tag gray">{{ $enrollment->stateLabel() }}</span>
-    @if ($cohort?->trainer?->fundi)<span class="tag">trainer {{ $cohort->trainer->fundi->full_name }}</span>@endif
+    @if ($cohort?->trainer)<span class="tag">trainer {{ $cohort->trainer->personName() }}</span>@endif
 </div>
 </div>
 
@@ -101,7 +101,7 @@
         <dt>Seat</dt><dd>{{ $enrollment->stateLabel() }}
             @if ($enrollment->approved_on)<span class="hint">since {{ $enrollment->approved_on->format('d M Y') }}</span>@endif</dd>
         <dt>Placed by</dt><dd>{{ $enrollment->source === 'office' ? 'the office' : 'they applied themselves' }}</dd>
-        <dt>Trainer</dt><dd>{{ $cohort?->trainer?->fundi?->full_name ?? 'No trainer named on the cohort' }}</dd>
+        <dt>Trainer</dt><dd>{{ $cohort?->trainer?->personName() ?? 'No trainer named on the cohort' }}</dd>
         <dt>Site</dt><dd>{{ $cohort?->placeLabel() ?: '—' }}</dd>
         <dt>Period</dt><dd>{{ $cohort?->dateLabel() ?: '—' }}</dd>
         <dt>Attendance</dt><dd>{{ $enrollment->attendancePct() === null ? 'not marked' : $enrollment->attendancePct().'% of the days marked' }}</dd>

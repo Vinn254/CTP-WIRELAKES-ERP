@@ -15,6 +15,7 @@ use App\Models\HirerRegistration;
 use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\JobApplication;
+use App\Models\LeaveRequest;
 use App\Models\Need;
 use App\Models\Partner;
 use App\Models\Payout;
@@ -22,6 +23,7 @@ use App\Models\ProjectApplication;
 use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
+use App\Models\TimeLog;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Models\WorkOrder;
@@ -33,31 +35,35 @@ use App\Models\WorkOrder;
 class Departments
 {
     public const ALL = [
-        ['slug' => 'membership', 'tag' => 'Module 1', 'name' => 'Public Site & Membership',
+        ['slug' => 'membership', 'tag' => 'Module 1', 'name' => 'Website & Membership',
             'desc' => 'Public pages, CTP / E-Fundi applications, member accounts, projects and assignments', 'live' => true],
-        ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoter Management',
+        ['slug' => 'promoters', 'tag' => 'Module 2', 'name' => 'CTP Promoters',
             'desc' => 'CTP profiles and IDs, tracks, mobilisation 15/30, suspension and deployment', 'live' => true],
-        ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Community Management',
+        ['slug' => 'communities', 'tag' => 'Module 3', 'name' => 'Communities',
             'desc' => 'Community profiles and IDs, needs assessment, beneficiaries, the CTPs who mobilise each place', 'live' => true],
         ['slug' => 'training', 'tag' => 'Module 4', 'name' => 'Training & Certification',
-            'desc' => 'Partner schools and sites, cohorts CTPs apply for, fundi-trainers, progress, certificates', 'live' => true],
-        ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Management',
+            'desc' => 'Partner schools and sites, cohorts CTPs apply for, trainers, attendance, progress, certificates', 'live' => true],
+        ['slug' => 'efundi', 'tag' => 'Module 5', 'name' => 'E-Fundi Registry',
             'desc' => 'E-Fundi profiles and IDs, grades, trade skills, counties, availability and standing', 'live' => true],
         ['slug' => 'marketplace', 'tag' => 'Module 6', 'name' => 'Project Marketplace',
             'desc' => 'Match a posted project to the right E-Fundi, ask them, and award the one who takes it', 'live' => true],
-        ['slug' => 'execution', 'tag' => 'Module 7', 'name' => 'Project Execution & Payment',
+        ['slug' => 'execution', 'tag' => 'Module 7', 'name' => 'Project Execution',
             'desc' => 'Work orders, materials issued, progress on site, milestones, the hirer\'s inspection and disputes', 'live' => true],
-        ['slug' => 'construction', 'tag' => 'Module 8', 'name' => 'Construction & Infrastructure',
+        ['slug' => 'construction', 'tag' => 'Module 8', 'name' => 'Construction Works',
             'desc' => 'Site assessment, the bill of quantities, labour on site, inspections and variations', 'live' => true],
         ['slug' => 'technology', 'tag' => 'Module 9', 'name' => 'Technology Services',
             'desc' => 'ICT, Networking, Robotics, Programming and AI — the asset register, the projects and the repair tickets', 'live' => true],
-        ['slug' => 'ewaste', 'tag' => 'Module 10', 'name' => 'E-Waste Management',
+        ['slug' => 'ewaste', 'tag' => 'Module 10', 'name' => 'E-Waste Collection',
             'desc' => 'Collection, weighing, refurbish, disposal', 'live' => true],
-        ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance, Procurement & Inventory',
-            'desc' => 'Budgets, the money register, purchases, stock and the two payout streams', 'live' => true],
-        ['slug' => 'me_gis', 'tag' => 'Module 12', 'name' => 'M&E, GIS, Reports',
+        ['slug' => 'finance', 'tag' => 'Module 11', 'name' => 'Finance & Budget',
+            'desc' => 'The programme budget, the money register, invoices and the two payout streams', 'live' => true],
+        ['slug' => 'me_gis', 'tag' => 'Module 12', 'name' => 'Monitoring, Maps & Reports',
             'desc' => 'The impact dashboard, the county map, a report per role, the trail and the programme switches', 'live' => true],
-        ['slug' => 'mobile', 'tag' => 'Module 13', 'name' => 'Mobile App',
+        ['slug' => 'procurement', 'tag' => 'Module 13', 'name' => 'Procurement & Stores',
+            'desc' => 'Requests, quotations, purchase orders, suppliers and the stock on the shelf', 'live' => true],
+        ['slug' => 'hr', 'tag' => 'Module 14', 'name' => 'Human Resources',
+            'desc' => 'Office accounts and roles, the careers board and the trainers\' signed weeks', 'live' => true],
+        ['slug' => 'mobile', 'tag' => 'Module 15', 'name' => 'Mobile App',
             'desc' => 'Field app for CTPs and Fundis', 'live' => false],
     ];
 
@@ -72,8 +78,6 @@ class Departments
             ['label' => 'Partners', 'icon' => 'link', 'route' => ['admin.partners.index'], 'badge' => 'partners'],
             ['label' => 'Donations', 'icon' => 'heart', 'route' => ['admin.donations.index']],
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
-            ['label' => 'Careers', 'icon' => 'award', 'route' => ['admin.careers.index'], 'badge' => 'careers'],
-            ['label' => 'Staff & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
             ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
         'promoters' => [
@@ -91,7 +95,8 @@ class Departments
             ['label' => 'Track', 'icon' => 'check', 'route' => ['admin.track.index']],
             ['label' => 'Training', 'icon' => 'award', 'route' => ['admin.trainings.index']],
             ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],
-            ['label' => 'Fundi-trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
+            ['label' => 'Trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
+            ['label' => 'Trainer time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
         ],
         'efundi' => [
@@ -116,10 +121,17 @@ class Departments
             ['label' => 'Programme budget', 'icon' => 'sliders', 'route' => ['admin.budget.index'], 'badge' => 'overbudget'],
             ['label' => 'Money register', 'icon' => 'briefcase', 'route' => ['admin.ledger.index']],
             ['label' => 'Invoices', 'icon' => 'mail', 'route' => ['admin.invoices.index'], 'badge' => 'invoices'],
+            ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
+        ],
+        'procurement' => [
             ['label' => 'Purchases', 'icon' => 'link', 'route' => ['admin.procurement.index'], 'badge' => 'requests'],
             ['label' => 'Suppliers', 'icon' => 'building', 'route' => ['admin.suppliers.index']],
             ['label' => 'Inventory', 'icon' => 'grid', 'route' => ['admin.inventory.index'], 'badge' => 'lowstock'],
-            ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
+        ],
+        'hr' => [
+            ['label' => 'Careers & applicants', 'icon' => 'award', 'route' => ['admin.careers.index'], 'badge' => 'careers'],
+            ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
+            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
         ],
         'me_gis' => [
             ['label' => 'Impact dashboard', 'icon' => 'grid', 'route' => ['admin.impacts.index']],
@@ -136,11 +148,9 @@ class Departments
         'admin.content.' => 'membership',
         'admin.partners.' => 'membership',
         'admin.messages.' => 'membership',
-        'admin.careers.' => 'membership',
         'admin.projects.' => 'membership',
         'admin.hirers.' => 'membership',
         'admin.donations.' => 'membership',
-        'admin.staff.' => 'membership',
         'admin.promoters.' => 'promoters',
         'admin.communities.' => 'communities',
         'admin.needs.' => 'communities',
@@ -151,6 +161,8 @@ class Departments
         'admin.trainings.' => 'training',
         'admin.venues.' => 'training',
         'admin.trainers.' => 'training',
+        'admin.timelogs.' => 'training',
+        'admin.registers.' => 'training',
         'admin.certification.' => 'training',
         'admin.fundis.' => 'efundi',
         'admin.marketplace.' => 'marketplace',
@@ -161,16 +173,22 @@ class Departments
         'admin.budget.' => 'finance',
         'admin.ledger.' => 'finance',
         'admin.invoices.' => 'finance',
-        'admin.procurement.' => 'finance',
-        'admin.suppliers.' => 'finance',
-        'admin.inventory.' => 'finance',
         'admin.payouts.' => 'finance',
+        'admin.procurement.' => 'procurement',
+        'admin.suppliers.' => 'procurement',
+        'admin.inventory.' => 'procurement',
         'admin.impacts.' => 'me_gis',
         'admin.gis.' => 'me_gis',
         'admin.reports.' => 'me_gis',
         'admin.activity.' => 'me_gis',
         'admin.programme.' => 'me_gis',
         'admin.settings.' => 'me_gis',
+        // Careers is how the office finds a person, and the accounts office is where the login is made — both are
+        // people's records, so they are Human Resources' screens, not Module 1's.
+        'admin.careers.' => 'hr',
+        'admin.staff.' => 'hr',
+        'admin.leave.' => 'hr',
+        // admin.myleave.* deliberately has no owner: a worker's own balance goes with them to every desk they hold.
     ];
 
     /** Tiles on a department overview page, with the note shown under each. */
@@ -194,7 +212,14 @@ class Departments
         'admin.track.index' => 'How each CTP is getting on — marks, assessments, modules and uploads up to 100%',
         'admin.trainings.index' => 'The trainings the programme runs, and the modules expected under each',
         'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
-        'admin.trainers.index' => 'Senior fundis who applied to train CTPs, and what they are paid',
+        'admin.trainers.index' => 'Who takes each training — an E-Fundi, a staff account or an applicant — and what they are paid',
+        'admin.timelogs.index' => 'The week each trainer signs — the days worked, what was done, and the office\'s approval',
+        'admin.timelogs.week' => 'The signed week as the paper reads: day, clock times, work, initials, hours and units',
+        'admin.host.timelogs.index' => 'The same signed weeks, read here — who is on a site and what they logged',
+        'admin.host.timelogs.week' => 'The same week sheet, read here as proof of the work before pay',
+        'admin.leave.index' => 'Every application on the register — approve it or send it back with what to fix',
+        'admin.host.leave.index' => 'The leave the people of this desk hold, read here',
+        'admin.myleave.index' => 'Your balances, the days left, and an application to Human Resources',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
         'admin.marketplace.index' => 'Run the search, put the project to the top of the shortlist, and award it to a fundi who took it (§9.4)',
@@ -214,7 +239,7 @@ class Departments
         'admin.reports.index' => 'The report each role works from, printed or exported as a file (§15.5, §15.6)',
         'admin.activity.index' => 'Who changed what, when — written by the records themselves, never typed in (§15.6)',
         'admin.host.activity.index' => 'The same trail, read here: every sign-in, code, decision and record change in the programme',
-        'admin.programme.index' => 'The membership fees and contact details the code reads; an executive changes them (§15.6)',
+        'admin.programme.index' => 'The Paybill, contact details and payment amounts the code reads; an executive changes them (§15.6)',
     ];
 
     /**
@@ -239,6 +264,15 @@ class Departments
         // the M&E screen, never a link out of the department.
         'admin.host.activity.index' => ['admin.activity.index', ['membership']],
         'admin.host.activity.export' => ['admin.activity.export', ['membership']],
+        // The Training desk signs a trainer's week; every other office reads the very same sheet — HR as proof of the
+        // work before pay, the rest to know who of the people they work with is on a site.
+        'admin.host.timelogs.index' => ['admin.timelogs.index', ['membership', 'promoters', 'communities', 'efundi',
+            'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement', 'hr']],
+        'admin.host.timelogs.week' => ['admin.timelogs.week', ['membership', 'promoters', 'communities', 'efundi',
+            'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement', 'hr']],
+        // Human Resources answers a leave application; each desk sees the ones its own people hold, read here.
+        'admin.host.leave.index' => ['admin.leave.index', ['membership', 'promoters', 'communities', 'training', 'efundi',
+            'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
     ];
 
     public static function all(): array
@@ -285,29 +319,27 @@ class Departments
         return $slug !== null && in_array($slug, static::visibleSlugs($user), true);
     }
 
+    /**
+     * The screens of a department. Two people's registers are copied into every desk — the weeks the trainers sign
+     * and the leave their own people hold — so reading either never moves someone out of the department they work
+     * in, and every worker can book their own leave from whichever desk they are standing at.
+     */
     public static function nav(string $slug): array
     {
-        return self::NAV[$slug] ?? [];
-    }
+        $items = self::NAV[$slug] ?? [];
 
-    /**
-     * Screens only a super admin may truly use, wherever they sit. The accounts office lives in Module 1, so it
-     * would otherwise appear in a System Administrator's list and answer 403 — inviting staff and changing roles
-     * stays with the one account that holds every module.
-     */
-    private const SUPER_ONLY = ['admin.staff.index'];
-
-    /** The screens of a department this staff account can actually open. */
-    public static function mine(?User $user, array $items): array
-    {
-        if ($user && $user->isSuperAdmin()) {
-            return $items;
+        if ($slug !== 'training') {
+            $items[] = ['label' => 'Trainer time logs', 'icon' => 'clock',
+                'route' => ['admin.host.timelogs.index', $slug], 'badge' => 'timelogs'];
         }
 
-        return array_values(array_filter(
-            $items,
-            fn (array $item) => ! in_array($item['route'][0], self::SUPER_ONLY, true)
-        ));
+        if ($slug !== 'hr') {
+            $items[] = ['label' => 'Leave', 'icon' => 'check', 'route' => ['admin.host.leave.index', $slug]];
+        }
+
+        $items[] = ['label' => 'My leave', 'icon' => 'mail', 'route' => ['admin.myleave.index']];
+
+        return $items;
     }
 
     /** The line shown under a screen on an overview page. */
@@ -415,6 +447,8 @@ class Departments
             'careers' => JobApplication::where('status', 'received')->count(),
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),
+            'timelogs' => TimeLog::where('status', 'submitted')->distinct()->count(['trainer_id', 'week_start']),
+            'leave' => LeaveRequest::where('status', 'pending')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),
             'invites' => ProjectMatch::where('status', 'invited')->count(),

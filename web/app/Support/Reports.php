@@ -101,7 +101,7 @@ class Reports
                     FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count()],
                 ['Hirers', HirerRegistration::count(), HirerRegistration::where('status', 'active')->count(),
                     HirerRegistration::where('status', 'pending_review')->count()],
-                ['Fundi-trainers', Trainer::count(), Trainer::where('status', 'approved')->count(),
+                ['Trainers', Trainer::count(), Trainer::where('status', 'approved')->count(),
                     Trainer::where('status', 'applied')->count()],
                 ['Communities', Community::count(), Community::where('status', 'active')->count(),
                     Community::where('status', 'pending_review')->count()],
@@ -269,10 +269,11 @@ class Reports
                 ['Declined', Certification::where('status', 'declined')->count()],
                 ['Revoked', Certification::where('status', 'revoked')->count()],
             ]),
-            static::section('Trainers', ['Fundi', 'County', 'Status'],
-                Trainer::with('fundi:id,full_name')->when($county, fn ($q) => $q->where('county', $county))
+            static::section('Trainers', ['Trainer', 'County', 'Status'],
+                Trainer::with(['fundi:id,full_name', 'staff:id,name', 'applicant:id,name'])
+                    ->when($county, fn ($q) => $q->where('county', $county))
                     ->orderByDesc('status')->limit(40)->get()
-                    ->map(fn (Trainer $t) => [$t->fundi->full_name ?? '—', $t->county ?: '—', $t->status])->all()),
+                    ->map(fn (Trainer $t) => [$t->personName() ?: '—', $t->county ?: '—', $t->status])->all()),
         ];
     }
 

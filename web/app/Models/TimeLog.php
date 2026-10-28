@@ -1,0 +1,156 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+
+/**
+ * One day on a trainer's week sheet. The sheet the office signs by hand — day, time in, time out, what was done,
+ * initials, department, approval, hours, units — is one row here per day, so the printed page and the record are
+ * the same document. A week is signed, approved or returned as a whole over its day rows.
+ */
+class TimeLog extends Model
+{
+    public const STATUSES = [
+        'draft' => 'Being filled',
+        'submitted' => 'Signed — waiting on the office',
+        'approved' => 'Approved',
+        'returned' => 'Returned for a correction',
+    ];
+
+    /** The five working days the sheet is ruled for; anything logged outside them still prints. */
+    public const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+
+    protected $table = 'trainer_time_logs';
+
+    protected $fillable = [
+        'trainer_id', 'week_start', 'log_date', 'time_in', 'time_out', 'task', 'initials', 'department',
+        'training_id', 'cohort_id', 'units', 'hours', 'status', 'approval_note',
+        'signed_by_user', 'approved_by_user', 'approved_at',
+    ];
+
+    protected $casts = [
+        'week_start' => 'date',
+        'log_date' => 'date',
+        'units' => 'integer',
+        'hours' => 'float',
+        'approved_at' => 'datetime',
+    ];
+
+    /** A day line, corrected in place — the sheet is never two rows for one day. */
+    public static function dataFrom(Request $request): array
+    {
+        $data = $request->validate([
+            'log_date' => 'required|date|before_or_equal:today',
+            'time_in' => 'nullable|date_format:H:i',
+            'time_out' => 'nullable|date_format:H:i|after:time_in',
+            'task' => 'required|string|max:500',
+            'initials' => 'required|string|max:10',
+            'department' => 'nullable|string|max:90',
+            'training_id' => 'nullable|integer|exists:trainings,id',
+            'cohort_id' => 'nullable|integer|exists:cohorts,id',
+            'units' => 'nullable|integer|min:0|max:99',
+        ], [
+            'time_out.after' => 'Time out must be after time in.',
+            'log_date.before_or_equal' => 'A week sheet records days already worked — not a day in the future.',
+        ], [
+            'log_date' => 'Date', 'time_in' => 'Time in', 'time_out' => 'Time out', 'task' => 'Tasks accomplished',
+            'initials' => 'Initials', 'department' => 'Department', 'units' => 'Units',
+        ]);
+
+        $data['task'] = trim($data['task']);
+        $data['initials'] = Str::upper(trim($data['initials']));
+        $data['units'] = (int) ($data['units'] ?? 0);
+        $data['hours'] = static::hoursBetween($data['time_in'] ?? null, $data['time_out'] ?? null);
+        $data['week_start'] = static::weekStartOf($data['log_date'])->toDateString();
+
+        return $data;
+    }
+
+    /** Hours worked, counted from the clock times the trainer wrote — 8 hours max a day. */
+    public static function hoursBetween(?string $in, ?string $out): ?float
+    {
+        if (! $in || ! $out) {
+            return null;
+        }
+
+        [$ih, $im] = array_map('intval', explode(':', $in));
+        [$oh, $om] = array_map('intval', explode(':', $out));
+        $minutes = ($oh * 60 + $om) - ($ih * 60 + $im);
+
+        return $minutes > 0 ? round(min($minutes, 480) / 60, 2) : null;
+    }
+
+    public static function weekStartOf(string|Carbon $date): Carbon
+    {
+        return Carbon::parse($date)->startOfWeek(Carbon::MONDAY);
+    }
+
+    public static function weekLabel(string|Carbon $start): string
+    {
+        $start = Carbon::parse($start);
+
+        return $start->format('d M').'–'.$start->copy()->addDays(4)->format('d M Y');
+    }
+
+    /** Every row of one trainer's week, keyed by date — the office and the trainer read the same sheet. */
+    public static function forWeek(int $trainerId, string|Carbon $weekStart): Collection
+    {
+        return static::with(['training:id,name', 'cohort:id,reference', 'approvedBy:id,name', 'signedBy:id,name'])
+            ->where('trainer_id', $trainerId)
+            ->where('week_start', Carbon::parse($weekStart)->toDateString())
+            ->orderBy('log_date')
+            ->get();
+    }
+
+    public function trainer(): BelongsTo
+    {
+        return $this->belongsTo(Trainer::class);
+    }
+
+    public function training(): BelongsTo
+    {
+        return $this->belongsTo(Training::class);
+    }
+
+    public function cohort(): BelongsTo
+    {
+        return $this->belongsTo(Cohort::class);
+    }
+
+    public function signedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'signed_by_user');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_user');
+    }
+
+    public function dayLabel(): string
+    {
+        return strtoupper($this->log_date->format('D'));
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status] ?? Str::headline($this->status);
+    }
+
+    /** The clock times as the trainer wrote them; a blank day prints as a dash. */
+    public function clockIn(): string
+    {
+        return $this->time_in ? substr($this->time_in, 0, 5) : '-';
+    }
+
+    public function clockOut(): string
+    {
+        return $this->time_out ? substr($this->time_out, 0, 5) : '-';
+    }
+}

@@ -5,35 +5,34 @@
     $accountLabels = ['admin' => 'Admin', 'superadmin' => 'Super admin'];
     $deptLabels = collect($liveDepartments)->mapWithKeys(fn ($d) => [$d['slug'] => $d['name']]);
     $heldRoles = fn ($slugs) => \App\Support\Roles::namesFor(is_array($slugs) ? $slugs : []);
+    $manageRow = fn ($u) => $canManage && $u->id !== auth()->id() && $u->role !== 'superadmin';
 @endphp
 
 @section('content')
 <h1>Staff &amp; roles</h1>
 <p class="sub" style="color:var(--muted);margin:6px 0 20px;">
-    @if ($isSuper)
-        Invite colleagues, hand them one or more roles, and deactivate staff who leave. A person sees only the
-        modules their roles open — nothing else on this list.
+    @if ($canManage)
+        Invite colleagues, hand them one or more roles, and deactivate staff who leave. Every account made here is
+        an <b>Admin</b> that opens only the modules its roles grant — the one super admin account is already made and
+        is not changed from this screen.
     @else
-        You are signed in as an <b>Admin</b> — only a super admin can invite staff or change roles.
+        You are signed in without the Human Resources desk, so this list is read-only for you.
     @endif
 </p>
 
 <div class="card" style="margin-bottom:24px;">
     <h3>Invite a staff member</h3>
-    @unless ($isSuper)
-        <p class="hint">Ask a super admin to send invitations.</p>
+    @unless ($canManage)
+        <p class="hint">Ask someone at the Human Resources desk to send invitations.</p>
     @else
         <form method="POST" action="{{ route('admin.staff.invite') }}" class="invite-form">
             @csrf
             <div class="inline-form field-grid">
                 <span class="fld"><label>Full name <span class="req">*</span></label><input type="text" name="name" maxlength="120" value="{{ old('name') }}" required></span>
                 <span class="fld"><label>Email <span class="req">*</span></label><input type="email" name="email" maxlength="160" value="{{ old('email') }}" required></span>
-                <span class="fld"><label>Account type</label>
-                    <select name="role">
-                        @foreach (\App\Models\StaffInvite::ROLES as $k => $lbl)
-                            <option value="{{ $k }}" @selected(old('role') === $k)>{{ $lbl }}</option>
-                        @endforeach
-                    </select>
+                <span class="fld"><label>Account</label>
+                    <input type="text" value="Admin" readonly
+                        title="Accounts made here are always Admin. Only the super admin account already held opens every module.">
                 </span>
             </div>
 
@@ -76,7 +75,7 @@
 <h2 class="sec-title">Staff accounts</h2>
 <table class="data">
     <thead>
-        <tr><th>Name</th><th>Email</th><th>Account</th><th>Roles</th><th>Modules opened</th><th>Status</th><th>Joined</th>@if ($isSuper)<th></th>@endif</tr>
+        <tr><th>Name</th><th>Email</th><th>Account</th><th>Roles</th><th>Modules opened</th><th>Status</th><th>Joined</th>@if ($canManage)<th></th>@endif</tr>
     </thead>
     <tbody>
         @foreach ($users as $u)
@@ -103,18 +102,13 @@
                 </td>
                 <td><span class="status {{ $u->active ? 'active' : 'rejected' }}">{{ $u->active ? 'Active' : 'Deactivated' }}</span></td>
                 <td>{{ $u->created_at->format('d M Y') }}</td>
-                @if ($isSuper)
+                @if ($canManage)
                     <td class="actions">
-                        @if ($u->id === auth()->id())
-                            <span class="hint">your account</span>
+                        @unless ($manageRow($u))
+                            <span class="hint">{{ $u->id === auth()->id() ? 'your account' : 'not edited here' }}</span>
                         @else
                             <form method="POST" action="{{ route('admin.staff.users.update', $u->id) }}" class="inline-form mini-edit">
                                 @csrf
-                                <select name="role" aria-label="Account type">
-                                    @foreach ($accountLabels as $k => $lbl)
-                                        <option value="{{ $k }}" @selected($u->role === $k)>{{ $lbl }}</option>
-                                    @endforeach
-                                </select>
                                 <label class="chk"><input type="checkbox" name="active" value="1" @checked($u->active)> Active</label>
                                 <details class="dept-pick">
                                     <summary>Roles &amp; departments</summary>
@@ -126,7 +120,7 @@
                                         <hr>
                                         @foreach ($liveDepartments as $d)
                                             <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
-                                                @checked($u->role !== 'superadmin' && in_array($d['slug'], $u->departmentSlugs(), true))>
+                                                @checked(in_array($d['slug'], $u->departmentSlugs(), true))>
                                                 {{ $d['tag'] }}</label>
                                         @endforeach
                                         <div class="hint">A role opens all of its modules. To drop one module a role
@@ -135,7 +129,7 @@
                                 </details>
                                 <button class="btn btn-sm btn-outline" type="submit">Save</button>
                             </form>
-                        @endif
+                        @endunless
                     </td>
                 @endif
             </tr>
@@ -154,7 +148,7 @@
             <div class="hint">Sent {{ $inv->created_at->format('d M Y') }}@if ($inv->expires_at) · expires {{ $inv->expires_at->format('d M Y') }}@endif</div>
         </div>
         <div class="invite-actions">
-            @if ($inv->status === 'pending' && $isSuper)
+            @if ($inv->status === 'pending' && $canManage)
                 <a class="btn btn-sm btn-lime" href="{{ route('invite.show', $inv->token) }}" target="_blank">Open activation link</a>
                 <button class="btn btn-sm btn-outline" type="button"
                         onclick="copyInvite('{{ route('invite.show', $inv->token) }}', this)">Copy link</button>

@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\LedgerController;
+use App\Http\Controllers\Admin\LeaveController;
 use App\Http\Controllers\Admin\MarketplaceController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\MeGisController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\TeachingController;
 use App\Http\Controllers\Admin\TechnologyController;
+use App\Http\Controllers\Admin\TimeLogController;
 use App\Http\Controllers\Admin\TrackController;
 use App\Http\Controllers\Admin\TrainerController;
 use App\Http\Controllers\Admin\TrainingController;
@@ -45,6 +47,7 @@ use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortalLeaveController;
 use App\Http\Controllers\PublicProjectController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkOrderPortalController;
@@ -181,6 +184,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/staff/invites/{invite}/revoke', [StaffController::class, 'revoke'])->name('staff.invite.revoke');
     Route::post('/staff/users/{user}', [StaffController::class, 'updateRole'])->name('staff.users.update');
 
+    // Leave. Human Resources keeps the register and answers every application; the seven balances and the booking
+    // form sit on each worker's own page, which is also what an E-Fundi opens in the portal. A CTP is never offered it.
+    Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
+    Route::post('/leave/{leave}/decide', [LeaveController::class, 'decide'])->whereNumber('leave')->name('leave.decide');
+    Route::get('/my-leave', [LeaveController::class, 'my'])->name('myleave.index');
+    Route::post('/my-leave/apply', [LeaveController::class, 'apply'])->name('myleave.apply');
+    Route::post('/my-leave/{leave}/cancel', [LeaveController::class, 'cancel'])->whereNumber('leave')->name('myleave.cancel');
+
     // Module 2 — CTP Promoter Management. Everything a CTP needs is decided here, not in Module 1.
     Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');
     Route::get('/promoters/create', [CtpProfileController::class, 'create'])->name('promoters.create');
@@ -247,6 +258,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::patch('/trainers/{trainer}', [TrainerController::class, 'update'])->whereNumber('trainer')->name('trainers.update');
     Route::post('/trainers/{trainer}/decision', [TrainerController::class, 'decide'])->whereNumber('trainer')->name('trainers.decide');
 
+    // The trainer's week sheet. This desk signs the week off; Human Resources is given a read-only copy of the same paper.
+    Route::get('/timelogs', [TimeLogController::class, 'index'])->name('timelogs.index');
+    Route::get('/timelogs/{trainer}/week/{week}', [TimeLogController::class, 'week'])->whereNumber('trainer')
+        ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
+    Route::post('/timelogs/{trainer}/week/{week}/decide', [TimeLogController::class, 'decide'])->whereNumber('trainer')
+        ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.decide');
+
     Route::get('/cohorts', [CohortController::class, 'index'])->name('cohorts.index');
     Route::get('/cohorts/results', [CohortController::class, 'results'])->name('cohorts.results');
     Route::get('/cohorts/create', [CohortController::class, 'create'])->name('cohorts.create');
@@ -275,6 +293,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // A staff account that also trains CTPs works its own roll here, from the same sign-in as its department desks.
     Route::get('/teaching', [TeachingController::class, 'index'])->name('teaching.index');
+    // The trainer's own week sheet: one line per day worked, then the whole week signed and sent to the Training desk.
+    Route::get('/teaching/week', [TeachingController::class, 'week'])->name('teaching.week');
+    Route::post('/teaching/week/day', [TeachingController::class, 'saveDay'])->name('teaching.day');
+    Route::post('/teaching/week/sign', [TeachingController::class, 'signWeek'])->name('teaching.sign');
     Route::get('/teaching/{enrollment}', [TeachingController::class, 'trainee'])->whereNumber('enrollment')->name('teaching.trainee');
     Route::post('/teaching/{enrollment}/progress', [TeachingController::class, 'progress'])->whereNumber('enrollment')->name('teaching.progress');
     Route::post('/teaching/{enrollment}/modules/{module}', [TeachingController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('teaching.module.mark');
@@ -463,6 +485,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         Route::get('/finance/payouts/{payout}/in/{department}', [PayoutController::class, 'show'])->whereNumber('payout')->name('payouts.show');
         Route::get('/activity/in/{department}', [ActivityController::class, 'index'])->name('activity.index');
         Route::get('/activity/export/in/{department}', [ActivityController::class, 'csv'])->name('activity.export');
+        // Human Resources reads a trainer's signed week here as proof of the work — the same rows Training signed off.
+        Route::get('/timelogs/in/{department}', [TimeLogController::class, 'index'])->name('timelogs.index');
+        Route::get('/timelogs/{trainer}/week/{week}/in/{department}', [TimeLogController::class, 'week'])
+            ->whereNumber('trainer')->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
+        // Every desk sees who of its own is away, on the same rows Human Resources answers.
+        Route::get('/leave/in/{department}', [LeaveController::class, 'index'])->name('leave.index');
     });
 });
 
@@ -473,6 +501,14 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/training/apply', [PortalController::class, 'applyCohort'])->name('training.apply');
     Route::post('/training/{enrollment}/withdraw', [PortalController::class, 'withdrawSeat'])->whereNumber('enrollment')->name('training.withdraw');
     Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
+    // An E-Fundi trainer fills and signs the same week sheet the Training desk approves.
+    Route::get('/trainer/week', [PortalController::class, 'trainerWeek'])->name('trainer.week');
+    Route::post('/trainer/week/day', [PortalController::class, 'saveTrainerDay'])->name('trainer.week.day');
+    Route::post('/trainer/week/sign', [PortalController::class, 'signTrainerWeek'])->name('trainer.week.sign');
+    // An E-Fundi books leave here and Human Resources answers it — a CTP trainee is never shown this screen.
+    Route::get('/leave', [PortalLeaveController::class, 'index'])->name('leave.index');
+    Route::post('/leave/apply', [PortalLeaveController::class, 'apply'])->name('leave.apply');
+    Route::post('/leave/{leave}/cancel', [PortalLeaveController::class, 'cancel'])->whereNumber('leave')->name('leave.cancel');
     // Module 5 — the E-Fundi's own record. They keep availability, skills and counties; the office keeps the grade.
     Route::get('/efundi', [PortalController::class, 'efundi'])->name('efundi');
     Route::post('/efundi/availability', [PortalController::class, 'saveAvailability'])->name('efundi.availability');

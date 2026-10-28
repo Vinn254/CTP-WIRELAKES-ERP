@@ -13,10 +13,10 @@ class Setting extends Model
      * a setting nothing uses would be worse than no setting, because it looks like it works.
      */
     public const EDITABLE = [
-        'membership_fee_ctp' => ['label' => 'CTP membership fee (KSh)', 'type' => 'money',
-            'read' => 'Charged when a CTP application is submitted, and waived on the 15 and 30 person mobilisation credit.'],
-        'membership_fee_fundi' => ['label' => 'E-Fundi membership fee (KSh)', 'type' => 'money',
-            'read' => 'Charged when an E-Fundi application is submitted.'],
+        'membership_fee_ctp' => ['label' => 'CTP payment recorded by default (KSh)', 'type' => 'money',
+            'read' => 'The amount pre-filled when the office records money received on a CTP application. No application waits on it.'],
+        'membership_fee_fundi' => ['label' => 'E-Fundi payment recorded by default (KSh)', 'type' => 'money',
+            'read' => 'The amount pre-filled when the office records money received on an E-Fundi application. No application waits on it.'],
         'programme_email' => ['label' => 'Programme email', 'type' => 'text',
             'read' => 'Shown on the public pages and quoted on member letters.'],
         'programme_phone' => ['label' => 'Programme phone', 'type' => 'text',

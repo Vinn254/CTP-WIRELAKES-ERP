@@ -175,9 +175,9 @@
 
     <div class="review-side">
         <div class="card">
-            <h3>Fee &amp; membership</h3>
+            <h3>Payment &amp; membership</h3>
             <dl class="kv">
-                <dt>Fee</dt><dd><span class="fee-tag {{ $ctp->fee_status }}">{{ CtpRegistration::FEE_STATUSES[$ctp->fee_status] ?? $ctp->fee_status }}</span></dd>
+                <dt>Payment</dt><dd><span class="fee-tag {{ $ctp->fee_status }}">{{ CtpRegistration::FEE_STATUSES[$ctp->fee_status] ?? $ctp->fee_status }}</span></dd>
                 @if ($ctp->fee_status === 'sponsored')
                     <dt>Covered by</dt><dd>{{ $ctp->sponsor->name ?? 'a partner' }}</dd>
                 @endif
@@ -190,15 +190,14 @@
                 <dt>CTP ID</dt><dd>{{ $ctp->ctp_code ?: 'Issued on approval' }}</dd>
             </dl>
             @if ($ctp->fee_status === 'awaiting_payment' && ! in_array($ctp->status, ['rejected', 'suspended'], true))
-                <p class="hint">{{ \App\Support\Finance::paybillLine() }} Record the payment here when the money reaches
-                    us — this stays inside Module 2.
-                    A CTP a partner is sponsoring pays nothing: set the sponsor below instead.</p>
+                <p class="hint">{{ \App\Support\Finance::paybillLine() }} Nothing waits on a payment — record the money
+                    here only when it reaches us so it lands on the ledger.</p>
                 <form method="POST" action="{{ route('admin.promoters.fee', $ctp) }}" class="fee-form"
-                      data-confirm="Record this fee and move {{ $ctp->full_name }} into the review queue?" data-title="Membership fee">
+                      data-confirm="Record this payment for {{ $ctp->full_name }}?" data-title="Payment">
                     @csrf
                     <div class="form-grid-2">
                         <div class="field">
-                            <label>Fee <span class="req">*</span></label>
+                            <label>Status <span class="req">*</span></label>
                             <select name="fee_status" required>
                                 <option value="paid">Paid</option>
                                 <option value="waived">Waived by the office</option>
@@ -215,15 +214,14 @@
                         </div>
                         <div class="field">
                             <label>Amount (KSh)</label>
-                            <input type="number" step="0.01" min="0" name="fee_amount"
-                                   placeholder="{{ number_format($ctp::feeAmount(), 0) }}">
+                            <input type="number" step="0.01" min="0" name="fee_amount" placeholder="e.g. 1000">
                         </div>
                         <div class="field">
                             <label>M-Pesa / transaction code</label>
                             <input type="text" name="fee_reference" maxlength="60" placeholder="e.g. SLK4H29PQ1">
                         </div>
                     </div>
-                    <button class="btn btn-lime btn-block" type="submit">Record fee &amp; send to review</button>
+                    <button class="btn btn-outline btn-block" type="submit">Record payment</button>
                 </form>
             @endif
         </div>
@@ -233,21 +231,20 @@
             @if ($ctp->fee_status === 'paid')
                 <p class="hint">KSh {{ number_format((float) $ctp->fee_amount) }} was received{{ $ctp->fee_reference ? ' ('.$ctp->fee_reference.')' : '' }}
                     on {{ $ctp->fee_paid_at?->format('d M Y') ?? 'record' }} — money in is never rewritten. A sponsor can still be
-                    recorded on the profile without changing the fee.</p>
+                    recorded on the profile without changing that.</p>
             @endif
             <form method="POST" action="{{ route('admin.promoters.sponsor', $ctp) }}"
-                  data-confirm="Set the sponsoring partner for {{ $ctp->full_name }}?@if (! $ctp->feeSettled()) They will owe no membership fee and their application goes to the review queue.@endif"
-                  data-title="Sponsorship">
+                  data-confirm="Set the sponsoring partner for {{ $ctp->full_name }}?" data-title="Sponsorship">
                 @csrf
                 <div class="field">
-                    <label>Partner covering the membership fee</label>
+                    <label>Sponsoring partner</label>
                     <select name="sponsor_id">
-                        <option value="">No sponsor — they pay the KSh {{ number_format($ctp::feeAmount()) }} fee</option>
+                        <option value="">No sponsor</option>
                         @foreach ($partners as $p)
                             <option value="{{ $p->id }}" @selected($ctp->sponsor_id === $p->id)>{{ $p->name }}</option>
                         @endforeach
                     </select>
-                    <div class="help">Partners are kept in <b>Module 1 → Partners</b>; only the sponsorship link lives here.</div>
+                    <div class="help">Partners are kept in <b>Website &amp; Membership → Partners</b>; only the sponsorship link lives here.</div>
                 </div>
                 <button class="btn btn-outline btn-sm" type="submit">Save sponsorship</button>
             </form>
@@ -255,10 +252,7 @@
 
         <div class="card">
             <h3>Application decision</h3>
-            @if ($ctp->status === 'pending_payment')
-                <p class="hint">Record the fee above and the application moves into the review queue, then you can
-                    approve it here.</p>
-            @elseif ($ctp->status === 'pending_review')
+            @if (in_array($ctp->status, ['pending_review', 'pending_payment'], true))
                 <form method="POST" action="{{ route('admin.promoters.approve', $ctp) }}"
                       data-confirm="Approve {{ $ctp->full_name }}? Their CTP ID is issued for good and an activation link is created."
                       data-title="Approve application">

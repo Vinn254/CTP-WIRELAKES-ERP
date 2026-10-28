@@ -96,14 +96,14 @@
             <div class="help">The promoter who brought this person in. Counts toward their 15 / 30 credit; self-referral is dropped.</div>
         </div>
         <div class="field">
-            <label>Sponsoring partner (if a partner covers the fee)</label>
+            <label>Sponsoring partner (if any)</label>
             <select name="sponsor_id">
-                <option value="">None — they pay the KSh {{ number_format($fee) }} fee</option>
+                <option value="">None</option>
                 @foreach ($partners as $p)
                     <option value="{{ $p->id }}" @selected((int) old('sponsor_id') === $p->id)>{{ $p->name }}</option>
                 @endforeach
             </select>
-            <div class="help">A sponsored CTP has no fee to pay and enters the review queue straight away.</div>
+            <div class="help">A sponsored CTP is recorded with the partner's name and enters the review queue straight away.</div>
         </div>
     </div>
 

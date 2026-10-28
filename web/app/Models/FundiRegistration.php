@@ -35,7 +35,7 @@ class FundiRegistration extends Model
         'Programming', 'AI', 'E-Waste', 'Solar', 'Welding', 'Carpentry',
     ];
 
-    /** An E-Fundi pays the one-time membership fee before their application is reviewed. */
+    /** No application waits on a payment — pending_payment is only a legacy row the office still settles. */
     public const STATUSES = [
         'pending_payment' => 'Pending payment',
         'pending_review' => 'Pending review',
@@ -116,7 +116,7 @@ class FundiRegistration extends Model
         'fee_paid_at' => 'datetime',
     ];
 
-    /** The one-time fee an E-Fundi pays to join, from the membership settings. */
+    /** The amount pre-filled when the office records money received on an E-Fundi application. */
     public static function feeAmount(): float
     {
         return (float) Setting::get('membership_fee_fundi', '1000');
@@ -271,7 +271,7 @@ class FundiRegistration extends Model
 
         return [
             'reference' => 'EF-APP-'.strtoupper(bin2hex(random_bytes(3))),
-            'status' => 'pending_payment',
+            'status' => 'pending_review',
             'fee_status' => 'awaiting_payment',
             'availability' => 'available',
             'mobilised_by_ctp' => CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id,

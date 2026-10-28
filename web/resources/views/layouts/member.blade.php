@@ -30,6 +30,7 @@
         $nav[] = ['label' => 'Invited to you', 'icon' => 'mail', 'route' => 'portal.invitations', 'active' => ['portal.invitations'], 'count' => ($inviteCount ?? 0)];
         if (isset($member) && $member->canTrain()) {
             $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
+            $nav[] = ['label' => 'My week sheet', 'icon' => 'clock', 'route' => 'portal.trainer.week', 'active' => ['portal.trainer.week']];
         }
     }
     // What the office has billed this member. A member who has never been invoiced is never shown a balance screen.
@@ -47,6 +48,8 @@
         // §14.4 step 1 — only an E-Fundi works on a site and supplies, so a CTP is never offered this screen.
         $nav[] = ['label' => 'Purchase request', 'icon' => 'link', 'route' => 'portal.procurement', 'active' => ['portal.procurement']];
         $nav[] = ['label' => 'My earnings', 'icon' => 'briefcase', 'route' => 'portal.earnings', 'active' => ['portal.earnings']];
+        // Leave is for the people who work in the programme — an E-Fundi holds a post, a CTP trainee does not.
+        $nav[] = ['label' => 'My leave', 'icon' => 'clock', 'route' => 'portal.leave.index', 'active' => ['portal.leave.*']];
     }
     $nav[] = ['label' => 'My projects', 'icon' => 'briefcase', 'route' => 'portal.projects', 'active' => ['portal.projects', 'portal.project'], 'count' => ($projects ?? collect())->count()];
     $nav[] = ['label' => 'My applications', 'icon' => 'mail', 'route' => 'portal.applications', 'active' => ['portal.applications'], 'count' => ($applications ?? collect())->count()];

@@ -79,7 +79,7 @@
                     </div>
                 </td>
                 <td>{{ $t->trainers_count }}
-                    <div class="hint"><a href="{{ route('admin.trainers.index') }}">Fundi-trainers</a></div>
+                    <div class="hint"><a href="{{ route('admin.trainers.index') }}">Trainers</a></div>
                 </td>
                 <td><span class="status {{ $t->status === 'active' ? 'active' : 'closed' }}">{{ $t->statusLabel() }}</span></td>
                 <td class="actions">

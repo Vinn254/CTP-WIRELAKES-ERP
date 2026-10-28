@@ -86,7 +86,7 @@ class MemberPortal
     {
         return Cohort::openForEnrol()
             ->with(['training:id,name,code,summary', 'venue:id,name,type,county,sub_county,ward',
-                'trainer.fundi:id,full_name', 'community:id,name', 'enrollments'])
+                'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
             ->orderBy('starts_on')->orderBy('id')->get();
     }
 
@@ -108,7 +108,7 @@ class MemberPortal
             'elsewhere' => $open->reject(fn (Cohort $c) => static::isInCtpArea($c, $ctp))->values(),
             'appliedTo' => $ctp->enrollments()->whereIn('state', ['pending', 'approved'])->pluck('cohort_id'),
             'mine' => $ctp->activeEnrollments()
-                ->with(['entries', 'certification', 'moduleMarks', 'documents', 'cohort.training.modules', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.community'])
+                ->with(['entries', 'certification', 'moduleMarks', 'documents', 'cohort.training.modules', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.trainer.staff', 'cohort.trainer.applicant', 'cohort.community'])
                 ->get(),
             'history' => $ctp->enrollments()
                 ->with(['cohort:id,reference,training_id,venue_id,trainer_id,academic_year,term,starts_on,ends_on',

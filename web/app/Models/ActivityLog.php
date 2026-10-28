@@ -49,7 +49,7 @@ class ActivityLog extends Model
         Need::class => 'Community need',
         Cohort::class => 'Cohort',
         Enrollment::class => 'Seat on a cohort',
-        Trainer::class => 'Fundi-trainer',
+        Trainer::class => 'Trainer',
         Certification::class => 'Certificate',
         EWasteCollection::class => 'E-waste collection',
         Payout::class => 'Payout',

@@ -17,7 +17,7 @@ class FinanceEntry extends Model
     public const DIRECTIONS = ['income' => 'Money in', 'expense' => 'Money out'];
 
     public const INCOME_KINDS = [
-        'membership_fee' => 'Membership fee',
+        'membership_fee' => 'Membership payment',
         'training_fee' => 'Course fee paid by a trainee',
         'project_payment' => 'Payment from a hirer',
         'invoice_settlement' => 'Payment against an invoice',
@@ -33,7 +33,7 @@ class FinanceEntry extends Model
     public const EXPENSE_KINDS = [
         'procurement' => 'Goods bought on a purchase order',
         'fundi_payout' => 'E-Fundi payout — project work',
-        'trainer_payout' => 'Fundi-trainer payout — training delivery',
+        'trainer_payout' => 'Trainer payout — training delivery',
         'materials_issued' => 'Materials issued from inventory',
         'transport' => 'Transport',
         'accommodation' => 'Accommodation',

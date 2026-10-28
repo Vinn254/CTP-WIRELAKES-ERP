@@ -25,7 +25,7 @@
                         <td><b>{{ $r->termLabel() ?: '—' }}</b></td>
                         <td>{{ $r->reference }}</td>
                         <td>{{ $r->dateLabel() }}</td>
-                        <td>{{ $r->trainer?->fundi?->full_name ?: '—' }}</td>
+                        <td>{{ $r->trainer?->personName() ?: '—' }}</td>
                         <td>{{ $r->venue?->name ?: $r->placeLabel() }}</td>
                         <td>{{ $seated->count() }} / {{ $r->seats }}</td>
                         <td>{{ $seated->where('stage', 'completed')->count() }}</td>

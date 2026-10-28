@@ -14,7 +14,7 @@
 <div class="stat-row">
     <div class="stat"><small>On the register</small><b>{{ $counts->sum() }}</b></div>
     <div class="stat"><small>Available for work</small><b>{{ $availableNow }}</b></div>
-    <div class="stat"><small>Awaiting fee</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
+    <div class="stat"><small>Waiting on a payment</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
     <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
     <div class="stat"><small>Blocked</small><b>{{ ($counts['suspended'] ?? 0) + ($counts['blacklisted'] ?? 0) }}</b></div>
 </div>
@@ -22,7 +22,7 @@
 <p style="margin:0 0 14px;">
     <a class="btn btn-lime btn-sm" href="{{ route('admin.fundis.create') }}">+ Add an E-Fundi from the office</a>
     <span class="hint" style="margin-left:10px;">
-        For someone who cannot reach the website — the same application, the same fee and review steps.
+        For someone who cannot reach the website — the same application and review steps.
         A person already on the register is reopened on their own record, never added a second time.
     </span>
 </p>
@@ -88,7 +88,7 @@
         <tr>
             <th>E-Fundi ID</th><th>Fundi</th><th>Grade</th><th>Skills</th><th>Works in</th>
             <th>Availability</th><th title="Sites this fundi is registered to train CTPs at (Module 4)">Training sites</th>
-            <th>Fee</th><th>Status</th><th></th>
+            <th>Payment</th><th>Status</th><th></th>
         </tr>
     </thead>
     <tbody>
@@ -185,6 +185,6 @@
 <p class="hint" style="margin-top:14px;">
     Availability is what the fundi says themselves on their own portal; the office can correct it here when someone
     stops answering or finishes a job without telling us. Grade changes what they can be handed to train — see
-    <b>Training &amp; Certification &rsaquo; Fundi-trainers</b> for the site approvals themselves.
+    <b>Training &amp; Certification &rsaquo; Trainers</b> for the site approvals themselves.
 </p>
 @endsection

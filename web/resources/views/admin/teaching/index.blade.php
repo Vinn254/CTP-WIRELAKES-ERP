@@ -2,8 +2,6 @@
 @section('title', 'My teaching')
 
 @php
-    $sites = $trainers->count();
-    $seats = $cohorts->sum(fn ($c) => $c->enrollments->count());
     $held = $cohorts->sum(fn ($c) => $c->enrollments->where('state', 'approved')->count());
 @endphp
 
@@ -11,13 +9,17 @@
 <div class="head-row">
     <div>
         <h1>My teaching</h1>
+        @php $first = $trainers->first(); @endphp
         <p class="ah-meta">
-            <span><b>{{ $fundi->full_name }}</b></span>
-            <span>{{ \App\Models\FundiRegistration::tierLabel($fundi->tier) }}</span>
-            <span>{{ $fundi->ef_code ?: 'no E-Fundi ID yet' }}</span>
-            <span>{{ $sites }} {{ Str::plural('approved site', $sites) }}</span>
+            <span><b>{{ $first?->personName() ?? auth()->user()->name }}</b></span>
+            <span>{{ $first?->holderLabel() }}</span>
+            <span>{{ $first?->holderCode() ?: 'no ID yet' }}</span>
+            <span>{{ $trainers->count() }} {{ Str::plural('approved site', $trainers->count()) }}</span>
             <span>{{ $cohorts->count() }} {{ Str::plural('cohort', $cohorts->count()) }}</span>
         </p>
+    </div>
+    <div>
+        <a class="btn btn-sm btn-outline" href="{{ route('admin.teaching.week') }}">My week sheet</a>
     </div>
 </div>
 
@@ -26,7 +28,7 @@
         <h3>No approved site yet</h3>
         <p class="help">The programme office approves a trainer site by site. Until a site is approved under your name,
             no cohort is handed over and nothing can be recorded. The office can approve you at
-            <b>Fundi-trainers</b> inside Training.</p>
+            <b>Trainers</b> inside Training.</p>
     </div>
 @endif
 

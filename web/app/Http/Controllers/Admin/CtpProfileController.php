@@ -111,9 +111,9 @@ class CtpProfileController extends Controller
 
         return redirect()->route('admin.promoters.show', $ctp)->with('status', match (true) {
             $ctp->fee_status === 'sponsored' => $ctp->full_name.' added from the office — sponsored by '
-                .$ctp->sponsor->name.', so there is no fee. The application is in the review queue.',
+                .$ctp->sponsor->name.'. The application is in the review queue.',
             default => $ctp->full_name.' added from the office as '.$ctp->reference
-                .'. Record the KSh '.number_format($ctp::feeAmount()).' fee here, then review and approve.',
+                .'. Review and approve here.',
         });
     }
 
@@ -135,8 +135,8 @@ class CtpProfileController extends Controller
                 : ['sponsor_id' => $sponsor->id]);
 
             return back()->with('status', $settlesFee
-                ? $ctp->full_name.' is sponsored by '.$sponsor->name.' — no membership fee, and the application is in the review queue.'
-                : $sponsor->name.' recorded as the sponsoring partner of '.$ctp->full_name.'; their settled fee stays as it is.');
+                ? $ctp->full_name.' is sponsored by '.$sponsor->name.' — the application is in the review queue.'
+                : $sponsor->name.' recorded as the sponsoring partner of '.$ctp->full_name.'; their settled payment stays as it is.');
         }
 
         $takesBackFee = $openApplication && $ctp->fee_status === 'sponsored';
@@ -145,11 +145,12 @@ class CtpProfileController extends Controller
             'fee_status' => $takesBackFee ? 'awaiting_payment' : $ctp->fee_status,
             'fee_amount' => $takesBackFee ? null : $ctp->fee_amount,
             'fee_paid_at' => $takesBackFee ? null : $ctp->fee_paid_at,
-            'status' => $takesBackFee ? 'pending_payment' : $ctp->status,
+            // Removing a sponsor never sends an application back behind a payment — it stays reviewable.
+            'status' => $ctp->status,
         ]);
 
         return back()->with('status', $takesBackFee
-            ? 'Sponsorship removed — '.$ctp->full_name.' owes the KSh '.number_format($ctp::feeAmount()).' fee again before review.'
+            ? 'Sponsorship removed — '.$ctp->full_name.'\'s payment is outstanding again. The application stays in the review queue.'
             : 'Sponsor removed from '.$ctp->full_name.'.');
     }
 
@@ -163,7 +164,6 @@ class CtpProfileController extends Controller
         return [
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
-            'fee' => CtpRegistration::feeAmount(),
             'tracks' => $tracks ?: collect(CtpRegistration::TRACKS)->map(fn ($l) => ['label' => $l, 'desc' => ''])->all(),
         ];
     }

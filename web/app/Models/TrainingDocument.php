@@ -88,6 +88,12 @@ class TrainingDocument extends Model
             return 'Uploaded by trainer '.$this->trainerFundi->full_name;
         }
 
-        return $this->staffUser ? 'Uploaded by '.$this->staffUser->name.' (office)' : 'Uploaded to the record';
+        if (! $this->staffUser) {
+            return 'Uploaded to the record';
+        }
+
+        return Trainer::trainsFrom($this->uploaded_by_user)
+            ? 'Uploaded by trainer '.$this->staffUser->name
+            : 'Uploaded by '.$this->staffUser->name.' (office)';
     }
 }

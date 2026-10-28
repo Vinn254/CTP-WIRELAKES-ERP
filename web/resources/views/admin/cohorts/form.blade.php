@@ -59,16 +59,16 @@
             </select>
         </div>
         <div class="field">
-            <label>Trainer (an approved fundi)</label>
+            <label>Trainer (an approved posting)</label>
             <select name="trainer_id">
                 <option value="">No trainer assigned</option>
                 @foreach ($trainers as $t)
                     <option value="{{ $t->id }}" @selected(old('trainer_id', $cohort->trainer_id) == $t->id)>
-                        {{ $t->fundi->full_name }} — {{ $t->teachingLabel() ?: 'no trainings set' }}
+                        {{ $t->personName() }} — {{ $t->teachingLabel() ?: 'no trainings set' }}
                     </option>
                 @endforeach
             </select>
-            <div class="help">Only a fundi registered for the training you picked can be handed this cohort.</div>
+            <div class="help">Only a trainer registered for the training you picked can be handed this cohort.</div>
         </div>
         <div class="field">
             <label>Community it serves</label>

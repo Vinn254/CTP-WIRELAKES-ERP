@@ -6,46 +6,81 @@ use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\FundiRegistration;
 use App\Models\ModuleCompletion;
+use App\Models\TimeLog;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\Trainer;
+use App\Support\TimeSheet;
 use App\Support\TrainingTrack;
 use App\Support\Workspace;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * A trainer's own desk inside the office.
  *
- * A person can hold a job title and still teach a cohort, and both are worked from the one signed-in account.
- * The member portal's trainer surface is closed to a staff login, so the same record is opened here: the E-Fundi
- * is found from the account's own email, never from an id in the url, and every action still runs through
- * TrainingTrack so a mark reads the same as the office's own.
+ * A person can hold a job title and still teach a cohort, and both are worked from the one signed-in account. The
+ * member portal's trainer surface is closed to a staff login, so the same record is opened here. The trainer is
+ * found from the account itself — a staff posting named on the row, an E-Fundi or an accepted applicant matched on
+ * the account's own email — never from an id in the url, and every mark still runs through TrainingTrack so it
+ * reads the same as the office's own. What the desk shows is the programmes that posting is licensed for.
  */
 class TeachingController extends Controller
 {
     public function index()
     {
-        $fundi = $this->fundi();
-
-        $trainers = Trainer::with([
-            'trainings:id,name',
-            'venue:id,name,type,county,sub_county,ward',
-            'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
-                ->with([
-                    'training.modules',
-                    'enrollments' => fn ($e) => $e->with([
-                        'ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'documents', 'certification',
-                    ])->orderBy('id'),
-                ])
-                ->orderByDesc('starts_on'),
-        ])->where('fundi_id', $fundi->id)->where('status', 'approved')->orderBy('id')->get();
+        $trainers = $this->postings();
 
         return view('admin.teaching.index', [
-            'fundi' => $fundi,
+            'fundi' => $this->fundi(),
             'trainers' => $trainers,
             'cohorts' => $trainers->flatMap(fn ($t) => $t->cohorts),
         ]);
+    }
+
+    /**
+     * The trainer's own week sheet. A day is written one at a time and corrected in place; the week is signed once
+     * and answered by the Training desk as a whole.
+     */
+    public function week(Request $request)
+    {
+        $trainer = $this->chosen($request);
+        $start = TimeLog::weekStartOf($request->input('week', today()->toDateString()));
+        $sheet = TimeSheet::sheet($trainer, $start);
+
+        return view('admin.teaching.week', [
+            'sheet' => $sheet,
+            'trainer' => $trainer,
+            'postings' => $this->postings(),
+            'trainings' => $trainer->trainings,
+            'cohorts' => $trainer->cohorts()->where('status', '!=', 'draft')->orderByDesc('starts_on')->get(),
+            'back' => $start->copy()->subWeek()->toDateString(),
+            'onward' => $start->copy()->addWeek()->toDateString(),
+            'today' => $sheet['start']->toDateString(),
+            'history' => TimeSheet::weeksFor($trainer),
+            'canEdit' => in_array($sheet['status'], ['draft', 'returned'], true),
+        ]);
+    }
+
+    public function saveDay(Request $request)
+    {
+        $trainer = $this->chosen($request);
+        $week = TimeLog::weekStartOf($request->input('log_date'));
+
+        return redirect()
+            ->route('admin.teaching.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
+            ->with('status', TimeSheet::saveDay($trainer, $request));
+    }
+
+    public function signWeek(Request $request)
+    {
+        $trainer = $this->chosen($request);
+        $week = TimeLog::weekStartOf($request->input('week'));
+
+        return redirect()
+            ->route('admin.teaching.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
+            ->with('status', TimeSheet::sign($trainer, $week));
     }
 
     /** One trainee on the trainer's own roll, worked with the office's own record partials. */
@@ -68,16 +103,14 @@ class TeachingController extends Controller
     {
         $their = $this->theirTrainee($enrollment);
 
-        return back()->with('status', TrainingTrack::recordProgress(
-            $their, $request, ['recorded_by_fundi' => $this->fundi()->id]));
+        return back()->with('status', TrainingTrack::recordProgress($their, $request, $this->actor()));
     }
 
     public function markModule(Request $request, Enrollment $enrollment, TrainingModule $module)
     {
         $their = $this->theirTrainee($enrollment);
 
-        return back()->with('status', TrainingTrack::markModule(
-            $their, $module, ModuleCompletion::dataFrom($request), ['recorded_by_fundi' => $this->fundi()->id]));
+        return back()->with('status', TrainingTrack::markModule($their, $module, ModuleCompletion::dataFrom($request), $this->actor()));
     }
 
     public function unmarkModule(Enrollment $enrollment, TrainingModule $module)
@@ -91,8 +124,7 @@ class TeachingController extends Controller
     {
         $their = $this->theirTrainee($enrollment);
 
-        return back()->with('status', TrainingTrack::storeDocument(
-            $their, $request, ['uploaded_by_fundi' => $this->fundi()->id]));
+        return back()->with('status', TrainingTrack::storeDocument($their, $request, $this->actor()));
     }
 
     public function document(Enrollment $enrollment, TrainingDocument $document)
@@ -105,23 +137,67 @@ class TeachingController extends Controller
     }
 
     /**
-     * The desk opens only for a staff account that carries the Fundi Trainer title and sits an approved posting —
-     * there is no department to own the route, so the check lives here.
+     * The desk opens only for a staff account that stands behind an approved teaching posting — there is no
+     * department to own the route, so the check lives here.
+     *
+     * @return Collection<int, Trainer>
      */
-    private function fundi(): FundiRegistration
+    private function postings(): Collection
     {
-        $fundi = Workspace::teaching(auth()->user());
+        $postings = Trainer::forAccount(auth()->user())->load([
+            'trainings:id,name',
+            'venue:id,name,type,county,sub_county,ward',
+            'fundi:id,full_name,ef_code,tier',
+            'staff:id,name',
+            'applicant:id,name,email',
+            'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
+                ->with([
+                    'training.modules',
+                    'enrollments' => fn ($e) => $e->with([
+                        'ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'documents', 'certification',
+                    ])->orderBy('id'),
+                ])
+                ->orderByDesc('starts_on'),
+        ])->sortBy(fn (Trainer $t) => $t->venue?->name ?? $t->placeLabel())->values();
 
-        abort_unless($fundi, 403, 'My teaching is for a staff account that also trains CTPs. '
-            .'The programme office approves a trainer site by site before a cohort is handed over.');
+        abort_unless($postings->isNotEmpty(), 403, 'My teaching is for a staff account the programme has licensed to '
+            .'train. The office posts a trainer site by site under Trainers before a cohort is handed over.');
 
-        return $fundi;
+        return $postings;
+    }
+
+    /** The posting whose week is being worked — always one of this account's own, never one taken from the url. */
+    private function chosen(Request $request): Trainer
+    {
+        $postings = $this->postings();
+        $id = $request->input('trainer');
+
+        if (! $id) {
+            return $postings->first();
+        }
+
+        return $postings->firstWhere('id', (int) $id)
+            ?? abort(404, 'That week belongs to another trainer.');
+    }
+
+    /** The E-Fundi record behind the account, when the trainer is one. Marks are still credited to it. */
+    private function fundi(): ?FundiRegistration
+    {
+        return Workspace::teaching(auth()->user());
+    }
+
+    private function actor(): array
+    {
+        return array_filter([
+            'recorded_by_fundi' => $this->fundi()?->id,
+            'recorded_by_user' => auth()->id(),
+        ], fn ($value) => $value !== null);
     }
 
     /** A trainee outside a cohort this trainer teaches 404s, so no roster can be reached by id. */
     private function theirTrainee(Enrollment $enrollment): Enrollment
     {
-        $mine = Trainer::approved()->where('fundi_id', $this->fundi()->id)->pluck('id');
+        $mine = $this->postings()->pluck('id');
 
         $enrollment->load(['cohort', 'ctp']);
 

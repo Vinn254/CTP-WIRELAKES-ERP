@@ -10,7 +10,7 @@
     </div>
     <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }}
         · {{ $c->placeLabel() }}
-        @if ($c->trainer?->fundi) · trainer {{ $c->trainer->fundi->full_name }} @endif
+        @if ($c->trainer) · trainer {{ $c->trainer->personName() }} @endif
         @if ((float) $c->fee_ksh > 0) · KSH {{ number_format((float) $c->fee_ksh, 2) }} @else · no training fee @endif
     </p>
     @if ($c->summary)<p class="hint">{{ $c->summary }}</p>@endif

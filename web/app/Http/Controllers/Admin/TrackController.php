@@ -60,7 +60,7 @@ class TrackController extends Controller
     public function show(Enrollment $enrollment)
     {
         $enrollment->load([
-            'ctp', 'cohort.training.modules', 'cohort.venue', 'cohort.trainer.fundi',
+            'ctp', 'cohort.training.modules', 'cohort.venue', 'cohort.trainer.fundi', 'cohort.trainer.staff', 'cohort.trainer.applicant',
             'entries.staffUser', 'entries.trainerFundi', 'moduleMarks', 'documents', 'certification',
         ]);
 

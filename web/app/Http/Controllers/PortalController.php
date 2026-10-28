@@ -19,6 +19,7 @@ use App\Models\Need;
 use App\Models\Payout;
 use App\Models\ProgressEntry;
 use App\Models\Project;
+use App\Models\TimeLog;
 use App\Models\ProjectApplication;
 use App\Models\ProjectMatch;
 use App\Models\PurchaseRequest;
@@ -29,6 +30,7 @@ use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
 use App\Support\MemberPortal;
 use App\Support\Marketplace;
+use App\Support\TimeSheet;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -277,6 +279,76 @@ class PortalController extends Controller
             'enrollment' => $their,
             'documentKinds' => TrainingDocument::KINDS,
         ]);
+    }
+
+    /**
+     * The E-Fundi's own week sheet. One line per day worked, then the whole week is signed and sent to the
+     * Training desk — the same paper the office approves and Human Resources reads as proof before pay.
+     */
+    public function trainerWeek(Request $request)
+    {
+        $fundi = $this->fundi();
+        $postings = $this->myPostings($fundi);
+        $trainer = $this->myTrainer($request, $postings);
+        $start = TimeLog::weekStartOf($request->input('week', today()->toDateString()));
+        $sheet = TimeSheet::sheet($trainer, $start);
+
+        return view('portal.trainer-week', [
+            'member' => $fundi,
+            'sheet' => $sheet,
+            'trainer' => $trainer,
+            'postings' => $postings,
+            'trainings' => $trainer->trainings,
+            'cohorts' => $trainer->cohorts,
+            'back' => $start->copy()->subWeek()->toDateString(),
+            'onward' => $start->copy()->addWeek()->toDateString(),
+            'today' => $sheet['start']->toDateString(),
+            'history' => TimeSheet::weeksFor($trainer),
+            'canEdit' => in_array($sheet['status'], ['draft', 'returned'], true),
+        ]);
+    }
+
+    public function saveTrainerDay(Request $request)
+    {
+        $postings = $this->myPostings($this->fundi());
+        $trainer = $this->myTrainer($request, $postings);
+        $week = TimeLog::weekStartOf($request->input('log_date'));
+
+        return redirect()
+            ->route('portal.trainer.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
+            ->with('status', TimeSheet::saveDay($trainer, $request));
+    }
+
+    public function signTrainerWeek(Request $request)
+    {
+        $postings = $this->myPostings($this->fundi());
+        $trainer = $this->myTrainer($request, $postings);
+        $week = TimeLog::weekStartOf($request->input('week'));
+
+        return redirect()
+            ->route('portal.trainer.week', ['trainer' => $trainer->id, 'week' => $week->toDateString()])
+            ->with('status', TimeSheet::sign($trainer, $week));
+    }
+
+    /** The sites this E-Fundi is approved to train at, with what they are licensed for. */
+    private function myPostings(FundiRegistration $fundi): \Illuminate\Database\Eloquent\Collection
+    {
+        $postings = Trainer::with([
+            'trainings:id,name', 'venue:id,name,county,sub_county,ward',
+            'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')->orderByDesc('starts_on'),
+        ])->where('fundi_id', $fundi->id)->where('status', 'approved')->orderBy('id')->get();
+
+        abort_if($postings->isEmpty(), 403, 'The programme office approves a trainer site by site before a week sheet opens.');
+
+        return $postings;
+    }
+
+    /** The posting whose week is being worked — always one of this fundi's own approved sites. */
+    private function myTrainer(Request $request, $postings): Trainer
+    {
+        $id = (int) $request->input('trainer');
+
+        return $id ? ($postings->firstWhere('id', $id) ?? abort(404, 'That week belongs to another trainer.')) : $postings->first();
     }
 
     /** A senior fundi asks to train AT ONE SITE. The office approves site by site before a cohort is handed over. */

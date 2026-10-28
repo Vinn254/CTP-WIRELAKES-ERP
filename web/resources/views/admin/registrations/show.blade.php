@@ -31,8 +31,6 @@
         'business_cert' => 'Business certificate', 'trade_cert' => 'Trade certificate', 'portfolio' => 'Portfolio photo',
         'org_doc' => 'Organisation document'];
     $data = collect($record->toArray())->except($hidden);
-    $feeAmount = $type === 'fundi' ? \App\Models\FundiRegistration::feeAmount() : \App\Models\CtpRegistration::feeAmount();
-    $feeShown = (int) content('membership', 'fees', $type === 'fundi' ? 'fee_fundi' : 'fee_ctp', (string) $feeAmount);
     $personName = $record->full_name ?? $record->contact_name;
     $memberCode = $record->ctp_code ?? $record->ef_code ?? $record->hirer_code;
     $initials = collect(explode(' ', trim($personName)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
@@ -117,23 +115,21 @@
         </div>
 
         @if ($record->status === 'pending_payment')
-            <div class="card decision">
-                <h3>Awaiting payment</h3>
-                <p class="help">
-                    KSh {{ number_format($feeShown) }}
-                    one-time payment. {{ \App\Support\Finance::paybillLine() }} Record it here when the money reaches us
-                    and the application moves into the review queue.
+            <div class="card">
+                <h3>Payment on this application</h3>
+                <p class="help">{{ \App\Support\Finance::paybillLine() }} Nothing waits on it — record the money here only
+                    when it actually reaches us so it lands on the ledger.
                     @if ($type === 'ctp')
                         A CTP a partner is sponsoring pays nothing — set the sponsor on their
                         <a href="{{ dept_link('admin.promoters.show', ['ctp' => $record->id]) }}">CTP profile</a>.
                     @endif
                 </p>
                 <form method="POST" action="{{ route('admin.registrations.fee', [$type, $record->id]) }}"
-                      data-confirm="Record this fee and move the application into the review queue?" data-title="Membership fee">
+                      data-confirm="Record this payment against {{ $personName }}?" data-title="Payment">
                     @csrf
                     <div class="form-grid-2">
                         <div class="field">
-                            <label>Fee <span class="req">*</span></label>
+                            <label>Status <span class="req">*</span></label>
                             <select name="fee_status" required>
                                 <option value="paid">Paid</option>
                                 <option value="waived">Waived by the office</option>
@@ -157,19 +153,12 @@
                             <input type="text" name="fee_reference" maxlength="60" placeholder="e.g. SLK4H29PQ1">
                         </div>
                     </div>
-                    <button class="btn btn-lime btn-block" type="submit">Record fee &amp; send to review</button>
-                </form>
-                <form method="POST" action="{{ route('admin.registrations.reject', [$type, $record->id]) }}" class="reject-form"
-                      data-confirm="Reject this application? The reason is sent to the applicant.">
-                    @csrf
-                    <div class="field">
-                        <label>Rejection reason (sent to applicant) <span class="req">*</span></label>
-                        <textarea name="rejection_reason" rows="2" required placeholder="e.g. Application withdrawn by the applicant."></textarea>
-                    </div>
-                    <button class="btn btn-danger btn-block" type="submit">Reject application</button>
+                    <button class="btn btn-outline btn-block" type="submit">Record payment</button>
                 </form>
             </div>
-        @elseif ($record->status === 'pending_review')
+        @endif
+
+        @if (in_array($record->status, ['pending_payment', 'pending_review'], true))
             <div class="card decision">
                 <h3>Decision</h3>
                 <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"

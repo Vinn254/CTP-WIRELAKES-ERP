@@ -2,17 +2,14 @@
 @section('title', 'Become a Fundi')
 
 @section('content')
-@php($pb = \App\Support\Finance::paybill())
 <section class="section" style="max-width:860px;margin:34px auto;">
     <span class="tag">E-Fundi Registration</span>
     <h1>Become a verified E-Fundi</h1>
     <p class="sub">You do NOT need to have started as a CTP. Skilled workers apply directly. After approval you get a Fundi ID (e.g. EF-0001) and portal access to the project marketplace.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · KSh {{ number_format((int) \App\Models\FundiRegistration::feeAmount()) }} registration payment
-            (Paybill {{ $pb['number'] }}, account {{ $pb['account'] }})</span>
-        <span class="step">3 · Review + referee check</span>
-        <span class="step">4 · Get your EF ID + portal login</span>
+        <span class="step">2 · Review + referee check</span>
+        <span class="step">3 · Get your EF ID + portal login</span>
     </div>
     @include('partials.errors')
     <div class="card">

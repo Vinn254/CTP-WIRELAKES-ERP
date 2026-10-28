@@ -27,8 +27,12 @@ class Payouts
         $trainer = $cohort?->trainer;
 
         if ($isTraining && $trainer) {
+            abort_unless($trainer->holder_type === 'fundi', 422,
+                $trainer->personName().' trains '.$cohort->reference.' as a '.$trainer->holderLabel()
+                .', and this register only releases money to an E-Fundi. Pay that trainer through HR & Staff instead.');
+
             abort_unless($trainer->fundi_id === (int) $data['fundi_id'], 422,
-                'A training payout is released to the fundi-trainer who ran the cohort — '.($trainer->fundi->full_name ?? 'the cohort trainer')
+                'A training payout is released to the trainer who ran the cohort — '.$trainer->personName()
                 .' taught '.$cohort->reference.', so confirm who the report was submitted by before opening this payout.');
         }
 

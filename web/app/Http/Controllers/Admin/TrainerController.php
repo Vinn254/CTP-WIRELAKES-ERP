@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\County;
 use App\Models\FundiRegistration;
+use App\Models\JobApplication;
 use App\Models\Trainer;
 use App\Models\Training;
 use App\Models\TrainingVenue;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 /**
- * Module 4 §7.8 — trainers come from the fundi pool. A senior fundi applies (or is put forward by the
- * office), is approved for the trainings they can teach, and is paid the rate recorded here.
+ * The training register (§7.8). A trainer is whoever the programme licenses to deliver a training, and that is
+ * three kinds of person: an E-Fundi from the fundi pool, a staff account, or an applicant taken on at Careers.
+ * All three sit on the same list and work the same desk — only the record holding the person differs. An E-Fundi
+ * must be senior to carry a cohort; the office licenses the other two by hand.
  */
 class TrainerController extends Controller
 {
@@ -21,13 +25,16 @@ class TrainerController extends Controller
         $status = $request->input('status', 'all');
 
         return view('admin.trainers.index', [
-            'trainers' => Trainer::with(['fundi:id,full_name,ef_code,tier,county,phone', 'trainings:id,name', 'venue:id,name,county,sub_county,ward', 'cohorts.venue:id,name'])
+            'trainers' => Trainer::with(['fundi:id,full_name,ef_code,tier,county,phone', 'staff:id,name,email',
+                'applicant:id,name,email,phone', 'trainings:id,name', 'venue:id,name,county,sub_county,ward',
+                'cohorts.venue:id,name'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->orderByRaw("case status when 'applied' then 0 when 'approved' then 1 else 2 end")
                 ->orderByDesc('id')->get(),
             'status' => $status,
             'counts' => Trainer::selectRaw('status, count(*) n')->groupBy('status')->pluck('n', 'status'),
             'statuses' => Trainer::STATUSES,
+            'holders' => Trainer::HOLDERS,
             'trainings' => Training::orderByRaw("case status when 'active' then 0 else 1 end")->orderBy('name')
                 ->get(['id', 'name', 'code', 'status']),
             'venues' => TrainingVenue::where('status', 'active')->orderBy('name')->get(['id', 'name']),
@@ -37,21 +44,30 @@ class TrainerController extends Controller
                 ->whereIn('tier', Trainer::TEACHING_TIERS)
                 ->with(['trainers:id,fundi_id,venue_id,status', 'trainers.venue:id,name'])
                 ->orderBy('full_name')->get(['id', 'full_name', 'ef_code', 'tier', 'county']),
+            // A staff account already on the payroll, and an applicant the careers desk is still talking to.
+            'staff' => User::query()->where('active', true)->whereIn('role', ['admin', 'superadmin'])
+                ->orderBy('name')->get(['id', 'name', 'email', 'role']),
+            'applicants' => JobApplication::whereIn('status', ['reviewing', 'shortlisted', 'contacted'])
+                ->orderBy('name')->get(['id', 'name', 'email', 'phone', 'job_opening_id']),
         ]);
     }
 
     public function store(Request $request)
     {
         $data = Trainer::dataFrom($request);
-        $fundi = FundiRegistration::findOrFail($data['fundi_id']);
+        $column = Trainer::HOLDER_COLUMN[$data['holder_type']];
+        $holderId = (int) $data[$column];
 
-        $this->guardTier($fundi);
+        if ($data['holder_type'] === 'fundi') {
+            $this->guardTier($data['fundi_id']);
+        }
 
-        [$trainer, $again] = $this->open((int) $data['venue_id'], $fundi->id, $this->attributes($data), $data['trainings']);
+        [$posting, $again] = $this->open((int) $data['venue_id'], $data['holder_type'], $holderId,
+            $this->attributes($data), $data['trainings']);
 
-        return back()->with('status', $fundi->full_name.' — '.($again
-            ? 'application for '.$trainer->venue->name.' is back in as '.$trainer->statusLabel().'.'
-            : 'applied to train at '.$trainer->venue->name.' and sits as '.$trainer->statusLabel().' until the office decides.'));
+        return back()->with('status', $this->nameOf($data['holder_type'], $holderId).' — '.($again
+            ? 'application for '.$posting->venue->name.' is back in as '.$posting->statusLabel().'.'
+            : 'applied to train at '.$posting->venue->name.' and sits as '.$posting->statusLabel().' until the office decides.'));
     }
 
     public function update(Request $request, Trainer $trainer)
@@ -66,10 +82,10 @@ class TrainerController extends Controller
         $trainer->update($this->attributes($data));
         $trainer->trainings()->sync($data['trainings']);
 
-        return back()->with('status', 'Trainer record for '.$trainer->fundi->full_name.' at '.$trainer->venue->name.' updated.');
+        return back()->with('status', 'Teaching record for '.$trainer->personName().' at '.$trainer->venue?->name.' updated.');
     }
 
-    /** Approve, decline or suspend one SITE — a cohort can only be handed to a fundi approved for that venue. */
+    /** Approve, decline or suspend one SITE — a cohort only goes to a trainer approved for that venue. */
     public function decide(Request $request, Trainer $trainer)
     {
         $data = $request->validate([
@@ -83,7 +99,7 @@ class TrainerController extends Controller
             'reviewed_by' => auth()->id(),
         ]);
 
-        return back()->with('status', $trainer->fundi->full_name.' — '.$trainer->statusLabel().' at '.$trainer->venue->name.'.');
+        return back()->with('status', $trainer->personName().' — '.$trainer->statusLabel().' at '.$trainer->venue?->name.'.');
     }
 
     /** The pivot list is taken out of the column data before the record is saved. */
@@ -94,25 +110,37 @@ class TrainerController extends Controller
         return $data;
     }
 
-    private function guardTier(FundiRegistration $fundi): void
+    /** The person in their own words, from whichever record holds them. */
+    private function nameOf(string $type, int $id): string
     {
+        return match ($type) {
+            'staff' => User::whereKey($id)->value('name') ?? 'A staff account',
+            'applicant' => JobApplication::whereKey($id)->value('name') ?? 'An applicant',
+            default => FundiRegistration::whereKey($id)->value('full_name') ?? 'An E-Fundi',
+        };
+    }
+
+    private function guardTier(int $fundiId): void
+    {
+        $fundi = FundiRegistration::findOrFail($fundiId);
+
         abort_unless(in_array($fundi->tier, Trainer::TEACHING_TIERS, true), 422,
             $fundi->full_name.' is a '.FundiRegistration::tierLabel($fundi->tier).'. Only a senior fundi can train CTPs.');
     }
 
     /**
-     * One application per fundi per site. A site they were declined at is reopened on a fresh
-     * application rather than given a second row, so the office history stays in one place.
+     * One application per person per site. A site they were declined at is reopened on a fresh application rather
+     * than given a second row, so the office history stays in one place.
      *
      * @return array{0: Trainer, 1: bool} the row and whether it was a reopening
      */
-    private function open(int $venueId, int $fundiId, array $columns, array $trainings): array
+    private function open(int $venueId, string $holderType, int $holderId, array $columns, array $trainings): array
     {
-        $held = Trainer::forSite($fundiId, $venueId);
+        $held = Trainer::forHolder($holderType, $holderId, $venueId);
 
         if ($held) {
             abort_unless(in_array($held->status, ['declined', 'suspended'], true), 422,
-                $held->fundi->full_name.' is already '.$held->statusLabel().' at '.$held->venue->name
+                $held->personName().' is already '.$held->statusLabel().' at '.$held->venue->name
                     .'. Nothing is added twice for one site.');
 
             $held->update($columns + ['status' => 'applied', 'note' => null, 'reviewed_by' => null]);

@@ -17,7 +17,7 @@
             @if ($key === 'site')
                 <p>Logo, brand colours, background photos, contact details and footer — used on every page.</p>
             @elseif ($key === 'membership')
-                <p>Membership fees, CTP tracks and E-Fundi tiers. These drive the public registration forms.</p>
+                <p>CTP tracks and E-Fundi tiers. These drive the public registration forms.</p>
             @elseif ($key === 'home')
                 <p>Hero slides, intro, programme cards and the donate strip.</p>
             @else

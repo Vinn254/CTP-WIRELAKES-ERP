@@ -56,8 +56,8 @@
         @forelse ($payouts as $p)
             <tr>
                 <td><b>{{ $p->reference }}</b>
-                    @if ($p->stream === 'training' && $p->trainer?->fundi)
-                        <div class="hint">trainer {{ $p->trainer->fundi->full_name }}</div>
+                    @if ($p->stream === 'training' && $p->trainer)
+                        <div class="hint">trainer {{ $p->trainer->personName() }}</div>
                     @endif
                 </td>
                 <td><span class="tag {{ $p->stream === 'training' ? 'gold' : '' }}">{{ $p->stream === 'training' ? 'Training' : 'Project' }}</span>
@@ -196,7 +196,7 @@
                     </select>
                 </div>
                 <div class="field">
-                    <label>Fundi-trainer <span class="req">*</span></label>
+                    <label>Trainer to pay (an E-Fundi) <span class="req">*</span></label>
                     <select name="fundi_id" required>
                         @foreach ($fundis as $f)
                             <option value="{{ $f->id }}">{{ $f->full_name }} · {{ $f->ef_code }}</option>

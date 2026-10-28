@@ -84,7 +84,6 @@ class FundiController extends Controller
             'tiers' => FundiRegistration::TIERS,
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'counties' => County::orderBy('name')->pluck('name'),
-            'fee' => FundiRegistration::feeAmount(),
         ]);
     }
 
@@ -95,8 +94,7 @@ class FundiController extends Controller
 
         return redirect()->route('admin.fundis.show', $fundi)->with('status',
             $fundi->full_name.' added from the office as '.$fundi->reference
-            .'. Record the KSh '.number_format($fundi::feeAmount()).' membership fee, then approve the record — '
-            .'that is what issues the E-Fundi ID and opens their portal login.');
+            .'. Review and approve the record — that is what issues the E-Fundi ID and opens their portal login.');
     }
 
     public function show(FundiRegistration $fundi)

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Fundi-trainers')
+@section('title', 'Trainers')
 
 @php
     use App\Models\Trainer;
@@ -7,14 +7,14 @@
 @endphp
 
 @section('content')
-<h1>Fundi-trainers</h1>
-<p class="page-lede">Fundi-trainers listed per site, with licences, hours and rates.</p>
+<h1>Trainers</h1>
+<p class="page-lede">Who trains, site by site, with licences, hours and rates.</p>
 
 <div class="stat-row">
     <div class="stat"><small>Site records</small><b>{{ $counts->sum() }}</b></div>
     <div class="stat"><small>Awaiting decision</small><b>{{ $counts['applied'] ?? 0 }}</b></div>
     <div class="stat"><small>Approved site records</small><b>{{ $counts['approved'] ?? 0 }}</b></div>
-    <div class="stat"><small>Eligible fundis in the pool</small><b>{{ $fundis->count() }}</b></div>
+    <div class="stat"><small>Eligible to be posted</small><b>{{ $fundis->count() + $staff->count() + $applicants->count() }}</b></div>
 </div>
 
 <div class="tabs">
@@ -25,29 +25,54 @@
     @endforeach
 </div>
 
-<details class="card need-form" @if ($errors->any() && old('fundi_id')) open @endif>
-    <summary>Add a trainer — put a working fundi on the teaching list <b>for one site</b></summary>
-    @if ($fundis->isEmpty())
-        <p class="hint" style="margin:10px 0 0;">There is no active senior fundi in the pool to put forward.
-            A fundi can also apply to train from their own portal, and lands here as “Applied”.</p>
+<details class="card need-form" @if ($errors->any() && old('holder')) open @endif>
+    <summary>Add a trainer — put an E-Fundi, a staff account or an applicant on the teaching list <b>for one site</b></summary>
+    @if ($fundis->isEmpty() && $staff->isEmpty() && $applicants->isEmpty())
+        <p class="hint" style="margin:10px 0 0;">There is nobody to put forward yet: no active senior fundi, no staff
+            account and no applicant the careers desk is talking to. A fundi can also apply to train from their own
+            portal, and lands here as “Applied”.</p>
     @else
         <form method="POST" action="{{ route('admin.trainers.store') }}" class="fee-form"
-              data-confirm="Open a trainer application for this fundi at the site you chose?" data-title="Add trainer">
+              data-confirm="Open a trainer application for this person at the site you chose?" data-title="Add trainer">
             @csrf
             <div class="form-grid">
                 <div class="field">
-                    <label>Fundi <span class="req">*</span></label>
-                    <select name="fundi_id" required>
-                        <option value="">Choose a senior fundi</option>
-                        @foreach ($fundis as $f)
-                            <option value="{{ $f->id }}" @selected(old('fundi_id') == $f->id)>
-                                {{ $f->full_name }} — {{ $f->ef_code }} ({{ \App\Models\FundiRegistration::tierLabel($f->tier) }})
-                                @if ($f->trainers->isNotEmpty())
-                                    · already at {{ $f->trainers->map(fn ($t) => ($t->venue->name ?? 'a site').': '.$t->statusLabel())->join(', ') }}
-                                @endif
-                            </option>
-                        @endforeach
+                    <label>Who is training <span class="req">*</span></label>
+                    <select name="holder" required>
+                        <option value="">Choose the person</option>
+                        @if ($fundis->isNotEmpty())
+                            <optgroup label="E-Fundi (a senior grade trains)">
+                                @foreach ($fundis as $f)
+                                    <option value="fundi:{{ $f->id }}" @selected(old('holder') === 'fundi:'.$f->id)>
+                                        {{ $f->full_name }} — {{ $f->ef_code }} ({{ \App\Models\FundiRegistration::tierLabel($f->tier) }})
+                                        @if ($f->trainers->isNotEmpty())
+                                            · already at {{ $f->trainers->map(fn ($t) => ($t->venue->name ?? 'a site').': '.$t->statusLabel())->join(', ') }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if ($staff->isNotEmpty())
+                            <optgroup label="Staff account">
+                                @foreach ($staff as $s)
+                                    <option value="staff:{{ $s->id }}" @selected(old('holder') === 'staff:'.$s->id)>
+                                        {{ $s->name }} — {{ $s->email }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if ($applicants->isNotEmpty())
+                            <optgroup label="Careers applicant">
+                                @foreach ($applicants as $a)
+                                    <option value="applicant:{{ $a->id }}" @selected(old('holder') === 'applicant:'.$a->id)>
+                                        {{ $a->name }} — {{ $a->email }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                     </select>
+                    <div class="help">The desk is the same for all three. Only an E-Fundi has to be a senior grade —
+                        a staff account or an applicant is licensed by the office here.</div>
                 </div>
                 <div class="field">
                     <label>Site they would train at <span class="req">*</span></label>
@@ -93,7 +118,7 @@
 <table class="data">
     <thead>
         <tr>
-            <th>Trainer</th><th>Grade</th><th>Can teach</th><th>Site this record covers</th>
+            <th>Trainer</th><th>Recorded as</th><th>Can teach</th><th>Site this record covers</th>
             <th>Hours / week</th><th>Rate</th><th>Cohorts</th><th>Status</th><th></th>
         </tr>
     </thead>
@@ -101,10 +126,14 @@
         @forelse ($trainers as $t)
             <tr>
                 <td>
-                    <b>{{ $t->fundi->full_name }}</b>
-                    <div class="hint">{{ $t->fundi->ef_code }} · {{ $t->fundi->phone }}</div>
+                    <b>{{ $t->personName() }}</b>
+                    <div class="hint">{{ $t->holderCode() ?: '—' }}</div>
                 </td>
-                <td>{{ \App\Models\FundiRegistration::tierLabel($t->fundi->tier) }}</td>
+                <td>{{ $t->holderLabel() }}
+                    @if ($t->holder_type === 'fundi' && $t->fundi)
+                        <div class="hint">{{ \App\Models\FundiRegistration::tierLabel($t->fundi->tier) }}</div>
+                    @endif
+                </td>
                 <td>{{ $t->teachingLabel() ?: '—' }}</td>
                 <td>{{ $t->venue->name ?? 'No venue named' }}
                     <div class="hint">{{ collect([$t->ward, $t->sub_county, $t->county])->filter()->join(' · ') ?: '—' }}</div></td>
@@ -118,7 +147,7 @@
                 <td class="actions">
                     @if ($t->status !== 'approved')
                         <form method="POST" action="{{ route('admin.trainers.decide', $t) }}" class="mini-form"
-                              data-confirm="Approve {{ $t->fundi->full_name }} to train CTPs?" data-title="Approve trainer">
+                              data-confirm="Approve {{ $t->personName() }} to train CTPs at {{ $t->venue?->name ?: 'this site' }}?" data-title="Approve trainer">
                             @csrf
                             <input type="hidden" name="decision" value="approved">
                             <button class="btn btn-sm btn-lime" type="submit">Approve</button>
@@ -148,7 +177,7 @@
                         <summary class="btn btn-sm btn-outline">Edit</summary>
                         <form method="POST" action="{{ route('admin.trainers.update', $t) }}" class="fee-form" style="text-align:left;">
                             @csrf @method('PATCH')
-                            <input type="hidden" name="fundi_id" value="{{ $t->fundi_id }}">
+                            <input type="hidden" name="holder" value="{{ $t->holder_type }}:{{ $t->holderId() }}">
                             <input type="hidden" name="venue_id" value="{{ $t->venue_id }}">
                             <div class="form-grid">
                                 <div class="field"><label>Site this record covers</label>
@@ -177,7 +206,7 @@
             </tr>
         @empty
             <tr><td colspan="9" class="empty-cell">
-                No trainer records in this view. Only a senior fundi can train CTPs.
+                No teaching records in this view.
             </td></tr>
         @endforelse
     </tbody>
@@ -185,6 +214,7 @@
 
 <p class="hint" style="margin-top:14px;">
     A fundi who applies to train from their own portal arrives here as <b>Applied</b> with the site they offered —
-    the office still decides. Approved trainers are the only ones the cohort form will accept.
+    the office still decides. Approved trainers are the only ones the cohort form will accept, and the only ones who
+    get a week sheet to sign.
 </p>
 @endsection

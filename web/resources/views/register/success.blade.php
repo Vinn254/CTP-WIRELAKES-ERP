@@ -3,10 +3,6 @@
 
 @php
     $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
-    $fees = [
-        'ctp' => content('membership', 'fees', 'fee_ctp', App\Models\CtpRegistration::feeAmount()),
-        'fundi' => content('membership', 'fees', 'fee_fundi', App\Models\FundiRegistration::feeAmount()),
-    ];
     $sponsor = $type === 'ctp' ? $record->sponsor : null;
 @endphp
 
@@ -21,11 +17,11 @@
         <h3>What happens next</h3>
         <ol>
             @if ($sponsor)
-                <li>No membership fee to pay — {{ $sponsor->name }} is sponsoring your membership.
+                <li>{{ $sponsor->name }} is sponsoring your membership.
                     <span class="tag gold">Sponsored</span> Your application is already with the review team.</li>
             @else
-                <li>One-time registration payment: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong>.
-                    {{ \App\Support\Finance::paybillLine() }} Put your reference {{ $record->reference }} as the reason.</li>
+                <li>Your application is with the review team. {{ \App\Support\Finance::paybillLine() }}
+                    Put your reference {{ $record->reference }} as the reason for any payment you make.</li>
             @endif
             <li>A Director/Admin reviews your documents.</li>
             @if ($type === 'fundi')

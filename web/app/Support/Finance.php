@@ -55,6 +55,6 @@ class Finance
     {
         $p = static::paybill();
 
-        return 'For any payment use this Paybill '.$p['number'].', account number '.$p['account'].'.';
+        return 'For any type of payment use this Paybill '.$p['number'].', account number '.$p['account'].'.';
     }
 }

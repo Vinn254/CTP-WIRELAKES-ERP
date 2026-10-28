@@ -19,10 +19,10 @@
         default => 0,
     };
     $steps = $member->track === 'junior'
-        ? ['Application submitted', 'Membership fee paid', 'Approved and CTP ID issued',
+        ? ['Application submitted', 'Approved and CTP ID issued',
            'Practical check (graded)', 'Certification check on your certificates',
            'Registered as a junior E-Fundi', 'Deployed on projects']
-        : ['Application submitted', 'Membership fee paid', 'Approved and CTP ID issued',
+        : ['Application submitted', 'Approved and CTP ID issued',
            'Enrolled in a training cohort', 'Theory and practical sessions',
            'Assessment and certificate', 'Added to the E-Fundi pool', 'Deployed on projects'];
 @endphp
@@ -95,7 +95,7 @@
                         <td>{{ $c->termLabel() ?: '—' }}</td>
                         <td>{{ $c->courseLabel() }}<div class="hint">{{ $c->dateLabel() }}</div></td>
                         <td>{{ $c->reference }}</td>
-                        <td>{{ $c->venue?->name ?: ($c->trainer?->fundi?->full_name ? $c->trainer->fundi->full_name.'’s site' : '—') }}</td>
+                        <td>{{ $c->venue?->name ?: ($c->trainer?->personName() ? $c->trainer->personName().'’s site' : '—') }}</td>
                         <td><span class="status {{ $e->state === 'approved' ? 'active' : ($e->state === 'pending' ? 'pending_review' : 'closed') }}">{{ $e->stateLabel() }}</span></td>
                         <td><span class="tag">{{ $e->stageLabel() }}</span></td>
                         <td>{{ $e->certification?->certificate_code ?: ($e->certification ? $e->certification->statusLabel() : '—') }}</td>
@@ -124,7 +124,7 @@
                 @if ($e->source === 'office')<span class="tag">seat given by the office</span>@endif
             </div>
             <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · {{ $c->placeLabel() }}
-                @if ($c->trainer?->fundi) · trainer {{ $c->trainer->fundi->full_name }} @endif</p>
+                @if ($c->trainer) · trainer {{ $c->trainer->personName() }} @endif</p>
 
             <h4 class="dl-group">Course fee</h4>
             <div class="row-line">

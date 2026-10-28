@@ -50,7 +50,6 @@ class RegistrationController extends Controller
         return view('register.ctp', $this->formData() + [
             'tracks' => $this->ctpTracks(),
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
-            'fee' => CtpRegistration::feeAmount(),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }
@@ -123,8 +122,8 @@ class RegistrationController extends Controller
         $record = collect($data)->except(array_merge($files, ['mobiliser_code']))->all();
         $record['mobilised_by_ctp'] = CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;
         $record['reference'] = $ref;
-        // The application waits for the one-time membership fee before it is reviewed.
-        $record['status'] = 'pending_payment';
+        // Nothing gates an application on payment — it goes straight to the review queue.
+        $record['status'] = 'pending_review';
         $record['specialisations'] = array_values(array_unique($data['specialisations']));
         $record['service_counties'] = array_values(array_unique($data['service_counties']));
 

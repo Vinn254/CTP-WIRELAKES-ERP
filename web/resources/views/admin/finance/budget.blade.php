@@ -108,7 +108,7 @@
                 <span class="hint">{{ Finance::ksh((float) $total) }}</span>
             </div>
         @empty
-            <p class="hint">Nothing has been recorded as received yet. Membership fees, hirer payments, donor funds
+            <p class="hint">Nothing has been recorded as received yet. Member payments, hirer payments, donor funds
                 and sales all come onto the <a href="{{ route('admin.ledger.index', ['year' => $year]) }}">money register</a>.</p>
         @endforelse
     </div>

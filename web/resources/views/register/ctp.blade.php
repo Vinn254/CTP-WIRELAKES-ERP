@@ -2,16 +2,13 @@
 @section('title', 'Become a student (CTP)')
 
 @section('content')
-@php($pb = \App\Support\Finance::paybill())
 <section class="section" style="max-width:860px;margin:34px auto;">
     <span class="tag">CTP Registration</span>
     <h1>Become a Community Technology Promoter</h1>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · KSh {{ number_format((int) $fee) }} registration payment, Paybill {{ $pb['number'] }}
-            (free if a partner sponsors you)</span>
-        <span class="step">3 · Director/Admin review</span>
-        <span class="step">4 · Get your CTP ID + portal login</span>
+        <span class="step">2 · Director/Admin review</span>
+        <span class="step">3 · Get your CTP ID + portal login</span>
     </div>
     @include('partials.errors')
     <div class="card">
@@ -112,21 +109,19 @@
             </fieldset>
 
             <fieldset>
-                <legend>Registration payment</legend>
-                <p class="help">A one-time payment of <b>KSh {{ number_format((int) $fee) }}</b> is due after you submit, before our
-                    team reviews your documents. {{ \App\Support\Finance::paybillLine() }} Put your national ID number as
-                    the reason so the office can match your payment to your application.</p>
+                <legend>Partner sponsorship</legend>
                 <div class="field">
                     <label>Is a partner organisation sponsoring you?</label>
                     <select name="sponsor_id">
-                        <option value="">No — I will pay the KSh {{ number_format((int) $fee) }} fee</option>
+                        <option value="">No</option>
                         @foreach ($partners as $p)
                             <option value="{{ $p->id }}" @selected((int) old('sponsor_id') === $p->id)>{{ $p->name }}</option>
                         @endforeach
                     </select>
-                    <div class="help">A CTP sponsored by one of our partners pays no membership fee. The office confirms it with
-                        the partner first, so keep the fee details handy in the meantime.</div>
+                    <div class="help">The office confirms a sponsor with the partner before your application moves ahead.</div>
                 </div>
+                <p class="help">{{ \App\Support\Finance::paybillLine() }} Put your national ID number as the reason so the
+                    office can match your payment to your application.</p>
             </fieldset>
 
             <fieldset>

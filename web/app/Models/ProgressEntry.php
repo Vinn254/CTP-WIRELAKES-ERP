@@ -91,7 +91,13 @@ class ProgressEntry extends Model
             return 'Trainer '.$this->trainerFundi->full_name;
         }
 
-        return $this->staffUser ? $this->staffUser->name.' (office)' : 'Recorded by the system';
+        if (! $this->staffUser) {
+            return 'Recorded by the system';
+        }
+
+        return Trainer::trainsFrom($this->recorded_by_user)
+            ? 'Trainer '.$this->staffUser->name
+            : $this->staffUser->name.' (office)';
     }
 
     /** The short line shown on a trainee's timeline. */

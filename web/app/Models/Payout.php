@@ -236,7 +236,7 @@ class Payout extends Model
             ['stage' => 'approved', 'actor' => 'Finance Officer', 'action' => 'Payout approved for release'],
             ['stage' => 'released', 'actor' => 'Finance Officer', 'action' => 'Sent by M-Pesa B2C or bank and logged on the fundi\'s earnings and the project account'],
         ] : [
-            ['stage' => 'awaiting_report', 'actor' => 'Fundi-Trainer', 'action' => 'Cohort ended, final attendance and grades marked, end-of-cohort report uploaded'],
+            ['stage' => 'awaiting_report', 'actor' => 'Trainer', 'action' => 'Cohort ended, final attendance and grades marked, end-of-cohort report uploaded'],
             ['stage' => 'queued', 'actor' => 'Programme Manager', 'action' => 'Report reviewed and the number of certified trainees confirmed; payout calculated'],
             ['stage' => 'approved', 'actor' => 'Programme Manager', 'action' => 'Payout approved'],
             ['stage' => 'released', 'actor' => 'Finance Officer', 'action' => 'Released from the training budget and logged on the trainer\'s earnings and the cohort record'],

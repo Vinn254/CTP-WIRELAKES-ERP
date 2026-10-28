@@ -50,7 +50,7 @@
             </div>
             <p class="hint">
                 {{ $cohort->dateLabel() }} · {{ $cohort->hoursLabel() }} · {{ $cohort->placeLabel() }} ·
-                trainer {{ $cohort->trainer?->fundi?->full_name ?: 'not assigned' }}
+                trainer {{ $cohort->trainer?->personName() ?: 'not assigned' }}
             </p>
             <p style="margin:10px 0 0;">
                 <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $cohort) }}">Open the cohort</a>

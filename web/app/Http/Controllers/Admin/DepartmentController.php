@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Trainer;
 use App\Support\Departments;
 use App\Support\Roles;
 use App\Support\Workspace;
@@ -18,7 +19,7 @@ class DepartmentController extends Controller
             return view('admin.departments.index', [
                 'departments' => Departments::visibleFor($user),
                 'isSuper' => true,
-                'teaching' => Workspace::teaching($user),
+                'teaching' => Trainer::forAccount($user)->first(),
             ]);
         }
 
@@ -40,7 +41,7 @@ class DepartmentController extends Controller
 
         return view('admin.departments.show', [
             'department' => $department,
-            'tiles' => Departments::mine($user, Departments::tiles($slug)),
+            'tiles' => Departments::tiles($slug),
         ]);
     }
 }

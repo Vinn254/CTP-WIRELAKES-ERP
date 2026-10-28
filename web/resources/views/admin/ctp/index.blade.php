@@ -14,7 +14,7 @@
 
 <div class="stat-row">
     <div class="stat"><small>Active CTPs</small><b>{{ $counts['active'] ?? 0 }}</b></div>
-    <div class="stat"><small>Awaiting fee</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
+    <div class="stat"><small>Waiting on a payment</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
     <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
     <div class="stat"><small>Deployed</small><b>{{ ($counts['deployed'] ?? 0) + ($counts['graduated'] ?? 0) }}</b></div>
     <div class="stat"><small>Alumni</small><b>{{ $alumniTotal }}</b></div>
@@ -23,7 +23,7 @@
 <p style="margin:0 0 14px;">
     <a class="btn btn-lime btn-sm" href="{{ route('admin.promoters.create') }}">+ Add a CTP from the office</a>
     <span class="hint" style="margin-left:10px;">
-        For someone who cannot reach the website — the same application, the same fee and review steps.
+        For someone who cannot reach the website — the same application and review steps.
     </span>
 </p>
 
@@ -46,7 +46,7 @@
         <tr>
             <th>CTP ID</th><th>Name</th><th>Track</th><th>County</th>
             <th title="People this CTP mobilised who paid and were approved">Mobilised</th>
-            <th>Fee</th><th>Status</th><th>Joined</th><th></th>
+            <th>Payment</th><th>Status</th><th>Joined</th><th></th>
         </tr>
     </thead>
     <tbody>
