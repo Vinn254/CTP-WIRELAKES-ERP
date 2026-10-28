@@ -177,7 +177,25 @@
         });
     }
 
+    /* One form that bills anyone has fields only some bills need — the CTP picker is noise on a donor invoice.
+       A field carrying data-for-choice stays hidden until the select beside it (data-choices) answers with one of
+       the values listed there. Nothing is dropped from the page permanently; the server re-checks the pair anyway. */
+    function bindChoices(select) {
+        const scope = select.closest('form') || document;
+        const guarded = scope.querySelectorAll('[data-for-choice]');
+        if (!guarded.length) return;
+        function sync() {
+            guarded.forEach(function (el) {
+                const answers = el.getAttribute('data-for-choice').split('|');
+                el.hidden = answers.indexOf(select.value) === -1;
+            });
+        }
+        sync();
+        select.addEventListener('change', sync);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('select[data-choices]').forEach(bindChoices);
         frameTables();
         document.querySelectorAll('.flash-ok, .flash-error').forEach(function (node) {
             toast(node.textContent.trim(), node.classList.contains('flash-error'));

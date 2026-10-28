@@ -6,6 +6,7 @@ use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Community;
 use App\Models\FundiRegistration;
+use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Models\ProjectMatch;
@@ -44,11 +45,16 @@ class MemberPortal
     /** Everything a member interface needs about one member. */
     public static function board(Model $member): array
     {
+        // What the office has billed this member. The balance screen is only offered with a real invoice behind it.
+        $invoices = Invoice::forMember($member)->with('payments')->latest('id')->get();
+
         return [
             'member' => $member,
             'projects' => static::projects($member),
             'applications' => static::applications($member),
             'communities' => $member instanceof CtpRegistration ? static::communities($member) : collect(),
+            'invoices' => $invoices,
+            'invoiceCount' => $invoices->where('status', 'open')->count(),
             // §9.4 — an E-Fundi's sidebar carries the asks waiting on their answer; a CTP never has one.
             'inviteCount' => $member instanceof FundiRegistration
                 ? ProjectMatch::for($member)->awaiting()->count()

@@ -788,9 +788,11 @@ html.dark .status.awarded { background: #17283d; color: #92bdf5; }
 .member-hero .sub { color: rgba(255,255,255,.88); margin: 0; }
 .member-hero .tag { background: rgba(255,255,255,.22); color: #fff; }
 .member-stats { display: flex; gap: 10px; flex-wrap: wrap; }
-.member-stats .stat { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); border-left-color: #fff; min-width: 118px; }
-.member-stats .stat small { color: rgba(255,255,255,.82); }
-.member-stats .stat b, html.dark .member-stats .stat b { color: #fff; }
+.member-stats .stat { min-width: 118px; }
+/* Only the green hero on the overview wears translucent chips — inside a page-intro card a stat must read normally. */
+.member-hero .member-stats .stat { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); border-left-color: #fff; }
+.member-hero .member-stats .stat small { color: rgba(255,255,255,.82); }
+.member-hero .member-stats .stat b, html.dark .member-hero .member-stats .stat b { color: #fff; }
 .apply-state { margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 12px; }
 .link-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 6px; }
 .link-box input { flex: 1; min-width: 220px; margin: 0; font-size: .8rem; }
@@ -999,3 +1001,9 @@ html.dark .band-3 small, html.dark .band-4 small { color: #dff0d6; }
   table.data .span-note { position: static; max-inline-size: none; }
   table.data th, table.data td { padding: 5px 6px; font-size: 8.4pt; }
 }
+
+/* Module 11 — the Paybill a member pays an invoice with, and the invoice list */
+.paybill-card { border-left: 4px solid var(--lime); }
+.paybill { font-size: 1.02rem; margin: 2px 0 6px; }
+.paybill b { font-size: 1.2rem; letter-spacing: .02em; color: var(--green); }
+html.dark .paybill b { color: var(--lime); }

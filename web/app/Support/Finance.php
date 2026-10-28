@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Setting;
 use App\Models\User;
 
 /** Money rules shared by every Module 11 screen, so no screen invents its own formatting or its own authority. */
@@ -36,5 +37,24 @@ class Finance
     public static function actorLabel(): string
     {
         return static::isExecutive() ? 'Programme executive' : 'Programme staff';
+    }
+
+    /**
+     * The one payment address the programme gives anyone it asks for money — on an invoice, in a member portal, at a
+     * counter. It is a programme setting so the office can change it without a code edit.
+     */
+    public static function paybill(): array
+    {
+        return [
+            'number' => Setting::get('paybill_number', '146320'),
+            'account' => Setting::get('paybill_account', '1039062'),
+        ];
+    }
+
+    public static function paybillLine(): string
+    {
+        $p = static::paybill();
+
+        return 'For any payment use this Paybill '.$p['number'].', account number '.$p['account'].'.';
     }
 }

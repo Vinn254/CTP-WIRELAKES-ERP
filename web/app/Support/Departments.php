@@ -13,6 +13,8 @@ use App\Models\FinanceEntry;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\InventoryItem;
+use App\Models\Invoice;
+use App\Models\JobApplication;
 use App\Models\Need;
 use App\Models\Partner;
 use App\Models\Payout;
@@ -70,6 +72,7 @@ class Departments
             ['label' => 'Partners', 'icon' => 'link', 'route' => ['admin.partners.index'], 'badge' => 'partners'],
             ['label' => 'Donations', 'icon' => 'heart', 'route' => ['admin.donations.index']],
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
+            ['label' => 'Careers', 'icon' => 'award', 'route' => ['admin.careers.index'], 'badge' => 'careers'],
             ['label' => 'Staff & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
             ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
@@ -112,6 +115,7 @@ class Departments
         'finance' => [
             ['label' => 'Programme budget', 'icon' => 'sliders', 'route' => ['admin.budget.index'], 'badge' => 'overbudget'],
             ['label' => 'Money register', 'icon' => 'briefcase', 'route' => ['admin.ledger.index']],
+            ['label' => 'Invoices', 'icon' => 'mail', 'route' => ['admin.invoices.index'], 'badge' => 'invoices'],
             ['label' => 'Purchases', 'icon' => 'link', 'route' => ['admin.procurement.index'], 'badge' => 'requests'],
             ['label' => 'Suppliers', 'icon' => 'building', 'route' => ['admin.suppliers.index']],
             ['label' => 'Inventory', 'icon' => 'grid', 'route' => ['admin.inventory.index'], 'badge' => 'lowstock'],
@@ -132,6 +136,7 @@ class Departments
         'admin.content.' => 'membership',
         'admin.partners.' => 'membership',
         'admin.messages.' => 'membership',
+        'admin.careers.' => 'membership',
         'admin.projects.' => 'membership',
         'admin.hirers.' => 'membership',
         'admin.donations.' => 'membership',
@@ -155,6 +160,7 @@ class Departments
         'admin.ewaste.' => 'ewaste',
         'admin.budget.' => 'finance',
         'admin.ledger.' => 'finance',
+        'admin.invoices.' => 'finance',
         'admin.procurement.' => 'finance',
         'admin.suppliers.' => 'finance',
         'admin.inventory.' => 'finance',
@@ -174,6 +180,7 @@ class Departments
         'admin.content.edit' => 'Fees, CTP tracks and E-Fundi tiers used by the forms',
         'admin.partners.index' => 'Requests from the public page and the partner wall',
         'admin.messages.index' => 'Messages sent from the public contact form',
+        'admin.careers.index' => 'Openings the office has put out for a job or project work, and the people who applied',
         'admin.projects.index' => 'Post projects, review applications and assign one worker',
         'admin.hirers.index' => 'Organisations that projects are posted for',
         'admin.donations.index' => 'Every pledge made on the public donate page',
@@ -197,6 +204,7 @@ class Departments
         'admin.ewaste.index' => 'What the field collected, what it weighed in at and what condition it is in',
         'admin.budget.index' => 'What each programme category was given this year, and what has been charged against it',
         'admin.ledger.index' => 'Every shilling in and out, with the budget line it sits on',
+        'admin.invoices.index' => 'Money the programme asks for — donors, CTPs and E-Fundis billed, what came in against each invoice',
         'admin.procurement.index' => 'Requests, quotations, purchase orders, deliveries and payments — one path per request',
         'admin.suppliers.index' => 'The suppliers quotations are taken from, and who has already been paid',
         'admin.inventory.index' => 'Stock cards by SKU, what is on the shelf, what is below its reorder level and what left the store',
@@ -404,6 +412,7 @@ class Departments
             'communities' => Community::where('status', 'pending_review')->count(),
             'needs' => Need::where('status', 'proposed')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
+            'careers' => JobApplication::where('status', 'received')->count(),
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
@@ -419,6 +428,7 @@ class Departments
             'overbudget' => BudgetLine::where('fiscal_year', now()->year)->where('amount_ksh', '>', 0)->get()
                 ->filter(fn (BudgetLine $line) => FinanceEntry::spent($line->fiscal_year, $line->category) > (float) $line->amount_ksh)->count(),
             'payouts' => Payout::whereIn('stage', ['queued', 'approved'])->count(),
+            'invoices' => Invoice::where('status', 'open')->count(),
             default => 0,
         };
     }

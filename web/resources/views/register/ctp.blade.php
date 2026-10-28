@@ -2,12 +2,14 @@
 @section('title', 'Become a student (CTP)')
 
 @section('content')
+@php($pb = \App\Support\Finance::paybill())
 <section class="section" style="max-width:860px;margin:34px auto;">
     <span class="tag">CTP Registration</span>
     <h1>Become a Community Technology Promoter</h1>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · KSh {{ number_format((int) $fee) }} membership fee (free if a partner sponsors you)</span>
+        <span class="step">2 · KSh {{ number_format((int) $fee) }} registration payment, Paybill {{ $pb['number'] }}
+            (free if a partner sponsors you)</span>
         <span class="step">3 · Director/Admin review</span>
         <span class="step">4 · Get your CTP ID + portal login</span>
     </div>
@@ -110,9 +112,10 @@
             </fieldset>
 
             <fieldset>
-                <legend>Membership fee</legend>
-                <p class="help">A one-time fee of <b>KSh {{ number_format((int) $fee) }}</b> is due after you submit, before our
-                    team reviews your documents. Pay by M-Pesa or bank — our team will send the details.</p>
+                <legend>Registration payment</legend>
+                <p class="help">A one-time payment of <b>KSh {{ number_format((int) $fee) }}</b> is due after you submit, before our
+                    team reviews your documents. {{ \App\Support\Finance::paybillLine() }} Put your national ID number as
+                    the reason so the office can match your payment to your application.</p>
                 <div class="field">
                     <label>Is a partner organisation sponsoring you?</label>
                     <select name="sponsor_id">

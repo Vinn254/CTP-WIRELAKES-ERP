@@ -2,11 +2,19 @@
 @section('title', 'Donate')
 
 @section('content')
+@php($pb = \App\Support\Finance::paybill())
 <section class="section grid-2">
     <div>
         <span class="tag">{{ content('donate','intro','tag','Donate') }}</span>
         <h1>{{ content('donate','intro','title','Fund a skill. Change a life.') }}</h1>
         <p class="sub">{{ content('donate','intro','sub','Every donation goes directly to programme work. One-time or recurring — M-Pesa, card or bank.') }}</p>
+        <div class="card paybill-card">
+            <h3>How to send it</h3>
+            <p class="paybill">For any payment use this Paybill <b>{{ $pb['number'] }}</b>,
+                account number <b>{{ $pb['account'] }}</b>.</p>
+            <p class="hint">Put your name or email as the reason so the office can match your gift. A donor or partner
+                who needs a formal invoice is sent one from the finance desk — the invoice carries the same Paybill.</p>
+        </div>
     </div>
 
     <div class="card">

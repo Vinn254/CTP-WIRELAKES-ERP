@@ -24,8 +24,8 @@
                 <li>No membership fee to pay — {{ $sponsor->name }} is sponsoring your membership.
                     <span class="tag gold">Sponsored</span> Your application is already with the review team.</li>
             @else
-                <li>One-time membership fee: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong> via M-Pesa or bank.
-                    <span class="tag gold">Payment checkout comes online in the next phase — your application is already saved.</span></li>
+                <li>One-time registration payment: <strong>KSh {{ number_format((int) $fees[$type]) }}</strong>.
+                    {{ \App\Support\Finance::paybillLine() }} Put your reference {{ $record->reference }} as the reason.</li>
             @endif
             <li>A Director/Admin reviews your documents.</li>
             @if ($type === 'fundi')

@@ -13,6 +13,7 @@ use App\Models\Enrollment;
 use App\Models\FinanceEntry;
 use App\Models\FundiRegistration;
 use App\Models\InventoryItem;
+use App\Models\Invoice;
 use App\Models\ModuleCompletion;
 use App\Models\Need;
 use App\Models\Payout;
@@ -754,6 +755,53 @@ class PortalController extends Controller
                 'lines' => $payouts->count(),
             ],
         ]);
+    }
+
+    /**
+     * Module 11, member side. What the office has billed this CTP or E-Fundi, what has come in against each
+     * invoice and the balance still owed, with the Paybill the payment goes to. Only a member carrying a real
+     * invoice is ever offered this screen — the sidebar item appears with the first invoice, so a member with
+     * none who types the url is refused. Read-only: the office marks a payment once the money is seen.
+     */
+    public function invoices()
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+
+        $invoices = $this->invoicesFor($member);
+        abort_if($invoices->isEmpty(), 404, 'The office has not invoiced you.');
+
+        return view('portal.invoices', MemberPortal::board($member) + [
+            'invoices' => $invoices,
+            'totals' => [
+                'billed' => (float) $invoices->where('status', '!=', 'cancelled')->sum('amount_ksh'),
+                'paid' => $invoices->sum(fn (Invoice $i) => $i->status === 'cancelled' ? 0 : $i->paidKsh()),
+                'owing' => $invoices->sum(fn (Invoice $i) => $i->status === 'cancelled' ? 0 : $i->balanceKsh()),
+                'open' => $invoices->where('status', 'open')->count(),
+            ],
+        ]);
+    }
+
+    /** The member's own invoice, served as the same branded document the office sends by email. */
+    public function invoiceDocument(Invoice $invoice)
+    {
+        $member = $this->member();
+        abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        abort_unless(Invoice::forMember($member)->whereKey($invoice->id)->exists(), 404);
+
+        return view('admin.finance.invoice-document', [
+            'invoice' => $invoice->load('payments'),
+            'back' => route('portal.invoices'),
+            'backLabel' => 'Back to my invoices',
+        ]);
+    }
+
+    /** Every invoice raised against this member, unpaid ones first, each carrying its own payments. */
+    private function invoicesFor($member)
+    {
+        return Invoice::forMember($member)->with('payments')
+            ->orderByRaw("case status when 'open' then 0 when 'settled' then 1 else 2 end")
+            ->orderByRaw('due_on is null, due_on')->orderByDesc('id')->get();
     }
 
     /**

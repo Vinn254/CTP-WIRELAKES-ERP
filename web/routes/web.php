@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\BudgetController;
 use App\Http\Controllers\Admin\CertificationController;
+use App\Http\Controllers\Admin\CareersController as AdminCareersController;
 use App\Http\Controllers\Admin\CohortController;
 use App\Http\Controllers\Admin\CommunityController;
 use App\Http\Controllers\Admin\ConstructionController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\ExecutionController;
 use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\MarketplaceController;
 use App\Http\Controllers\Admin\HirerController;
@@ -38,6 +40,7 @@ use App\Http\Controllers\Auth\InviteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\CareersController;
 use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
@@ -63,6 +66,12 @@ Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 // Public projects board: what is open for application, and what the programme has finished.
 Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects');
 Route::get('/projects/{project}', [PublicProjectController::class, 'show'])->name('projects.show');
+
+// Careers: openings the office has put out — a job, or project work — that any person can apply for.
+Route::get('/careers', [CareersController::class, 'index'])->name('careers');
+Route::get('/careers/{opening}', [CareersController::class, 'show'])->whereNumber('opening')->name('careers.opening');
+Route::post('/careers/{opening}/apply', [CareersController::class, 'apply'])->whereNumber('opening')
+    ->middleware('throttle:6,1')->name('careers.apply');
 
 // Registrations
 Route::prefix('register')->name('register.')->middleware('throttle:8,1')->group(function () {
@@ -111,6 +120,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/registrations/{type}/{id}/reject', [ReviewController::class, 'reject'])->name('registrations.reject');
     Route::post('/registrations/{type}/{id}/reissue', [ReviewController::class, 'reissue'])->name('registrations.reissue');
     Route::post('/registrations/{type}/{id}/fee', [ReviewController::class, 'markFee'])->name('registrations.fee');
+
+    // Careers: the office posts an opening, the public page takes applications, the desk reviews and calls back.
+    Route::get('/careers', [AdminCareersController::class, 'index'])->name('careers.index');
+    Route::post('/careers', [AdminCareersController::class, 'store'])->name('careers.store');
+    Route::get('/careers/{opening}', [AdminCareersController::class, 'show'])->whereNumber('opening')->name('careers.show');
+    Route::post('/careers/{opening}', [AdminCareersController::class, 'update'])->whereNumber('opening')->name('careers.update');
+    Route::post('/careers/{opening}/status', [AdminCareersController::class, 'setStatus'])->whereNumber('opening')->name('careers.status');
+    Route::post('/careers/application/{application}', [AdminCareersController::class, 'review'])->whereNumber('application')->name('careers.review');
+    Route::get('/careers/application/{application}/cv', [AdminCareersController::class, 'cv'])->whereNumber('application')->name('careers.cv');
 
     // Site content / CMS
     Route::get('/content', [ContentController::class, 'index'])->name('content.index');
@@ -369,6 +387,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/finance/ledger', [LedgerController::class, 'index'])->name('ledger.index');
     Route::post('/finance/ledger', [LedgerController::class, 'store'])->name('ledger.store');
 
+    Route::get('/finance/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::post('/finance/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/finance/invoices/{invoice}', [InvoiceController::class, 'show'])->whereNumber('invoice')->name('invoices.show');
+    Route::post('/finance/invoices/{invoice}/pay', [InvoiceController::class, 'pay'])->whereNumber('invoice')->name('invoices.pay');
+    Route::post('/finance/payments/{payment}/void', [InvoiceController::class, 'voidPayment'])->whereNumber('payment')->name('invoices.payment.void');
+    Route::post('/finance/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->whereNumber('invoice')->name('invoices.cancel');
+    Route::post('/finance/invoices/{invoice}/reopen', [InvoiceController::class, 'reopen'])->whereNumber('invoice')->name('invoices.reopen');
+    Route::get('/finance/invoices/{invoice}/document', [InvoiceController::class, 'document'])->whereNumber('invoice')->name('invoices.document');
+    Route::post('/finance/invoices/{invoice}/email', [InvoiceController::class, 'email'])->whereNumber('invoice')->name('invoices.email');
+
     Route::get('/finance/procurement', [ProcurementController::class, 'index'])->name('procurement.index');
     Route::post('/finance/procurement', [ProcurementController::class, 'store'])->name('procurement.store');
     Route::get('/finance/procurement/{purchaseRequest}', [ProcurementController::class, 'show'])->whereNumber('purchaseRequest')->name('procurement.show');
@@ -469,6 +497,9 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/procurement', [PortalController::class, 'procurement'])->name('procurement');
     Route::post('/procurement', [PortalController::class, 'storeProcurement'])->name('procurement.store');
     Route::get('/earnings', [PortalController::class, 'earnings'])->name('earnings');
+    // Module 11 — a member only reaches this once the office has invoiced them; the invoice is theirs to settle.
+    Route::get('/invoices', [PortalController::class, 'invoices'])->name('invoices');
+    Route::get('/invoices/{invoice}/document', [PortalController::class, 'invoiceDocument'])->whereNumber('invoice')->name('invoice.document');
     Route::get('/mobilisation', [PortalController::class, 'mobilisation'])->name('mobilisation');
     Route::get('/communities', [PortalController::class, 'communities'])->name('communities');
     Route::post('/communities', [PortalController::class, 'storeCommunity'])->name('community.store');

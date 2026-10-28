@@ -118,11 +118,11 @@
 
         @if ($record->status === 'pending_payment')
             <div class="card decision">
-                <h3>Awaiting membership fee</h3>
+                <h3>Awaiting payment</h3>
                 <p class="help">
                     KSh {{ number_format($feeShown) }}
-                    one-time fee. Online checkout (M-Pesa STK / bank) arrives with the finance module — until then record it here
-                    when the money reaches us, and the application moves into the review queue.
+                    one-time payment. {{ \App\Support\Finance::paybillLine() }} Record it here when the money reaches us
+                    and the application moves into the review queue.
                     @if ($type === 'ctp')
                         A CTP a partner is sponsoring pays nothing — set the sponsor on their
                         <a href="{{ dept_link('admin.promoters.show', ['ctp' => $record->id]) }}">CTP profile</a>.

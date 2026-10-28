@@ -20,6 +20,7 @@ class FinanceEntry extends Model
         'membership_fee' => 'Membership fee',
         'training_fee' => 'Course fee paid by a trainee',
         'project_payment' => 'Payment from a hirer',
+        'invoice_settlement' => 'Payment against an invoice',
         'service_commission' => 'Service commission',
         'refurbished_sale' => 'Sale of a refurbished device',
         'recycling_sale' => 'Recycling sale',

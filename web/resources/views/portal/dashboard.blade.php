@@ -86,9 +86,10 @@
 
 @if ($isCtp && $member->status === 'pending_payment')
     <div class="card callout">
-        <h3>Your membership fee is not recorded yet</h3>
-        <p class="help" style="margin:0;">Your CTP ID and portal access are issued once the programme office confirms the
-            fee. Pay through the checkout when it opens, or bring your receipt to your County Coordinator.</p>
+        <h3>Your registration is not confirmed yet</h3>
+        <p class="help" style="margin:0;">Your CTP ID and portal access are issued once the programme office confirms
+            your payment. {{ \App\Support\Finance::paybillLine() }} Put your ID number as the reason and bring the
+            M-Pesa message to your County Coordinator if it is faster.</p>
     </div>
 @elseif ($isCtp)
     <div class="card">
@@ -103,10 +104,10 @@
     </div>
 @elseif ($member->status === 'pending_payment')
     <div class="card callout">
-        <h3>Your membership fee is not recorded yet</h3>
-        <p class="help" style="margin:0;">Your Fundi ID and access to the project marketplace are issued once the programme
-            office confirms the one-time fee of KSh {{ number_format((int) \App\Models\FundiRegistration::feeAmount()) }}.
-            Pay through the checkout when it opens, or bring your receipt to your County Coordinator.</p>
+        <h3>Your registration is not confirmed yet</h3>
+        <p class="help" style="margin:0;">Your Fundi ID and access to the project marketplace are issued once the
+            programme office confirms your one-time payment of KSh {{ number_format((int) \App\Models\FundiRegistration::feeAmount()) }}.
+            {{ \App\Support\Finance::paybillLine() }} Put your ID number as the reason.</p>
     </div>
 @endif
 

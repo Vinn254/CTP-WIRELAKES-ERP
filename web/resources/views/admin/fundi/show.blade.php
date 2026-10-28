@@ -243,8 +243,8 @@
                 <dt>E-Fundi ID</dt><dd>{{ $fundi->ef_code ?: 'Issued on approval' }}</dd>
             </dl>
             @if ($fundi->fee_status === 'awaiting_payment' && $openApplication)
-                <p class="hint">Record the KSh {{ number_format(FundiRegistration::feeAmount()) }} membership fee when the money
-                    reaches us — the fundi is not sent back to Module 1 to do it.</p>
+                <p class="hint">Record the KSh {{ number_format(FundiRegistration::feeAmount()) }} registration payment when the
+                    money reaches us — {{ \App\Support\Finance::paybillLine() }} The fundi is not sent back to Module 1 to do it.</p>
                 <form method="POST" action="{{ route('admin.fundis.fee', $fundi) }}" class="fee-form"
                       data-confirm="Record this fee and send {{ $fundi->full_name }} to review?" data-title="Membership fee">
                     @csrf

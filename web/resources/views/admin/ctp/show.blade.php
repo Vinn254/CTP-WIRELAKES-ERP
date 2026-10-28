@@ -190,8 +190,8 @@
                 <dt>CTP ID</dt><dd>{{ $ctp->ctp_code ?: 'Issued on approval' }}</dd>
             </dl>
             @if ($ctp->fee_status === 'awaiting_payment' && ! in_array($ctp->status, ['rejected', 'suspended'], true))
-                <p class="hint">Online checkout (M-Pesa STK / bank) switches on in the finance phase. Until then,
-                    record the payment here when the money reaches us — this stays inside Module 2.
+                <p class="hint">{{ \App\Support\Finance::paybillLine() }} Record the payment here when the money reaches
+                    us — this stays inside Module 2.
                     A CTP a partner is sponsoring pays nothing: set the sponsor below instead.</p>
                 <form method="POST" action="{{ route('admin.promoters.fee', $ctp) }}" class="fee-form"
                       data-confirm="Record this fee and move {{ $ctp->full_name }} into the review queue?" data-title="Membership fee">

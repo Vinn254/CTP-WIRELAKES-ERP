@@ -21,6 +21,10 @@ class Setting extends Model
             'read' => 'Shown on the public pages and quoted on member letters.'],
         'programme_phone' => ['label' => 'Programme phone', 'type' => 'text',
             'read' => 'Shown on the public pages and on the registration forms.'],
+        'paybill_number' => ['label' => 'M-Pesa Paybill', 'type' => 'text',
+            'read' => 'Printed on every invoice and shown to a member who owes money.'],
+        'paybill_account' => ['label' => 'Paybill account number', 'type' => 'text',
+            'read' => 'The account number a payer puts after the Paybill above.'],
     ];
 
     public static function get(string $key, ?string $default = null): ?string

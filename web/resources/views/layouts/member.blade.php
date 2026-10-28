@@ -32,6 +32,10 @@
             $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
         }
     }
+    // What the office has billed this member. A member who has never been invoiced is never shown a balance screen.
+    if (($invoices ?? collect())->isNotEmpty()) {
+        $nav[] = ['label' => 'My invoices', 'icon' => 'mail', 'route' => 'portal.invoices', 'active' => ['portal.invoices'], 'count' => ($invoiceCount ?? 0)];
+    }
     $nav[] = ['label' => 'E-Waste collection', 'icon' => 'globe', 'route' => 'portal.ewaste', 'active' => ['portal.ewaste']];
     // §10.4 — the worker's own side of a job they were awarded. A CTP only ever sees an attachment order here.
     $nav[] = ['label' => $isCtp ? 'My attachment work' : 'My work orders', 'icon' => 'briefcase', 'route' => 'portal.work', 'active' => ['portal.work', 'portal.work.show'], 'count' => ($workOrderCount ?? 0)];

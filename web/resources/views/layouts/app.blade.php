@@ -41,6 +41,7 @@
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
             <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a>
             <a href="{{ route('what-we-do') }}" class="{{ request()->routeIs('what-we-do') ? 'active' : '' }}">What We Do</a>
+            <a href="{{ route('careers') }}" class="{{ request()->routeIs('careers.*') ? 'active' : '' }}">Careers</a>
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
@@ -135,6 +136,7 @@ document.addEventListener('click', function (e) {
             <p>
                 <a href="{{ route('about') }}">About us</a><br>
                 <a href="{{ route('what-we-do') }}">What we do</a><br>
+                <a href="{{ route('careers') }}">Careers</a><br>
                 <a href="{{ route('faq') }}">FAQ</a><br>
                 <a href="{{ route('login') }}">Programme staff login</a>
             </p>

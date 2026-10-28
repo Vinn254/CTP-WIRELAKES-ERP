@@ -14,6 +14,10 @@ use App\Models\FinanceEntry;
 use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\InventoryItem;
+use App\Models\Invoice;
+use App\Models\InvoicePayment;
+use App\Models\JobApplication;
+use App\Models\JobOpening;
 use App\Models\LabourEntry;
 use App\Models\Need;
 use App\Models\Payout;
@@ -51,6 +55,7 @@ class Audit
         ProjectMatch::class, Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
         InventoryItem::class, StockMovement::class, Setting::class,
+        Invoice::class, InvoicePayment::class, JobOpening::class, JobApplication::class,
         WorkOrder::class, WorkOrderMilestone::class, WorkOrderDispute::class,
         SiteAssessment::class, BoqItem::class, LabourEntry::class,
         SiteInspection::class, SiteInspectionItem::class, VariationOrder::class,
@@ -69,7 +74,7 @@ class Audit
         'schedule', 'outcome', 'penalty_ksh', 'percent_complete',
         'recommendation', 'quantity', 'unit_cost_ksh', 'withdraw_note', 'result', 'rechecked_on',
         'extra_cost_ksh', 'extra_days', 'signed_off_on', 'scope',
-        'role', 'departments',
+        'role', 'departments', 'cancel_reason', 'void_reason',
     ];
 
     /** Never written into the trail, whatever changes. */
@@ -79,6 +84,7 @@ class Audit
         'certificate_path', 'org_doc_path', 'logo_path',
         'confirmation_path', 'confirmation_name', 'issue_path', 'issue_name', 'issue_size',
         'proof_path', 'proof_name', 'proof_size',
+        'cv_path', 'cv_name', 'cv_size',
     ];
 
     public static function record(Model $subject, string $action, ?string $detail = null): void
@@ -133,6 +139,14 @@ class Audit
         if ($subject instanceof ProjectMatch) {
             return 'round '.$subject->round.' — '.($subject->fundi->full_name ?? 'an E-Fundi')
                 .' for '.($subject->project->title ?? 'a project');
+        }
+
+        if ($subject instanceof Invoice) {
+            return $subject->reference.' — '.$subject->memberName().' ('.$subject->amountLabel().')';
+        }
+
+        if ($subject instanceof InvoicePayment) {
+            return 'payment of '.$subject->amountLabel().' on '.($subject->invoice->reference ?? 'an invoice');
         }
 
         if ($subject instanceof WorkOrderDispute) {
