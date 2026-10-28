@@ -196,6 +196,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/staff/directory/{record}', [DirectoryController::class, 'show'])->whereNumber('record')->name('directory.show');
     Route::post('/staff/directory/{record}', [DirectoryController::class, 'update'])->whereNumber('record')->name('directory.update');
     Route::get('/staff/directory/{record}/c14', [DirectoryController::class, 'c14'])->whereNumber('record')->name('directory.c14');
+    Route::get('/staff/directory/{record}/photo', [DirectoryController::class, 'photo'])->whereNumber('record')->name('directory.photo');
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
     Route::post('/onboarding/{application}', [OnboardingController::class, 'store'])->whereNumber('application')->name('onboarding.store');
 

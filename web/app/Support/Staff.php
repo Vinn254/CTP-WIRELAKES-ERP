@@ -71,6 +71,10 @@ class Staff
         $record->job_application_id = $application->id;
         $record->recorded_by_user = $actor->id;
 
+        if ($file = $request->file('photo')) {
+            $record->keepPhoto($file);
+        }
+
         if ($file = $request->file('c14')) {
             $record->c14_path = $file->store('staff/'.Str::slug($data['name']), 'local');
             $record->c14_name = $file->getClientOriginalName();
@@ -113,6 +117,10 @@ class Staff
 
         $record->fill(collect($data)->only(self::FIELDS)->all());
 
+        if ($file = $request->file('photo')) {
+            $record->keepPhoto($file);
+        }
+
         if ($file = $request->file('c14')) {
             $record->c14_path = $file->store('staff/'.Str::slug($record->name), 'local');
             $record->c14_name = $file->getClientOriginalName();
@@ -146,6 +154,7 @@ class Staff
             'next_of_kin_name' => 'nullable|string|max:150',
             'next_of_kin_relation' => 'nullable|string|max:60',
             'next_of_kin_phone' => 'nullable|string|max:30',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'c14' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ], [
             'name.required' => 'Give the name the office will call.',
@@ -158,7 +167,7 @@ class Staff
             'bank_name' => 'Bank', 'bank_branch' => 'Branch', 'bank_account' => 'Account number',
             'address' => 'Address', 'next_of_kin_name' => 'Next of kin',
             'next_of_kin_relation' => 'Relationship', 'next_of_kin_phone' => 'Their phone',
-            'c14' => 'the C14',
+            'photo' => 'the photo', 'c14' => 'the C14',
         ]);
     }
 

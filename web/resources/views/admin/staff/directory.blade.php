@@ -54,7 +54,12 @@
             <tbody>
                 @foreach ($records as $r)
                     <tr>
-                        <td><b>{{ $r->name }}</b>
+                        <td>@if ($r->hasPhoto())<span class="avatar has-photo"><a
+                                    href="{{ route('admin.directory.photo', $r) }}" data-zoom
+                                    aria-label="Open the profile photo"><img
+                                        src="{{ route('admin.directory.photo', $r) }}"
+                                        alt="{{ $r->name }} — profile photo"></a></span>@endif
+                            <b>{{ $r->name }}</b>
                             <small>{{ $r->user ? ($r->user->isSuperAdmin() ? 'Super admin' : ($r->user->active
                                 ? 'Office staff' : 'Deactivated')) : 'Onboarded — link not opened yet' }}</small></td>
                         <td>{{ $r->job_title ?: '—' }}

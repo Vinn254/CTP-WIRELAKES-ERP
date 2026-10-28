@@ -13,6 +13,16 @@
 @section('content')
 @include('partials.errors')
 <div class="applicant-head card">
+    @php
+        $photoUrl = $record->hasPhoto() ? route('admin.directory.photo', $record) : null;
+        $initials = collect(explode(' ', trim($record->name)))->filter()->take(2)
+            ->map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)))->join('');
+    @endphp
+    <span class="avatar-lg{{ $photoUrl ? ' has-photo' : '' }}">
+        @if ($photoUrl)
+            <a href="{{ $photoUrl }}" data-zoom aria-label="Open the profile photo"><img src="{{ $photoUrl }}" alt="{{ $record->name }} — profile photo"></a>
+        @else{{ $initials }}@endif
+    </span>
     <div class="ah-main">
         <h1>{{ $record->name }}
             <span class="status {{ $account ? ($account->active ? 'active' : 'rejected') : 'pending_review' }}">

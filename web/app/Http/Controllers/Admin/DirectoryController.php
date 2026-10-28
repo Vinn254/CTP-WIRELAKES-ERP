@@ -67,6 +67,15 @@ class DirectoryController extends Controller
         return Storage::disk('local')->response($record->c14_path, $record->c14_name ?: 'C14');
     }
 
+    /** The face on the file — the same rule as the C14: this desk sees it, nobody else. */
+    public function photo(StaffRecord $record)
+    {
+        $this->gate();
+        abort_unless($record->hasPhoto(), 404, 'That photo is no longer on record.');
+
+        return Storage::disk('local')->response($record->photo_path);
+    }
+
     private function gate(): void
     {
         abort_unless(Staff::decides(auth()->user()), 403,

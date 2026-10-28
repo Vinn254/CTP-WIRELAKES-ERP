@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Accounts;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -82,6 +83,21 @@ class StaffRecord extends Model
     public function hasC14(): bool
     {
         return $this->c14_path !== null && Storage::disk('local')->exists($this->c14_path);
+    }
+
+    public function hasPhoto(): bool
+    {
+        return $this->photo_path !== null && Storage::disk('local')->exists($this->photo_path);
+    }
+
+    /** The face on the file. A new picture replaces the one on record and its file, never a second copy. */
+    public function keepPhoto(UploadedFile $file): void
+    {
+        if ($this->photo_path && Storage::disk('local')->exists($this->photo_path)) {
+            Storage::disk('local')->delete($this->photo_path);
+        }
+
+        $this->photo_path = $file->store('staff/photos', 'local');
     }
 
     /** What is still missing for this to be a complete personnel file. */
