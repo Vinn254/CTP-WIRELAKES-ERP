@@ -19,6 +19,7 @@ use App\Models\LeaveRequest;
 use App\Models\Need;
 use App\Models\Partner;
 use App\Models\Payout;
+use App\Models\PayrollLine;
 use App\Models\ProjectApplication;
 use App\Models\ProjectMatch;
 use App\Models\PurchaseOrder;
@@ -121,6 +122,7 @@ class Departments
             ['label' => 'Money register', 'icon' => 'briefcase', 'route' => ['admin.ledger.index']],
             ['label' => 'Invoices', 'icon' => 'mail', 'route' => ['admin.invoices.index'], 'badge' => 'invoices'],
             ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
+            ['label' => 'Staff payroll', 'icon' => 'briefcase', 'route' => ['admin.staffpay.index'], 'badge' => 'payroll'],
         ],
         'procurement' => [
             ['label' => 'Purchases', 'icon' => 'link', 'route' => ['admin.procurement.index'], 'badge' => 'requests'],
@@ -132,6 +134,7 @@ class Departments
             ['label' => 'Onboarding', 'icon' => 'check', 'route' => ['admin.onboarding.index'], 'badge' => 'onboarding'],
             ['label' => 'Staff directory', 'icon' => 'users', 'route' => ['admin.directory.index']],
             ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
+            ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
             ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
             ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
         ],
@@ -164,6 +167,7 @@ class Departments
         'admin.venues.' => 'training',
         'admin.trainers.' => 'training',
         'admin.timelogs.' => 'hr',
+        'admin.payroll.' => 'hr',
         'admin.registers.' => 'training',
         'admin.certification.' => 'training',
         'admin.fundis.' => 'efundi',
@@ -176,6 +180,7 @@ class Departments
         'admin.ledger.' => 'finance',
         'admin.invoices.' => 'finance',
         'admin.payouts.' => 'finance',
+        'admin.staffpay.' => 'finance',
         'admin.procurement.' => 'procurement',
         'admin.suppliers.' => 'procurement',
         'admin.inventory.' => 'procurement',
@@ -225,6 +230,10 @@ class Departments
         'admin.host.timelogs.index' => 'The same signed weeks, read here — who of the people you work with logged what',
         'admin.host.timelogs.week' => 'The same week sheet, read here as proof of the work before pay',
         'admin.mytime.index' => 'Your own week sheet — pick the month and the week of it, write Monday to Friday, sign the week',
+        'admin.payroll.index' => 'Run the month from the staff file — allowances in, every deduction out, then send it to Finance',
+        'admin.payroll.show' => 'The month’s sheet: each person, their pay, allowances, deductions and net',
+        'admin.staffpay.index' => 'The sheets Human Resources has sent — who is owed what, and what is still to pay',
+        'admin.staffpay.show' => 'Pay each person their net; every payment posts its own register line',
         'admin.leave.index' => 'Every application on the register — approve it or send it back with what to fix',
         'admin.host.leave.index' => 'The leave the people of this desk hold, read here',
         'admin.myleave.index' => 'Your balances, the days left, and an application to Human Resources',
@@ -472,6 +481,8 @@ class Departments
             'overbudget' => BudgetLine::where('fiscal_year', now()->year)->where('amount_ksh', '>', 0)->get()
                 ->filter(fn (BudgetLine $line) => FinanceEntry::spent($line->fiscal_year, $line->category) > (float) $line->amount_ksh)->count(),
             'payouts' => Payout::whereIn('stage', ['queued', 'approved'])->count(),
+            'payroll' => PayrollLine::where('status', 'unpaid')
+                ->whereHas('run', fn ($q) => $q->where('status', 'sent'))->count(),
             'invoices' => Invoice::where('status', 'open')->count(),
             default => 0,
         };

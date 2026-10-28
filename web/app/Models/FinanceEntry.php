@@ -32,6 +32,7 @@ class FinanceEntry extends Model
 
     public const EXPENSE_KINDS = [
         'procurement' => 'Goods bought on a purchase order',
+        'payroll' => 'Staff payroll — salaries',
         'fundi_payout' => 'E-Fundi payout — project work',
         'trainer_payout' => 'Trainer payout — training delivery',
         'materials_issued' => 'Materials issued from inventory',

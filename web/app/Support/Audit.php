@@ -20,6 +20,8 @@ use App\Models\JobApplication;
 use App\Models\JobOpening;
 use App\Models\LabourEntry;
 use App\Models\Need;
+use App\Models\PayrollLine;
+use App\Models\PayrollRun;
 use App\Models\Payout;
 use App\Models\Project;
 use App\Models\ProjectMatch;
@@ -55,6 +57,7 @@ class Audit
         Community::class, Project::class, Need::class, Cohort::class,
         ProjectMatch::class, Enrollment::class, Trainer::class, Certification::class, EWasteCollection::class,
         Payout::class, PurchaseRequest::class, PurchaseOrder::class, FinanceEntry::class,
+        PayrollRun::class, PayrollLine::class,
         InventoryItem::class, StockMovement::class, Setting::class,
         Invoice::class, InvoicePayment::class, JobOpening::class, JobApplication::class, StaffRecord::class,
         WorkOrder::class, WorkOrderMilestone::class, WorkOrderDispute::class,
@@ -153,6 +156,14 @@ class Audit
 
         if ($subject instanceof InvoicePayment) {
             return 'payment of '.$subject->amountLabel().' on '.($subject->invoice->reference ?? 'an invoice');
+        }
+
+        if ($subject instanceof PayrollRun) {
+            return $subject->reference.' — payroll for '.$subject->periodLabel();
+        }
+
+        if ($subject instanceof PayrollLine) {
+            return $subject->name.' — payroll '.($subject->run->reference ?? '');
         }
 
         if ($subject instanceof WorkOrderDispute) {

@@ -299,9 +299,12 @@ table.data .empty-cell, table.data td.empty-cell { text-align: center; color: va
 /* A note or an empty state spans the whole register: it keeps a reading measure and rides with the frame. */
 table.data .span-note { position: sticky; left: 12px; max-inline-size: 900px; }
 /* The trainer's week sheet is the paper the office signs — a ruled totals band and a place to sign. */
-table.data.week-sheet tfoot td { background: var(--lime-soft); border-top: 2px solid var(--green); }
+table.data.week-sheet tfoot td, table.data.pay-sheet tfoot td { background: var(--lime-soft); border-top: 2px solid var(--green); }
 table.data.week-sheet .sign-line { display: inline-block; min-inline-size: 74px; border-bottom: 1px solid #98a79c; }
 table.data.week-sheet .warn-note { color: #8a3b12; }
+/* The payroll sheet is the same paper for money: every figure in its own ruled column, aligned on the point. */
+table.data.pay-sheet th.num, table.data.pay-sheet td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+table.data.pay-sheet td:last-child, table.data.pay-sheet th:last-child { white-space: nowrap; }
 table.data .bar { margin: 5px 0 0; }
 table.data .photo-thumb { margin-top: 6px; }
 table.data .tag { display: inline-block; line-height: 1.3; white-space: nowrap; }
@@ -444,6 +447,8 @@ html.dark .sheet-head h3 { color: var(--lime); }
 .sheet-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: .95rem; line-height: 1; padding: 5px 8px; border-radius: 8px; }
 .sheet-x:hover { background: var(--line); color: var(--green-dark); }
 .sheet-sub { margin: 6px 0 16px; color: var(--muted); font-size: .9rem; }
+/* The figure a popup is about — stated once, plainly, before the fields. */
+.sheet-note { margin: 0 0 14px; padding: 10px 12px; background: var(--lime-soft); border-radius: 10px; font-size: .95rem; }
 .sheet-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 body.sheet-lock { overflow: hidden; }
 

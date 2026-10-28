@@ -39,11 +39,6 @@ class Roles
             'desc' => 'Human Resources — careers board, applicants and signed weeks — with Membership in view',
             'departments' => ['hr', 'membership'],
         ],
-        'finance_hr' => [
-            'name' => 'Finance & HR',
-            'desc' => 'Finance & Budget · Procurement & Stores · Human Resources, with Execution in view',
-            'departments' => ['finance', 'procurement', 'hr', 'execution'],
-        ],
         'projects_desk' => [
             'name' => 'Projects Officer',
             'desc' => 'Marketplace · Execution · Construction · Technology · E-Waste',

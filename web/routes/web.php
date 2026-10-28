@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\MeGisController;
 use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\PayrollController;
+use App\Http\Controllers\Admin\StaffPayController;
 use App\Http\Controllers\Admin\ProgrammeController;
 use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -203,6 +205,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/my-leave', [LeaveController::class, 'my'])->name('myleave.index');
     Route::post('/my-leave/apply', [LeaveController::class, 'apply'])->name('myleave.apply');
     Route::post('/my-leave/{leave}/cancel', [LeaveController::class, 'cancel'])->whereNumber('leave')->name('myleave.cancel');
+
+    // Payroll. Human Resources runs the month off the staff file — allowances in, every deduction out — and sends
+    // the sheet to Finance, which sees the staff to be paid and settles them one by one on the money register.
+    Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
+    Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
+    Route::get('/payroll/{run}', [PayrollController::class, 'show'])->whereNumber('run')->name('payroll.show');
+    Route::post('/payroll/{run}/add', [PayrollController::class, 'add'])->whereNumber('run')->name('payroll.add');
+    Route::post('/payroll/{run}/send', [PayrollController::class, 'send'])->whereNumber('run')->name('payroll.send');
+    Route::post('/payroll/line/{line}', [PayrollController::class, 'line'])->whereNumber('line')->name('payroll.line');
+    Route::post('/payroll/line/{line}/hold', [PayrollController::class, 'hold'])->whereNumber('line')->name('payroll.line.hold');
+    Route::post('/payroll/line/{line}/release', [PayrollController::class, 'releaseHold'])->whereNumber('line')->name('payroll.line.release');
+
+    Route::get('/staff-pay', [StaffPayController::class, 'index'])->name('staffpay.index');
+    Route::get('/staff-pay/{run}', [StaffPayController::class, 'show'])->whereNumber('run')->name('staffpay.show');
+    Route::post('/staff-pay/{run}/return', [StaffPayController::class, 'returnTo'])->whereNumber('run')->name('staffpay.return');
+    Route::post('/staff-pay/line/{line}/pay', [StaffPayController::class, 'pay'])->whereNumber('line')->name('staffpay.pay');
 
     // Module 2 — CTP Promoter Management. Everything a CTP needs is decided here, not in Module 1.
     Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');
