@@ -36,6 +36,7 @@
                         <td>{{ $a->reviewer?->name ?: 'nobody yet' }}</td>
                         <td>@if ($a->hasCv())
                                 <a href="{{ route('admin.careers.cv', $a) }}" target="_blank">open</a>
+                                · <a href="{{ download_href(route('admin.careers.cv', $a)) }}">Download</a>
                             @else
                                 <span class="hint">none</span>
                             @endif</td>

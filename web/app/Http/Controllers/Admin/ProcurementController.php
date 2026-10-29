@@ -12,6 +12,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseQuotation;
 use App\Models\PurchaseRequest;
 use App\Models\Supplier;
+use App\Support\Documents;
 use App\Support\Finance;
 use App\Support\Procurement;
 use Illuminate\Http\Request;
@@ -251,11 +252,12 @@ class ProcurementController extends Controller
      * The order as paper — opened in the browser to read, printed or saved as a PDF and carried to the supplier
      * physically. Nothing on the page is typed again: it is the same record the desk works from.
      */
-    public function orderDocument(PurchaseOrder $order)
+    public function orderDocument(Request $request, PurchaseOrder $order)
     {
         $order->load(['request.item', 'supplier', 'raiser:id,name']);
 
-        return view('admin.finance.order-document', ['order' => $order]);
+        return Documents::page($request, view('admin.finance.order-document', ['order' => $order])->render(),
+            $order->reference);
     }
 
     /** The other way the order reaches the supplier: our own system carries the document to their address. */
@@ -272,11 +274,12 @@ class ProcurementController extends Controller
     }
 
     /** A quotation printed for the file, or sent back to the supplier to confirm the figure stands. */
-    public function quotationDocument(PurchaseQuotation $quotation)
+    public function quotationDocument(Request $request, PurchaseQuotation $quotation)
     {
         $quotation->load(['request', 'supplier', 'adder:id,name']);
 
-        return view('admin.finance.quotation-document', ['quotation' => $quotation]);
+        return Documents::page($request, view('admin.finance.quotation-document', ['quotation' => $quotation])->render(),
+            $quotation->reference);
     }
 
     public function quotationEmail(Request $request, PurchaseQuotation $quotation)

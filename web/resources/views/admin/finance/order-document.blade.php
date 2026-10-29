@@ -31,6 +31,7 @@
 <div class="bar">
     <b>{{ $order->reference }} — {{ $order->supplier->name ?? 'the supplier' }}</b>
     <button type="button" onclick="window.print()">Print / save as PDF</button>
+    <a href="{{ download_href(url()->current()) }}">Download</a>
     <a class="ghost" href="{{ route('admin.procurement.show', $order->request) }}">Back to the request</a>
 </div>
 

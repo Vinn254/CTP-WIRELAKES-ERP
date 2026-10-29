@@ -69,17 +69,18 @@
         setTimeout(drop, isError ? 9000 : 5200);
     }
 
-    function ask(form) {
+    function ask(form, message, submitter) {
         if (form.dataset.confirmed === '1') return true;
         const danger = form.hasAttribute('data-danger');
-        openDialog(form.getAttribute('data-confirm'), {
+        openDialog(message || form.getAttribute('data-confirm'), {
             danger: danger,
             title: form.getAttribute('data-title') || (danger ? 'Delete this?' : 'Please confirm'),
             ok: danger ? 'Yes, delete' : 'Confirm',
         }).then(function (yes) {
             if (!yes) return;
             form.dataset.confirmed = '1';
-            form.submit();
+            // A button that was clicked carries its own value into the submit, so resubmit through it.
+            submitter ? form.requestSubmit(submitter) : form.submit();
         });
         return false;
     }
@@ -226,14 +227,19 @@
             node.remove();
         });
 
-        document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+        // A form asks before it goes. A submit button may carry its own question, so one form can save with one
+        // button and hand the same paper in with another.
+        document.querySelectorAll('form[data-confirm], form[data-ask]').forEach(function (form) {
             if (form.id) {
                 document.querySelectorAll('button[form="' + form.id + '"]').forEach(function (btn) {
-                    btn.addEventListener('click', function (e) { e.preventDefault(); ask(form); });
+                    btn.addEventListener('click', function (e) { e.preventDefault(); ask(form, btn.dataset.confirm, btn); });
                 });
             }
             form.addEventListener('submit', function (e) {
-                if (!ask(form)) e.preventDefault();
+                const btn = e.submitter;
+                const message = (btn && btn.dataset.confirm) || form.getAttribute('data-confirm');
+                if (! message) return;
+                if (! ask(form, message, btn)) e.preventDefault();
             });
         });
 
@@ -282,9 +288,12 @@
                 if (holder) {
                     holder.innerHTML = source.innerHTML;
                     holder.hidden = false;
-                    holder.querySelectorAll('form[data-confirm]').forEach(function (form) {
+                    holder.querySelectorAll('form[data-confirm], form[data-ask]').forEach(function (form) {
                         form.addEventListener('submit', function (ev) {
-                            if (!window.wlAsk(form)) ev.preventDefault();
+                            const btn = ev.submitter;
+                            const message = (btn && btn.dataset.confirm) || form.getAttribute('data-confirm');
+                            if (! message) return;
+                            if (! window.wlAsk(form, message, btn)) ev.preventDefault();
                         });
                     });
                 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
 use App\Models\JobOpening;
+use App\Support\Documents;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -99,11 +100,10 @@ class CareersController extends Controller
     }
 
     /** A CV is a person's private document: it is served to staff with the careers screens, to nobody else. */
-    public function cv(JobApplication $application)
+    public function cv(Request $request, JobApplication $application)
     {
         abort_if(! $application->hasCv(), 404, 'That person did not attach a CV.');
-        abort_unless(Storage::disk('local')->exists($application->cv_path), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($application->cv_path, $application->cv_name ?: 'CV');
+        return Documents::file($request, $application->cv_path, $application->cv_name ?: 'CV');
     }
 }

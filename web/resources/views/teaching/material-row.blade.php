@@ -14,6 +14,8 @@
     <div class="module-foot">
         <a class="btn btn-sm btn-outline"
            href="{{ $url('material.open', ['cohort' => $cohort->id, 'material' => $paper->id]) }}">Open</a>
+        <a class="btn btn-sm btn-ghost"
+           href="{{ download_href($url('material.open', ['cohort' => $cohort->id, 'material' => $paper->id])) }}">Download</a>
         <button class="btn btn-sm btn-outline" type="button" data-sheet="material" data-material="{{ json_encode([
                 'correct' => $paper->id, 'title' => $paper->title, 'kind' => $paper->kind,
                 'training_module_id' => $paper->training_module_id, 'lesson_line_id' => $paper->lesson_line_id,

@@ -31,6 +31,7 @@
 <div class="bar">
     <b>{{ $quotation->supplier->name ?? 'Supplier' }} — {{ $quotation->amountLabel() }}</b>
     <button type="button" onclick="window.print()">Print / save as PDF</button>
+    <a href="{{ download_href(url()->current()) }}">Download</a>
     <a class="ghost" href="{{ route('admin.procurement.show', $quotation->request) }}">Back to the request</a>
 </div>
 

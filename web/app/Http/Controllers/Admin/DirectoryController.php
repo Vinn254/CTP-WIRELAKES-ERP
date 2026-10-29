@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\StaffRecord;
+use App\Support\Documents;
 use App\Support\Staff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -61,12 +62,12 @@ class DirectoryController extends Controller
     }
 
     /** A C14 names other people and their contacts: it is served to this desk, and to nobody else. */
-    public function c14(StaffRecord $record)
+    public function c14(Request $request, StaffRecord $record)
     {
         $this->gate();
-        abort_unless($record->hasC14(), 404, 'That file is no longer on record.');
+        abort_if(! $record->hasC14(), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($record->c14_path, $record->c14_name ?: 'C14');
+        return Documents::file($request, $record->c14_path, $record->c14_name ?: 'C14');
     }
 
     /** The face on the file — the same rule as the C14: this desk sees it, nobody else. */

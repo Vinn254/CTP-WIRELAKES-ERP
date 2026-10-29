@@ -48,6 +48,7 @@
 <p class="head-acts" style="display:flex;gap:8px;flex-wrap:wrap;">
     <a class="btn btn-sm btn-lime" href="{{ route('admin.invoices.document', $invoice) }}" target="_blank"
        rel="noopener">Open the document</a>
+    <a class="btn btn-sm btn-outline" href="{{ download_href(route('admin.invoices.document', $invoice)) }}">Download</a>
     @if ($invoice->status !== 'cancelled')
         <button class="btn btn-sm btn-outline" type="button" data-sheet="send">Send it by email</button>
         @if ($invoice->status === 'open')

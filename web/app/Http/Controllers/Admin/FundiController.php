@@ -8,6 +8,7 @@ use App\Models\County;
 use App\Models\FundiRegistration;
 use App\Models\ProjectApplication;
 use App\Models\Trainer;
+use App\Support\Documents;
 use App\Support\Execution;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
@@ -267,11 +268,7 @@ class FundiController extends Controller
         $docs = $fundi->documents();
         abort_unless(isset($docs[$slot]), 404, 'That document is not on this record.');
 
-        if ($request->boolean('download')) {
-            return Storage::disk('local')->response($docs[$slot]['path']);
-        }
-
-        return response()->file(Storage::disk('local')->path($docs[$slot]['path']));
+        return Documents::file($request, $docs[$slot]['path'], $docs[$slot]['label']);
     }
 
     private function guardReview(FundiRegistration $fundi): void

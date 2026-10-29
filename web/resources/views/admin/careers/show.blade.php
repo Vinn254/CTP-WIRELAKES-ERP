@@ -80,6 +80,7 @@
                     <td>CV</td>
                     <td>@if ($a->hasCv())
                             <a href="{{ route('admin.careers.cv', $a) }}" target="_blank">{{ $a->cv_name ?: 'open the file' }}</a>
+                            · <a href="{{ download_href(route('admin.careers.cv', $a)) }}">Download</a>
                             <span class="hint">({{ number_format(max(1, (int) $a->cv_size / 1024), 1) }} KB)</span>
                         @else
                             <span class="hint">none attached</span>

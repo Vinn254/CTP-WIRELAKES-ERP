@@ -95,4 +95,38 @@ class TimetableSlot extends Model
     {
         return substr((string) $this->starts_at, 0, 5).' – '.substr((string) $this->ends_at, 0, 5);
     }
+
+    /** How long the class sits, to the half hour — the register's hours are counted from this, not typed. */
+    public function hours(): float
+    {
+        return self::between($this->starts_at, $this->ends_at);
+    }
+
+    /** The same length straight from two clock times, so a week still being typed shows its own hours. */
+    public static function between(mixed $from, mixed $to): float
+    {
+        if (blank($from) || blank($to)) {
+            return 0.0;
+        }
+
+        $minutes = max(self::minutes((string) $to) - self::minutes((string) $from), 0);
+
+        return round($minutes / 60 * 2) / 2;
+    }
+
+    public function hoursLabel(): string
+    {
+        return self::clocked($this->hours()).' h';
+    }
+
+    private static function minutes(string $time): int
+    {
+        return (int) substr($time, 0, 2) * 60 + (int) substr($time, 3, 2);
+    }
+
+    /** 2 for two whole hours, 2.5 when the class ran past the half — never 2.0 with a trailing zero. */
+    public static function clocked(float|int|null $hours): string
+    {
+        return rtrim(rtrim(number_format((float) $hours, 1, '.', ''), '0'), '.');
+    }
 }

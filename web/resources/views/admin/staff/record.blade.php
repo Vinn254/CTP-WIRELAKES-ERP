@@ -99,6 +99,7 @@
     @if ($record->hasC14())
         <p><a class="btn btn-sm btn-outline" href="{{ route('admin.directory.c14', $record) }}" target="_blank">
             Open the C14</a>
+            <a class="btn btn-sm btn-ghost" href="{{ download_href(route('admin.directory.c14', $record)) }}">Download</a>
             <span class="hint">{{ $record->c14_name }} · {{ number_format(max(1, (int) $record->c14_size / 1024), 1) }} KB
                 — kept on the private disk and served to this desk only.</span></p>
     @endif

@@ -14,6 +14,7 @@ use App\Models\Trainer;
 use App\Models\TrainingMaterial;
 use App\Models\UnitMark;
 use App\Models\UnitMarkSheet;
+use App\Support\Documents;
 use App\Support\MemberPortal;
 use App\Support\TeachingDesk;
 use App\Support\TimeSheet;
@@ -142,17 +143,96 @@ abstract class TeachingPapers extends Controller
 
         $held = CohortSession::where('cohort_id', $cohort->id)
             ->whereBetween('held_on', [$week['start']->toDateString(), $last])
-            ->with('marks')->get()->groupBy(fn (CohortSession $s) => $s->held_on->toDateString());
+            ->with(['marks', 'module:id,title'])->get();
 
         return $this->view('register', $cohort, [
             'week' => $week,
-            'held' => $held,
+            'classes' => $this->weekClasses($cohort, $week, $held),
             'kinds' => CohortSession::KINDS,
+            'units' => $cohort->training?->modules ?? collect(),
             'years' => TimeSheet::years(),
+            'onTheWeek' => $this->slots($cohort)->isNotEmpty(),
         ]);
     }
 
-    /** Write one class day: the session itself and a tick per trainee. A day already forwarded is not rewritten here. */
+    /**
+     * The week's classes are the timetable's, not the trainer's memory: every class the cohort is meant to sit shows
+     * with the register already written for it, or with none. A day recorded that is not on the week's timetable
+     * still shows, marked as off the timetable, so nothing the trainer wrote is hidden.
+     */
+    private function weekClasses(Cohort $cohort, array $week, Collection $held): Collection
+    {
+        $byClass = $held->keyBy(fn (CohortSession $s) => $s->matchKey());
+        $written = [];
+        $rows = collect();
+
+        $slotsByDay = $this->slots($cohort)->sortBy('starts_at')->groupBy('day');
+
+        foreach ($week['days'] as $day) {
+            $date = $day->toDateString();
+
+            foreach ($slotsByDay->get(strtolower($day->format('l')), collect()) as $slot) {
+                $session = $byClass->get($date.'|'.$slot->kind.'|'.($slot->training_module_id ?? 0));
+
+                if ($session) {
+                    $written[] = $session->id;
+                }
+
+                $rows->push([
+                    'date' => $date,
+                    'day' => $day,
+                    'time' => $slot->timeLabel(),
+                    'hours' => $slot->hours(),
+                    'kind' => $slot->kind,
+                    'unit_id' => $slot->training_module_id,
+                    'unit' => $slot->module?->title,
+                    'room' => $slot->room,
+                    'session' => $session,
+                ]);
+            }
+        }
+
+        foreach ($held as $session) {
+            if (in_array($session->id, $written, true)) {
+                continue;
+            }
+
+            $rows->push([
+                'date' => $session->held_on->toDateString(),
+                'day' => $session->held_on->copy(),
+                'time' => null,
+                'hours' => $session->hours,
+                'kind' => $session->kind,
+                'unit_id' => $session->training_module_id,
+                'unit' => $session->unitLabel(),
+                'room' => null,
+                'session' => $session,
+                'off_timetable' => true,
+            ]);
+        }
+
+        return $rows->sortBy(fn (array $row) => $row['date'].'|'.($row['time'] ?? 'zz'))->values();
+    }
+
+    private function slots(Cohort $cohort): Collection
+    {
+        return Timetable::where('cohort_id', $cohort->id)->with('slots.module:id,title')->get()
+            ->flatMap(fn (Timetable $paper) => $paper->slots);
+    }
+
+    /** How long the timetable says this class sits — null when the day holds no such class, so a free day is typed. */
+    private function timetabledHours(Cohort $cohort, Carbon $day, string $kind, mixed $unit): ?float
+    {
+        $slot = $this->slots($cohort)->first(fn (TimetableSlot $s) => $s->day === strtolower($day->format('l'))
+            && $s->kind === $kind && (int) ($s->training_module_id ?? 0) === (int) $unit);
+
+        return $slot?->hours();
+    }
+
+    /**
+     * Write one class on the week: the register, a tick per trainee and the paper the class signed. A register can
+     * be handed to the Registrar in the same breath as it is saved. A class already forwarded is not rewritten here.
+     */
     public function saveDay(Request $request, Cohort $cohort)
     {
         $this->gate($cohort);
@@ -160,22 +240,30 @@ abstract class TeachingPapers extends Controller
         $data = $request->validate([
             'held_on' => 'required|date',
             'kind' => 'required|in:'.implode(',', array_keys(CohortSession::KINDS)),
+            'training_module_id' => 'nullable|exists:training_modules,id',
             'topic' => 'nullable|string|max:190',
-            'hours' => 'nullable|integer|min:0|max:16',
+            'hours' => 'nullable|numeric|min:0|max:16',
             'note' => 'nullable|string|max:500',
             'sheet' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:8192',
             'ticks' => 'nullable|array',
             'ticks.*' => 'boolean',
+            'tick_note' => 'nullable|array',
+            'tick_note.*' => 'nullable|string|max:190',
         ], [], [
-            'held_on' => 'Day', 'kind' => 'Class', 'topic' => 'What was covered', 'hours' => 'Hours',
-            'sheet' => 'Signed sheet',
+            'held_on' => 'Day', 'kind' => 'Class', 'training_module_id' => 'Unit',
+            'topic' => 'What was covered', 'hours' => 'Hours', 'sheet' => 'Signed sheet',
         ]);
 
         $day = Carbon::parse($data['held_on']);
         $this->guardDay($cohort, $day->toDateString());
 
+        // A class the timetable carries is taught for exactly the length the timetable set it.
+        $hours = $this->timetabledHours($cohort, $day, $data['kind'], $data['training_module_id'] ?? null)
+            ?? round((float) ($data['hours'] ?? 0) * 2) / 2;
+
         $session = CohortSession::firstOrNew([
             'cohort_id' => $cohort->id, 'held_on' => $day->toDateString(), 'kind' => $data['kind'],
+            'training_module_id' => $data['training_module_id'] ?? null,
         ], $this->actor($cohort));
 
         abort_unless(! $session->exists || $session->isEditable(), 422,
@@ -188,15 +276,15 @@ abstract class TeachingPapers extends Controller
         }
 
         $session->topic = $data['topic'] ?? null;
-        $session->hours = $data['hours'] ?? 0;
+        $session->hours = $hours;
         $session->note = $data['note'] ?? null;
         $session->save();
 
         $roll = $cohort->enrollments()->where('state', 'approved')->pluck('id');
         $here = $request->input('ticks');
 
-        // A day written for its class details first keeps every tick already on it; the grid only replaces the
-        // attendance when the grid itself was submitted.
+        // The register only replaces the ticks when the tick list came in with it — a sheet attached on its own
+        // must not clear the class the trainer already ticked.
         if (is_array($here)) {
             foreach ($roll as $id) {
                 CohortSessionMark::updateOrCreate(
@@ -206,8 +294,14 @@ abstract class TeachingPapers extends Controller
             }
         }
 
-        return back()->with('status', 'Attendance saved — '.Str::lower(CohortSession::KINDS[$data['kind']])
-            .' on '.$day->format('D d M Y').'. Forward the day when it is complete.');
+        $who = $session->unitLabel() ?: CohortSession::KINDS[$data['kind']];
+
+        if ($request->boolean('forward')) {
+            return back()->with('status', $this->forward($cohort, $session));
+        }
+
+        return back()->with('status', $who.' on '.$day->format('D d M Y').' saved — '
+            .$session->presentCount().' of '.$roll->count().' present. Forward it to the Registrar when it reads right.');
     }
 
     public function forwardDay(Cohort $cohort, CohortSession $session)
@@ -218,13 +312,12 @@ abstract class TeachingPapers extends Controller
     }
 
     /** The signed sheet, opened only through the register it belongs to. */
-    public function daySheet(Cohort $cohort, CohortSession $session)
+    public function daySheet(Request $request, Cohort $cohort, CohortSession $session)
     {
         $this->gate($cohort);
         abort_unless($session->cohort_id === $cohort->id && $session->sheet_path, 404);
-        abort_unless(Storage::disk('local')->exists($session->sheet_path), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($session->sheet_path, $session->sheet_name ?: 'Signed sheet');
+        return Documents::file($request, $session->sheet_path, $session->sheet_name ?: 'Signed sheet');
     }
 
     // ------------------------------------------------------------------- marks
@@ -308,6 +401,10 @@ abstract class TeachingPapers extends Controller
             }
         }
 
+        if ($request->boolean('forward')) {
+            return back()->with('status', $this->forward($cohort, $sheet));
+        }
+
         return back()->with('status', $written.' '.Str::plural('mark', $written)
             .' saved on the sheet for '.$sheet->unitLabel().'. Forward it when the CTPs on it are in.');
     }
@@ -353,6 +450,10 @@ abstract class TeachingPapers extends Controller
 
         foreach ($rows as $row) {
             $paper->slots()->create($row);
+        }
+
+        if ($request->boolean('forward')) {
+            return back()->with('status', $this->forward($cohort, $paper));
         }
 
         return back()->with('status', 'The week holds '.count($rows).' '.Str::plural('class', count($rows))
@@ -511,12 +612,11 @@ abstract class TeachingPapers extends Controller
         return back()->with('status', $title.' taken off the shelf.');
     }
 
-    public function openMaterial(Cohort $cohort, TrainingMaterial $material)
+    public function openMaterial(Request $request, Cohort $cohort, TrainingMaterial $material)
     {
         $this->gate($cohort);
         abort_unless($material->cohort_id === $cohort->id, 404);
-        abort_unless(Storage::disk('local')->exists($material->file_path), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($material->file_path, $material->file_name ?: $material->title);
+        return Documents::file($request, $material->file_path, $material->file_name ?: $material->title);
     }
 }

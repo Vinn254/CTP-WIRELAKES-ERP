@@ -31,7 +31,10 @@
     <div class="card">
         <div class="section-head">
             <h3>{{ $i->reference }} — {{ $i->title }}</h3>
-            <a class="btn btn-sm btn-outline" href="{{ route('portal.invoice.document', $i) }}">Open the invoice</a>
+            <div class="btn-row">
+                <a class="btn btn-sm btn-outline" href="{{ route('portal.invoice.document', $i) }}">Open the invoice</a>
+                <a class="btn btn-sm btn-outline" href="{{ download_href(route('portal.invoice.document', $i)) }}">Download</a>
+            </div>
         </div>
         <table class="data money-table">
             <tbody>

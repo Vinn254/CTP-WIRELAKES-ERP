@@ -4,6 +4,7 @@
 @php
     $editing = ! $plan || $plan->isEditable();
     $next = $lines->count() + 1;
+    $planHours = $lines->sum(fn ($l) => \App\Models\TimetableSlot::between($l->starts_at, $l->ends_at));
 @endphp
 
 @section('content')
@@ -14,81 +15,112 @@
         <h3>The plan for {{ $cohort->periodLabel() }}</h3>
         @if ($plan)<span class="status {{ $plan->statusClass() }}">{{ $plan->statusLabel() }}</span>@endif
     </div>
-    <p class="ah-meta">
-        <span>{{ $lines->count() }} {{ Str::plural('lesson', $lines->count()) }} written</span>
-        <span>{{ $cohort->training?->modules?->count() ?? 0 }} {{ Str::plural('unit', (int) ($cohort->training?->modules?->count() ?? 0)) }} on the programme</span>
-    </p>
 
     @if ($plan && $plan->status === 'returned')
         <p class="flash-error" style="margin:0 0 14px"><b>Sent back by the Registrar.</b> {{ $plan->review_note }}</p>
     @endif
 
     @if (! $editing)
-        <p class="hint">This plan is {{ Str::lower($plan->statusLabel()) }} — the Registrar answers it. A plan sent
-            back opens for correcting here again.</p>
+        <p class="hint">This plan is {{ Str::lower($plan->statusLabel()) }} — the Registrar answers it. Open a lesson to
+            read it; a plan sent back opens for correcting here again.</p>
     @else
-        <div class="module-foot">
-            <button class="btn btn-sm btn-primary" type="button" data-sheet="line" data-line="">Write lesson {{ $next }}</button>
-            @if ($plan?->exists && $lines->isNotEmpty())
-                <form method="POST" action="{{ $url('lesson.forward', ['cohort' => $cohort->id, 'plan' => $plan->id]) }}"
-                      data-confirm="Send the whole lesson plan to the Registrar?">
-                    @csrf
-                    <button class="btn btn-sm btn-outline" type="submit">Forward the plan ({{ $lines->count() }} lessons)</button>
-                </form>
-            @endif
+        <div class="record-head">
+            <h4>Lessons on the plan</h4>
+            <button class="btn btn-primary btn-sm" type="button" data-sheet="line" data-line="">
+                + Write lesson {{ $next }}</button>
         </div>
     @endif
 
-    @if ($lines->isEmpty())
-        <p class="hint">Nothing on the plan yet. Lesson 1 is written first, then the lessons follow in order to the
-            last one of the teaching period.</p>
+    <div class="table-scroll">
+        <table class="data lessons">
+            <thead><tr>
+                <th>Lesson</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Length</th>
+                <th>Unit</th>
+                <th>What is taught</th>
+                <th>Handouts</th>
+                <th></th>
+            </tr></thead>
+            <tbody>
+                @forelse ($lines as $line)
+                    <tr>
+                        <td class="lead">{{ $line->position }}</td>
+                        <td class="nowrap">{{ $line->dateLabel() }}</td>
+                        <td class="ref">{{ $line->timeLabel() ?: '—' }}</td>
+                        <td class="length">@php $clocked = \App\Models\TimetableSlot::clocked(
+                            \App\Models\TimetableSlot::between($line->starts_at, $line->ends_at)); @endphp
+                            {{ $clocked ? $clocked.' h' : '—' }}</td>
+                        <td>{{ $line->module?->title ?? '—' }}</td>
+                        <td class="text">{{ $line->topic }}</td>
+                        <td>{{ $line->materials->count() }}</td>
+                        <td class="actions">
+                            <button class="btn btn-sm btn-outline" type="button" data-lesson-read="{{ $line->id }}"
+                                    data-lesson-read-for="{{ $line->id }}" aria-expanded="false">Read</button>
+                            @if ($editing)
+                                <button class="btn btn-sm btn-ghost" type="button" data-sheet="line" data-line="{{ json_encode([
+                                        'position' => $line->position, 'training_module_id' => $line->training_module_id,
+                                        'planned_on' => $line->planned_on?->toDateString(),
+                                        'starts_at' => $line->starts_at ? substr($line->starts_at, 0, 5) : null,
+                                        'ends_at' => $line->ends_at ? substr($line->ends_at, 0, 5) : null,
+                                        'topic' => $line->topic, 'summary' => $line->summary,
+                                        'objectives' => $line->objectives, 'activities' => $line->activities,
+                                        'resources' => $line->resources, 'assessment_note' => $line->assessment_note,
+                                        'action' => $url('lesson.update', ['cohort' => $cohort->id, 'line' => $line->id]),
+                                    ]) }}">Correct</button>
+                                <form method="POST" action="{{ $url('lesson.remove', ['cohort' => $cohort->id, 'line' => $line->id]) }}"
+                                      data-confirm="Take lesson {{ $line->position }} off the plan? The lessons behind it move up.">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-ghost" type="submit">Take off</button>
+                                </form>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr class="sub-row" data-lesson-body="{{ $line->id }}" hidden>
+                        <td colspan="8">
+                            @foreach (['summary' => 'Summary and content', 'objectives' => 'Objectives',
+                                       'activities' => 'Activities', 'resources' => 'Resources',
+                                       'assessment_note' => 'How the class is assessed'] as $field => $label)
+                                @if ($line->$field)
+                                    <h5 class="dl-group">{{ $label }}</h5>
+                                    <p>{!! nl2br(e($line->$field)) !!}</p>
+                                @endif
+                            @endforeach
+                            @if ($line->materials->isNotEmpty())
+                                <h5 class="dl-group">Handouts given out</h5>
+                                <p>@foreach ($line->materials as $paper){{ $paper->title }}@if (! $loop->last), @endif @endforeach</p>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="8" class="empty-cell">Nothing on the plan yet. Lesson 1 is written first, then the
+                        lessons follow in order to the last one of the teaching period.</td></tr>
+                @endforelse
+            </tbody>
+            @if ($lines->isNotEmpty())
+                <tfoot><tr>
+                    <td colspan="3"><b>{{ $lines->count() }} {{ Str::plural('lesson', $lines->count()) }} ·
+                        {{ $cohort->training?->modules?->count() ?? 0 }} {{ Str::plural('unit', (int) ($cohort->training?->modules?->count() ?? 0)) }} on the programme</b></td>
+                    <td class="length" colspan="5">{{ \App\Models\TimetableSlot::clocked($planHours) ?: '0' }} h
+                        <span class="hint">of lesson time planned</span></td>
+                </tr></tfoot>
+            @endif
+        </table>
+    </div>
+
+    @if ($editing && $plan?->exists && $lines->isNotEmpty())
+        <div class="module-foot">
+            <button class="btn btn-outline btn-sm" type="button" data-sheet="line" data-line="">+ Write another lesson</button>
+            <form method="POST" action="{{ $url('lesson.forward', ['cohort' => $cohort->id, 'plan' => $plan->id]) }}"
+                  data-confirm="Send the whole lesson plan to the Registrar?">
+                @csrf
+                <button class="btn btn-primary btn-sm" type="submit">Forward the plan ({{ $lines->count() }} lessons)</button>
+            </form>
+        </div>
+        <p class="hint">Correcting a lesson overwrites it on the plan — the old wording does not stay beside it.</p>
     @endif
 </div>
-
-@foreach ($lines as $line)
-    <div class="card">
-        <div class="section-head">
-            <h3>Lesson {{ $line->position }} — {{ $line->topic }}</h3>
-            @if ($line->module)<span class="tag">{{ $line->module->title }}</span>@endif
-        </div>
-        <p class="ah-meta">
-            <span>{{ $line->dateLabel() }}</span>
-            @if ($line->timeLabel())<span>{{ $line->timeLabel() }}</span>@endif
-            <span>{{ $line->materials->count() }} {{ Str::plural('handout', $line->materials->count()) }} given out</span>
-        </p>
-
-        <h4 class="dl-group">Summary and content</h4>
-        <p>{!! nl2br(e($line->summary)) !!}</p>
-
-        @foreach (['objectives' => 'Objectives', 'activities' => 'Activities', 'resources' => 'Resources',
-                   'assessment_note' => 'How the class is assessed'] as $field => $label)
-            @if ($line->$field)
-                <h4 class="dl-group">{{ $label }}</h4>
-                <p>{!! nl2br(e($line->$field)) !!}</p>
-            @endif
-        @endforeach
-
-        @if ($editing)
-            <div class="module-foot">
-                <button class="btn btn-sm btn-outline" type="button" data-sheet="line" data-line="{{ json_encode([
-                        'position' => $line->position, 'training_module_id' => $line->training_module_id,
-                        'planned_on' => $line->planned_on?->toDateString(),
-                        'starts_at' => $line->starts_at ? substr($line->starts_at, 0, 5) : null,
-                        'ends_at' => $line->ends_at ? substr($line->ends_at, 0, 5) : null,
-                        'topic' => $line->topic, 'summary' => $line->summary,
-                        'objectives' => $line->objectives, 'activities' => $line->activities,
-                        'resources' => $line->resources, 'assessment_note' => $line->assessment_note,
-                        'action' => $url('lesson.update', ['cohort' => $cohort->id, 'line' => $line->id]),
-                    ]) }}">Correct lesson {{ $line->position }}</button>
-                <form method="POST" action="{{ $url('lesson.remove', ['cohort' => $cohort->id, 'line' => $line->id]) }}"
-                      data-confirm="Take lesson {{ $line->position }} off the plan? The lessons behind it move up.">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-ghost" type="submit">Take off the plan</button>
-                </form>
-            </div>
-        @endif
-    </div>
-@endforeach
 
 @if ($editing)
     @include('partials.sheet-start', ['name' => 'line', 'title' => 'Lesson', 'sub' => 'What the class is taught, from the
@@ -159,8 +191,6 @@
             <button class="btn btn-primary" type="submit" data-line-save>Write the lesson</button>
         </div>
     </form>
-    <p class="hint">Correcting a lesson overwrites it on the plan — the old wording does not stay beside it.</p>
-    @include('partials.sheet-end')
 
     <script>
         // One form serves both jobs: the button that opens it carries the lesson's own fields and its save url.
@@ -187,6 +217,17 @@
                 input.value = data[input.name] === null || data[input.name] === undefined ? '' : data[input.name];
             });
 
+        });
+
+        // A lesson's full wording opens under its own row, so the plan reads as one table.
+        document.querySelectorAll('[data-lesson-read]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const body = document.querySelector('[data-lesson-body="' + button.dataset.lessonRead + '"]');
+                const shown = body.hasAttribute('hidden');
+                body.toggleAttribute('hidden', ! shown);
+                button.textContent = shown ? 'Close' : 'Read';
+                button.setAttribute('aria-expanded', shown ? 'true' : 'false');
+            });
         });
     </script>
 @endif

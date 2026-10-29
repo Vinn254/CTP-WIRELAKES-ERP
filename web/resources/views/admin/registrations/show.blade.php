@@ -105,10 +105,11 @@
             <h3>Documents ({{ count($docs) }})</h3>
             @forelse ($docs as $slot => $path)
                 @php $docKey = explode('.', $slot)[0]; @endphp
-                <a class="doc-card" href="{{ route('admin.registrations.file', [$type, $record->id, $slot]) }}" target="_blank">
-                    <span class="dc-name">{{ $docNames[$docKey] ?? \Illuminate\Support\Str::headline($slot) }}</span>
-                    <span class="dc-open">Open {{ str_ends_with(strtolower($path), '.pdf') ? 'PDF' : 'image' }} ↗</span>
-                </a>
+                @include('partials.doc-card', [
+                    'label' => $docNames[$docKey] ?? \Illuminate\Support\Str::headline($slot),
+                    'path' => $path,
+                    'url' => route('admin.registrations.file', [$type, $record->id, $slot]),
+                ])
             @empty
                 <p class="help">No documents uploaded.</p>
             @endforelse

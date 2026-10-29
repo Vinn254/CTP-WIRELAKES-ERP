@@ -11,6 +11,7 @@ use App\Models\FundiRegistration;
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\Project;
+use App\Support\Documents;
 use App\Support\Finance;
 use App\Support\Invoices;
 use Illuminate\Http\Request;
@@ -128,13 +129,14 @@ class InvoiceController extends Controller
         return back()->with('status', $invoice->reference.' is open again at '.$invoice->balanceLabel().' outstanding.');
     }
 
-    /** The document itself: opened in the browser to read, printed or saved as a PDF from there. */
-    public function document(Invoice $invoice)
+    /** The document itself: opened in the browser to read, printed from there, or saved as a file with ?download=1. */
+    public function document(Request $request, Invoice $invoice)
     {
         $invoice->load(['ctp:id,full_name,ctp_code', 'fundi:id,full_name,ef_code', 'project:id,title',
             'payments', 'raiser:id,name']);
 
-        return view('admin.finance.invoice-document', ['invoice' => $invoice]);
+        return Documents::page($request, view('admin.finance.invoice-document', ['invoice' => $invoice])->render(),
+            $invoice->reference);
     }
 
     public function email(Request $request, Invoice $invoice)

@@ -348,11 +348,8 @@
                     application came in without one.</p>
             </form>
             @forelse ($docs as $slot => $doc)
-                <a class="doc-card" href="{{ route('admin.promoters.file', [$ctp, $slot]) }}" target="_blank"
-                    @if (! str_ends_with(strtolower($doc['path']), '.pdf')) data-zoom @endif>
-                    <span class="dc-name">{{ $doc['label'] }}</span>
-                    <span class="dc-open">Open {{ str_ends_with(strtolower($doc['path']), '.pdf') ? 'PDF' : 'image' }} ↗</span>
-                </a>
+                @include('partials.doc-card', ['label' => $doc['label'], 'path' => $doc['path'],
+                    'url' => route('admin.promoters.file', [$ctp, $slot])])
             @empty
                 <p class="help">No documents uploaded.</p>
             @endforelse

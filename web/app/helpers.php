@@ -79,6 +79,14 @@ if (! function_exists('safe_href')) {
     }
 }
 
+if (! function_exists('download_href')) {
+    /** The same document url that opens on screen, written so the browser saves the file instead. */
+    function download_href(string $url): string
+    {
+        return \App\Support\Documents::downloadUrl($url);
+    }
+}
+
 if (! function_exists('css_href')) {
     /**
      * The stylesheet with its own timestamp glued on. A browser that cached the previous copy of app.css

@@ -8,7 +8,9 @@ use App\Models\Enrollment;
 use App\Models\Timetable;
 use App\Models\TrainingMaterial;
 use App\Models\UnitMarkSheet;
+use App\Support\Documents;
 use App\Support\MemberPortal;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -75,13 +77,12 @@ class PortalClassController extends Controller
     }
 
     /** A handout, opened only through the seat that holds the class it was given to. */
-    public function open(Cohort $cohort, TrainingMaterial $material)
+    public function open(Request $request, Cohort $cohort, TrainingMaterial $material)
     {
         $this->seat($cohort);
         abort_unless($material->cohort_id === $cohort->id, 404);
-        abort_unless(Storage::disk('local')->exists($material->file_path), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($material->file_path, $material->file_name ?: 'Material');
+        return Documents::file($request, $material->file_path, $material->file_name ?: 'Handout');
     }
 
     /** The seats this CTP holds that are running — an application is not a class. */

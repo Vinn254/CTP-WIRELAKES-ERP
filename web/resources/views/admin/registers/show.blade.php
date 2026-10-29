@@ -56,6 +56,7 @@
                 @if ($paper->sheet_path)
                     <a href="{{ route('admin.teaching.day.sheet', ['cohort' => $cohort?->id, 'session' => $paper->id]) }}">
                         {{ $paper->sheet_name ?: 'Open the sheet' }}</a>
+                    · <a href="{{ download_href(route('admin.teaching.day.sheet', ['cohort' => $cohort?->id, 'session' => $paper->id])) }}">Download</a>
                 @else
                     <span class="hint">None attached — the ticks below are the register.</span>
                 @endif</dd>

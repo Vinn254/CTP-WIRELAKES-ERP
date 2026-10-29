@@ -122,8 +122,12 @@
                     </div>
                     @if ($m->note)<p class="hint">{{ $m->note }}</p>@endif
                 </div>
-                <a class="btn btn-sm btn-outline" href="{{ route('portal.class.material', ['cohort' => $cohort->id, 'material' => $m->id]) }}">
-                    Open</a>
+                <div class="btn-row">
+                    <a class="btn btn-sm btn-outline" href="{{ route('portal.class.material', ['cohort' => $cohort->id, 'material' => $m->id]) }}">
+                        Open</a>
+                    <a class="btn btn-sm btn-ghost"
+                       href="{{ download_href(route('portal.class.material', ['cohort' => $cohort->id, 'material' => $m->id])) }}">Download</a>
+                </div>
             </div>
         @endforeach
     @endif

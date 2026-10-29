@@ -14,6 +14,7 @@ use App\Models\Training;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
+use App\Support\Documents;
 use App\Support\Finance;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
@@ -302,13 +303,11 @@ class CohortController extends Controller
     }
 
     /** Documents are private: only someone who can open the cohort page can open the file. */
-    public function document(Enrollment $enrollment, TrainingDocument $document)
+    public function document(Request $request, Enrollment $enrollment, TrainingDocument $document)
     {
         abort_unless($document->enrollment_id === $enrollment->id, 404);
 
-        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'That file is no longer on record.');
-
-        return Storage::disk('local')->response($document->file_path, $document->file_name ?: $document->title);
+        return Documents::file($request, $document->file_path, $document->file_name ?: $document->title);
     }
 
     /** A mistaken application can be removed; a seat that was filled is declined instead, so the history stays. */

@@ -151,6 +151,8 @@
                                 @endif
                                 <a class="btn btn-sm btn-ghost" href="{{ route('admin.procurement.quotation.document', $q) }}"
                                    target="_blank" rel="noopener">Print</a>
+                                <a class="btn btn-sm btn-ghost"
+                                   href="{{ download_href(route('admin.procurement.quotation.document', $q)) }}">Download</a>
                                 @include('partials.sheet-start', ['name' => 'email-quote-'.$q->id,
                                     'title' => 'Send this quotation to the supplier',
                                     'sub' => 'They get the same page the office prints, so the figure cannot be read two ways.'])
@@ -321,6 +323,8 @@
                 <p class="hint" style="margin:0 0 12px;">
                     <a class="btn btn-sm btn-outline" href="{{ route('admin.procurement.order.document', $o) }}"
                        target="_blank" rel="noopener">Print or save the order</a>
+                    <a class="btn btn-sm btn-ghost"
+                       href="{{ download_href(route('admin.procurement.order.document', $o)) }}">Download</a>
                     @include('partials.sheet-start', ['name' => 'email-order-'.$o->id,
                         'title' => 'Send the order to the supplier',
                         'sub' => 'The email carries the same document the office prints. Sending it is the sending step.'])

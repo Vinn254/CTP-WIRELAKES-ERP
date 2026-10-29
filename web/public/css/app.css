@@ -16,6 +16,8 @@
 }
 
 * { box-sizing: border-box; }
+/* A button or row the page marks hidden stays hidden whatever its own display rule says. */
+[hidden] { display: none !important; }
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
@@ -41,6 +43,9 @@ body:not(.has-hero) main.container > h1:first-of-type { margin-top: 0; }
 .site-header:not(.solid) .brand { color: #fff; }
 .site-header:not(.solid) .main-nav a:not(.btn) { color: #eaf6e2; }
 .site-header:not(.solid) .main-nav a:not(.btn):hover, .site-header:not(.solid) .main-nav a.active { background: rgba(255,255,255,.16); color: #fff; }
+/* A dropped panel is a white card even over the hero — its words keep the card's ink, not the header's cream. */
+.site-header:not(.solid) .join-drop a:not(.btn) { color: var(--ink); }
+.site-header:not(.solid) .join-drop a:not(.btn):hover, .site-header:not(.solid) .join-drop a.active:not(.btn) { background: var(--lime-soft); color: var(--green); }
 .site-header:not(.solid) .menu-toggle, .site-header:not(.solid) .theme-toggle { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.55); }
 .header-bar { display: flex; align-items: center; gap: 18px; padding-top: 8px; padding-bottom: 8px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--green); text-decoration: none; font-size: 1.05rem; flex-shrink: 0; }
@@ -437,8 +442,10 @@ html.dark .back { background: #1d3122; color: #9ad87f; border-color: #2c4a32; }
 html.dark .chip { background: #1d3122; color: #9ad87f; }
 .doc-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 11px; text-decoration: none; margin-bottom: 9px; background: var(--bg); transition: .15s; }
 .doc-card:hover { border-color: var(--lime); transform: translateY(-1px); box-shadow: var(--shadow); }
+.doc-card .dc-acts { display: flex; align-items: center; gap: 14px; }
 .dc-name { font-weight: 700; color: var(--ink); font-size: .9rem; }
-.dc-open { color: var(--green); font-size: .78rem; font-weight: 800; white-space: nowrap; }
+.dc-open { color: var(--green); font-size: .78rem; font-weight: 800; white-space: nowrap; text-decoration: none; }
+.dc-open:hover { text-decoration: underline; }
 .decision { border: 1.5px solid var(--lime); }
 .decision .reject-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .outcome.active { border-left: 5px solid var(--lime); }
@@ -960,6 +967,31 @@ details.add-record > summary { list-style: none; cursor: pointer; }
 details.add-record > summary::-webkit-details-marker { display: none; }
 details.add-record[open] > summary { margin-bottom: 0; }
 details.add-record form { border: 1px dashed var(--line); border-radius: var(--radius); padding: 14px; margin-top: 12px; background: var(--card, #fff); }
+
+/* Teaching papers — a register, a marks sheet and a week are all worked inside a table, so the table has to hold
+   its own scroll, mark a value the trainer cannot type, and keep a wide grid of inputs readable. */
+.roll-scroll { max-height: 320px; overflow-y: auto; overflow-x: auto; margin: 0 0 14px; box-shadow: var(--shadow); }
+.roll-scroll table.data { box-shadow: none; margin: 0; }
+.roll-scroll table.data thead th { position: sticky; top: 0; z-index: 4; }
+input.locked { background: var(--lime-soft); color: var(--green-dark); font-weight: 800; border-color: var(--lime); cursor: default; }
+html.dark input.locked { background: #1d3122; color: var(--lime); }
+.weight-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.weight-card { background: var(--card); border-left: 4px solid var(--lime); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.weight-card small { color: var(--muted); font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.weight-card b { font-size: 1.3rem; color: var(--green-dark); font-variant-numeric: tabular-nums; }
+html.dark .weight-card b { color: var(--lime); }
+.weight-card span { font-size: .78rem; color: var(--muted); }
+.weight-card.grey { border-left-color: #b9c4bd; }
+table.data.mark-sheet td { padding: 7px 9px; vertical-align: middle; }
+table.data.mark-sheet th { padding: 9px; }
+table.data.mark-sheet input[type="number"] { inline-size: 78px; padding: 6px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+table.data.mark-sheet .cell-note { display: block; margin-top: 3px; font-size: .74rem; color: var(--muted); }
+table.data.timetable td { padding: 7px 9px; vertical-align: middle; }
+table.data.timetable input[type="time"] { inline-size: 112px; padding: 6px 8px; }
+table.data.timetable select, table.data.timetable input[type="text"] { inline-size: 100%; min-inline-size: 130px; padding: 6px 8px; }
+table.data.timetable .length { font-weight: 800; color: var(--green-dark); white-space: nowrap; font-variant-numeric: tabular-nums; }
+html.dark table.data.timetable .length { color: var(--lime); }
+@media (max-width: 720px) { .weight-row { grid-template-columns: 1fr; } }
 
 /* Profile photo on a member — the same circle, filled with the picture they joined with. */
 .avatar.has-photo, .avatar-lg.has-photo { padding: 0; overflow: hidden; background: var(--line); border-color: transparent; }

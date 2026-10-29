@@ -36,6 +36,7 @@
 <div class="bar">
     <b>{{ $invoice->reference }} — {{ $invoice->memberName() }}</b>
     <button type="button" onclick="window.print()">Print / save as PDF</button>
+    <a href="{{ download_href(url()->current()) }}">Download</a>
     <a class="ghost" href="{{ $back ?? route('admin.invoices.show', $invoice) }}">{{ $backLabel ?? 'Back to the invoice' }}</a>
 </div>
 

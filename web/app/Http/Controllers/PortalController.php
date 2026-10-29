@@ -28,6 +28,7 @@ use App\Models\Training;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
+use App\Support\Documents;
 use App\Support\MemberPortal;
 use App\Support\Marketplace;
 use App\Support\TimeSheet;
@@ -142,13 +143,13 @@ class PortalController extends Controller
     }
 
     /** The paperwork on their own record. The slot comes from the record, never from the url alone. */
-    public function efundiFile(string $slot)
+    public function efundiFile(Request $request, string $slot)
     {
         $fundi = $this->fundi();
         $docs = $fundi->documents();
         abort_unless(isset($docs[$slot]), 404, 'That file is not on your record.');
 
-        return Storage::disk('local')->response($docs[$slot]['path'], $docs[$slot]['label']);
+        return Documents::file($request, $docs[$slot]['path'], $docs[$slot]['label']);
     }
 
     /** Availability is the fundi's own call — the office can correct it, but nobody else sets it day to day. */
@@ -415,13 +416,12 @@ class PortalController extends Controller
             $their, $request, ['uploaded_by_fundi' => $this->fundi()->id]));
     }
 
-    public function document(Enrollment $enrollment, TrainingDocument $document)
+    public function document(Request $request, Enrollment $enrollment, TrainingDocument $document)
     {
         $their = $this->theirTrainee($enrollment);
         abort_unless($document->enrollment_id === $their->id, 404);
-        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($document->file_path, $document->file_name ?: $document->title);
+        return Documents::file($request, $document->file_path, $document->file_name ?: $document->title);
     }
 
     /**
@@ -851,17 +851,17 @@ class PortalController extends Controller
     }
 
     /** The member's own invoice, served as the same branded document the office sends by email. */
-    public function invoiceDocument(Invoice $invoice)
+    public function invoiceDocument(Request $request, Invoice $invoice)
     {
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
         abort_unless(Invoice::forMember($member)->whereKey($invoice->id)->exists(), 404);
 
-        return view('admin.finance.invoice-document', [
+        return Documents::page($request, view('admin.finance.invoice-document', [
             'invoice' => $invoice->load('payments'),
             'back' => route('portal.invoices'),
             'backLabel' => 'Back to my invoices',
-        ]);
+        ])->render(), $invoice->reference);
     }
 
     /** Every invoice raised against this member, unpaid ones first, each carrying its own payments. */

@@ -143,13 +143,9 @@ class ReviewController extends Controller
     {
         $record = $this->model($type)::findOrFail($id);
         $path = $this->resolvePath($type, $record, $doc);
-        abort_unless($path && Storage::disk('local')->exists($path), 404, 'Document not uploaded.');
+        abort_unless($path, 404, 'Document not uploaded.');
 
-        if ($request->boolean('download')) {
-            return Storage::disk('local')->response($path);
-        }
-
-        return response()->file(Storage::disk('local')->path($path));
+        return Documents::file($request, $path, Str::headline($slot));
     }
 
     private function documentList(string $type, $record): array

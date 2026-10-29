@@ -28,6 +28,8 @@
             <a class="btn btn-sm btn-outline" href="{{ $open($d) }}"
                 @if ($isImage($d->file_name)) data-zoom data-zoom-label="{{ $d->title }} — {{ $enrollment->ctp->full_name }}" @endif
                 title="{{ $isImage($d->file_name) ? 'Zoom the photo' : 'Open the file' }}">Open</a>
+            <a class="btn btn-sm btn-ghost" href="{{ download_href($open($d)) }}"
+               title="Save this document">Download</a>
         @else
             <span class="hint">{{ $d->file_name }}</span>
         @endif

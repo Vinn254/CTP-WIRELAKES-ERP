@@ -9,6 +9,7 @@ use App\Models\ModuleCompletion;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\Trainer;
+use App\Support\Documents;
 use App\Support\TrainingTrack;
 use App\Support\Workspace;
 use Illuminate\Http\Request;
@@ -81,13 +82,12 @@ class TeachingController extends Controller
         return back()->with('status', TrainingTrack::storeDocument($their, $request, $this->actor()));
     }
 
-    public function document(Enrollment $enrollment, TrainingDocument $document)
+    public function document(Request $request, Enrollment $enrollment, TrainingDocument $document)
     {
         $their = $this->theirTrainee($enrollment);
         abort_unless($document->enrollment_id === $their->id, 404);
-        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'That file is no longer on record.');
 
-        return Storage::disk('local')->response($document->file_path, $document->file_name ?: $document->title);
+        return Documents::file($request, $document->file_path, $document->file_name ?: $document->title);
     }
 
     /**

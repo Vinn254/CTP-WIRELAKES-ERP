@@ -73,4 +73,18 @@ class UnitMarkSheet extends Model
     {
         return $this->module?->title ?? Str::headline((string) $this->training_module_id);
     }
+
+    /**
+     * Where each mark on the sheet lands in a CTP's track: the part it feeds and what that part is worth. The
+     * weights are the track's own, so the figures a trainer writes and the ones the office counts never differ.
+     */
+    public static function weightNotes(): array
+    {
+        return collect(self::KINDS)->mapWithKeys(fn (string $label, string $kind) => [$kind => match ($kind) {
+            'theory' => ['part' => 'theory', 'note' => 'The theory part of the track.'],
+            'practical' => ['part' => 'practical', 'note' => 'The practical part of the track.'],
+            'assignment' => ['part' => 'assessment', 'note' => 'Counted with the CATs and the final assessment.'],
+            default => ['part' => 'assessment', 'note' => 'Counted with the assignments and the final assessment.'],
+        }])->all();
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\CtpRegistration;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Support\Documents;
 use App\Support\Execution;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
@@ -276,11 +277,7 @@ class CtpProfileController extends Controller
         $docs = $this->documents($ctp);
         abort_unless(isset($docs[$slot]), 404, 'Document not uploaded.');
 
-        if ($request->boolean('download')) {
-            return Storage::disk('local')->response($docs[$slot]['path']);
-        }
-
-        return response()->file(Storage::disk('local')->path($docs[$slot]['path']));
+        return Documents::file($request, $docs[$slot]['path'], $docs[$slot]['label']);
     }
 
     /** Staff can fix the lineage when the applicant mistyped or the code did not match. */
