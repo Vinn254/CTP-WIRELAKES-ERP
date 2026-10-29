@@ -62,7 +62,11 @@
                         <span class="hint">not yet</span>
                     @endif
                 </td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ $open($e) }}">Open</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ $open($e) }}">Open</a>
+                    @if ($studentRecord ?? false)
+                        <a class="btn btn-sm btn-ghost" href="{{ route('admin.students.show', $e->ctp_id) }}">Student record</a>
+                    @endif
+                </td>
             </tr>
         @empty
             <tr><td colspan="11" class="empty-cell">

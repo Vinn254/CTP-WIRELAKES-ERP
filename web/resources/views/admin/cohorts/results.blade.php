@@ -63,6 +63,7 @@
             @include('partials.results', [
                 'enrollments' => $enrollments,
                 'open' => $open,
+                'studentRecord' => true,
                 'whoMarks' => 'The trainer at the site and the office both write these lines, so a trainee has one record, not two.',
             ])
         </div>

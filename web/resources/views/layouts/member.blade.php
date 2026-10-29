@@ -23,6 +23,7 @@
     if ($isCtp) {
         $nav[] = ['label' => 'My training', 'icon' => 'check', 'route' => 'portal.training', 'active' => ['portal.training']];
         $nav[] = ['label' => 'My class', 'icon' => 'cap', 'route' => 'portal.class', 'active' => ['portal.class', 'portal.class.cohort', 'portal.class.material']];
+        $nav[] = ['label' => 'My library', 'icon' => 'book', 'route' => 'portal.library', 'active' => ['portal.library', 'portal.library.open']];
         $nav[] = ['label' => 'My mobilisation', 'icon' => 'users', 'route' => 'portal.mobilisation', 'active' => ['portal.mobilisation']];
         $nav[] = ['label' => 'My communities', 'icon' => 'globe', 'route' => 'portal.communities', 'active' => ['portal.communities'], 'count' => ($communities ?? collect())->count()];
     } else {

@@ -64,7 +64,8 @@
                 <td><span class="fee-tag {{ $c->fee_status }}">{{ CtpRegistration::FEE_STATUSES[$c->fee_status] ?? $c->fee_status }}</span></td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span></td>
                 <td>{{ $c->created_at->format('d M Y') }}</td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $c) }}">Open profile</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $c) }}">Open profile</a>
+                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.edit', $c) }}">Edit</a></td>
             </tr>
         @empty
             <tr><td colspan="9" class="empty-cell">No CTPs in this view yet.</td></tr>
@@ -150,7 +151,8 @@
                     </form>
                     <div class="hint">Shows as <b>{{ $a->gradeLabel() }}</b>@if ($a->fundi_tier) · takes their projects @else · attachment work only @endif</div>
                 </td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $a) }}">Open profile</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $a) }}">Open profile</a>
+                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.edit', $a) }}">Edit</a></td>
             </tr>
         @empty
             <tr><td colspan="9" class="empty-cell">

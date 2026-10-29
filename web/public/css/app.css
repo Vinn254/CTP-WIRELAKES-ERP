@@ -430,7 +430,7 @@ html.dark .back { background: #1d3122; color: #9ad87f; border-color: #2c4a32; }
 .ah-main h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 1.35rem; margin: 0 0 6px; }
 .ah-meta { display: flex; gap: 8px 18px; flex-wrap: wrap; margin: 0; color: var(--muted); font-size: .85rem; }
 .ah-contact { display: flex; flex-direction: column; gap: 4px; text-align: right; }
-.ah-contact a { color: var(--green); font-weight: 700; font-size: .87rem; text-decoration: none; }
+.ah-contact a:not(.btn) { color: var(--green); font-weight: 700; font-size: .87rem; text-decoration: none; }
 .review-grid { align-items: start; }
 .review-side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 78px; }
 .dl-group { margin: 20px 0 8px; font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 5px; }
@@ -443,6 +443,8 @@ html.dark .chip { background: #1d3122; color: #9ad87f; }
 .doc-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 11px; text-decoration: none; margin-bottom: 9px; background: var(--bg); transition: .15s; }
 .doc-card:hover { border-color: var(--lime); transform: translateY(-1px); box-shadow: var(--shadow); }
 .doc-card .dc-acts { display: flex; align-items: center; gap: 14px; }
+.lib-acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
+.lib-acts form { margin: 0; }
 .dc-name { font-weight: 700; color: var(--ink); font-size: .9rem; }
 .dc-open { color: var(--green); font-size: .78rem; font-weight: 800; white-space: nowrap; text-decoration: none; }
 .dc-open:hover { text-decoration: underline; }

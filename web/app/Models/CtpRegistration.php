@@ -516,6 +516,14 @@ class CtpRegistration extends Model
             ->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
     }
 
+    /** What a printed paper writes: the given name and the surname, never a middle name or a title. */
+    public function paperName(): string
+    {
+        $words = collect(explode(' ', trim((string) $this->full_name)))->filter()->values();
+
+        return $words->count() < 3 ? $words->join(' ') : $words->first().' '.$words->last();
+    }
+
     /** Missing profile information, so the profile page can show what staff still need to capture. */
     public function profileGaps(): array
     {

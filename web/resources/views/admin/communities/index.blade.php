@@ -76,7 +76,8 @@
                 <td>{{ $c->beneficiaries_count }}</td>
                 <td>{{ $c->projects_count }}</td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span></td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.communities.show', $c) }}">Open</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.communities.show', $c) }}">Open</a>
+                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.communities.edit', $c) }}">Edit</a></td>
             </tr>
         @empty
             <tr><td colspan="10" class="empty-cell">No communities in this view yet.</td></tr>

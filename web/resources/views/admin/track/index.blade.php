@@ -38,6 +38,15 @@
     </div>
 </form>
 
+@php
+    // The same trainees, filed under the course they are sitting, so one programme reads on its own.
+    $groups = collect($rows)
+        ->groupBy(fn (array $row) => $row['e']->cohort?->courseLabel() ?: 'Cohort removed')
+        ->sortKeys();
+@endphp
+
+@forelse ($groups as $label => $block)
+<h4 class="dl-group">{{ $label }} — {{ $block->count() }} {{ Str::plural('trainee', $block->count()) }}</h4>
 <table class="data">
     <thead>
         <tr>
@@ -46,7 +55,7 @@
         </tr>
     </thead>
     <tbody>
-        @forelse ($rows as $row)
+        @forelse ($block as $row)
             @php
                 $e = $row['e'];
                 $missing = $e->state === 'approved' && $row['pct'] < 100
@@ -77,6 +86,7 @@
                     @else<span class="hint">not put forward</span>@endif</td>
                 <td class="actions">
                     <a class="btn btn-sm btn-outline" href="{{ route('admin.track.show', $e) }}">Open track</a>
+                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.students.show', $e->ctp) }}">Student record</a>
                 </td>
             </tr>
         @empty
@@ -87,6 +97,16 @@
         @endforelse
     </tbody>
 </table>
+@empty
+<table class="data">
+    <tbody>
+        <tr><td class="empty-cell">
+            Nobody is on a training seat yet. Seats come from a cohort — <b>Cohorts</b> → give a CTP a seat,
+            or a CTP applies themselves from <b>My training</b>.
+        </td></tr>
+    </tbody>
+</table>
+@endforelse
 
 <p class="hint" style="margin-top:14px;">
     A track is worked out from what has actually been recorded on the seat — an application that has not been

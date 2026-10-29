@@ -83,6 +83,7 @@
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
                     @if ($c->status === 'open' && $c->isFull())<div class="hint">full</div>@endif</td>
                 <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a>
+                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.cohorts.edit', $c) }}">Edit</a>
                     @if ($c->status !== 'draft' && ($recordsAny || in_array((int) $c->trainer_id, $mySites, true)))
                         <a class="btn btn-sm btn-lime" href="{{ route('admin.teaching.register', ['cohort' => $c->id]) }}">
                             Class papers</a>

@@ -138,6 +138,7 @@
     @include('partials.results', [
         'enrollments' => $enrollments,
         'open' => fn ($e) => route('admin.track.show', $e),
+        'studentRecord' => true,
         'whoMarks' => 'Open a trainee below to record their sessions, mark the modules and upload their work.',
     ])
 </div>
