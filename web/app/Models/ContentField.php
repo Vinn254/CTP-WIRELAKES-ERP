@@ -18,11 +18,13 @@ class ContentField extends Model
         return $this->belongsTo(ContentSection::class, 'section_id');
     }
 
-    /** Unique, readable filename for an uploaded image value. The extension comes from the bytes, not the name. */
+    /** Unique, readable filename for an uploaded value. The extension comes from the bytes, not the name. */
     public static function slugName(self $field, UploadedFile $file): string
     {
-        $base = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'image';
+        $video = $field->type === 'video';
+        $base = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: ($video ? 'clip' : 'image');
 
-        return $base.'-f'.$field->id.'-'.Str::random(6).'.'.Uploads::imageExtension($file);
+        return $base.'-f'.$field->id.'-'.Str::random(6).'.'
+            .($video ? Uploads::videoExtension($file) : Uploads::imageExtension($file));
     }
 }

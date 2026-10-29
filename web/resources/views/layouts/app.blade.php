@@ -41,6 +41,14 @@
             <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
             <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a>
             <a href="{{ route('what-we-do') }}" class="{{ request()->routeIs('what-we-do') ? 'active' : '' }}">What We Do</a>
+            <div class="join-menu">
+                <button type="button" class="btn btn-ghost btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">Our work @include('partials.icon', ['n' => 'chevron'])</button>
+                <div class="join-drop work-drop">
+                    @foreach (\App\Support\ProgrammeAreas::all() as $aslug => $a)
+                        <a href="{{ route($aslug) }}" class="{{ request()->routeIs($aslug) ? 'active' : '' }}">{{ $a['nav'] }}</a>
+                    @endforeach
+                </div>
+            </div>
             <a href="{{ route('careers') }}" class="{{ request()->routeIs('careers.*') ? 'active' : '' }}">Careers</a>
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
@@ -132,6 +140,14 @@ document.addEventListener('click', function (e) {
             </p>
         </div>
         <div>
+            <h4>Our work</h4>
+            <p>
+                @foreach (\App\Support\ProgrammeAreas::all() as $aslug => $a)
+                    <a href="{{ route($aslug) }}">{{ $a['nav'] }}</a><br>
+                @endforeach
+            </p>
+        </div>
+        <div>
             <h4>Info</h4>
             <p>
                 <a href="{{ route('about') }}">About us</a><br>
@@ -144,5 +160,6 @@ document.addEventListener('click', function (e) {
     </div>
     <div class="container fine">{{ content('site','footer','fine_print','© '.date('Y').' WireLakes Technologies') }}</div>
 </footer>
+<script src="{{ asset('js/lightbox.js') }}"></script>
 </body>
 </html>

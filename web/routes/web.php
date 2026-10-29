@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ActivityController;
+use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Admin\BudgetController;
 use App\Http\Controllers\Admin\CertificationController;
 use App\Http\Controllers\Admin\CareersController as AdminCareersController;
@@ -51,6 +52,7 @@ use App\Http\Controllers\Auth\InviteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\AreaPageController;
 use App\Http\Controllers\CareersController;
 use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
@@ -63,6 +65,7 @@ use App\Http\Controllers\PublicProjectController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkOrderPortalController;
 use App\Support\Departments;
+use App\Support\ProgrammeAreas;
 use Illuminate\Support\Facades\Route;
 
 // Public pages
@@ -76,6 +79,17 @@ Route::post('/donate', [PageController::class, 'storeDonation'])->name('donate.s
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [PageController::class, 'storeContact'])->name('contact.store');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
+
+// The six areas of work, each on its own page: what the area does, explained beside the office's own pictures, with
+// the one form a person uses to ask for that work. Joining and job applications go to the register and Careers pages.
+// The projects board already has its own page, so only the request form and the join links are added there.
+foreach (array_keys(ProgrammeAreas::AREAS) as $area) {
+    if ($area !== 'projects') {
+        Route::get('/'.$area, [AreaPageController::class, 'show'])->name($area)->defaults('area', $area);
+    }
+    Route::post('/'.$area.'/apply', [AreaPageController::class, 'apply'])
+        ->middleware('throttle:6,1')->name($area.'.apply')->defaults('area', $area);
+}
 
 // Public projects board: what is open for application, and what the programme has finished.
 Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects');
@@ -143,6 +157,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/careers/{opening}/status', [AdminCareersController::class, 'setStatus'])->whereNumber('opening')->name('careers.status');
     Route::post('/careers/application/{application}', [AdminCareersController::class, 'review'])->whereNumber('application')->name('careers.review');
     Route::get('/careers/application/{application}/cv', [AdminCareersController::class, 'cv'])->whereNumber('application')->name('careers.cv');
+
+    // Applications that came in from the public area pages: read the line, answer it, record the call back.
+    Route::get('/applications', [AdminApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{application}', [AdminApplicationController::class, 'show'])->whereNumber('application')->name('applications.show');
+    Route::post('/applications/{application}', [AdminApplicationController::class, 'review'])->whereNumber('application')->name('applications.review');
 
     // Site content / CMS
     Route::get('/content', [ContentController::class, 'index'])->name('content.index');
@@ -588,6 +607,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
             ->whereNumber('user')->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
         // Every desk sees who of its own is away, on the same rows Human Resources answers.
         Route::get('/leave/in/{department}', [LeaveController::class, 'index'])->name('leave.index');
+        // The public intake register, read by the desk whose area page took the application in.
+        Route::get('/applications/in/{department}', [AdminApplicationController::class, 'index'])->name('applications.index');
+        Route::get('/applications/{application}/in/{department}', [AdminApplicationController::class, 'show'])
+            ->whereNumber('application')->name('applications.show');
     });
 });
 

@@ -25,7 +25,7 @@ return new class extends Migration
             $table->foreignId('section_id')->constrained('content_sections')->cascadeOnDelete();
             $table->string('key', 80);
             $table->string('label', 120);
-            $table->enum('type', ['text', 'textarea', 'image', 'url', 'price'])->default('text');
+            $table->enum('type', ['text', 'textarea', 'image', 'video', 'url', 'price'])->default('text');
             $table->unsignedInteger('sort_order')->default(0);
             $table->unique(['section_id', 'key']);
         });

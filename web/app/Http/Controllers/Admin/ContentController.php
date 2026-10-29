@@ -23,6 +23,11 @@ class ContentController extends Controller
         'partners' => 'Partners page',
         'contact' => 'Contact page',
         'membership' => 'Membership (fees, tracks, tiers)',
+        'training' => 'Training page',
+        'marketplace' => 'Marketplace page',
+        'e-waste' => 'E-Waste page',
+        'entrepreneurship' => 'Entrepreneurship page',
+        'green-economy' => 'Green Economy page',
     ];
 
     public function index()
@@ -56,7 +61,7 @@ class ContentController extends Controller
             foreach ($fields as $fieldId => $text) {
                 $field = ContentField::find($fieldId);
                 if (! $field || $field->section_id !== $entry->section_id) continue;
-                if ($field->type === 'image') continue; // handled below
+                if (in_array($field->type, ['image', 'video'], true)) continue; // handled below
                 ContentValue::updateOrCreate(
                     ['entry_id' => $entry->id, 'field_id' => $field->id],
                     ['text_value' => is_string($text) ? trim($text) : $text]
@@ -71,6 +76,23 @@ class ContentController extends Controller
                 $field = ContentField::find($fieldId);
                 if (! $field || $field->type !== 'image' || ! $file) continue;
                 $request->validate(["images.$entryId.$fieldId" => 'image|mimes:'.\App\Support\Uploads::IMAGE_MIMES.'|max:4096']);
+                $name = ContentField::slugName($field, $file);
+                $file->move(public_path('uploads/content'), $name);
+                ContentValue::updateOrCreate(
+                    ['entry_id' => $entry->id, 'field_id' => $field->id],
+                    ['image_path' => $name]
+                );
+            }
+        }
+
+        // A short clip is stored the same way as a photo: renamed from its bytes, into the same public folder.
+        foreach ($request->file('videos', []) as $entryId => $fields) {
+            $entry = ContentEntry::find($entryId);
+            if (! $entry) continue;
+            foreach ($fields as $fieldId => $file) {
+                $field = ContentField::find($fieldId);
+                if (! $field || $field->type !== 'video' || ! $file) continue;
+                $request->validate(["videos.$entryId.$fieldId" => 'file|mimes:'.\App\Support\Uploads::VIDEO_MIMES.'|max:20480']);
                 $name = ContentField::slugName($field, $file);
                 $file->move(public_path('uploads/content'), $name);
                 ContentValue::updateOrCreate(
@@ -150,7 +172,7 @@ class ContentController extends Controller
     {
         $data = $request->validate([
             'label' => 'required|string|max:120',
-            'type' => 'required|in:text,textarea,image,url,price',
+            'type' => 'required|in:text,textarea,image,video,url,price',
         ]);
         $key = Str::slug($data['label'], '_');
         $base = $key; $i = 1;

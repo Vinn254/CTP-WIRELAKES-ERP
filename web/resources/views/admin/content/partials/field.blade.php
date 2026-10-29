@@ -17,6 +17,15 @@
         @endif
         <input type="file" name="images[{{ $entry->id }}][{{ $field->id }}]" accept=".jpg,.jpeg,.png,.webp">
         <div class="hint">{{ $value?->image_path ? 'Leave empty to keep the current picture. Max 4 MB.' : 'JPG, PNG, SVG or WebP — max 4 MB.' }}</div>
+    @elseif ($field->type === 'video')
+        @if ($value?->image_path)
+            <div class="cf-img">
+                <video src="{{ asset('uploads/content/'.$value->image_path) }}" controls preload="metadata" style="max-width:260px;"></video>
+                <label class="chk"><input type="checkbox" name="remove_image[{{ $entry->id }}][{{ $field->id }}]" value="1"> Remove clip</label>
+            </div>
+        @endif
+        <input type="file" name="videos[{{ $entry->id }}][{{ $field->id }}]" accept=".mp4,.webm,.mov">
+        <div class="hint">{{ $value?->image_path ? 'Leave empty to keep the current clip. Max 20 MB.' : 'A short clip — MP4, WebM or MOV, max 20 MB.' }}</div>
     @elseif ($field->type === 'textarea')
         <textarea name="values[{{ $entry->id }}][{{ $field->id }}]" rows="4">{{ $v }}</textarea>
     @elseif ($field->type === 'price')

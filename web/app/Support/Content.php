@@ -40,7 +40,7 @@ class Content
                 foreach ($entry->values as $value) {
                     $def = $fieldDefs->get($value->field_id);
                     if (! $def) continue;
-                    $row[$def->key] = $def->type === 'image'
+                    $row[$def->key] = in_array($def->type, ['image', 'video'], true)
                         ? ($value->image_path ? asset('uploads/content/'.$value->image_path) : null)
                         : $value->text_value;
                 }

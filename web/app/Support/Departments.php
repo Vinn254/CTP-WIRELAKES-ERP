@@ -18,6 +18,7 @@ use App\Models\JobApplication;
 use App\Models\LeaveRequest;
 use App\Models\Need;
 use App\Models\Partner;
+use App\Models\ProgrammeApplication;
 use App\Models\Payout;
 use App\Models\PayrollLine;
 use App\Models\ProjectApplication;
@@ -88,6 +89,7 @@ class Departments
             ['label' => 'Partners', 'icon' => 'link', 'route' => ['admin.partners.index'], 'badge' => 'partners'],
             ['label' => 'Donations', 'icon' => 'heart', 'route' => ['admin.donations.index']],
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
             ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
         'promoters' => [
@@ -98,6 +100,8 @@ class Departments
             ['label' => 'Community register', 'icon' => 'globe', 'route' => ['admin.communities.index'], 'badge' => 'communities'],
             ['label' => 'Needs assessment', 'icon' => 'check', 'route' => ['admin.needs.index'], 'badge' => 'needs'],
             ['label' => 'Beneficiaries', 'icon' => 'users', 'route' => ['admin.beneficiaries.index']],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+
         ],
         'training' => [
             ['label' => 'Cohorts', 'icon' => 'briefcase', 'route' => ['admin.cohorts.index'], 'badge' => 'seats'],
@@ -108,24 +112,33 @@ class Departments
             ['label' => 'Trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
             ['label' => 'Teaching papers', 'icon' => 'mail', 'route' => ['admin.registers.index'], 'badge' => 'papers'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
         ],
         'efundi' => [
             ['label' => 'E-Fundi register', 'icon' => 'users', 'route' => ['admin.fundis.index'], 'badge' => 'fundis'],
         ],
         'marketplace' => [
             ['label' => 'Matching desk', 'icon' => 'briefcase', 'route' => ['admin.marketplace.index'], 'badge' => 'invites'],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+
         ],
         'execution' => [
             ['label' => 'Delivery register', 'icon' => 'briefcase', 'route' => ['admin.execution.index'], 'badge' => 'workorders'],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+
         ],
         'construction' => [
             ['label' => 'Construction files', 'icon' => 'briefcase', 'route' => ['admin.construction.index'], 'badge' => 'construction'],
         ],
         'technology' => [
             ['label' => 'Technology registers', 'icon' => 'grid', 'route' => ['admin.technology.index'], 'badge' => 'technology'],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+
         ],
         'ewaste' => [
             ['label' => 'E-Waste register', 'icon' => 'globe', 'route' => ['admin.ewaste.index'], 'badge' => 'collections'],
+            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+
         ],
         'finance' => [
             ['label' => 'Programme budget', 'icon' => 'sliders', 'route' => ['admin.budget.index'], 'badge' => 'overbudget'],
@@ -164,6 +177,7 @@ class Departments
         'admin.content.' => 'membership',
         'admin.partners.' => 'membership',
         'admin.messages.' => 'membership',
+        'admin.applications.' => 'membership',
         'admin.projects.' => 'membership',
         'admin.hirers.' => 'membership',
         'admin.donations.' => 'membership',
@@ -219,6 +233,7 @@ class Departments
         'admin.content.edit' => 'Fees, CTP tracks and E-Fundi tiers used by the forms',
         'admin.partners.index' => 'Requests from the public page and the partner wall',
         'admin.messages.index' => 'Messages sent from the public contact form',
+        'admin.applications.index' => 'Service requests from the public area pages, and what the desk said back',
         'admin.careers.index' => 'Openings the office has put out for a job or project work, and the people who applied',
         'admin.projects.index' => 'Post projects, review applications and assign one worker',
         'admin.hirers.index' => 'Organisations that projects are posted for',
@@ -308,6 +323,12 @@ class Departments
         // Human Resources answers a leave application; each desk sees the ones its own people hold, read here.
         'admin.host.leave.index' => ['admin.leave.index', ['membership', 'promoters', 'communities', 'training', 'efundi',
             'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
+        // Website & Membership keeps the public intake register; the desk running an area reads the lines that
+        // came in on its own page here, and answers them from the record it is pointed to by email.
+        'admin.host.applications.index' => ['admin.applications.index', ['training', 'marketplace', 'execution',
+            'ewaste', 'communities', 'technology']],
+        'admin.host.applications.show' => ['admin.applications.show', ['training', 'marketplace', 'execution',
+            'ewaste', 'communities', 'technology']],
     ];
 
     public static function all(): array
@@ -380,6 +401,54 @@ class Departments
         return $user !== null && ($user->isSuperAdmin()
             || in_array('hr', $user->departmentSlugs(), true)
             || in_array('system_administrator', $user->roleSlugs(), true));
+    }
+
+    /**
+     * The live office accounts running one department — the people a public application in that department's area
+     * is announced to, next to the executive. A title that later takes on the tick brings its holder in without
+     * anyone re-saving the account.
+     *
+     * @return array<int, string>
+     */
+    public static function staffEmails(?string $slug): array
+    {
+        if (! $slug) {
+            return [];
+        }
+
+        return User::query()->where('active', true)->whereNotNull('email')
+            ->get(['email', 'departments', 'roles', 'role'])
+            ->reject(fn (User $user) => $user->isSuperAdmin()) // the executive is already on the notice
+            ->filter(fn (User $user) => in_array($slug, $user->departmentSlugs(), true))
+            ->pluck('email')->all();
+    }
+
+    /**
+     * The public area pages whose applications this account answers. Website & Membership and the executive read the
+     * whole intake; every other desk reads the areas of work it actually runs. Null means every area.
+     *
+     * @return array<int, string>|null
+     */
+    public static function areasFor(?User $user): ?array
+    {
+        $slugs = static::visibleSlugs($user);
+
+        if (in_array('membership', $slugs, true)) {
+            return null;
+        }
+
+        return array_keys(array_filter(ProgrammeAreas::AREAS,
+            fn (array $area) => in_array($area['department'], $slugs, true)));
+    }
+
+    /** Lines from the area pages that are still waiting to be read by this desk. */
+    public static function waitingAreaApplications(?User $user): int
+    {
+        $areas = static::areasFor($user);
+
+        return ProgrammeApplication::where('status', 'received')
+            ->when($areas !== null, fn ($q) => $q->whereIn('area', $areas ?: ['__none__']))
+            ->count();
     }
 
     /**
@@ -517,6 +586,7 @@ class Departments
             'needs' => Need::where('status', 'proposed')->count(),
             'partners' => Partner::where('is_listed', false)->count(),
             'careers' => JobApplication::where('status', 'received')->count(),
+            'areaapps' => static::waitingAreaApplications(auth()->user()),
             'onboarding' => JobApplication::whereIn('status', JobApplication::ONBOARDABLE)->count(),
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),

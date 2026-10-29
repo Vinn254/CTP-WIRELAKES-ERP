@@ -110,6 +110,11 @@ class ContentSeeder extends Seeder
                 ['icon' => '🌱', 'title' => 'Green Economy & Technology', 'desc' => 'Solar, ICT, networking, robotics, programming and AI services delivered by our own trained workforce.', 'cta_label' => 'Learn more', 'cta_url' => '/about'],
             ]);
 
+        // ---------- the six public area pages ----------
+        // Headings and offers are the programme's own words. Pictures, clips and testimonials are left empty on
+        // purpose: the office uploads what it has actually shot and types what people actually said.
+        $this->areas();
+
         // ---------- faq ----------
         $this->put('faq', 'intro', 'Page heading', 'single',
             ['tag' => ['Tag', 'text'], 'title' => ['Title', 'text']],
@@ -184,6 +189,95 @@ class ContentSeeder extends Seeder
     }
 
     /**
+     * Sections every area page needs: a heading block, the work the area explains line by line with a picture beside
+     * each explanation, a picture-and-clip gallery and the testimonials band. The gallery and testimonial rows start
+     * empty for the office to fill with its own shots and the real words of the people served.
+     */
+    protected function areas(): void
+    {
+        $offers = [
+            'training' => [
+                ['title' => 'Cohorts at community sites', 'desc' => "A training does not wait for people to come to a town centre — we run it as a cohort at a community venue or a partner school, with one trainer assigned to that site.\nEvery cohort has a timetable, an attendance register kept day by day, and a practical check at each site. You are taught where you live, and the record of your attendance is the office's, not a piece of paper you must keep safe."],
+                ['title' => 'Modules and a track', 'desc' => "Each training is divided into modules, and the modules are put together into a track. A trainer marks you module by module — attendance, the practical, the written work — and the track shows the percentage reached.\nYou see your own progress on your screen the whole way through. Nothing is counted that the trainer has not recorded and the Registrar has not approved."],
+                ['title' => 'Certification', 'desc' => "When a track reaches 100% the trainee goes into the certification queue, where the office checks the record and signs it off. What comes out is a record the programme can verify when an employer or a hirer asks.\nA certificate is issued by the executive desk. Staff prepare the file; the person who signs is named on it."],
+                ['title' => 'Trainers', 'desc' => "The people who teach are our own approved fundis and CTPs who finished a track and were then assessed to pass it on. They hand in their register, marks, timetable and lesson plans for the Registrar to approve.\nIf you want to teach with us, you register as a Fundi first — a trainer is a graded fundi the training desk has assigned to a site."],
+            ],
+            'marketplace' => [
+                ['title' => 'Electrical installation', 'desc' => "Wiring, boards, connections and testing for a home, a school or a business, done by verified E-Fundis under the marketplace desk. You tell us the building and the work; we send a graded fundi and the desk stands behind the job.\nEvery installation is handed over with a record of who did it, so a later fault has a name and a number to call."],
+                ['title' => 'Solar installation', 'desc' => "Panels, batteries, inverters and the cabling between them, fitted and tested by our own trained workforce rather than a sub-contracter we have never met.\nA system is sized to what you actually run — lighting, sockets, a pump, a fridge — and the people who use it are shown how to run it after we leave."],
+                ['title' => 'Training for your group', 'desc' => "A course delivered at your site for your own people — a village group, a SACCO, a school's staff — with assessment at the end and a record of every person who sat it.\nChoose the training from the catalogue the office keeps; tell us the number of people and where, and the desk quotes for it."],
+                ['title' => 'A fundi for a job', 'desc' => "Tell us the work and the county. The marketplace desk searches its own register of graded fundis and puts the right people forward, with their grade and the work they have already completed.\nYou are not sent a stranger from an advert — you are sent someone the programme has trained and can account for."],
+                ['title' => 'A trainer', 'desc' => "An approved trainer for a cohort, a workshop or a practical check, released by the training desk and recorded against your project so the paperwork that follows has an owner."],
+                ['title' => 'Web design', 'desc' => "A site for a school, a SACCO, a chama or a small business — built, then kept updated by the technology desk so it does not go dead after launch week.\nThe site states who you are and what you offer, and it carries the same care as our own."],
+                ['title' => 'Software design', 'desc' => "Record systems and tools that replace a paper book: a register, a rota, a book of accounts, a queue of requests. Built by our own developers on the same system the programme runs itself on."],
+                ['title' => 'Cyber services', 'desc' => "Printing, scanning, photocopying, CV typing and online applications — HELB, KUCCPS, NHIF, eCitizen and a tender pack, done with you at the desk rather than sent off alone.\nThis is the counter people walk into first, and the same staff who handle the paperwork can set up the site or the system behind it."],
+            ],
+            'e-waste' => [
+                ['title' => 'Collection', 'desc' => "We collect e-waste from a home, an office or a school. An E-Fundi registered on this desk picks it up, and the load is weighed in at the depot so the amount handled is a figure, not a guess.\nYou get a record of what left your premises and where it went."],
+                ['title' => 'Testing and sorting', 'desc' => "Every item is tested before it is judged. What still has life in it goes for repair, what can be built up again goes for refurbishment, and what is finished goes to safe disposal.\nSorting is what keeps a working machine out of a hole."],
+                ['title' => 'Repair and refurbishment', 'desc' => "Our waste innovators bring equipment back to working order — screens, boards, power supplies, small appliances. A repaired item is tested, then offered to a school or a community centre that needs it.\nThis is where a trained fundi earns twice: the waste is cleared and a classroom gets equipment."],
+                ['title' => 'Safe disposal', 'desc' => "What cannot be saved is disposed of the way the rules require, with the disposal recorded against the collection that brought it in. Nothing is burnt and nothing is buried with the general rubbish."],
+                ['title' => 'Refurbished gear for schools', 'desc' => "Worked-on equipment goes back into classrooms and community centres, where it is used rather than stored. A school that needs a lab tells this desk and the gear is allocated from the stock already refurbished."],
+            ],
+            'entrepreneurship' => [
+                ['title' => 'Business support', 'desc' => "A fundi or a CTP with a skill and no order is the person this area exists for. They get the support to register, price their work and keep books, and the marketplace desk gives them the first contract.\nThe training is only finished when the skill is earning."],
+                ['title' => 'Toolkits', 'desc' => "Tools and equipment that make an enterprise able to take work the day it starts — a tool set, a ladder, machine, meters or a kit for the specific trade. A toolkit is asked for against a plan, not handed out at random."],
+                ['title' => 'Enterprise that hires locally', 'desc' => "A business started here employs people from the same community the training came from. The credit a CTP earns is measured by the people they brought in, and the jobs a new enterprise creates stay in that county."],
+            ],
+            'green-economy' => [
+                ['title' => 'Solar installation', 'desc' => "Solar for a home, a school or a clinic — fitted, tested and handed over with training for the people who will run it. A school that has never had power gets the system and the fundi who maintains it.\nThe work is carried out by the same workforce the training area produces, which is why a fault is answered by someone we know."],
+                ['title' => 'Green technology', 'desc' => "Energy-efficient fittings and community technology that lower a running cost rather than only looking modern on a brochure — water pumping, efficient lighting, backup power for a facility that cannot afford to go dark."],
+                ['title' => 'ICT, networking and robotics', 'desc' => "Networking, robotics, programming and AI services delivered by our own trained workforce, installed and then supported under a warranty the technology desk stands behind. A lab that stops working is a ticket on that desk, not a phone call into the wind."],
+            ],
+        ];
+
+        $headings = [
+            'training' => ['Training', 'Training & Certification',
+                'Courses and cohorts at community sites and partner schools — theory, practical work, assessment and a certificate.'],
+            'marketplace' => ['Marketplace', 'The Marketplace',
+                'This is where you ask us to do the work. We offer electrical and solar installation, training for a group, a fundi for a job, a trainer, web design, software design and cyber services.'],
+            'e-waste' => ['E-Waste', 'E-Waste Management',
+                'The e-waste we have collected, repaired and given back to schools — with the pictures of the work. Ask us for a collection, or register to collect and repair yourself.'],
+            'entrepreneurship' => ['Entrepreneurship', 'Entrepreneurship',
+                'What the programme offers a fundi or a CTP turning a skill into a business, and what has been achieved so far.'],
+            'green-economy' => ['Green Economy', 'Green Economy & Technology',
+                'Solar, green technology and community technology, installed and maintained by our own workforce — the projects and the pictures of the work.'],
+        ];
+
+        foreach ($headings as $slug => [$tag, $title, $sub]) {
+            $this->put($slug, 'intro', 'Page heading', 'single',
+                ['tag' => ['Tag', 'text'], 'title' => ['Title', 'text'], 'sub' => ['Subtitle', 'textarea'],
+                 'work_title' => ['Work heading', 'text'], 'work_note' => ['Work note', 'textarea'],
+                 'gallery_title' => ['Pictures heading', 'text'], 'voices_title' => ['Testimonials heading', 'text'],
+                 'apply_title' => ['Request heading', 'text'], 'apply_note' => ['Request note', 'textarea'],
+                 'join_title' => ['Join heading', 'text'], 'join_note' => ['Join note', 'textarea']],
+                [['tag' => $tag, 'title' => $title, 'sub' => $sub,
+                  'work_title' => 'What this area actually does',
+                  'work_note' => 'Each line below is work this area carries out — what happens, start to finish, with a picture of it beside the words.',
+                  'gallery_title' => 'Pictures and clips from the work',
+                  'voices_title' => 'From the people we have trained and served',
+                  'apply_title' => 'Ask us to do this for you',
+                  'apply_note' => 'Tell us what you need done and where you are. The office reads it and contacts you on the number or email you give.',
+                  'join_title' => 'Want to join us or work with us instead?',
+                  'join_note' => 'Those do not go through the form above — you register so we can verify you, and a job application goes to the Careers desk.']]);
+
+            $this->put($slug, 'offers', 'What we do here', 'repeater',
+                ['title' => ['Title', 'text'], 'desc' => ['Explanation', 'textarea'],
+                 'photo' => ['Picture of the work', 'image']],
+                $offers[$slug]);
+
+            $this->put($slug, 'gallery', 'Pictures & short videos', 'repeater',
+                ['photo' => ['Photo', 'image'], 'video' => ['Video clip', 'video'], 'caption' => ['Caption', 'textarea']],
+                []);
+
+            $this->put($slug, 'testimonials', 'Testimonials', 'repeater',
+                ['quote' => ['In their words', 'textarea'], 'name' => ['Name', 'text'],
+                 'role' => ['What they are', 'text'], 'town' => ['Town / county', 'text']],
+                []);
+        }
+    }
+
+    /**
      * Idempotently create a section + its field schema + entry values (only if the section is new).
      */
     protected function put(string $page, string $key, string $name, string $kind, array $fields, array $rows): void
@@ -207,7 +301,14 @@ class ContentSeeder extends Seeder
             $entry = ContentEntry::create(['section_id' => $section->id, 'sort_order' => $i]);
             foreach ($row as $fkey => $value) {
                 if (! isset($fieldModels[$fkey])) continue;
-                ContentValue::create(['entry_id' => $entry->id, 'field_id' => $fieldModels[$fkey]->id, 'text_value' => $value]);
+                $def = $fieldModels[$fkey];
+                $isMedia = in_array($def->type, ['image', 'video'], true);
+
+                ContentValue::create([
+                    'entry_id' => $entry->id,
+                    'field_id' => $def->id,
+                    $isMedia ? 'image_path' : 'text_value' => $value,
+                ]);
             }
         }
     }

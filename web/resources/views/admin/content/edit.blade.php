@@ -6,7 +6,7 @@
     $pageTitle = ContentController::PAGES[$page];
     $visibles = $sections->where('is_visible', true)->count();
     $publicUrl = $page === 'site' ? route('home') : ($page === 'membership' ? route('register.ctp') : route($page));
-    $fieldTypes = ['text' => 'Short text', 'textarea' => 'Long text', 'image' => 'Image upload', 'url' => 'URL / link', 'price' => 'Price (KSh)'];
+    $fieldTypes = ['text' => 'Short text', 'textarea' => 'Long text', 'image' => 'Image upload', 'video' => 'Video clip', 'url' => 'URL / link', 'price' => 'Price (KSh)'];
 @endphp
 
 @section('content')

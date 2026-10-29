@@ -74,4 +74,5 @@
         </div>
     </section>
 @endif
+@include('partials.area-apply', ['area' => 'projects'])
 @endsection
