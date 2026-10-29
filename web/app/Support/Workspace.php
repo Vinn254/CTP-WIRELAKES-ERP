@@ -29,15 +29,18 @@ class Workspace
         $groups = [];
 
         // Their own teaching first: a trainer who also runs a department works both from one sidebar.
-        if (Trainer::forAccount($user)->isNotEmpty()) {
+        if (static::trainerDesk($user)) {
             $groups[] = [
                 'slug' => 'trainer',
                 'label' => Roles::all()['trainer']['name'],
                 'note' => Roles::all()['trainer']['desc'],
-                'items' => [
-                    ['label' => 'My teaching', 'icon' => 'award', 'route' => ['admin.teaching.index'],
-                        'note' => 'The cohorts you take and the marks you record for them', 'department' => 'training'],
-                ],
+                'items' => array_merge(
+                    [
+                        ['label' => 'My teaching', 'icon' => 'award', 'route' => ['admin.teaching.index'], 'same' => true,
+                            'note' => 'The cohorts you take and the marks you record for them', 'department' => 'training'],
+                    ],
+                    static::paperLinks($user),
+                ),
             ];
         }
 
@@ -126,6 +129,52 @@ class Workspace
         }
 
         return $cards;
+    }
+
+    /**
+     * Does this account work a trainer desk at all?
+     *
+     * The office licenses a trainer site by site, but it also hands out the Trainer job title first. Someone holding
+     * the title gets the desk — and the empty state that tells them which site is still missing — rather than a
+     * refusal that reads as a fault. A cohort stays out of reach until a posting under their name is approved.
+     */
+    public static function trainerDesk(?User $user): bool
+    {
+        return $user !== null
+            && (Trainer::forAccount($user)->isNotEmpty() || in_array('trainer', $user->roleSlugs(), true));
+    }
+
+    /**
+     * The five papers of the one class a trainer holds, straight on the sidebar.
+     *
+     * With two or more cohorts the papers are opened from My teaching, where the class is picked first; listing them
+     * here would point at a class the trainer did not choose.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function paperLinks(?User $user): array
+    {
+        $taught = TeachingDesk::postings($user)->flatMap(fn (Trainer $t) => $t->cohorts)
+            ->where('status', '!=', 'draft')->unique('id')->values();
+
+        if ($taught->count() !== 1) {
+            return [];
+        }
+
+        $cohort = $taught->first()->id;
+
+        $papers = [
+            ['Attendance', 'clipboard', 'register', 'Tick the class roll for a day you taught, and hand the day in'],
+            ['Marks', 'check', 'marks', 'The CATs, assignments, theory and practical marks per unit'],
+            ['Timetable', 'clock', 'timetable', 'The week of classes you propose for the Registrar to approve'],
+            ['Lesson plan', 'cap', 'lessons', 'What you will teach, lesson 1 to the last lesson of the period'],
+            ['Material', 'image', 'materials', 'The notes, slides and assignments you hand each class'],
+        ];
+
+        return array_map(fn (array $p) => [
+            'label' => $p[0], 'icon' => $p[1], 'route' => ['admin.teaching.'.$p[2], ['cohort' => $cohort]],
+            'note' => $p[3], 'department' => 'training', 'same' => true,
+        ], $papers);
     }
 
     /**

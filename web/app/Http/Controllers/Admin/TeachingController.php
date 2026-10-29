@@ -114,8 +114,9 @@ class TeachingController extends Controller
                 ->orderByDesc('starts_on'),
         ])->sortBy(fn (Trainer $t) => $t->venue?->name ?? $t->placeLabel())->values();
 
-        abort_unless($postings->isNotEmpty(), 403, 'My teaching is for a staff account the programme has licensed to '
-            .'train. The office posts a trainer site by site under Trainers before a cohort is handed over.');
+        // The desk opens on the title alone; a cohort is still only reachable through an approved posting.
+        abort_unless(Workspace::trainerDesk(auth()->user()), 403, 'My teaching is for a staff account the programme has '
+            .'licensed to train. The office posts a trainer site by site under Trainers before a cohort is handed over.');
 
         return $postings;
     }

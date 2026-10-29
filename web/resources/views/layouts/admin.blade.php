@@ -20,6 +20,10 @@
             return request()->routeIs('admin.content.edit') && $deptPage === 'membership';
         }
 
+        if ($item['same'] ?? false) {
+            return request()->routeIs($target);
+        }
+
         return request()->routeIs(preg_replace('/\.[^.]+$/', '.', $target).'*');
     };
     $me = auth()->user();
@@ -65,13 +69,18 @@
     $sections[] = ['label' => 'Office', 'icon' => 'grid', 'items' => $office];
 
     if ($isSuper) {
-        if (\App\Models\Trainer::forAccount($me)->isNotEmpty()) {
-            $sections[] = ['label' => \App\Support\Roles::all()['trainer']['name'], 'icon' => 'award', 'items' => [
-                ['label' => 'My teaching', 'icon' => 'award', 'href' => route('admin.teaching.index'),
-                    'active' => request()->routeIs('admin.teaching.*'), 'badge' => 0],
-                ['label' => 'My time log', 'icon' => 'clock', 'href' => route('admin.mytime.index'),
-                    'active' => request()->routeIs('admin.mytime.*'), 'badge' => 0],
-            ]];
+        if (\App\Support\Workspace::trainerDesk($me)) {
+            $sections[] = ['label' => \App\Support\Roles::all()['trainer']['name'], 'icon' => 'award', 'items' => array_merge(
+                [
+                    ['label' => 'My teaching', 'icon' => 'award', 'href' => route('admin.teaching.index'),
+                        'active' => request()->routeIs('admin.teaching.index'), 'badge' => 0],
+                ],
+                array_map($mkItem, \App\Support\Workspace::paperLinks($me)),
+                [
+                    ['label' => 'My time log', 'icon' => 'clock', 'href' => route('admin.mytime.index'),
+                        'active' => request()->routeIs('admin.mytime.*'), 'badge' => 0],
+                ],
+            )];
         }
 
         if ($dept) {
