@@ -32,11 +32,13 @@ use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\RequisitionController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\RecordsController;
+use App\Http\Controllers\Admin\RegistrarPaperController;
 use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\TeachingPaperController;
 use App\Http\Controllers\Admin\TeachingController;
 use App\Http\Controllers\Admin\TechnologyController;
 use App\Http\Controllers\Admin\TimeLogController;
@@ -53,8 +55,10 @@ use App\Http\Controllers\CareersController;
 use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PortalClassController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalLeaveController;
+use App\Http\Controllers\PortalTrainerPaperController;
 use App\Http\Controllers\PublicProjectController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkOrderPortalController;
@@ -346,6 +350,41 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/teaching/{enrollment}/documents', [TeachingController::class, 'storeDocument'])->whereNumber('enrollment')->name('teaching.document.store');
     Route::get('/teaching/{enrollment}/documents/{document}', [TeachingController::class, 'document'])->whereNumber('enrollment')->whereNumber('document')->name('teaching.document.show');
 
+    // The five papers a trainer hands in for one cohort — the attendance register, a unit's marks, the timetable,
+    // the lesson plan and the learning material. The trainer's own desk and the Training office fill the same
+    // papers from this one screen; only who may open which cohort differs.
+    Route::prefix('teaching/{cohort}')->whereNumber('cohort')->group(function () {
+        Route::get('register', [TeachingPaperController::class, 'register'])->name('teaching.register');
+        Route::post('register', [TeachingPaperController::class, 'saveDay'])->name('teaching.day.save');
+        Route::post('register/{session}/forward', [TeachingPaperController::class, 'forwardDay'])->whereNumber('session')->name('teaching.day.forward');
+        Route::get('register/{session}/sheet', [TeachingPaperController::class, 'daySheet'])->whereNumber('session')->name('teaching.day.sheet');
+
+        Route::get('marks', [TeachingPaperController::class, 'marks'])->name('teaching.marks');
+        Route::post('marks', [TeachingPaperController::class, 'saveSheet'])->name('teaching.sheet.save');
+        Route::post('marks/{sheet}/forward', [TeachingPaperController::class, 'forwardSheet'])->whereNumber('sheet')->name('teaching.sheet.forward');
+
+        Route::get('timetable', [TeachingPaperController::class, 'timetable'])->name('teaching.timetable');
+        Route::post('timetable', [TeachingPaperController::class, 'saveTimetable'])->name('teaching.timetable.save');
+        Route::post('timetable/{timetable}/forward', [TeachingPaperController::class, 'forwardTimetable'])->whereNumber('timetable')->name('teaching.timetable.forward');
+
+        Route::get('lessons', [TeachingPaperController::class, 'lessons'])->name('teaching.lessons');
+        Route::post('lessons', [TeachingPaperController::class, 'saveLesson'])->name('teaching.lesson.save');
+        Route::post('lessons/{line}', [TeachingPaperController::class, 'saveLesson'])->whereNumber('line')->name('teaching.lesson.update');
+        Route::delete('lessons/{line}', [TeachingPaperController::class, 'removeLesson'])->whereNumber('line')->name('teaching.lesson.remove');
+        Route::post('lessons/{plan}/forward', [TeachingPaperController::class, 'forwardLesson'])->whereNumber('plan')->name('teaching.lesson.forward');
+
+        Route::get('materials', [TeachingPaperController::class, 'materials'])->name('teaching.materials');
+        Route::post('materials', [TeachingPaperController::class, 'storeMaterial'])->name('teaching.material.store');
+        Route::patch('materials/{material}', [TeachingPaperController::class, 'updateMaterial'])->whereNumber('material')->name('teaching.material.update');
+        Route::delete('materials/{material}', [TeachingPaperController::class, 'destroyMaterial'])->whereNumber('material')->name('teaching.material.destroy');
+        Route::get('materials/{material}/open', [TeachingPaperController::class, 'openMaterial'])->whereNumber('material')->name('teaching.material.open');
+    });
+
+    // The Academic Registrar's queue. A trainer's paper only reaches a trainee's record once it is approved here.
+    Route::get('/registers', [RegistrarPaperController::class, 'index'])->name('registers.index');
+    Route::get('/registers/{kind}/{id}', [RegistrarPaperController::class, 'show'])->where('kind', 'register|marks|timetable|lesson')->whereNumber('id')->name('registers.show');
+    Route::post('/registers/{kind}/{id}/decide', [RegistrarPaperController::class, 'decide'])->where('kind', 'register|marks|timetable|lesson')->whereNumber('id')->name('registers.decide');
+
     Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
     Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');
     Route::post('/certification/{certification}/approve', [CertificationController::class, 'approve'])->whereNumber('certification')->name('certification.approve');
@@ -558,6 +597,12 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/training', [PortalController::class, 'training'])->name('training');
     Route::post('/training/apply', [PortalController::class, 'applyCohort'])->name('training.apply');
     Route::post('/training/{enrollment}/withdraw', [PortalController::class, 'withdrawSeat'])->whereNumber('enrollment')->name('training.withdraw');
+    // The class itself, as the trainer runs it: the week the Registrar approved, the units on the roll and the
+    // material handed out for each lesson. A handout only opens through the seat that holds it.
+    Route::get('/class', [PortalClassController::class, 'index'])->name('class');
+    Route::get('/class/{cohort}', [PortalClassController::class, 'show'])->whereNumber('cohort')->name('class.cohort');
+    Route::get('/class/{cohort}/material/{material}/open', [PortalClassController::class, 'open'])
+        ->whereNumber('cohort')->whereNumber('material')->name('class.material');
     Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
     // An E-Fundi trainer fills and signs the same week sheet the Training desk approves.
     Route::get('/trainer/week', [PortalController::class, 'trainerWeek'])->name('trainer.week');
@@ -582,6 +627,35 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::delete('/trainer/{enrollment}/modules/{module}', [PortalController::class, 'unmarkModule'])->whereNumber('enrollment')->whereNumber('module')->name('trainer.module.unmark');
     Route::post('/trainer/{enrollment}/documents', [PortalController::class, 'storeDocument'])->whereNumber('enrollment')->name('trainer.document.store');
     Route::get('/trainer/{enrollment}/documents/{document}', [PortalController::class, 'document'])->whereNumber('enrollment')->whereNumber('document')->name('trainer.document.show');
+
+    // An E-Fundi trainer hands in the same five papers from inside their own portal — the register, the marks, the
+    // timetable, the lesson plan and the material, on the cohorts the programme handed to their sites.
+    Route::prefix('trainer/class/{cohort}')->whereNumber('cohort')->group(function () {
+        Route::get('register', [PortalTrainerPaperController::class, 'register'])->name('trainer.register');
+        Route::post('register', [PortalTrainerPaperController::class, 'saveDay'])->name('trainer.day.save');
+        Route::post('register/{session}/forward', [PortalTrainerPaperController::class, 'forwardDay'])->whereNumber('session')->name('trainer.day.forward');
+        Route::get('register/{session}/sheet', [PortalTrainerPaperController::class, 'daySheet'])->whereNumber('session')->name('trainer.day.sheet');
+
+        Route::get('marks', [PortalTrainerPaperController::class, 'marks'])->name('trainer.marks');
+        Route::post('marks', [PortalTrainerPaperController::class, 'saveSheet'])->name('trainer.sheet.save');
+        Route::post('marks/{sheet}/forward', [PortalTrainerPaperController::class, 'forwardSheet'])->whereNumber('sheet')->name('trainer.sheet.forward');
+
+        Route::get('timetable', [PortalTrainerPaperController::class, 'timetable'])->name('trainer.timetable');
+        Route::post('timetable', [PortalTrainerPaperController::class, 'saveTimetable'])->name('trainer.timetable.save');
+        Route::post('timetable/{timetable}/forward', [PortalTrainerPaperController::class, 'forwardTimetable'])->whereNumber('timetable')->name('trainer.timetable.forward');
+
+        Route::get('lessons', [PortalTrainerPaperController::class, 'lessons'])->name('trainer.lessons');
+        Route::post('lessons', [PortalTrainerPaperController::class, 'saveLesson'])->name('trainer.lesson.save');
+        Route::post('lessons/{line}', [PortalTrainerPaperController::class, 'saveLesson'])->whereNumber('line')->name('trainer.lesson.update');
+        Route::delete('lessons/{line}', [PortalTrainerPaperController::class, 'removeLesson'])->whereNumber('line')->name('trainer.lesson.remove');
+        Route::post('lessons/{plan}/forward', [PortalTrainerPaperController::class, 'forwardLesson'])->whereNumber('plan')->name('trainer.lesson.forward');
+
+        Route::get('materials', [PortalTrainerPaperController::class, 'materials'])->name('trainer.materials');
+        Route::post('materials', [PortalTrainerPaperController::class, 'storeMaterial'])->name('trainer.material.store');
+        Route::patch('materials/{material}', [PortalTrainerPaperController::class, 'updateMaterial'])->whereNumber('material')->name('trainer.material.update');
+        Route::delete('materials/{material}', [PortalTrainerPaperController::class, 'destroyMaterial'])->whereNumber('material')->name('trainer.material.destroy');
+        Route::get('materials/{material}/open', [PortalTrainerPaperController::class, 'openMaterial'])->whereNumber('material')->name('trainer.material.open');
+    });
     // Module 10 — both members register e-waste in the field; an E-Fundi also forwards what a CTP logged.
     Route::get('/ewaste', [PortalController::class, 'ewaste'])->name('ewaste');
     Route::post('/ewaste', [PortalController::class, 'storeEwaste'])->name('ewaste.store');

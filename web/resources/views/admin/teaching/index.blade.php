@@ -41,7 +41,12 @@
         <p class="hint">{{ $t->placeLabel() }}@if ($t->weekly_hours) · {{ $t->weekly_hours }} h a week @endif</p>
 
         @forelse ($t->cohorts as $c)
-            <h4 class="dl-group">{{ $c->reference }} — {{ $c->courseLabel() }} · {{ $c->dateLabel() }}</h4>
+            <h4 class="dl-group">{{ $c->reference }} — {{ $c->courseLabel() }} · {{ $c->dateLabel() }}
+                @if ($c->status !== 'draft')
+                    <a class="btn btn-sm btn-lime" style="margin-left:10px"
+                       href="{{ route('admin.teaching.register', ['cohort' => $c->id]) }}">Class papers</a>
+                @endif
+            </h4>
             <div class="table-scroll">
                 <table class="data">
                     <thead>

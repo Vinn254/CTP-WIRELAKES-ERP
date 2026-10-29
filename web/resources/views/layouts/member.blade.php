@@ -22,6 +22,7 @@
     ];
     if ($isCtp) {
         $nav[] = ['label' => 'My training', 'icon' => 'check', 'route' => 'portal.training', 'active' => ['portal.training']];
+        $nav[] = ['label' => 'My class', 'icon' => 'cap', 'route' => 'portal.class', 'active' => ['portal.class', 'portal.class.cohort', 'portal.class.material']];
         $nav[] = ['label' => 'My mobilisation', 'icon' => 'users', 'route' => 'portal.mobilisation', 'active' => ['portal.mobilisation']];
         $nav[] = ['label' => 'My communities', 'icon' => 'globe', 'route' => 'portal.communities', 'active' => ['portal.communities'], 'count' => ($communities ?? collect())->count()];
     } else {
@@ -29,7 +30,10 @@
         //  — the desk puts projects to an E-Fundi; a CTP is never offered this screen.
         $nav[] = ['label' => 'Invited to you', 'icon' => 'mail', 'route' => 'portal.invitations', 'active' => ['portal.invitations'], 'count' => ($inviteCount ?? 0)];
         if (isset($member) && $member->canTrain()) {
-            $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => ['portal.trainer']];
+            $nav[] = ['label' => 'Training CTPs', 'icon' => 'award', 'route' => 'portal.trainer', 'active' => [
+                'portal.trainer', 'portal.trainer.register', 'portal.trainer.marks', 'portal.trainer.timetable',
+                'portal.trainer.lessons', 'portal.trainer.materials',
+            ]];
             $nav[] = ['label' => 'My time log', 'icon' => 'clock', 'route' => 'portal.trainer.week', 'active' => ['portal.trainer.week']];
         }
     }

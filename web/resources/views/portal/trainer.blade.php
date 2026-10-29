@@ -170,6 +170,14 @@
         <p class="hint">{{ $c->dateLabel() }} · {{ $c->hoursLabel() }} · teaching at {{ $t->venue->name ?? $c->placeLabel() }}
             · {{ $roll->count() }} on the roll, {{ $roll->where('state', 'approved')->count() }} holding a seat</p>
 
+        @if ($c->status !== 'draft')
+            <div class="head-acts" style="margin-bottom:14px;">
+                <a class="btn btn-sm btn-lime" href="{{ route('portal.trainer.register', ['cohort' => $c->id]) }}">
+                    Class papers</a>
+                <span class="hint">Attendance, marks, the timetable, the lesson plan and the material you give out.</span>
+            </div>
+        @endif
+
         @php $runsOfCourse = $t->cohorts->where('training_id', $c->training_id); @endphp
         @if ($runsOfCourse->count() > 1)
             <p class="hint">You have taught this course in

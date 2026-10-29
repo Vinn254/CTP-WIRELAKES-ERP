@@ -139,10 +139,10 @@ class Enrollment extends Model
         return $pct !== null && $pct < self::ATTENDANCE_MINIMUM;
     }
 
-    /** The mean of the scores recorded so far, split by theory and practical. */
-    public function avgScore(string $kind): ?float
+    /** The mean of the scores recorded so far. A part can be fed by more than one kind of line. */
+    public function avgScore(string|array $kinds): ?float
     {
-        $scores = $this->entries()->where('kind', $kind)->whereNotNull('score')->pluck('score');
+        $scores = $this->entries()->whereIn('kind', (array) $kinds)->whereNotNull('score')->pluck('score');
 
         return $scores->count() ? round($scores->avg(), 1) : null;
     }
@@ -201,7 +201,7 @@ class Enrollment extends Model
         $attendance = $this->attendancePct();
         $theory = $this->avgScore('theory');
         $practical = $this->avgScore('practical');
-        $assessment = $this->avgScore('assessment');
+        $assessment = $this->avgScore(['assessment', 'cat', 'assignment']);
         $papers = $this->relationLoaded('documents') ? $this->documents->count() : $this->documents()->count();
 
         // A partner school teaches to its own syllabus, so its written report is the only proof the office gets.
@@ -233,9 +233,11 @@ class Enrollment extends Model
                 'detail' => $practical === null ? 'no practical score recorded' : $practical.'/100 average',
             ],
             'assessment' => [
-                'label' => 'Assessment',
+                'label' => 'CATs, assignments & assessment',
                 'fraction' => $assessment === null ? 0 : min($assessment / self::TRACK_PASS, 1),
-                'detail' => $assessment === null ? 'no assessment mark recorded' : $assessment.'/100',
+                'detail' => $assessment === null
+                    ? 'no CAT, assignment or assessment mark recorded'
+                    :'CATs, assignments and assessment average '.$assessment.'/100',
             ],
             'evidence' => [
                 'label' => $needsReport ? 'School report uploaded' : 'Uploaded documents',

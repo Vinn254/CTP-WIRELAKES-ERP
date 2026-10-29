@@ -17,13 +17,21 @@ class ProgressEntry extends Model
         'attendance' => 'Attendance mark',
         'theory' => 'Theory session',
         'practical' => 'Practical session',
+        'cat' => 'CAT mark',
+        'assignment' => 'Assignment mark',
         'assessment' => 'Assessment',
         'note' => 'Note on progress',
     ];
 
+    /** The part of the track each kind feeds. CATs and assignments are assessed work, so they carry the same weight. */
+    public const PART_OF = [
+        'cat' => 'assessment',
+        'assignment' => 'assessment',
+    ];
+
     protected $fillable = [
         'enrollment_id', 'entry_date', 'kind', 'present', 'score', 'hours', 'note',
-        'recorded_by_user', 'recorded_by_fundi',
+        'recorded_by_user', 'recorded_by_fundi', 'source_type', 'source_id',
     ];
 
     protected $casts = [
@@ -31,6 +39,7 @@ class ProgressEntry extends Model
         'present' => 'boolean',
         'score' => 'float',
         'hours' => 'integer',
+        'source_id' => 'integer',
     ];
 
     public static function dataFrom(Request $request): array
@@ -77,11 +86,12 @@ class ProgressEntry extends Model
     /** Which part of the track this line feeds and what that part is worth, so the record shows the flow and not bare marks. */
     public function countsToward(): string
     {
-        $weight = Enrollment::TRACK_WEIGHTS[$this->kind] ?? null;
+        $part = self::PART_OF[$this->kind] ?? $this->kind;
+        $weight = Enrollment::TRACK_WEIGHTS[$part] ?? null;
 
         return $weight === null
             ? 'not counted — kept on the record'
-            : Str::headline($this->kind).' · '.$weight.'% of the track';
+            :($part === $this->kind ? Str::headline($part) : $this->kindLabel()).' · '.$weight.'% of the track';
     }
 
     /** Who put the line in — a trainer's own mark or the office recording a school's report. */
@@ -107,8 +117,8 @@ class ProgressEntry extends Model
             return $this->present ? 'Present' : 'Absent';
         }
 
-        if ($this->kind === 'assessment') {
-            return $this->score !== null ? 'Scored '.$this->score.'/100' : 'Assessment recorded';
+        if (in_array($this->kind, ['assessment', 'cat', 'assignment'], true)) {
+            return $this->score !== null ? 'Scored '.$this->score.'/100' : $this->kindLabel().' recorded';
         }
 
         if (in_array($this->kind, ['theory', 'practical'], true)) {

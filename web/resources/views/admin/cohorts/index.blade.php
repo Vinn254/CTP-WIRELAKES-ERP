@@ -3,8 +3,12 @@
 
 @php
     use App\Models\Cohort;
+    use App\Support\TeachingDesk;
     $tabs = ['all' => 'All'] + Cohort::STATUSES;
     $openCount = $counts['open'] ?? 0;
+    // Who may fill a cohort's class papers from here: its own trainer, or this office recording for a partner site.
+    $mySites = TeachingDesk::trainerIds(auth()->user());
+    $recordsAny = TeachingDesk::office(auth()->user());
 @endphp
 
 @section('content')
@@ -78,7 +82,11 @@
                 </td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span>
                     @if ($c->status === 'open' && $c->isFull())<div class="hint">full</div>@endif</td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a>
+                    @if ($c->status !== 'draft' && ($recordsAny || in_array((int) $c->trainer_id, $mySites, true)))
+                        <a class="btn btn-sm btn-lime" href="{{ route('admin.teaching.register', ['cohort' => $c->id]) }}">
+                            Class papers</a>
+                    @endif</td>
             </tr>
         @empty
             <tr><td colspan="10" class="empty-cell">
