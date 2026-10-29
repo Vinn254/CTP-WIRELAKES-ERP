@@ -41,10 +41,7 @@
     <p class="page-lede">Who of this desk’s people is on leave, read here as their own records.</p>
 @endif
 
-<form method="GET" action="{{ route($self) }}" class="filter-bar inline-filter">
-    @if ($read)
-        <input type="hidden" name="department" value="{{ Departments::currentSlug() }}">
-    @endif
+<form method="GET" action="{{ route($self, $here) }}" class="filter-bar inline-filter">
     <label class="field">
         <span>Leave status</span>
         <select name="status" onchange="this.form.submit()">
