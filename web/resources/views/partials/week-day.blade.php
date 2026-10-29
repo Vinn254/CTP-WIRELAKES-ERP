@@ -14,7 +14,7 @@
 @endphp
 @include('partials.sheet-start', ['name' => $name,
     'title' => ($row ? 'Correct ' : 'Write ').$day['day'].' '.\Illuminate\Support\Carbon::parse($day['date'])->format('d M Y')])
-<form method="POST" action="{{ $action }}" class="fee-form"
+<form method="POST" action="{{ $action }}" class="fee-form" data-clock
       data-confirm="Save this day to the week sheet?" data-title="Save day">
     @csrf
     <input type="hidden" name="_sheet" value="{{ $name }}">
@@ -44,7 +44,13 @@
             <label>Time out</label>
             <input type="time" name="time_out" value="{{ old('time_out', $row?->clockOut() === '-' ? '' : $row?->clockOut()) }}"
                    max="{{ $today }}">
-            <div class="help">Hours are counted from these two. A day caps at 8 hours.</div>
+            <div class="help">An hour for lunch comes off these two.</div>
+        </div>
+        <div class="field">
+            <label>Total hours</label>
+            <input type="text" data-clock-hours readonly
+                   value="{{ $row && $row->hours ? number_format((float) $row->hours, 2, '.', '') : '' }}">
+            <div class="help">Counts itself — time out minus time in, less one hour for lunch. Caps at 8.</div>
         </div>
     </div>
     <div class="field">
@@ -74,8 +80,9 @@
         </div>
         <div class="field">
             <label>Units</label>
-            <input type="number" name="units" min="0" max="99" value="{{ old('units', $row?->units) }}"
-                   placeholder="Sessions or modules delivered">
+            <input type="number" name="units" min="0" max="99" readonly
+                   value="{{ old('units', $row?->units) }}">
+            <div class="help">Counts itself — two units for every hour on the day.</div>
         </div>
     </div>
     @if ($trainings->isNotEmpty())

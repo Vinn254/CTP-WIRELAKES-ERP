@@ -194,8 +194,32 @@
         select.addEventListener('change', sync);
     }
 
+    // A time log counts the day itself: the two clock times, an hour off for lunch, two units per hour.
+    function bindClock(form) {
+        const inEl = form.querySelector('[name=time_in]');
+        const outEl = form.querySelector('[name=time_out]');
+        if (!inEl || !outEl) return;
+        const hours = form.querySelector('[data-clock-hours]');
+        const units = form.querySelector('[name=units]');
+        const minutes = function (value) {
+            const parts = /^(\d{1,2}):(\d{2})$/.exec(value || '');
+            return parts ? Number(parts[1]) * 60 + Number(parts[2]) : null;
+        };
+        function sync() {
+            const a = minutes(inEl.value);
+            const b = minutes(outEl.value);
+            let worked = a === null || b === null ? null : Math.max(0, Math.min(b - a - 60, 480)) / 60;
+            worked = worked === null || worked === 0 ? null : Math.round(worked * 100) / 100;
+            if (hours) hours.value = worked === null ? '' : worked.toFixed(2);
+            if (units) units.value = worked === null ? '' : Math.round(worked * 2);
+        }
+        [inEl, outEl].forEach(function (el) { el.addEventListener('input', sync); });
+        sync();
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('select[data-choices]').forEach(bindChoices);
+        document.querySelectorAll('form[data-clock]').forEach(bindClock);
         frameTables();
         document.querySelectorAll('.flash-ok, .flash-error').forEach(function (node) {
             toast(node.textContent.trim(), node.classList.contains('flash-error'));

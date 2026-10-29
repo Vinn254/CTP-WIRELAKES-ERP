@@ -58,18 +58,17 @@ class TimeLog extends Model
             'department' => 'nullable|string|max:90',
             'training_id' => 'nullable|integer|exists:trainings,id',
             'cohort_id' => 'nullable|integer|exists:cohorts,id',
-            'units' => 'nullable|integer|min:0|max:99',
         ], [
             'time_out.after' => 'Time out must be after time in.',
             'log_date.before_or_equal' => 'A week sheet records days already worked — not a day in the future.',
         ], [
             'log_date' => 'Date', 'time_in' => 'Time in', 'time_out' => 'Time out', 'task' => 'Tasks accomplished',
-            'department' => 'Department', 'units' => 'Units',
+            'department' => 'Department',
         ]);
 
         $data['task'] = trim($data['task']);
-        $data['units'] = (int) ($data['units'] ?? 0);
         $data['hours'] = static::hoursBetween($data['time_in'] ?? null, $data['time_out'] ?? null);
+        $data['units'] = (int) round(($data['hours'] ?? 0) * 2);
         $data['week_start'] = static::weekStartOf($data['log_date'])->toDateString();
 
         return $data;
@@ -91,7 +90,7 @@ class TimeLog extends Model
             ->filter()->unique()->values()->all() ?: ['Training'];
     }
 
-    /** Hours worked, counted from the clock times the trainer wrote — 8 hours max a day. */
+    /** Hours worked: time out minus time in, less the hour for lunch — 8 working hours max a day. */
     public static function hoursBetween(?string $in, ?string $out): ?float
     {
         if (! $in || ! $out) {
@@ -100,9 +99,9 @@ class TimeLog extends Model
 
         [$ih, $im] = array_map('intval', explode(':', $in));
         [$oh, $om] = array_map('intval', explode(':', $out));
-        $minutes = ($oh * 60 + $om) - ($ih * 60 + $im);
+        $worked = ($oh * 60 + $om) - ($ih * 60 + $im) - 60;
 
-        return $minutes > 0 ? round(min($minutes, 480) / 60, 2) : null;
+        return $worked > 0 ? round(min($worked, 480) / 60, 2) : null;
     }
 
     public static function weekStartOf(string|Carbon $date): Carbon
