@@ -349,6 +349,20 @@ html.dark .status.suspended { background: #3d2416; color: #f5b98a; }
 .admin-body { background: var(--bg); }
 .admin-shell { display: flex; min-height: 100vh; }
 .admin-sidebar { width: 252px; flex-shrink: 0; background: linear-gradient(180deg, var(--green-dark) 0%, #03300e 100%); color: #d9ecd4; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.admin-sidebar.has-rail { width: 296px; }
+.side-cols { display: flex; flex: 1; min-height: 0; }
+.side-rail { width: 56px; flex-shrink: 0; padding: 12px 8px; display: flex; flex-direction: column; gap: 6px;
+  align-items: center; border-right: 1px solid rgba(255,255,255,.14); overflow-y: auto; }
+.side-rail a { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: #cfe8c8; text-decoration: none; }
+.side-rail a:hover { background: rgba(255,255,255,.1); color: #fff; }
+.side-rail a.active { background: var(--lime); color: #083d0d; }
+.side-rail .ico { width: 19px; height: 19px; }
+.rail-sep { display: block; width: 22px; height: 1px; flex-shrink: 0; background: rgba(255,255,255,.2); margin: 5px auto; }
+.side-cols .admin-nav { min-width: 0; }
+.side-foot .profile { border-radius: 12px; padding: 6px 8px 6px 6px; }
+.side-foot .profile .who { min-width: 0; }
+.side-foot .profile .who b { overflow-wrap: anywhere; }
+.side-foot .profile .who small { text-transform: none; letter-spacing: .02em; }
 .admin-brand { display: flex; align-items: center; gap: 10px; padding: 16px; color: #fff; text-decoration: none; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,.12); }
 .admin-brand img { height: 40px; width: 40px; object-fit: contain; filter: brightness(0) invert(1); }
 .admin-brand small { display: block; font-weight: 600; font-size: .7rem; color: #9fd68f; letter-spacing: .06em; }
@@ -456,6 +470,7 @@ body.sheet-lock { overflow: hidden; }
 .paybill-card { margin-top: 22px; border-left: 4px solid var(--lime); }
 .paybill-line { margin: 0; color: var(--muted); font-size: .95rem; }
 .paybill-line b { color: var(--green-dark); font-size: 1.18rem; letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+.paybill-line.full { grid-column: 1 / -1; margin-bottom: 2px; }
 html.dark .paybill-line b { color: var(--lime); }
 @media (max-width: 720px) { .sheet { padding: 12px 8px; } .sheet-card { padding: 16px; } }
 .toast-wrap { position: fixed; right: 22px; bottom: 22px; display: flex; flex-direction: column; gap: 10px; z-index: 210; max-width: 380px; }

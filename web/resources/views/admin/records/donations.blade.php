@@ -20,6 +20,7 @@
  <div class="field"><label>Email (optional)</label><input type="email" name="email" maxlength="120" value="{{ old('email') }}"></div>
  <div class="field"><label>Phone (optional)</label><input type="text" name="phone" maxlength="20" value="{{ old('phone') }}" placeholder="07XX XXX XXX"></div>
  <div class="field"><label>Amount (KSh) <span class="req">*</span></label><input type="number" name="amount" min="1" step="1" value="{{ old('amount') }}" required></div>
+ @include('partials.mpesa-line')
  <div class="field"><label>Received as <span class="req">*</span></label>
   <select name="method" required>
    @foreach ($methods as $key => $label)<option value="{{ $key }}" @selected(old('method') === $key)>{{ $label }}</option>@endforeach

@@ -25,6 +25,8 @@ class Setting extends Model
             'read' => 'Printed on every invoice and shown to a member who owes money.'],
         'paybill_account' => ['label' => 'Paybill account number', 'type' => 'text',
             'read' => 'The account number a payer puts after the Paybill above.'],
+        'mpesa_payment_line' => ['label' => 'M-Pesa payment line', 'type' => 'flag',
+            'read' => 'Switch it on once the Paybill above is live with Safaricom. Every payment screen then puts the M-Pesa route first. Switched off, money is written in by hand — and the hand entry stays open either way, so a payment that came over the counter or by cheque is never left out of the register.'],
     ];
 
     public static function get(string $key, ?string $default = null): ?string

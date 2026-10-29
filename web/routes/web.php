@@ -192,7 +192,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/staff/users/{user}', [StaffController::class, 'updateRole'])->name('staff.users.update');
 
     // The staff directory and the onboarding desk: everyone working in the organisation, and the applicants
-    // Human Resources turns into staff. Pay, next of kin and the C14 never leave this desk.
+    // Human Resources turns into staff. Pay, next of kin and the profile photo never leave this desk.
     Route::get('/staff/directory', [DirectoryController::class, 'index'])->name('directory.index');
     Route::get('/staff/directory/{record}', [DirectoryController::class, 'show'])->whereNumber('record')->name('directory.show');
     Route::post('/staff/directory/{record}', [DirectoryController::class, 'update'])->whereNumber('record')->name('directory.update');
@@ -464,6 +464,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     Route::get('/finance/procurement', [ProcurementController::class, 'index'])->name('procurement.index');
     Route::post('/finance/procurement', [ProcurementController::class, 'store'])->name('procurement.store');
+    Route::post('/finance/procurement/hand', [ProcurementController::class, 'recordPurchase'])->name('procurement.hand');
     Route::get('/finance/procurement/{purchaseRequest}', [ProcurementController::class, 'show'])->whereNumber('purchaseRequest')->name('procurement.show');
     Route::post('/finance/procurement/{purchaseRequest}/decide', [ProcurementController::class, 'decide'])->whereNumber('purchaseRequest')->name('procurement.decide');
     Route::post('/finance/procurement/{purchaseRequest}/quote', [ProcurementController::class, 'quote'])->whereNumber('purchaseRequest')->name('procurement.quote');

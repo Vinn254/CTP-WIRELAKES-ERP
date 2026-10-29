@@ -25,6 +25,62 @@
     $me = auth()->user();
     $isSuper = (bool) $me?->isSuperAdmin();
     $initials = collect(explode(' ', trim($me->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
+
+    /**
+     * The sidebar reads as two columns: a rail of the sections this account works in, and beside it the screens of
+     * the section the current page belongs to. A section is a department for a super admin, a job title for anyone
+     * else, so the rail never lists a screen the account cannot open.
+     */
+    $mkItem = function (array $item) use ($isActive) {
+        return [
+            'label' => $item['label'],
+            'icon' => $item['icon'] ?? 'grid',
+            'href' => route(...$item['route']),
+            'active' => $isActive($item),
+            'badge' => \App\Support\Departments::badge($item['badge'] ?? null),
+        ];
+    };
+
+    $sections = [];
+
+    // Every account opens the office from the same first icon: the department cards for a super admin, their own
+    // workspace overview for anyone holding a job title.
+    $sections[] = ['label' => 'Office', 'icon' => 'grid', 'items' => [
+        ['label' => $isSuper ? 'All departments' : 'My overview', 'icon' => 'grid',
+            'href' => route('admin.departments'),
+            'active' => request()->routeIs('admin.departments'), 'badge' => 0],
+    ]];
+
+    if ($isSuper) {
+        if (\App\Models\Trainer::forAccount($me)->isNotEmpty()) {
+            $sections[] = ['label' => \App\Support\Roles::all()['trainer']['name'], 'icon' => 'award', 'items' => [
+                ['label' => 'My teaching', 'icon' => 'award', 'href' => route('admin.teaching.index'),
+                    'active' => request()->routeIs('admin.teaching.*'), 'badge' => 0],
+                ['label' => 'My time log', 'icon' => 'clock', 'href' => route('admin.mytime.index'),
+                    'active' => request()->routeIs('admin.mytime.*'), 'badge' => 0],
+            ]];
+        }
+
+        if ($dept) {
+            $sections[] = ['label' => $dept['name'], 'icon' => Departments::icon($dept['slug']), 'items' => array_merge(
+                [['label' => 'Overview', 'icon' => 'layout', 'href' => route('admin.department', $dept['slug']),
+                    'active' => request()->routeIs('admin.department'), 'badge' => 0]],
+                array_map($mkItem, Departments::nav($dept['slug']))
+            )];
+        }
+    } else {
+        foreach (\App\Support\Workspace::groups($me) as $group) {
+            $items = array_map($mkItem, $group['items']);
+            $sections[] = ['label' => $group['label'], 'icon' => $items[0]['icon'] ?? 'grid', 'items' => $items];
+        }
+    }
+
+    $sections[] = ['label' => 'Outside the portal', 'icon' => 'globe', 'items' => [
+        ['label' => 'View public site', 'icon' => 'globe', 'href' => route('home'), 'target' => '_blank',
+            'active' => false, 'badge' => 0],
+    ]];
+
+    $openSection = collect($sections)->first(fn ($s) => collect($s['items'])->contains('active', true)) ?? $sections[0];
 @endphp
 <html lang="en" data-idle-minutes="{{ (int) config('account.idle_minutes') }}">
 <head>
@@ -37,54 +93,42 @@
 </head>
 <body class="admin-body">
 <div class="admin-shell">
-    <aside class="admin-sidebar" id="adminSidebar">
+    <aside class="admin-sidebar has-rail" id="adminSidebar">
         <a class="admin-brand" href="{{ route('admin.departments') }}">
             <img src="{{ $brandLogo ?: asset('logo.png') }}" alt="">
             <span>{{ $brandName }}<small>Staff portal</small></span>
         </a>
-        <nav class="admin-nav">
-            <a href="{{ route('admin.departments') }}" class="{{ $dept ? '' : 'active' }}">
-                @include('partials.icon', ['n' => 'grid']) {{ $isSuper ? 'All departments' : 'My overview' }}
-            </a>
-
-            @if ($isSuper)
-                @if (\App\Models\Trainer::forAccount($me)->isNotEmpty())
-                    <div class="nav-group">{{ \App\Support\Roles::all()['trainer']['name'] }}</div>
-                    <a href="{{ route('admin.teaching.index') }}" class="{{ request()->routeIs('admin.teaching.index') || request()->routeIs('admin.teaching.trainee') ? 'active' : '' }}">
-                        @include('partials.icon', ['n' => 'award']) My teaching
-                    </a>
-                    <a href="{{ route('admin.mytime.index') }}" class="{{ request()->routeIs('admin.mytime.index') ? 'active' : '' }}">
-                        @include('partials.icon', ['n' => 'clock']) My time log
-                    </a>
-                @endif
-                @if ($dept)
-                    <div class="nav-group">{{ $dept['name'] }}</div>
-                    <a href="{{ route('admin.department', $dept['slug']) }}" class="{{ request()->routeIs('admin.department') ? 'active' : '' }}">
-                        @include('partials.icon', ['n' => 'chevron']) Overview
-                    </a>
-                    @foreach (Departments::nav($dept['slug']) as $item)
-                        @include('admin.partials.nav-item', ['item' => $item, 'isActive' => $isActive])
-                    @endforeach
-                @endif
-            @else
-                {{-- A job title is worked as its screens, not as a stack of numbered modules. --}}
-                @foreach (\App\Support\Workspace::groups($me) as $group)
-                    <div class="nav-group">{{ $group['label'] }}</div>
-                    @foreach ($group['items'] as $item)
-                        @include('admin.partials.nav-item', ['item' => $item, 'isActive' => $isActive])
+        <div class="side-cols">
+            <nav class="side-rail" aria-label="Every screen">
+                @foreach ($sections as $i => $section)
+                    @if ($i > 0)<span class="rail-sep"></span>@endif
+                    @foreach ($section['items'] as $item)
+                        <a href="{{ $item['href'] }}" @if (! empty($item['target'])) target="{{ $item['target'] }}" @endif
+                           title="{{ $item['label'] }} — {{ $section['label'] }}" aria-label="{{ $item['label'] }}"
+                           class="{{ $item['active'] ? 'active' : '' }}">
+                            @include('partials.icon', ['n' => $item['icon']])
+                        </a>
                     @endforeach
                 @endforeach
-            @endif
-
-            <div class="nav-group">Outside the portal</div>
-            <a href="{{ route('home') }}" target="_blank">
-                @include('partials.icon', ['n' => 'globe']) View public site
-            </a>
-        </nav>
+            </nav>
+            <nav class="admin-nav">
+                <div class="nav-group">{{ $openSection['label'] }}</div>
+                @foreach ($openSection['items'] as $item)
+                    <a href="{{ $item['href'] }}" @if (! empty($item['target'])) target="{{ $item['target'] }}" @endif
+                       class="{{ $item['active'] ? 'active' : '' }}">
+                        @include('partials.icon', ['n' => $item['icon']]) {{ $item['label'] }}
+                        @if ($item['badge'])<span class="nav-badge">{{ $item['badge'] }}</span>@endif
+                    </a>
+                @endforeach
+            </nav>
+        </div>
         <div class="side-foot">
-            <span class="side-ver">{{ $isSuper
-                ? ($dept ? $dept['name'] : count(Departments::visibleFor($me)).' departments · 1 programme')
-                : ($dept ? $dept['name'] : (\App\Support\Roles::labelsFor($me) ?: 'Department staff')) }}</span>
+            <span class="profile">
+                <span class="avatar">{{ $initials }}</span>
+                <span class="who"><b>{{ $me->name }}</b><small>{{ $isSuper
+                    ? ($dept ? $dept['name'] : count(Departments::visibleFor($me)).' departments')
+                    : ($dept ? $dept['name'] : (\App\Support\Roles::labelsFor($me) ?: 'Department staff')) }}</small></span>
+            </span>
         </div>
     </aside>
 

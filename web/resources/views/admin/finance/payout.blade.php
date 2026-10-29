@@ -242,6 +242,7 @@
                       data-title="Release payout">
                     @csrf
                     <div class="form-grid-2">
+                        @include('partials.mpesa-line', ['cls' => 'full'])
                         <div class="field">
                             <label>Paid by <span class="req">*</span></label>
                             <select name="method" required>

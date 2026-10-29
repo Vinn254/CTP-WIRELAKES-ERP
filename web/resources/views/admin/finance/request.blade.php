@@ -38,6 +38,14 @@
     </div>
 </div>
 
+@if ($pr->isHandRecorded())
+    <div class="card gaps">
+        <b>Recorded by hand.</b> Bought from {{ $pr->supplierLabel() }} and paid on
+        {{ $pr->recorded_by_hand_on->format('d M Y') }} — the buy happened at the counter, outside the system, so this
+        row has no quotations and no purchase order behind it. The receipt on the file is the paper behind it.
+    </div>
+@endif
+
 @if ($pr->rejection_reason)
     <div class="card gaps">
         <b>Rejected:</b> {{ $pr->rejection_reason }}
@@ -407,6 +415,7 @@
                         <p class="hint">Step 8 — money leaves the programme here, so it is a Finance Officer
                             (programme executive) action. The ledger carries the expense against {{ $pr->budgetLabel() }}.</p>
                         <div class="form-grid-2">
+                            @include('partials.mpesa-line', ['cls' => 'full'])
                             <div class="field">
                                 <label>Paid by <span class="req">*</span></label>
                                 <select name="method" required>

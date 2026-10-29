@@ -57,4 +57,13 @@ class Finance
 
         return 'For any type of payment use this Paybill '.$p['number'].', account number '.$p['account'].'.';
     }
+
+    /**
+     * Whether the M-Pesa line is live with Safaricom. Switched off, every payment screen asks the office to write the
+     * payment in by hand; switched on, it still can — a counter sale or a cheque never waits on an integration.
+     */
+    public static function mpesaLive(): bool
+    {
+        return Setting::get('mpesa_payment_line', 'off') === 'on';
+    }
 }

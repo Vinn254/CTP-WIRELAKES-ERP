@@ -42,13 +42,14 @@ class PurchaseRequest extends Model
         'reference', 'item_name', 'description', 'quantity', 'unit', 'estimated_cost_ksh', 'budget_category',
         'justification', 'needed_by', 'county', 'project_id', 'cohort_id', 'inventory_item_id',
         'raised_by_user', 'ctp_id', 'fundi_id', 'status', 'decided_by_user', 'decided_on', 'decision_note',
-        'rejection_reason',
+        'rejection_reason', 'recorded_by_hand_on', 'supplier_label',
     ];
 
     protected $casts = [
         'estimated_cost_ksh' => 'decimal:2',
         'needed_by' => 'date',
         'decided_on' => 'datetime',
+        'recorded_by_hand_on' => 'datetime',
     ];
 
     /**
@@ -173,6 +174,20 @@ class PurchaseRequest extends Model
         }
 
         return $this->raiser->exists ? $this->raiser->name : 'Raised in the office';
+    }
+
+    /** A row the office wrote in after buying at the counter — no quotations, no purchase order behind it. */
+    public function isHandRecorded(): bool
+    {
+        return $this->recorded_by_hand_on !== null;
+    }
+
+    /** The supplier as the office typed it on a hand record; an ordered request names its supplier account. */
+    public function supplierLabel(): string
+    {
+        return $this->supplier_label
+            ?: $this->orders->pluck('supplier.name')->filter()->first()
+            ?: 'No supplier named';
     }
 
     public function chargeLabel(): string

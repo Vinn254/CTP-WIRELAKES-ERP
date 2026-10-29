@@ -236,6 +236,47 @@ class Procurement
     }
 
     /**
+     * A purchase the office made outside the system — bought at the counter and brought in on a receipt. It joins
+     * the register as already paid, with the supplier named as typed and one line on the money register; the eight
+     * steps are not faked around it. Money leaving the programme is still an executive action.
+     */
+    public static function recordHand(array $data): PurchaseRequest
+    {
+        Finance::requireRelease('Recording a purchase that was already paid for');
+
+        $request = PurchaseRequest::create([
+            'reference' => PurchaseRequest::nextReference(),
+            'item_name' => $data['item_name'],
+            'description' => $data['description'] ?? null,
+            'quantity' => $data['quantity'],
+            'unit' => $data['unit'],
+            'estimated_cost_ksh' => $data['paid_amount_ksh'],
+            'budget_category' => $data['budget_category'],
+            'justification' => $data['justification'],
+            'county' => $data['county'] ?? null,
+            'project_id' => $data['project_id'] ?? null,
+            'raised_by_user' => $data['raised_by_user'] ?? auth()->id(),
+            'status' => 'paid',
+            'recorded_by_hand_on' => now(),
+            'supplier_label' => $data['supplier_label'],
+        ]);
+
+        FinanceEntry::post('procurement', 'Hand purchase — '.$request->item_name.' from '.$request->supplier_label,
+            (float) $data['paid_amount_ksh'], [
+                'budget_category' => $request->budget_category,
+                'method' => $data['method'],
+                'happened_on' => $data['paid_on'],
+                'project_id' => $request->project_id,
+                'note' => 'Recorded by hand: bought outside the system and paid by '
+                    .FinanceEntry::METHODS[$data['method']].'. The receipt is on the file.',
+                'source_type' => PurchaseRequest::class,
+                'source_id' => $request->id,
+            ]);
+
+        return $request;
+    }
+
+    /**
      * Step 5 by email — the order goes to the supplier's address as the same branded document the office prints.
      * Sending it is the sending step, so a draft order becomes issued here; an order already sent is only sent again.
      */

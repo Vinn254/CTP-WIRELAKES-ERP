@@ -69,6 +69,14 @@ class Departments
             'desc' => 'Field app for CTPs and Fundis', 'live' => false],
     ];
 
+    /** The mark a department carries in the office sidebar's icon rail. */
+    public const ICONS = [
+        'membership' => 'layout', 'promoters' => 'users', 'communities' => 'globe', 'training' => 'award',
+        'efundi' => 'hardhat', 'marketplace' => 'link', 'execution' => 'check', 'construction' => 'building',
+        'technology' => 'wrench', 'ewaste' => 'recycle', 'finance' => 'briefcase', 'me_gis' => 'map',
+        'procurement' => 'clipboard', 'hr' => 'users', 'mobile' => 'image',
+    ];
+
     /** Screens that belong to each live department. */
     private const NAV = [
         'membership' => [
@@ -121,7 +129,7 @@ class Departments
         'finance' => [
             ['label' => 'Programme budget', 'icon' => 'sliders', 'route' => ['admin.budget.index'], 'badge' => 'overbudget'],
             ['label' => 'Money register', 'icon' => 'briefcase', 'route' => ['admin.ledger.index']],
-            ['label' => 'Financial reports', 'icon' => 'clipboard', 'route' => ['admin.statements.index']],
+            ['label' => 'Financial reports', 'icon' => 'chart', 'route' => ['admin.statements.index']],
             ['label' => 'Invoices', 'icon' => 'mail', 'route' => ['admin.invoices.index'], 'badge' => 'invoices'],
             ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
             ['label' => 'Staff payroll', 'icon' => 'briefcase', 'route' => ['admin.staffpay.index'], 'badge' => 'payroll'],
@@ -216,7 +224,7 @@ class Departments
         'admin.donations.index' => 'Every pledge made on the public donate page',
         'admin.staff.index' => 'Invite staff and set their roles',
         'admin.onboarding.index' => 'Applicants given the job, written up as staff with their file',
-        'admin.directory.index' => 'Everyone who works here — next of kin, the C14 on record and pay',
+        'admin.directory.index' => 'Everyone who works here — the C14 next of kin and pay',
         'admin.directory.show' => 'One person’s staff file, kept up to date by this desk',
         'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
         'admin.promoters.create' => 'Open a CTP application on someone’s behalf when they cannot reach the website',
@@ -309,6 +317,11 @@ class Departments
         return collect(self::ALL)->firstWhere('slug', $slug);
     }
 
+    public static function icon(string $slug): string
+    {
+        return self::ICONS[$slug] ?? 'grid';
+    }
+
     /** The departments open today — a Phase-2 module is not on any staff screen. */
     public static function live(): array
     {
@@ -366,7 +379,7 @@ class Departments
 
         // Every desk asks for what it needs to work. Procurement checks and approves, Finance processes — the same
         // register, read from each side.
-        $items[] = ['label' => 'Requisitions', 'icon' => 'link',
+        $items[] = ['label' => 'Requisitions', 'icon' => 'clipboard',
             'route' => ['admin.requisitions.index'], 'badge' => 'requisitions'];
 
         if ($slug !== 'hr') {

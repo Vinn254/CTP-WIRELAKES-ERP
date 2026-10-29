@@ -215,6 +215,7 @@
                     <input type="number" name="paid_amount_ksh" min="0.01" step="0.01"
                            value="{{ old('paid_amount_ksh', $rq->estimated_price_ksh) }}">
                 </div>
+                @include('partials.mpesa-line', ['cls' => 'full'])
                 <div class="field">
                     <label>Paid by <span class="req">*</span></label>
                     <select name="paid_method">

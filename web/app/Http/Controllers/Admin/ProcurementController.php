@@ -12,6 +12,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseQuotation;
 use App\Models\PurchaseRequest;
 use App\Models\Supplier;
+use App\Support\Finance;
 use App\Support\Procurement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -78,6 +79,38 @@ class ProcurementController extends Controller
 
         return back()->with('status', $pr->reference.' was raised for '.$pr->item_name.' ('.$pr->quantityLabel()
             .'), charged to '.$pr->budgetLabel().'. It waits for the Programme Manager\'s decision.');
+    }
+
+    /**
+     * The purchase the office already made at the counter. It comes onto the register as paid, with the supplier
+     * named as typed and the receipt as the paper behind it — the eight steps are not faked around a finished buy.
+     */
+    public function recordPurchase(Request $request)
+    {
+        $data = $request->validate([
+            'item_name' => 'required|string|max:190',
+            'description' => 'nullable|string|max:1000',
+            'quantity' => 'required|integer|min:1|max:1000000',
+            'unit' => 'required|in:'.implode(',', array_keys(InventoryItem::UNITS)),
+            'supplier_label' => 'required|string|max:190',
+            'paid_amount_ksh' => 'required|numeric|min:0.01|max:1000000000',
+            'paid_on' => 'required|date',
+            'method' => 'required|in:'.implode(',', array_keys(array_diff_key(FinanceEntry::METHODS, ['pending' => '']))),
+            'budget_category' => 'required|in:'.implode(',', array_keys(BudgetLine::categories())),
+            'justification' => 'required|string|max:1000|min:15',
+            'county' => 'nullable|string|max:100',
+            'project_id' => 'nullable|integer|exists:projects,id',
+        ], [
+            'justification.min' => 'One line on what was bought and what it was for.',
+            'supplier_label.required' => 'Name the shop or supplier the money went to.',
+        ], ['supplier_label' => 'Supplier', 'paid_amount_ksh' => 'Amount paid', 'paid_on' => 'Date paid']);
+
+        $pr = Procurement::recordHand($data);
+
+        return back()->with('status', $pr->reference.' was recorded by hand: '.$pr->item_name.' ('
+            .$pr->quantityLabel().') bought from '.$pr->supplier_label.' and paid '
+            .Finance::ksh((float) $data['paid_amount_ksh']).' by '.FinanceEntry::METHODS[$data['method']]
+            .'. It is on the money register and closed.');
     }
 
     public function show(PurchaseRequest $purchaseRequest)

@@ -154,6 +154,7 @@
                 </div>
             </div>
             <div class="form-grid-2" style="margin-top:10px;">
+                @include('partials.mpesa-line', ['cls' => 'full'])
                 <div class="field">
                     <label>Released by</label>
                     <select name="method">
@@ -217,6 +218,7 @@
                     <label>Workshop-hosting fee (KSH)</label>
                     <input type="number" name="hosting_fee_ksh" min="0" step="0.01" value="0">
                 </div>
+                @include('partials.mpesa-line', ['cls' => 'full'])
                 <div class="field">
                     <label>Released by</label>
                     <select name="method">

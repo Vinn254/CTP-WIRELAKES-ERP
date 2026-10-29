@@ -21,11 +21,18 @@
         @foreach ($rows as $row)
             <div class="field">
                 <label for="{{ $row['key'] }}">{{ $row['label'] }} <span class="req">*</span></label>
-                <input type="{{ $row['type'] === 'money' ? 'number' : 'text' }}"
-                       id="{{ $row['key'] }}" name="{{ $row['key'] }}"
-                       value="{{ old($row['key'], $row['value']) }}"
-                       min="{{ $row['type'] === 'money' ? 0 : null }}" step="{{ $row['type'] === 'money' ? '0.01' : null }}"
-                       maxlength="190" @disabled(! $canEdit)>
+                @if ($row['type'] === 'flag')
+                    <select id="{{ $row['key'] }}" name="{{ $row['key'] }}" @disabled(! $canEdit)>
+                        <option value="off" @selected(old($row['key'], $row['value']) !== 'on')>Off — payments are written in by hand</option>
+                        <option value="on" @selected(old($row['key'], $row['value']) === 'on')>On — the M-Pesa line is live</option>
+                    </select>
+                @else
+                    <input type="{{ $row['type'] === 'money' ? 'number' : 'text' }}"
+                           id="{{ $row['key'] }}" name="{{ $row['key'] }}"
+                           value="{{ old($row['key'], $row['value']) }}"
+                           min="{{ $row['type'] === 'money' ? 0 : null }}" step="{{ $row['type'] === 'money' ? '0.01' : null }}"
+                           maxlength="190" @disabled(! $canEdit)>
+                @endif
                 <div class="help">{{ $row['read'] }}</div>
             </div>
         @endforeach

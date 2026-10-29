@@ -16,6 +16,7 @@
     <p class="sheet-note"><b>{{ $line->netLabel() }}</b> net — {{ \App\Support\Finance::ksh((float) $line->gross_ksh) }}
         gross less {{ \App\Support\Finance::ksh((float) $line->deductions_ksh) }} deductions.</p>
     <div class="form-grid-2">
+        @include('partials.mpesa-line', ['cls' => 'full'])
         <div class="field">
             <label>How they are paid <span class="req">*</span></label>
             <select name="method" required>

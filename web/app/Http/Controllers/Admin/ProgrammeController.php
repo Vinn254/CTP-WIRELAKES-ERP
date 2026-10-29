@@ -56,6 +56,7 @@ class ProgrammeController extends Controller
         $data = $request->validate(
             collect(Setting::EDITABLE)->mapWithKeys(fn ($meta, $key) => [$key => match ($meta['type']) {
                 'money' => 'required|numeric|min:0|max:10000000',
+                'flag' => 'required|in:on,off',
                 default => 'required|string|max:190',
             }])->all(),
             [],

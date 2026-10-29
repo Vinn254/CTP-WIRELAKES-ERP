@@ -31,6 +31,7 @@
         'map' => '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/>',
         'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.4 2"/>',
         'clipboard' => '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9.5 4V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1z"/><path d="M9 11h6M9 15h4"/>',
+        'chart' => '<path d="M3 3v18h18"/><path d="M7 15v3M12 10v8M17 6v12"/>',
     ];
 
     /** What the office types on a content field, and the line icon the site draws for it. */

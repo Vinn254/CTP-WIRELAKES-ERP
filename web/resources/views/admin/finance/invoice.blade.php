@@ -207,6 +207,7 @@
                     <label>Date received <span class="req">*</span></label>
                     <input type="date" name="happened_on" required value="{{ now()->toDateString() }}">
                 </div>
+                @include('partials.mpesa-line', ['cls' => 'full'])
                 <div class="field">
                     <label>How it was paid <span class="req">*</span></label>
                     <select name="method" required>
