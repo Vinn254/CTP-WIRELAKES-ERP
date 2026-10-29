@@ -22,7 +22,7 @@ class StaffInviteEmail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: config('app.name').' — you have been invited to the office');
+        return new Envelope(subject: config('app.name').' — you have been invited to register');
     }
 
     public function content(): Content
