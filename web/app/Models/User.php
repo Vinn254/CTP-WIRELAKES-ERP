@@ -68,4 +68,15 @@ class User extends Authenticatable
     {
         return $this->hasOne(StaffRecord::class);
     }
+
+    /** The field of training a Trainer title was handed over for, picked from the programme's own catalogue. */
+    public function trainerField()
+    {
+        return $this->belongsTo(Training::class, 'trainer_training_id');
+    }
+
+    public function trainerFieldLabel(): ?string
+    {
+        return $this->trainerField?->name;
+    }
 }

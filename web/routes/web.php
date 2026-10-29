@@ -239,9 +239,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // the sheet to Finance, which sees the staff to be paid and settles them one by one on the money register.
     Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
     Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
+
+    // The statutory rates are a page of their own, so they are named before a month's number can be read as one.
+    Route::get('/payroll/rates', [PayrollController::class, 'rates'])->name('payroll.rates');
+    Route::post('/payroll/rates', [PayrollController::class, 'saveRates'])->name('payroll.rates.save');
+
     Route::get('/payroll/{run}', [PayrollController::class, 'show'])->whereNumber('run')->name('payroll.show');
     Route::post('/payroll/{run}/add', [PayrollController::class, 'add'])->whereNumber('run')->name('payroll.add');
     Route::post('/payroll/{run}/send', [PayrollController::class, 'send'])->whereNumber('run')->name('payroll.send');
+    Route::post('/payroll/{run}/statutory', [PayrollController::class, 'statutory'])->whereNumber('run')->name('payroll.statutory');
     Route::post('/payroll/line/{line}', [PayrollController::class, 'line'])->whereNumber('line')->name('payroll.line');
     Route::post('/payroll/line/{line}/hold', [PayrollController::class, 'hold'])->whereNumber('line')->name('payroll.line.hold');
     Route::post('/payroll/line/{line}/release', [PayrollController::class, 'releaseHold'])->whereNumber('line')->name('payroll.line.release');

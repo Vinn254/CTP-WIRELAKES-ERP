@@ -21,6 +21,7 @@
 
 <div class="head-actions" style="margin:0 0 18px">
     <button class="btn btn-primary" type="button" data-sheet="run">Run a month's payroll</button>
+    <a class="btn btn-outline" href="{{ route('admin.payroll.rates') }}">Deduction rates</a>
 </div>
 
 @include('partials.sheet-start', ['name' => 'run', 'title' => 'Run a month\'s payroll',

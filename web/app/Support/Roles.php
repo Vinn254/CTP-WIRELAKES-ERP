@@ -16,8 +16,8 @@ class Roles
     public const PROFILES = [
         'system_administrator' => [
             'name' => 'System Administrator',
-            'desc' => 'Website & Membership · Human Resources · Marketplace · Execution · Construction · Technology · E-Waste · Reports',
-            'departments' => ['membership', 'hr', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'me_gis'],
+            'desc' => 'Website & Membership · Monitoring, Maps & Reports',
+            'departments' => ['membership', 'me_gis'],
         ],
         'academic_registrar' => [
             'name' => 'Academic Registrar',

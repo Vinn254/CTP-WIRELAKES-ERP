@@ -8,9 +8,14 @@ class StaffInvite extends Model
 {
     public const ROLES = ['admin' => 'Admin (department staff)', 'superadmin' => 'Super admin (full access)'];
 
-    protected $fillable = ['name', 'email', 'role', 'department', 'roles', 'token', 'invited_by', 'status', 'accepted_user_id', 'expires_at'];
+    protected $fillable = ['name', 'email', 'role', 'department', 'roles', 'trainer_training_id', 'token', 'invited_by', 'status', 'accepted_user_id', 'expires_at'];
 
     protected $casts = ['expires_at' => 'datetime'];
+
+    public function trainerField()
+    {
+        return $this->belongsTo(Training::class, 'trainer_training_id');
+    }
 
     public function isUsable(): bool
     {

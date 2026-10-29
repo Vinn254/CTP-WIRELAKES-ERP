@@ -160,6 +160,7 @@ class Departments
             ['label' => 'Staff directory', 'icon' => 'users', 'route' => ['admin.directory.index']],
             ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
+            ['label' => 'Deduction rates', 'icon' => 'sliders', 'route' => ['admin.payroll.rates']],
             ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
             ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index'], 'invite' => true],
         ],
@@ -264,6 +265,7 @@ class Departments
         'admin.mytime.index' => 'Your own week sheet — pick the month and the week of it, write Monday to Friday, sign the week',
         'admin.payroll.index' => 'Run the month from the staff file — allowances in, every deduction out, then send it to Finance',
         'admin.payroll.show' => 'The month’s sheet: each person, their pay, allowances, deductions and net',
+        'admin.payroll.rates' => 'The PAYE bands, relief, NSSF, SHIF and housing levy a month is worked at',
         'admin.staffpay.index' => 'The sheets Human Resources has sent — who is owed what, and what is still to pay',
         'admin.staffpay.show' => 'Pay each person their net; every payment posts its own register line',
         'admin.statements.index' => 'The nine money statements: trial balance, balance sheet, profit and loss, cashflow, ledger, ageing, payroll and the trail',
@@ -396,14 +398,14 @@ class Departments
     }
 
     /**
-     * Who runs the staff accounts desk — the one screen that makes and un-makes an office login. The executive,
-     * Human Resources, and the System Administrator title, which is the account that keeps the programme running.
+     * Who runs the staff accounts desk — the one screen that makes and un-makes an office login. Human Resources
+     * hires into the programme, so it keeps this desk beside the executive. A System Administrator runs the website
+     * and the reports, not the people, so the title no longer opens it.
      */
     public static function mayInvite(?User $user): bool
     {
         return $user !== null && ($user->isSuperAdmin()
-            || in_array('hr', $user->departmentSlugs(), true)
-            || in_array('system_administrator', $user->roleSlugs(), true));
+            || in_array('hr', $user->departmentSlugs(), true));
     }
 
     /**

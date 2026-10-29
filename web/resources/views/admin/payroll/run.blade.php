@@ -42,6 +42,15 @@
         </p>
     </div>
     <div class="head-actions">
+        @if ($canEdit ?? false)
+            <form method="POST" action="{{ route('admin.payroll.statutory', $run) }}" class="inline-form"
+                  data-confirm="Work out PAYE, NSSF, SHIF and the housing levy on every line at the rates Human Resources set? The figures on a line can still be corrected after."
+                  data-title="Work out deductions">
+                @csrf
+                <button class="btn btn-sm btn-lime" type="submit">Work out deductions</button>
+            </form>
+            <a class="btn btn-sm btn-ghost" href="{{ route('admin.payroll.rates') }}">Deduction rates</a>
+        @endif
         <a class="btn btn-sm btn-outline" href="{{ route($index) }}">{{ $paying ? 'All months' : 'Payroll register' }}</a>
         <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
     </div>

@@ -48,6 +48,7 @@ class InviteController extends Controller
             'active' => false,
             'roles' => $invite->roleSlugs() ?: null,
             'departments' => $invite->role === 'superadmin' ? null : ($invite->departmentSlugs() ?: null),
+            'trainer_training_id' => $invite->trainer_training_id,
         ])->save();
 
         $invite->update(['status' => 'accepted', 'accepted_user_id' => $user->id]);

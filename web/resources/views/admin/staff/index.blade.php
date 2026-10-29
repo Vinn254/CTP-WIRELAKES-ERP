@@ -27,6 +27,8 @@
     You are signed in without the Human Resources desk, so this list is read-only for you.
 @endif</p>
 
+@include('partials.errors')
+
 @if ($canManage)
     @include('partials.sheet-start', ['name' => 'invite', 'title' => 'Invite a staff member',
         'sub' => 'They set their own password on the activation link, which is valid 14 days.'])
@@ -55,6 +57,9 @@
                     @endforeach
                 </div>
             </div>
+
+            @include('admin.staff.partials.field', ['selected' => old('trainer_training_id'),
+                'open' => in_array('trainer', (array) old('roles', []), true)])
 
             <details class="dept-pick">
                 <summary>Departments this opens</summary>
@@ -97,6 +102,9 @@
                         @foreach ($heldRoles($u->roleSlugs()) as $label)
                             <span class="tag">{{ $label }}</span>
                         @endforeach
+                        @if (in_array('trainer', $u->roleSlugs(), true))
+                            <span class="tag gray">{{ $u->trainerFieldLabel() ?: 'No field yet' }}</span>
+                        @endif
                     @endif
                 </td>
                 <td>
@@ -122,6 +130,8 @@
                                             <label class="chk"><input type="checkbox" name="roles[]" value="{{ $slug }}" data-depts="{{ implode(' ', $r['departments']) }}"
                                                 @checked(in_array($slug, $u->roleSlugs(), true))> {{ $r['name'] }}</label>
                                         @endforeach
+                                        @include('admin.staff.partials.field', ['selected' => $u->trainer_training_id,
+                                            'open' => in_array('trainer', $u->roleSlugs(), true)])
                                         <hr>
                                         @foreach ($liveDepartments as $d)
                                             <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
@@ -176,6 +186,17 @@ function copyInvite(url, btn) {
         setTimeout(function () { btn.textContent = 'Copy link'; }, 1800);
     });
 }
+
+// The Trainer title is a field of training as well as a desk, so the pick only appears when that box is ticked.
+document.querySelectorAll('input[name="roles[]"][value="trainer"]').forEach(function (box) {
+    box.addEventListener('change', function () {
+        const pick = box.form.querySelector('.trainer-field');
+        if (pick) {
+            pick.hidden = !box.checked;
+            pick.querySelector('select').required = box.checked;
+        }
+    });
+});
 
 // Ticking a role shows which modules it will open. The server works the same list out on its own; this only
 // keeps the boxes on screen honest while the form is being filled in.

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\StaffInviteEmail;
 use App\Models\StaffInvite;
+use App\Models\Training;
 use App\Models\User;
 use App\Support\Accounts;
 use App\Support\Audit;
@@ -20,32 +21,46 @@ class StaffController extends Controller
     public function index()
     {
         return view('admin.staff.index', [
-            'users' => User::whereIn('role', ['admin', 'superadmin'])->orderByDesc('role')->orderBy('name')->get(),
-            'invites' => StaffInvite::latest()->get(),
+            'users' => User::whereIn('role', ['admin', 'superadmin'])->with('trainerField:id,name')
+                ->orderByDesc('role')->orderBy('name')->get(),
+            'invites' => StaffInvite::latest()->with('trainerField:id,name')->get(),
             'liveDepartments' => Departments::live(),
             'roles' => Roles::all(),
+            'fields' => Training::orderBy('name')->get(['id', 'name']),
             'isSuper' => auth()->user()->role === 'superadmin',
             'canManage' => $this->mayManage(),
         ]);
+    }
+
+    /** The rules a Trainer title carries: a trainer must be given a field, picked from the programme's catalogue. */
+    private function rules(Request $request): array
+    {
+        $training = in_array('trainer', (array) $request->input('roles', []), true);
+
+        return [
+            'roles' => 'nullable|array',
+            'roles.*' => 'in:'.implode(',', array_keys(Roles::all())),
+            'departments' => 'nullable|array',
+            'departments.*' => 'in:'.implode(',', array_column(Departments::live(), 'slug')),
+            'trainer_training_id' => ($training ? 'required' : 'nullable').'|integer|exists:trainings,id',
+        ];
+    }
+
+    private function field(Request $request, array $roles): ?int
+    {
+        return in_array('trainer', $roles, true) ? (int) $request->input('trainer_training_id') : null;
     }
 
     public function invite(Request $request)
     {
         $this->gate();
 
-        $slugs = implode(',', array_column(Departments::live(), 'slug'));
-        $roleSlugs = implode(',', array_keys(Roles::all()));
-
         // No account type is chosen here: every person this desk invites is an admin, and the one super admin
         // account the programme already holds is the only one that opens everything.
         $data = $request->validate([
             'name' => 'required|string|max:120',
             'email' => 'required|email|max:160|unique:users,email|unique:staff_invites,email',
-            'roles' => 'nullable|array',
-            'roles.*' => 'in:'.$roleSlugs,
-            'departments' => 'nullable|array',
-            'departments.*' => 'in:'.$slugs,
-        ]);
+        ] + $this->rules($request), ['trainer_training_id.required' => 'Tick the field of training for this trainer.'], ['trainer_training_id' => 'Field of training']);
 
         [$roles, $departments] = $this->grant($request->input('roles', []), $request->input('departments', []));
 
@@ -65,6 +80,7 @@ class StaffController extends Controller
             'email' => Accounts::email($data['email']),
             'role' => 'admin',
             'roles' => StaffInvite::list($roles),
+            'trainer_training_id' => $this->field($request, $roles),
             'department' => StaffInvite::list($departments),
             'token' => Str::random(48),
             'invited_by' => auth()->id(),
@@ -99,17 +115,10 @@ class StaffController extends Controller
         $this->gate();
         $this->guardTarget($user);
 
-        $slugs = implode(',', array_column(Departments::live(), 'slug'));
-        $roleSlugs = implode(',', array_keys(Roles::all()));
-
         // The account type is not part of this form. What this desk sets is the job titles and the modules they open.
         $request->validate([
             'active' => 'boolean',
-            'roles' => 'nullable|array',
-            'roles.*' => 'in:'.$roleSlugs,
-            'departments' => 'nullable|array',
-            'departments.*' => 'in:'.$slugs,
-        ]);
+        ] + $this->rules($request), ['trainer_training_id.required' => 'Tick the field of training for this trainer.'], ['trainer_training_id' => 'Field of training']);
 
         [$roles, $departments] = $this->grant($request->input('roles', []), $request->input('departments', []));
 
@@ -130,6 +139,7 @@ class StaffController extends Controller
             'active' => $request->boolean('active', $user->active),
             'roles' => $roles,
             'departments' => $departments,
+            'trainer_training_id' => $this->field($request, $roles),
         ])->save();
 
         Audit::auth('updated', $user->name.' holds '.($roles ? Roles::labelsFor($user) : 'no role').
@@ -157,8 +167,8 @@ class StaffController extends Controller
         return [$known, $granted];
     }
 
-    /** Staff accounts are a Human Resources record, so HR and the System Administrator run this desk beside a
-     *  super admin — the one account that keeps the programme running is the one that must be able to hire into it. */
+    /** Staff accounts are a Human Resources record, so HR runs this desk beside the executive — the careers board,
+     *  the staff directory, the payroll and the leave register sit on the same desk. */
     private function mayManage(): bool
     {
         return Departments::mayInvite(auth()->user());
@@ -173,8 +183,8 @@ class StaffController extends Controller
     private function gate(): void
     {
         abort_unless($this->mayManage(), 403,
-            'Staff accounts and roles are kept by Human Resources and the System Administrator — the careers board, '
-            .'the staff directory and the leave register sit on the same desk.');
+            'Staff accounts and roles are kept by Human Resources — the careers board, the staff directory and the '
+            .'leave register sit on the same desk.');
     }
 
     /**

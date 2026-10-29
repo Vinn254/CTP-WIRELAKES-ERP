@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
+use App\Support\Deductions;
 use App\Support\Payroll;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * The payroll sheet, prepared by Human Resources. A month is drawn from the staff file, the allowances and every
@@ -99,5 +101,35 @@ class PayrollController extends Controller
     public function send(Request $request, PayrollRun $run)
     {
         return back()->with('status', Payroll::send($run, $request->user()));
+    }
+
+    /** The rates the statutory deductions are worked at, which Human Resources keeps. */
+    public function rates()
+    {
+        abort_unless(Payroll::hr(), 403, 'The deduction rates are kept by the Human Resources desk.');
+
+        return view('admin.payroll.rates', [
+            'rates' => Deductions::rates(),
+            'labels' => Deductions::labels(),
+            'defaults' => Deductions::defaults(),
+        ]);
+    }
+
+    public function saveRates(Request $request)
+    {
+        Deductions::save($request, $request->user());
+
+        return redirect()->route('admin.payroll.rates')
+            ->with('status', 'The deduction rates are saved. Any sheet still being prepared can be worked out again on them.');
+    }
+
+    /** Every line on the month, worked at the rates in force. The office still corrects a line by hand. */
+    public function statutory(Request $request, PayrollRun $run)
+    {
+        [$done, $skipped] = Deductions::applyRun($run, $request->user());
+
+        return back()->with('status', $done.' '.Str::plural('line', $done).' on '.$run->periodLabel()
+            .' now '.($done === 1 ? 'carries' : 'carry').' PAYE, NSSF, SHIF and the housing levy at the rates Human Resources set.'
+            .($skipped ? ' Left as typed: '.implode(', ', $skipped).' — the figures would take more than their pay.' : ''));
     }
 }
