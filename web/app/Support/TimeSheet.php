@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\TimeLog;
 use App\Models\Trainer;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -37,10 +38,8 @@ class TimeSheet
             || Trainer::whereHas('fundi', fn ($q) => $q->where('user_id', $user->id))->exists();
     }
 
-    /**
-     * Who answers a signed week: Human Resources for every person, because the sheet is the proof pay is built on,
-     * and the executive for all of it. Nobody signs off the week they themselves worked.
-     */
+    /** Who answers a signed week: Human Resources for every person, because the sheet is the proof pay is built on,
+     *  and the executive for all of it. Nobody signs off the week they themselves worked. */
     public static function decides(User $worker, ?User $decider = null): bool
     {
         $decider ??= auth()->user();
@@ -49,7 +48,73 @@ class TimeSheet
             return false;
         }
 
-        return $decider->isSuperAdmin() || in_array('hr', Departments::visibleSlugs($decider), true);
+        return static::keeps($decider);
+    }
+
+    /** Who keeps the whole register: Human Resources, which answers the weeks, and the executive. */
+    public static function keeps(?User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        return $user !== null && ($user->isSuperAdmin() || Departments::canSee($user, 'hr'));
+    }
+
+    /** Finance is paid by these sheets, so it reads every week — but only the ones Human Resources has approved. */
+    public static function paysFor(?User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        return $user !== null && ! static::keeps($user) && Departments::canSee($user, 'finance');
+    }
+
+    /** Whose weeks a desk may read at all: HR and the executive every department, Finance the weeks Human Resources
+     *  has approved, and every other desk only its own people — plus anyone's own sheet. */
+    public static function visibleTo(Builder $query, ?User $viewer = null): Builder
+    {
+        if (! $viewer || static::keeps($viewer)) {
+            return $query;
+        }
+
+        if (static::paysFor($viewer)) {
+            return $query->where(fn ($w) => $w->where('status', 'approved')->orWhere('user_id', $viewer->id));
+        }
+
+        $slugs = Departments::visibleSlugs($viewer);
+
+        return $query->where(fn ($w) => $w->where('user_id', $viewer->id)
+            ->orWhereHas('user', fn ($u) => $u->where(function ($any) use ($slugs) {
+                foreach ($slugs as $slug) {
+                    $any->orWhereJsonContains('departments', $slug);
+                }
+            })));
+    }
+
+    /** Weeks still signed and waiting on Human Resources, counted only for the people this desk may read. */
+    public static function waitingFor(?User $viewer = null): int
+    {
+        return static::visibleTo(TimeLog::query()->where('status', 'submitted'), $viewer)
+            ->distinct()->count(['user_id', 'week_start']);
+    }
+
+    /** Whose weeks a desk may open: the same rule, asked of one person's sheet. */
+    public static function opens(User $worker, ?Carbon $week = null, ?User $viewer = null): bool
+    {
+        $viewer ??= auth()->user();
+
+        if (! $viewer) {
+            return false;
+        }
+
+        if ($viewer->id === $worker->id || static::keeps($viewer)) {
+            return true;
+        }
+
+        if (static::paysFor($viewer)) {
+            return ! TimeLog::query()->where('user_id', $worker->id)->where('status', '!=', 'approved')
+                ->when($week, fn ($q) => $q->where('week_start', $week->toDateString()))->exists();
+        }
+
+        return array_intersect(Departments::visibleSlugs($viewer), $worker->departmentSlugs()) !== [];
     }
 
     /** The sites this person teaches, when they teach — the programmes a day can be logged against. */
@@ -271,11 +336,12 @@ class TimeSheet
             (int) Carbon::now()->format('Y') + 1);
     }
 
-    /** Every week anyone has filled, newest first — the office register and each worker's own history. */
-    public static function weeksFor(?User $worker = null): Collection
+    /** Every week anyone has filled, newest first — the office register and each worker's own history. The office
+     *  copy is scoped to what the viewing desk is allowed to read. */
+    public static function weeksFor(?User $worker = null, ?User $viewer = null): Collection
     {
-        return TimeLog::query()
-            ->when($worker, fn ($q) => $q->where('user_id', $worker->id))
+        return static::visibleTo(
+            TimeLog::query()->when($worker, fn ($q) => $q->where('user_id', $worker->id)), $viewer)
             ->with(['user:id,name,email,departments', 'training:id,name', 'cohort:id,reference'])
             ->orderByDesc('week_start')->orderBy('user_id')
             ->get()

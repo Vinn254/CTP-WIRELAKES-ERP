@@ -25,7 +25,6 @@ use App\Models\ProjectMatch;
 use App\Models\Requisition;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
-use App\Models\TimeLog;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Models\WorkOrder;
@@ -503,7 +502,7 @@ class Departments
             'onboarding' => JobApplication::whereIn('status', JobApplication::ONBOARDABLE)->count(),
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),
-            'timelogs' => TimeLog::where('status', 'submitted')->distinct()->count(['user_id', 'week_start']),
+            'timelogs' => TimeSheet::waitingFor(auth()->user()),
             'leave' => LeaveRequest::where('status', 'pending')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),
             'fundis' => FundiRegistration::whereIn('status', ['pending_payment', 'pending_review'])->count(),

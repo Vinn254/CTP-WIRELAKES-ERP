@@ -22,7 +22,7 @@ class TimeLogController extends Controller
     /** Every week anyone has filled, newest first, with what is waiting on this desk counted up. */
     public function index(Request $request)
     {
-        $all = TimeSheet::weeksFor();
+        $all = TimeSheet::weeksFor(null, $request->user());
         $status = $request->input('status', 'all');
         // The month and the year are picked separately — the same twelve months every year, not a list that repeats.
         $month = (string) $request->input('month', '');
@@ -54,10 +54,13 @@ class TimeLogController extends Controller
         ]);
     }
 
-    /** One person's week, printed exactly as the ruled sheet reads. */
+    /** One person's week, printed exactly as the ruled sheet reads — to the desk that is allowed that person. */
     public function week(Request $request, User $user, string $week)
     {
-        $sheet = TimeSheet::sheet($user, $week);
+        $monday = TimeLog::weekStartOf($week);
+        abort_unless(TimeSheet::opens($user, $monday, $request->user()), 403, 'That sheet belongs to another desk.');
+
+        $sheet = TimeSheet::sheet($user, $monday);
 
         return view('admin.timelogs.week', [
             'sheet' => $sheet,
