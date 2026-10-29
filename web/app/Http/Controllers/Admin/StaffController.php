@@ -64,9 +64,10 @@ class StaffController extends Controller
 
         [$roles, $departments] = $this->grant($request->input('roles', []), $request->input('departments', []));
 
-        if ($departments === []) {
+        // A trainer opens their own teaching desk rather than a module, so a job title counts even with no tick.
+        if ($departments === [] && ! Roles::grants($roles)) {
             return back()->withInput()->with('error',
-                'Give this person at least one role or department — an admin with neither opens nothing.');
+                'Give this person at least one job title or module — an admin with neither opens nothing.');
         }
 
         if ($this->opensEverything($departments)) {
@@ -122,9 +123,9 @@ class StaffController extends Controller
 
         [$roles, $departments] = $this->grant($request->input('roles', []), $request->input('departments', []));
 
-        if ($departments === []) {
+        if ($departments === [] && ! Roles::grants($roles)) {
             return back()->withInput()->with('error',
-                $user->name.' would open nothing with no role and no module ticked — keep at least one.');
+                $user->name.' would open nothing with no job title and no module ticked — keep at least one.');
         }
 
         if ($this->opensEverything($departments)) {
