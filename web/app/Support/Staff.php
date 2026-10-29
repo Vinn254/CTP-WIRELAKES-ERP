@@ -23,7 +23,8 @@ class Staff
     public const FIELDS = [
         'name', 'email', 'phone', 'job_title', 'started_on', 'salary', 'id_number', 'kra_pin', 'nssf_number',
         'nhif_number', 'bank_name', 'bank_branch', 'bank_account', 'address',
-        'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone',
+        'next_of_kin_name', 'next_of_kin_phone', 'next_of_kin_relation',
+        'next_of_kin_2_name', 'next_of_kin_2_phone', 'next_of_kin_2_relation',
     ];
 
     /** Only Human Resources — and the account the programme itself holds — opens a personnel file. */
@@ -75,12 +76,6 @@ class Staff
             $record->keepPhoto($file);
         }
 
-        if ($file = $request->file('c14')) {
-            $record->c14_path = $file->store('staff/'.Str::slug($data['name']), 'local');
-            $record->c14_name = $file->getClientOriginalName();
-            $record->c14_size = $file->getSize();
-        }
-
         $record->save();
 
         if ($account) {
@@ -110,7 +105,7 @@ class Staff
         return [$record, $record->name.' is on the staff directory. '.$sent];
     }
 
-    /** The same card amends a file later: the fields are written, and a new photo or C14 replaces the one on record. */
+    /** The same card amends a file later: the fields are written over the old ones, and a new photo replaces the face on record. */
     public static function amend(StaffRecord $record, Request $request, User $actor): string
     {
         $data = static::validate($request, false);
@@ -119,12 +114,6 @@ class Staff
 
         if ($file = $request->file('photo')) {
             $record->keepPhoto($file);
-        }
-
-        if ($file = $request->file('c14')) {
-            $record->c14_path = $file->store('staff/'.Str::slug($record->name), 'local');
-            $record->c14_name = $file->getClientOriginalName();
-            $record->c14_size = $file->getSize();
         }
 
         $record->save();
@@ -151,25 +140,35 @@ class Staff
             'bank_branch' => 'nullable|string|max:90',
             'bank_account' => 'nullable|string|max:40',
             'address' => 'nullable|string|max:180',
-            'next_of_kin_name' => 'nullable|string|max:150',
-            'next_of_kin_relation' => 'nullable|string|max:60',
-            'next_of_kin_phone' => 'nullable|string|max:30',
+            'next_of_kin_name' => 'required|string|max:150',
+            'next_of_kin_phone' => 'required|string|max:30',
+            'next_of_kin_relation' => 'required|string|max:60',
+            'next_of_kin_2_name' => 'nullable|required_with:next_of_kin_2_phone,next_of_kin_2_relation|string|max:150',
+            'next_of_kin_2_phone' => 'nullable|required_with:next_of_kin_2_name,next_of_kin_2_relation|string|max:30',
+            'next_of_kin_2_relation' => 'nullable|required_with:next_of_kin_2_name,next_of_kin_2_phone|string|max:60',
             'photo' => ($needPhoto ? 'required|' : 'nullable|').'image|mimes:jpg,jpeg,png|max:2048',
-            'c14' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ], [
             'name.required' => 'Give the name the office will call.',
             'email.required' => 'An email address is where the activation link goes.',
             'phone.required' => 'A phone number is needed to reach this person.',
             'photo.required' => 'Attach the profile photo — a clear face picture in a JPG or PNG.',
             'photo.image' => 'The profile photo must be a JPG or PNG picture, not a document scan.',
+            'next_of_kin_name.required' => 'The C14 needs a first next of kin — write their name.',
+            'next_of_kin_phone.required' => 'The C14 needs a contact number for the first next of kin.',
+            'next_of_kin_relation.required' => 'Say how the first next of kin is related to this person.',
         ], [
             'name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'job_title' => 'Job title',
             'started_on' => 'First day', 'salary' => 'Monthly pay', 'id_number' => 'ID number',
             'kra_pin' => 'KRA PIN', 'nssf_number' => 'NSSF number', 'nhif_number' => 'NHIF number',
             'bank_name' => 'Bank', 'bank_branch' => 'Branch', 'bank_account' => 'Account number',
-            'address' => 'Address', 'next_of_kin_name' => 'Next of kin',
-            'next_of_kin_relation' => 'Relationship', 'next_of_kin_phone' => 'Their phone',
-            'photo' => 'the photo', 'c14' => 'the C14',
+            'address' => 'Address',
+            'next_of_kin_name' => 'first next of kin — name',
+            'next_of_kin_phone' => 'first next of kin — contact',
+            'next_of_kin_relation' => 'first next of kin — relationship',
+            'next_of_kin_2_name' => 'second next of kin — name',
+            'next_of_kin_2_phone' => 'second next of kin — contact',
+            'next_of_kin_2_relation' => 'second next of kin — relationship',
+            'photo' => 'the photo',
         ]);
     }
 

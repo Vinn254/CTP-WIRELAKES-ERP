@@ -76,27 +76,30 @@
         <label>Account number</label>
         <input type="text" name="bank_account" maxlength="40" value="{{ $val('bank_account') }}">
     </div>
-    <div class="field">
-        <label>Next of kin <span class="req">*</span></label>
-        <input type="text" name="next_of_kin_name" maxlength="150" value="{{ $val('next_of_kin_name') }}">
-    </div>
-    <div class="field">
-        <label>Relationship</label>
-        <input type="text" name="next_of_kin_relation" maxlength="60" value="{{ $val('next_of_kin_relation') }}">
-    </div>
-    <div class="field">
-        <label>Their phone</label>
-        <input type="text" name="next_of_kin_phone" maxlength="30" value="{{ $val('next_of_kin_phone') }}">
-    </div>
     <div class="field full">
         <label>Physical address</label>
         <input type="text" name="address" maxlength="180" value="{{ $val('address') }}">
     </div>
     <div class="field full">
-        <label>C14 document</label>
-        <input type="file" name="c14" accept=".pdf,.jpg,.jpeg,.png">
-        <div class="hint">The C14 is the next-of-kin and dependants declaration filed with NSSF and SHIF — the people
-            to contact and to pay if anything happens to this member of staff. Attach the signed copy: PDF or a clear
-            photo, up to 5 MB. A new one replaces the file on record.</div>
+        <b>C14 — next of kin</b>
+        <div class="hint">Who the office calls if anything happens to this member of staff, and who is paid.
+            The first is required; the second is optional.</div>
     </div>
+    @foreach ([1 => 'First next of kin', 2 => 'Second next of kin (optional)'] as $n => $kinLabel)
+        @php $p = $n === 1 ? 'next_of_kin' : 'next_of_kin_2'; $req = $n === 1; @endphp
+        <div class="field">
+            <label>{{ $kinLabel }} — name @if ($req)<span class="req">*</span>@endif</label>
+            <input type="text" name="{{ $p }}_name" maxlength="150" @required($req) value="{{ $val($p.'_name') }}">
+        </div>
+        <div class="field">
+            <label>{{ $kinLabel }} — contact @if ($req)<span class="req">*</span>@endif</label>
+            <input type="text" name="{{ $p }}_phone" maxlength="30" @required($req)
+                   placeholder="07xx xxx xxx" value="{{ $val($p.'_phone') }}">
+        </div>
+        <div class="field">
+            <label>{{ $kinLabel }} — relationship @if ($req)<span class="req">*</span>@endif</label>
+            <input type="text" name="{{ $p }}_relation" maxlength="60" @required($req)
+                   placeholder="e.g. Spouse, Parent, Sibling" value="{{ $val($p.'_relation') }}">
+        </div>
+    @endforeach
 </div>

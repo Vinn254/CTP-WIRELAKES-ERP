@@ -93,8 +93,10 @@ class Audit
         'cv_path', 'cv_name', 'cv_size',
         // A personnel file is the most personal record the office holds: the trail says the file was amended,
         // never what the pay, the bank or the family contact now says.
-        'salary', 'bank_name', 'bank_branch', 'bank_account', 'c14_path', 'c14_name', 'c14_size',
-        'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone', 'kra_pin', 'nssf_number',
+        'salary', 'bank_name', 'bank_branch', 'bank_account',
+        'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone',
+        'next_of_kin_2_name', 'next_of_kin_2_relation', 'next_of_kin_2_phone',
+        'kra_pin', 'nssf_number',
         'nhif_number', 'id_number', 'address',
     ];
 

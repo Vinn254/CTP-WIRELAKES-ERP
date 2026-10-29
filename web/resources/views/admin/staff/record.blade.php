@@ -80,12 +80,17 @@
     </div>
 
     <div class="card">
-        <div class="section-head"><h3>Next of kin</h3></div>
+        <div class="section-head"><h3>C14 — next of kin</h3></div>
         <dl class="kv">
-            <dt>Name</dt><dd>{{ $shown($record->next_of_kin_name) }}</dd>
-            <dt>Relationship</dt><dd>{{ $shown($record->next_of_kin_relation) }}</dd>
-            <dt>Phone</dt><dd>{{ $shown($record->next_of_kin_phone) }}</dd>
+            <dt>First — name</dt><dd>{{ $shown($record->next_of_kin_name) }}</dd>
+            <dt>First — contact</dt><dd>{{ $shown($record->next_of_kin_phone) }}</dd>
+            <dt>First — relationship</dt><dd>{{ $shown($record->next_of_kin_relation) }}</dd>
+            <dt>Second — name</dt><dd>{{ $shown($record->next_of_kin_2_name) }}</dd>
+            <dt>Second — contact</dt><dd>{{ $shown($record->next_of_kin_2_phone) }}</dd>
+            <dt>Second — relationship</dt><dd>{{ $shown($record->next_of_kin_2_relation) }}</dd>
         </dl>
+        <p class="hint">Who the office calls if anything happens to this member of staff, and who is paid.
+            The second entry is optional.</p>
     </div>
 </div>
 
@@ -96,8 +101,6 @@
             Open the C14</a>
             <span class="hint">{{ $record->c14_name }} · {{ number_format(max(1, (int) $record->c14_size / 1024), 1) }} KB
                 — kept on the private disk and served to this desk only.</span></p>
-    @else
-        <p class="help">No C14 on record yet. Use <b>Amend the file</b> to attach it.</p>
     @endif
     @if ($record->application)
         <p class="hint">Came in through the opening {{ $record->application->opening?->reference ?: '—' }}

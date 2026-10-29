@@ -17,7 +17,8 @@ class StaffRecord extends Model
     protected $fillable = [
         'job_application_id', 'name', 'email', 'phone', 'job_title', 'started_on', 'salary', 'id_number',
         'kra_pin', 'nssf_number', 'nhif_number', 'bank_name', 'bank_branch', 'bank_account', 'address',
-        'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone', 'recorded_by_user',
+        'next_of_kin_name', 'next_of_kin_relation', 'next_of_kin_phone',
+        'next_of_kin_2_name', 'next_of_kin_2_relation', 'next_of_kin_2_phone', 'recorded_by_user',
     ];
 
     protected $casts = ['started_on' => 'date', 'salary' => 'decimal:2'];
