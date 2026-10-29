@@ -13,13 +13,16 @@ use Illuminate\Support\Str;
  * A super admin runs the programme, so they navigate by module. Everyone else holds job titles, and a title is
  * worked as a list of screens — not as a stack of numbered modules. This turns the departments a person's roles
  * open into those screens, grouped by the title that grants them, each screen listed once however many titles
- * share it.
+ * share it. Someone holding two titles is offered both as cards and works one of them at a time.
  */
 class Workspace
 {
     /** @return array<int, array{label: string, note: string, items: array<int, array<string, mixed>>}> */
-    public static function groups(?User $user): array
+    public static function groups(?User $user, ?string $role = null): array
     {
+        // Someone who holds more than one title works as one of them at a time, whichever desk they chose on landing.
+        $role ??= static::acting($user);
+
         $visible = Departments::visibleSlugs($user);
         $held = $user ? $user->roleSlugs() : [];
         $seen = [];
@@ -28,6 +31,7 @@ class Workspace
         // Their own teaching first: a trainer who also runs a department works both from one sidebar.
         if (Trainer::forAccount($user)->isNotEmpty()) {
             $groups[] = [
+                'slug' => 'trainer',
                 'label' => Roles::all()['trainer']['name'],
                 'note' => Roles::all()['trainer']['desc'],
                 'items' => [
@@ -47,7 +51,7 @@ class Workspace
             $items = static::take($user, array_intersect($profile['departments'], $visible), $seen);
 
             if ($items) {
-                $groups[] = ['label' => $profile['name'], 'note' => $profile['desc'], 'items' => $items];
+                $groups[] = ['slug' => $slug, 'label' => $profile['name'], 'note' => $profile['desc'], 'items' => $items];
             }
         }
 
@@ -57,11 +61,16 @@ class Workspace
 
             if ($items) {
                 $groups[] = [
+                    'slug' => null,
                     'label' => Departments::find($department)['name'] ?? $department,
                     'note' => Departments::find($department)['desc'] ?? '',
                     'items' => $items,
                 ];
             }
+        }
+
+        if ($role !== null) {
+            $groups = array_values(array_filter($groups, fn (array $g) => ($g['slug'] ?? null) === $role));
         }
 
         // The own desk goes with the person, not the title: a week sheet and a leave book, wherever they sit.
@@ -82,6 +91,41 @@ class Workspace
         }
 
         return $groups;
+    }
+
+    /** The one job title this person is working as, when they hold several and have chosen one of them. */
+    public static function acting(?User $user): ?string
+    {
+        $held = $user ? $user->roleSlugs() : [];
+        $picked = session('workspace_role');
+
+        return count($held) > 1 && is_string($picked) && in_array($picked, $held, true) ? $picked : null;
+    }
+
+    /** The desks to choose from when an account holds more than one job title: a card per title it actually opens. */
+    public static function cards(?User $user): array
+    {
+        $cards = [];
+
+        foreach ($user ? $user->roleSlugs() : [] as $slug) {
+            // The card counts exactly the screens that title's workspace will show, its own desk included.
+            $items = collect(static::groups($user, $slug))->flatMap(fn (array $g) => $g['items']);
+
+            if ($items->isEmpty()) {
+                continue;
+            }
+
+            $cards[] = [
+                'slug' => $slug,
+                'label' => Roles::all()[$slug]['name'],
+                'note' => Roles::all()[$slug]['desc'],
+                'icon' => $items->first()['icon'] ?? 'grid',
+                'pages' => $items->count(),
+                'waiting' => $items->sum(fn (array $i) => Departments::badge($i['badge'] ?? null)),
+            ];
+        }
+
+        return $cards;
     }
 
     /**

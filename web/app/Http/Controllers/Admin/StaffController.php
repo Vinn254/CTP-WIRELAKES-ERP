@@ -157,12 +157,11 @@ class StaffController extends Controller
         return [$known, $granted];
     }
 
-    /** Staff accounts are a Human Resources record, so an HR holder runs this desk beside a super admin. */
+    /** Staff accounts are a Human Resources record, so HR and the System Administrator run this desk beside a
+     *  super admin — the one account that keeps the programme running is the one that must be able to hire into it. */
     private function mayManage(): bool
     {
-        $actor = auth()->user();
-
-        return $actor?->role === 'superadmin' || in_array('hr', $actor?->departmentSlugs() ?? [], true);
+        return Departments::mayInvite(auth()->user());
     }
 
     /** Every module at once is the super admin's run; an admin is given only what their work needs. */
@@ -174,8 +173,8 @@ class StaffController extends Controller
     private function gate(): void
     {
         abort_unless($this->mayManage(), 403,
-            'Staff accounts and roles are kept by Human Resources — the careers board, the staff directory and the '
-            .'leave register sit on the same desk.');
+            'Staff accounts and roles are kept by Human Resources and the System Administrator — the careers board, '
+            .'the staff directory and the leave register sit on the same desk.');
     }
 
     /**

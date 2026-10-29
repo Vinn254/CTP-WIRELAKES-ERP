@@ -43,13 +43,26 @@
 
     $sections = [];
 
+    $acting = $isSuper ? null : \App\Support\Workspace::acting($me);
+    // The landing cards, shown once to an account holding more than one job title.
+    $choosing = ! $isSuper && ! $acting && request()->routeIs('admin.departments')
+        && count(\App\Support\Workspace::cards($me)) > 1;
+
     // Every account opens the office from the same first icon: the department cards for a super admin, their own
     // workspace overview for anyone holding a job title.
-    $sections[] = ['label' => 'Office', 'icon' => 'grid', 'items' => [
-        ['label' => $isSuper ? 'All departments' : 'My overview', 'icon' => 'grid',
-            'href' => route('admin.departments'),
-            'active' => request()->routeIs('admin.departments'), 'badge' => 0],
-    ]];
+    $office = [
+        ['label' => $isSuper ? 'All departments' : ($acting ? \App\Support\Roles::all()[$acting]['name'] : 'My overview'),
+            'icon' => 'grid', 'href' => route('admin.departments'),
+            'active' => request()->routeIs('admin.departments') && ! $choosing, 'badge' => 0],
+    ];
+
+    // The title they chose is not the only one they hold, so the cards stay one click away.
+    if ($acting || $choosing) {
+        $office[] = ['label' => 'All my roles', 'icon' => 'users', 'href' => route('admin.departments').'?role=',
+            'active' => $choosing, 'badge' => 0];
+    }
+
+    $sections[] = ['label' => 'Office', 'icon' => 'grid', 'items' => $office];
 
     if ($isSuper) {
         if (\App\Models\Trainer::forAccount($me)->isNotEmpty()) {

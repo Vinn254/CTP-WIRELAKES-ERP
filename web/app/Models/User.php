@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use App\Models\Concerns\NormalizedIdentity;
+use App\Support\Roles;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,10 +37,19 @@ class User extends Authenticatable
         ];
     }
 
-    /** The department (module) slugs this staff account may open — empty for a member or an unscoped admin. */
+    /**
+     * The department (module) slugs this staff account may open — empty for a member or an unscoped admin.
+     *
+     * A job title is a bundle of ticks, so what a title grants is worked out here rather than trusted from the
+     * column written when the person was hired: a title that later takes on a department reaches the person
+     * holding it without the office re-saving every account.
+     */
     public function departmentSlugs(): array
     {
-        return array_values(array_filter((array) ($this->departments ?? [])));
+        return array_values(array_unique(array_merge(
+            array_filter((array) ($this->departments ?? [])),
+            Roles::departmentsFor($this->roleSlugs())
+        )));
     }
 
     /** The job titles held here. A person can hold more than one; the departments they grant are merged. */

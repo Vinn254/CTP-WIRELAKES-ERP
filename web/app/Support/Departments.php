@@ -80,6 +80,7 @@ class Departments
     private const NAV = [
         'membership' => [
             ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.registrations.index', 'ctp'], 'badge' => 'applicants'],
+            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index'], 'invite' => true],
             ['label' => 'Site content & pages', 'icon' => 'layout', 'route' => ['admin.content.index']],
             ['label' => 'Membership settings', 'icon' => 'sliders', 'route' => ['admin.content.edit', 'membership']],
             ['label' => 'Projects', 'icon' => 'briefcase', 'route' => ['admin.projects.index'], 'badge' => 'applications'],
@@ -145,7 +146,7 @@ class Departments
             ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
             ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
-            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
+            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index'], 'invite' => true],
         ],
         'me_gis' => [
             ['label' => 'Impact dashboard', 'icon' => 'grid', 'route' => ['admin.impacts.index']],
@@ -368,13 +369,27 @@ class Departments
     }
 
     /**
+     * Who runs the staff accounts desk — the one screen that makes and un-makes an office login. The executive,
+     * Human Resources, and the System Administrator title, which is the account that keeps the programme running.
+     */
+    public static function mayInvite(?User $user): bool
+    {
+        return $user !== null && ($user->isSuperAdmin()
+            || in_array('hr', $user->departmentSlugs(), true)
+            || in_array('system_administrator', $user->roleSlugs(), true));
+    }
+
+    /**
      * The screens of a department. Two registers are copied into every desk — the signed weeks and the leave the
      * desk's own people hold — so reading either never moves someone out of the department they work in, and every
      * worker fills their own week sheet and books their own leave from whichever desk they are standing at.
      */
     public static function nav(string $slug): array
     {
-        $items = self::NAV[$slug] ?? [];
+        // The invite desk sits with the people it hires as well as with Human Resources, and only where the signed-in
+        // account actually runs it — a tile that would answer 403 is never put in front of someone.
+        $items = array_values(array_filter(self::NAV[$slug] ?? [],
+            fn (array $i) => empty($i['invite']) || static::mayInvite(auth()->user())));
 
         // Every desk asks for what it needs to work. Procurement checks and approves, Finance processes — the same
         // register, read from each side.

@@ -18,6 +18,9 @@
             @empty
                 <span class="ov-chip quiet">Department staff</span>
             @endforelse
+            @if ($canChange)
+                <a class="ov-chip quiet" href="{{ route('admin.departments') }}?role=">Change role</a>
+            @endif
         </p>
     </div>
     <div class="ov-nums">
