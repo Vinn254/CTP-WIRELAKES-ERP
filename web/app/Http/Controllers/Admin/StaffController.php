@@ -151,6 +151,25 @@ class StaffController extends Controller
     }
 
     /**
+     * Turn an account off without rewriting what it holds. Someone who steps down or is suspended keeps their job
+     * titles and their history for when they come back; only the sign-in stops.
+     */
+    public function setActive(User $user)
+    {
+        $this->gate();
+        $this->guardTarget($user);
+
+        $to = ! $user->active;
+        $user->forceFill(['active' => $to])->save();
+
+        Audit::auth('updated', $user->name.' '.($to ? 'reinstated' : 'deactivated').' by '.auth()->user()->name.'.', $user);
+
+        return back()->with('status', $to
+            ? $user->name.' can sign in again — the roles they held are untouched.'
+            : $user->name.' is deactivated — the sign-in is closed and what they held is kept for when they return.');
+    }
+
+    /**
      * Turn ticked job titles into the departments they open, merged with anything the office ticks by hand.
      * Dropping a department a role still grants means unticking the role, which keeps the two never in conflict.
      *

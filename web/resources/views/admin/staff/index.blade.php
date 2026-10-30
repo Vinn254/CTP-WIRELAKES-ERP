@@ -120,29 +120,14 @@
                         @unless ($manageRow($u))
                             <span class="hint">{{ $u->id === auth()->id() ? 'your account' : 'not edited here' }}</span>
                         @else
-                            <form method="POST" action="{{ route('admin.staff.users.update', $u->id) }}" class="inline-form mini-edit">
+                            <button class="btn btn-sm btn-outline" type="button" data-sheet="edit-{{ $u->id }}">Edit</button>
+                            <form method="POST" action="{{ route('admin.staff.users.active', $u->id) }}"
+                                  data-confirm="{{ $u->active ? 'Deactivate '.$u->name.'? Their sign-in closes at once; what they hold is kept.' : 'Let '.$u->name.' sign in again? The roles they held come back as they were.' }}"
+                                  data-title="{{ $u->active ? 'Deactivate account' : 'Reinstate account' }}">
                                 @csrf
-                                <label class="chk"><input type="checkbox" name="active" value="1" @checked($u->active)> Active</label>
-                                <details class="dept-pick">
-                                    <summary>Roles &amp; departments</summary>
-                                    <div class="dept-box">
-                                        @foreach ($roles as $slug => $r)
-                                            <label class="chk"><input type="checkbox" name="roles[]" value="{{ $slug }}" data-depts="{{ implode(' ', $r['departments']) }}"
-                                                @checked(in_array($slug, $u->roleSlugs(), true))> {{ $r['name'] }}</label>
-                                        @endforeach
-                                        @include('admin.staff.partials.field', ['selected' => $u->trainer_training_id,
-                                            'open' => in_array('trainer', $u->roleSlugs(), true)])
-                                        <hr>
-                                        @foreach ($liveDepartments as $d)
-                                            <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
-                                                @checked(in_array($d['slug'], $u->departmentSlugs(), true))>
-                                                {{ $d['name'] }}</label>
-                                        @endforeach
-                                        <div class="hint">A role opens all of its modules. To drop one module a role
-                                            grants, untick the role instead.</div>
-                                    </div>
-                                </details>
-                                <button class="btn btn-sm btn-outline" type="submit">Save</button>
+                                <button class="btn btn-sm {{ $u->active ? 'btn-danger' : 'btn-lime' }}" type="submit">
+                                    {{ $u->active ? 'Deactivate' : 'Reinstate' }}
+                                </button>
                             </form>
                         @endunless
                     </td>
@@ -152,32 +137,100 @@
     </tbody>
 </table>
 
-<h2 class="sec-title">Invitations</h2>
-@forelse ($invites as $inv)
-    <div class="invite-row {{ $inv->status }}">
-        <div>
-            <b>{{ $inv->name }}</b> &lt;{{ $inv->email }}&gt;
-            <span class="tag gray">{{ $accountLabels[$inv->role] ?? $inv->role }}</span>
-            @if ($inv->roleSlugs())<span class="tag">{{ $inv->roleLabels() }}</span>@endif
-            <span class="status {{ $inv->status === 'pending' ? 'pending_review' : ($inv->status === 'accepted' ? 'active' : 'rejected') }}">{{ ucfirst($inv->status) }}</span>
-            <div class="hint">Sent {{ $inv->created_at->format('d M Y') }}@if ($inv->expires_at) · expires {{ $inv->expires_at->format('d M Y') }}@endif</div>
-        </div>
-        <div class="invite-actions">
-            @if ($inv->status === 'pending' && $canManage)
-                <a class="btn btn-sm btn-lime" href="{{ route('invite.show', $inv->token) }}" target="_blank">Open activation link</a>
-                <button class="btn btn-sm btn-outline" type="button"
-                        onclick="copyInvite('{{ route('invite.show', $inv->token) }}', this)">Copy link</button>
-                <form method="POST" action="{{ route('admin.staff.invite.revoke', $inv->id) }}"
-                      data-danger data-confirm="Revoke the invitation for {{ $inv->email }}? The link will stop working.">
-                    @csrf
-                    <button class="btn btn-sm btn-danger" type="submit">Revoke</button>
-                </form>
-            @endif
-        </div>
-    </div>
-@empty
+@if ($canTicks)
+    @foreach ($users as $u)
+        @if ($manageRow($u))
+            @include('partials.sheet-start', ['name' => 'edit-'.$u->id,
+                'title' => 'Edit access — '.$u->name,
+                'sub' => 'The job titles they hold and the modules those open. Their sign-in is switched on their row.'])
+            <form method="POST" action="{{ route('admin.staff.users.update', $u->id) }}" class="fee-form"
+                  data-confirm="Save the access on {{ $u->name }}?" data-title="Save access">
+                @csrf
+                <input type="hidden" name="_sheet" value="edit-{{ $u->id }}">
+
+                <div class="field full">
+                    <label>Roles <span class="hint">— tick every one this person holds</span></label>
+                    <div class="role-grid">
+                        @foreach ($roles as $slug => $r)
+                            <label class="role-pick">
+                                <input type="checkbox" name="roles[]" value="{{ $slug }}"
+                                       data-depts="{{ implode(' ', $r['departments']) }}"
+                                       @checked(in_array($slug, $u->roleSlugs(), true))>
+                                <b>{{ $r['name'] }}</b>
+                                <small>{{ $r['desc'] }}</small>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                @include('admin.staff.partials.field', ['selected' => $u->trainer_training_id,
+                    'open' => in_array('trainer', $u->roleSlugs(), true)])
+
+                <details class="dept-pick" @if ($errors->any() && old('_sheet') === 'edit-'.$u->id) open @endif>
+                    <summary>Departments this opens</summary>
+                    <div class="dept-box">
+                        @foreach ($liveDepartments as $d)
+                            <label class="chk"><input type="checkbox" name="departments[]" value="{{ $d['slug'] }}"
+                                @checked(in_array($d['slug'], $u->departmentSlugs(), true))> {{ $d['name'] }}</label>
+                        @endforeach
+                        <div class="hint">A role opens all of its modules. To drop one module a role grants,
+                            untick the role instead.</div>
+                    </div>
+                </details>
+
+                <div class="hint">This account is <b>{{ $u->active ? 'live' : 'deactivated' }}</b> — Deactivate and
+                    Reinstate on their row close or open the sign-in without touching anything set here.</div>
+
+                <div class="sheet-actions">
+                    <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                    <button class="btn btn-sm btn-lime" type="submit">Save access</button>
+                </div>
+            </form>
+            @include('partials.sheet-end')
+        @endif
+    @endforeach
+@endif
+
+<h2 class="sec-title">Invitations <span class="tag">{{ $invites->count() }}</span></h2>
+@if ($invites->isEmpty())
     <div class="card"><p class="page-lede">No invitations sent yet.</p></div>
-@endforelse
+@else
+    <div class="table-scroll">
+        <table class="data">
+            <thead>
+                <tr><th>Who</th><th>Account</th><th>Roles</th><th>Status</th><th>Sent</th><th>Expires</th>@if ($canManage)<th></th>@endif</tr>
+            </thead>
+            <tbody>
+                @foreach ($invites as $inv)
+                    <tr>
+                        <td><b>{{ $inv->name }}</b><small>{{ $inv->email }}</small></td>
+                        <td><span class="status {{ $inv->role === 'superadmin' ? 'active' : 'pending_review' }}">{{ $accountLabels[$inv->role] ?? $inv->role }}</span></td>
+                        <td>@if ($inv->roleSlugs())<span class="tag">{{ $inv->roleLabels() }}</span>@else<span class="tag gray">No role</span>@endif</td>
+                        <td><span class="status {{ $inv->status === 'pending' ? 'pending_review' : ($inv->status === 'accepted' ? 'active' : 'rejected') }}">{{ ucfirst($inv->status) }}</span></td>
+                        <td class="nowrap">{{ $inv->created_at->format('d M Y') }}</td>
+                        <td class="nowrap">{{ $inv->expires_at?->format('d M Y') ?: '—' }}</td>
+                        @if ($canManage)
+                            <td class="actions">
+                                @if ($inv->status === 'pending')
+                                    <a class="btn btn-sm btn-lime" href="{{ route('invite.show', $inv->token) }}" target="_blank">Open link</a>
+                                    <button class="btn btn-sm btn-outline" type="button"
+                                            onclick="copyInvite('{{ route('invite.show', $inv->token) }}', this)">Copy link</button>
+                                    <form method="POST" action="{{ route('admin.staff.invite.revoke', $inv->id) }}"
+                                          data-danger data-confirm="Revoke the invitation for {{ $inv->email }}? The link will stop working.">
+                                        @csrf
+                                        <button class="btn btn-sm btn-danger" type="submit">Revoke</button>
+                                    </form>
+                                @else
+                                    <span class="hint">{{ $inv->status === 'accepted' ? 'They set their password already' : 'Link withdrawn' }}</span>
+                                @endif
+                            </td>
+                        @endif
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
 
 <script>
 function copyInvite(url, btn) {

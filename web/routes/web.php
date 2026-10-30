@@ -216,6 +216,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/staff/invite', [StaffController::class, 'invite'])->name('staff.invite');
     Route::post('/staff/invites/{invite}/revoke', [StaffController::class, 'revoke'])->name('staff.invite.revoke');
     Route::post('/staff/users/{user}', [StaffController::class, 'updateRole'])->name('staff.users.update');
+    Route::post('/staff/users/{user}/active', [StaffController::class, 'setActive'])->name('staff.users.active');
 
     // The staff directory and the onboarding desk: everyone working in the organisation, and the applicants
     // Human Resources turns into staff. Pay, next of kin and the profile photo never leave this desk.

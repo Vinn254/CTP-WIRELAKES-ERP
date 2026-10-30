@@ -254,7 +254,7 @@
             <h3>Application decision</h3>
             @if (in_array($ctp->status, ['pending_review', 'pending_payment'], true))
                 <form method="POST" action="{{ route('admin.promoters.approve', $ctp) }}"
-                      data-confirm="Approve {{ $ctp->full_name }}? Their CTP ID is issued for good and an activation link is created."
+                      data-confirm="Approve {{ $ctp->full_name }}? Their CTP ID is issued for good and the activation link is emailed to {{ $ctp->email }}."
                       data-title="Approve application">
                     @csrf
                     <button class="btn btn-lime btn-block" type="submit">Approve and issue CTP ID</button>
@@ -362,13 +362,13 @@
                 <div class="hint">Login is {{ $ctp->user->active ? 'active' : 'locked' }} — they see only their own trainee interface at <b>/portal</b>.</div>
             @elseif ($invite)
                 <div class="link-box">
-                    <label class="hint" for="ctp-activation-link">Activation link — send this to the CTP</label>
+                    <label class="hint" for="ctp-activation-link">Activation link — emailed to the CTP; copy it again if they cannot find it</label>
                     <input type="text" readonly id="ctp-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                 </div>
                 @if ($invite->status === 'pending')
                     <form method="POST" action="{{ route('admin.promoters.reissue', $ctp) }}" class="mini-form"
-                          data-confirm="Issue a fresh activation link? The old one stops working." data-title="New activation link">
+                          data-confirm="Issue a fresh activation link? The old one stops working and the new one is emailed to {{ $ctp->email }}." data-title="New activation link">
                         @csrf
                         <button class="btn btn-sm btn-ghost" type="submit">New link</button>
                     </form>

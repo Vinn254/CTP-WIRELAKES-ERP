@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Mail\AccountActivated;
+use App\Mail\ApplicationRejected;
 use App\Models\AccountInvite;
 use App\Models\CtpRegistration;
 use App\Models\FinanceEntry;
@@ -9,6 +11,8 @@ use App\Models\FundiRegistration;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * The application decisions that more than one department repeats — Module 1 reviews every applicant,
@@ -82,7 +86,9 @@ class ReviewActions
         abort_unless(in_array($record->status, ['pending_payment', 'pending_review', 'rejected'], true), 422,
             'Only applications waiting for review (or already rejected) can be approved.');
 
-        DB::transaction(function () use ($record, $codeColumn, $account) {
+        $invite = null;
+
+        DB::transaction(function () use ($record, $codeColumn, $account, &$invite) {
             $model = get_class($record);
             $record->status = 'active';
             $record->rejection_reason = null;
@@ -95,12 +101,17 @@ class ReviewActions
             $record->save();
 
             if ($account) {
-                AccountInvite::issueFor($record, auth()->id());
+                $invite = AccountInvite::issueFor($record, auth()->id());
             }
         });
 
-        return 'Approved — '.$record->{$codeColumn}.' issued.'
-            .($account ? ' Copy the activation link below and send it so they can set a password.' : '');
+        // The office used to have to copy the link and mail it by hand, and applicants sat waiting with no answer.
+        if ($invite) {
+            static::mailActivation($invite, static::what($record));
+            return 'Approved — '.$record->{$codeColumn}.' issued. The activation link has been mailed to '.$invite->email.'.';
+        }
+
+        return 'Approved — '.$record->{$codeColumn}.' issued.';
     }
 
     public static function reject(Model $record, string $reason): void
@@ -109,6 +120,10 @@ class ReviewActions
             'Only applications that have not been approved can be rejected.');
 
         $record->update(['status' => 'rejected', 'rejection_reason' => $reason]);
+
+        if (static::isMember($record)) {
+            static::mailRejection($record, $reason);
+        }
     }
 
     /** Move a CTP who finished the programme into the fundi pool. */
@@ -123,8 +138,50 @@ class ReviewActions
         abort_unless(in_array($record->status, ['active', 'graduated', 'deployed'], true), 422,
             'Only approved members have activation links.');
 
-        AccountInvite::issueFor($record, auth()->id(), true);
+        $invite = AccountInvite::issueFor($record, auth()->id(), true);
+        static::mailActivation($invite, static::what($record));
 
-        return 'New activation link ready — copy it below and send it.';
+        return 'New activation link ready — mailed to '.$invite->email.', and copied below.';
+    }
+
+    /** A CTP or an E-Fundi, as opposed to a community record that shares these actions. */
+    private static function isMember(Model $record): bool
+    {
+        return $record instanceof CtpRegistration || $record instanceof FundiRegistration;
+    }
+
+    private static function what(Model $record): string
+    {
+        return $record instanceof FundiRegistration ? 'E-Fundi' : 'CTP';
+    }
+
+    /**
+     * Post the activation link to the address on the application. The decision has already been saved, so a mail
+     * server that will not answer is logged and the approval stands — the office still has the link on screen.
+     */
+    private static function mailActivation(AccountInvite $invite, string $what): void
+    {
+        if (! $invite->email) {
+            return;
+        }
+
+        try {
+            Mail::to($invite->email)->send(new AccountActivated($invite, $what));
+        } catch (Throwable $e) {
+            logger()->warning('Activation link for '.$invite->name.' ('.$invite->email.') was not mailed: '.$e->getMessage());
+        }
+    }
+
+    private static function mailRejection(Model $record, string $reason): void
+    {
+        if (! $record->email) {
+            return;
+        }
+
+        try {
+            Mail::to($record->email)->send(new ApplicationRejected(static::what($record), $record->full_name, $reason));
+        } catch (Throwable $e) {
+            logger()->warning('Rejection of '.$record->full_name.' ('.$record->email.') was not mailed: '.$e->getMessage());
+        }
     }
 }

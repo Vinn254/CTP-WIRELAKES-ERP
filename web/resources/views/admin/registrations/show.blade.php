@@ -163,7 +163,7 @@
             <div class="card decision">
                 <h3>Decision</h3>
                 <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
-                      data-confirm="Approve {{ $personName }} and issue a member ID?">
+                      data-confirm="Approve {{ $personName }} and issue a member ID? The activation link is emailed to {{ $record->email }}.">
                     @csrf
                     <button class="btn btn-lime btn-block" type="submit">Approve &amp; issue ID</button>
                 </form>
@@ -191,7 +191,7 @@
                     <p>{{ $personName }} is a member — ID <b>{{ $memberCode }}</b>.</p>
                     @if ($invite)
                         <div class="link-box">
-                            <label class="hint" for="member-activation-link">Activation link — send this to the member</label>
+                            <label class="hint" for="member-activation-link">Activation link — emailed to {{ $record->email }}; copy it again if they cannot find it</label>
                             <input type="text" readonly id="member-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                             <button class="btn btn-sm btn-outline" type="button"
                                     onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
@@ -203,13 +203,13 @@
                         </div>
                         @if ($invite->status === 'pending')
                         <form method="POST" action="{{ route('admin.registrations.reissue', [$type, $record->id]) }}" class="mini-form"
-                              data-confirm="Issue a fresh activation link? The old one stops working.">
+                              data-confirm="Issue a fresh activation link? The old one stops working and the new one is emailed to {{ $record->email }}.">
                             @csrf
                             <button class="btn btn-sm btn-ghost" type="submit">New link</button>
                         </form>
                         @endif
                     @else
-                        <p class="hint">Welcome email and SMS are dispatched in the notifications phase.</p>
+                        <p class="hint">No activation link on file yet — approving this application raises one and emails it to {{ $record->email }}.</p>
                     @endif
                 @endif
             </div>

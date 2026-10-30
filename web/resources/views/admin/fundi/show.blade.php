@@ -277,7 +277,7 @@
                 <p class="hint">No payment gates this application — approve it below whenever the documents are in order.</p>
             @elseif ($fundi->status === 'pending_review')
                 <form method="POST" action="{{ route('admin.fundis.approve', $fundi) }}"
-                      data-confirm="Approve {{ $fundi->full_name }}? Their EF ID is issued for good and an activation link is created."
+                      data-confirm="Approve {{ $fundi->full_name }}? Their EF ID is issued for good and the activation link is emailed to {{ $fundi->email }}."
                       data-title="Approve application">
                     @csrf
                     <button class="btn btn-lime btn-block" type="submit">Approve and issue EF ID</button>
@@ -371,13 +371,13 @@
                     interface at <b>/portal</b>, including their projects and the sites they train at.</div>
             @elseif ($invite)
                 <div class="link-box">
-                    <label class="hint" for="fundi-activation-link">Activation link — send this to the fundi</label>
+                    <label class="hint" for="fundi-activation-link">Activation link — emailed to the fundi; copy it again if they cannot find it</label>
                     <input type="text" readonly id="fundi-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                 </div>
                 @if ($invite->status === 'pending')
                     <form method="POST" action="{{ route('admin.fundis.reissue', $fundi) }}" class="mini-form"
-                          data-confirm="Issue a fresh activation link? The old one stops working." data-title="New activation link">
+                          data-confirm="Issue a fresh activation link? The old one stops working and the new one is emailed to {{ $fundi->email }}." data-title="New activation link">
                         @csrf
                         <button class="btn btn-sm btn-ghost" type="submit">New link</button>
                     </form>
