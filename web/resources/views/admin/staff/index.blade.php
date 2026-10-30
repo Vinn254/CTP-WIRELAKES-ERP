@@ -5,7 +5,7 @@
     $accountLabels = ['admin' => 'Admin', 'superadmin' => 'Super admin'];
     $deptLabels = collect($liveDepartments)->mapWithKeys(fn ($d) => [$d['slug'] => $d['name']]);
     $heldRoles = fn ($slugs) => \App\Support\Roles::namesFor(is_array($slugs) ? $slugs : []);
-    $manageRow = fn ($u) => $canManage && $u->id !== auth()->id() && $u->role !== 'superadmin';
+    $manageRow = fn ($u) => $canTicks && $u->id !== auth()->id() && $u->role !== 'superadmin';
 @endphp
 
 @section('content')
@@ -85,7 +85,7 @@
 <h2 class="sec-title">Staff accounts</h2>
 <table class="data">
     <thead>
-        <tr><th>Name</th><th>Email</th><th>Account</th><th>Roles</th><th>Modules opened</th><th>Status</th><th>Joined</th>@if ($canManage)<th></th>@endif</tr>
+        <tr><th>Name</th><th>Email</th><th>Account</th><th>Roles</th><th>Modules opened</th><th>Status</th><th>Joined</th>@if ($canTicks)<th></th>@endif</tr>
     </thead>
     <tbody>
         @foreach ($users as $u)
@@ -115,7 +115,7 @@
                 </td>
                 <td><span class="status {{ $u->active ? 'active' : 'rejected' }}">{{ $u->active ? 'Active' : 'Deactivated' }}</span></td>
                 <td>{{ $u->created_at->format('d M Y') }}</td>
-                @if ($canManage)
+                @if ($canTicks)
                     <td class="actions">
                         @unless ($manageRow($u))
                             <span class="hint">{{ $u->id === auth()->id() ? 'your account' : 'not edited here' }}</span>

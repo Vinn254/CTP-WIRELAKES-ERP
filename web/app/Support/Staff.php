@@ -93,7 +93,7 @@ class Staff
             return [$record, $record->name.' is on the staff directory, on the account they already hold.'];
         }
 
-        $invite = static::raiseInvite($record, $roles, $departments, $actor);
+        $invite = static::raiseInvite($record, $roles, $departments, $data['trainer_training_id'] ?? null, $actor);
 
         if (! $invite) {
             return [$record, $record->name.' is on the staff directory. An invitation to '
@@ -125,6 +125,9 @@ class Staff
 
     public static function validate(Request $request, bool $needPhoto = true): array
     {
+        // A trainer is onboarded with the field they teach, exactly as the invitation asks for it.
+        $training = in_array('trainer', (array) $request->input('roles', []), true);
+
         return $request->validate([
             'name' => 'required|string|max:150',
             'email' => 'required|email|max:160',
@@ -147,6 +150,11 @@ class Staff
             'next_of_kin_2_phone' => 'nullable|required_with:next_of_kin_2_name,next_of_kin_2_relation|string|max:30',
             'next_of_kin_2_relation' => 'nullable|required_with:next_of_kin_2_name,next_of_kin_2_phone|string|max:60',
             'photo' => ($needPhoto ? 'required|' : 'nullable|').'image|mimes:jpg,jpeg,png|max:2048',
+            'roles' => 'nullable|array',
+            'roles.*' => 'in:'.implode(',', array_keys(Roles::all())),
+            'departments' => 'nullable|array',
+            'departments.*' => 'in:'.implode(',', array_column(Departments::live(), 'slug')),
+            'trainer_training_id' => ($training ? 'required' : 'nullable').'|integer|exists:trainings,id',
         ], [
             'name.required' => 'Give the name the office will call.',
             'email.required' => 'An email address is where the activation link goes.',
@@ -156,6 +164,7 @@ class Staff
             'next_of_kin_name.required' => 'The C14 needs a first next of kin — write their name.',
             'next_of_kin_phone.required' => 'The C14 needs a contact number for the first next of kin.',
             'next_of_kin_relation.required' => 'Say how the first next of kin is related to this person.',
+            'trainer_training_id.required' => 'Tick the field of training for this trainer.',
         ], [
             'name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'job_title' => 'Job title',
             'started_on' => 'First day', 'salary' => 'Monthly pay', 'id_number' => 'ID number',
@@ -169,6 +178,7 @@ class Staff
             'next_of_kin_2_phone' => 'second next of kin — contact',
             'next_of_kin_2_relation' => 'second next of kin — relationship',
             'photo' => 'the photo',
+            'trainer_training_id' => 'Field of training',
         ]);
     }
 
@@ -186,7 +196,7 @@ class Staff
     }
 
     /** The invitation that opens their login. An address already invited keeps the link that is out there. */
-    private static function raiseInvite(StaffRecord $record, array $roles, array $departments, User $actor): ?StaffInvite
+    private static function raiseInvite(StaffRecord $record, array $roles, array $departments, ?int $field, User $actor): ?StaffInvite
     {
         $pending = StaffInvite::where('status', 'pending')
             ->whereRaw('LOWER(email) = ?', [strtolower($record->email)])->first();
@@ -200,6 +210,7 @@ class Staff
             'email' => $record->email,
             'role' => 'admin',
             'roles' => StaffInvite::list($roles),
+            'trainer_training_id' => in_array('trainer', $roles, true) ? $field : null,
             'department' => StaffInvite::list($departments),
             'token' => Str::random(48),
             'invited_by' => $actor->id,

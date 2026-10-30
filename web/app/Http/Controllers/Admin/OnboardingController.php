@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
+use App\Models\Training;
 use App\Support\Departments;
 use App\Support\Roles;
 use App\Support\Staff;
@@ -25,6 +26,7 @@ class OnboardingController extends Controller
             'done' => $this->applications(['onboarded'])->take(20),
             'liveDepartments' => Departments::live(),
             'roles' => Roles::all(),
+            'fields' => Training::orderBy('name')->get(['id', 'name']),
         ]);
     }
 

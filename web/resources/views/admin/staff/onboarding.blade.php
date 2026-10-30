@@ -76,6 +76,9 @@
                 </div>
             </div>
 
+            @include('admin.staff.partials.field', ['selected' => old('trainer_training_id'),
+                'open' => in_array('trainer', (array) old('roles', []), true)])
+
             <details class="dept-pick" @if ($errors->any() && old('_sheet') === 'onboard-'.$a->id) open @endif>
                 <summary>Departments this opens</summary>
                 <div class="dept-box">
@@ -126,4 +129,18 @@
 
 <p class="hint">An applicant reaches this desk from the careers board: shortlist them, then mark them
     <b>Given the job</b>. Pay and next of kin are typed once here and amended on the directory after that.</p>
+
+<script>
+// A trainer is a job title and a field of training at once, so the pick only asks when that box is ticked.
+document.querySelectorAll('input[name="roles[]"][value="trainer"]').forEach(function (box) {
+    box.addEventListener('change', function () {
+        const pick = box.form.querySelector('.trainer-field');
+
+        if (pick) {
+            pick.hidden = !box.checked;
+            pick.querySelector('select').required = box.checked;
+        }
+    });
+});
+</script>
 @endsection

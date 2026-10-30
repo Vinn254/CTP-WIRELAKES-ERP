@@ -29,6 +29,7 @@ class StaffController extends Controller
             'fields' => Training::orderBy('name')->get(['id', 'name']),
             'isSuper' => auth()->user()->role === 'superadmin',
             'canManage' => $this->mayManage(),
+            'canTicks' => Departments::maySetRoles(auth()->user()),
         ]);
     }
 
@@ -191,9 +192,15 @@ class StaffController extends Controller
     /**
      * This desk never touches the super admin account, and no one rewrites their own access. A second super admin
      * is not something an invitation can make, so the only way in is through the account the programme already has.
+     * Rewriting what an account opens is Human Resources and the executive only — a System Administrator raises
+     * the invitation, they do not decide what a person can reach.
      */
     private function guardTarget(User $user): void
     {
+        abort_unless(Departments::maySetRoles(auth()->user()), 403,
+            'Invitations are raised here by every desk that may invite, but the job titles and modules an account '
+            .'opens are set by Human Resources.');
+
         abort_if($user->id === auth()->id(), 403, 'You cannot change your own account — someone else holds this desk.');
 
         abort_if($user->role === 'superadmin', 403,

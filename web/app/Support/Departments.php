@@ -224,6 +224,12 @@ class Departments
         'admin.careers.' => 'hr',
         'admin.directory.' => 'hr',
         'admin.onboarding.' => 'hr',
+        // Raising an invitation is Module 1's desk, the way the founder wants it worked: "system admin should be
+        // able to invite user in the system also but hr will see the invited users". What an account may then
+        // open is still set by Human Resources alone.
+        'admin.staff.index' => 'membership',
+        'admin.staff.invite' => 'membership',
+        'admin.staff.users.update' => 'hr',
         'admin.staff.' => 'hr',
         'admin.leave.' => 'hr',
         // admin.myleave.* deliberately has no owner: a worker's own balance goes with them to every desk they hold.
@@ -399,13 +405,27 @@ class Departments
 
     /**
      * Who runs the staff accounts desk — the one screen that makes and un-makes an office login. Human Resources
-     * hires into the programme, so it keeps this desk beside the executive. A System Administrator runs the website
-     * and the reports, not the people, so the title no longer opens it.
+     * hires into the programme, so it keeps this desk beside the executive, and the founder's own words put the
+     * System Administrator on the invitation too: "system admin should be able to invite user in the system also
+     * but hr will see the invited users and add their details on onboarding". Inviting is all the System
+     * Administrator gets — the staff directory, the onboarding card, the leave register and the payroll stay
+     * behind the Human Resources tick.
      */
     public static function mayInvite(?User $user): bool
     {
         return $user !== null && ($user->isSuperAdmin()
-            || in_array('hr', $user->departmentSlugs(), true));
+            || in_array('hr', $user->departmentSlugs(), true)
+            || in_array('system_administrator', $user->roleSlugs(), true));
+    }
+
+    /**
+     * Who rewrites the job titles and module ticks on an existing account. Inviting someone is not the same as
+     * deciding what they can open: the founder's line — "hr will see the invited users and add their details" —
+     * keeps that with Human Resources and the executive alone.
+     */
+    public static function maySetRoles(?User $user): bool
+    {
+        return $user !== null && ($user->isSuperAdmin() || in_array('hr', $user->departmentSlugs(), true));
     }
 
     /**
