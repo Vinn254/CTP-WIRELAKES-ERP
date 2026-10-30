@@ -37,6 +37,8 @@ class MemberApiController extends Controller
 
         return response()->json([
             'member' => $this->memberSummary($member),
+            // The web sidebar only offers My invoices once the office has raised one, so the app is told that too.
+            'invoiced' => $board['invoices']->isNotEmpty(),
             'counts' => [
                 'projects' => $board['projects']->count(),
                 'applications' => $board['applications']->count(),
@@ -45,6 +47,7 @@ class MemberApiController extends Controller
                 'work_orders' => $board['workOrderCount'],
                 'fixes' => $board['fixCount'],
                 'repair_jobs' => $board['techJobCount'],
+                'invoices' => $board['invoiceCount'],
             ],
         ]);
     }

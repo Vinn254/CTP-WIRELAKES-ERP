@@ -4,9 +4,12 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import '../services/api_client.dart';
 
 /// The brand palette, taken straight from the website's own `:root` in public/css/app.css so the app and
@@ -365,6 +368,45 @@ Future<void> showPicture(BuildContext context, InlineFile file) async {
   );
 }
 
+/// Opens a private document the API sent as a data URI. A picture is drawn on screen; a handout,
+/// a certificate or an invoice copy is written into the app's own folder and handed to whichever
+/// app on the phone reads that file type. Nothing is ever a public URL, the way the portal serves it.
+Future<void> openDocument(BuildContext context, InlineFile file) async {
+  if (!file.hasFile) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('That file is not on the record.')));
+    return;
+  }
+  if (file.isPicture || _looksLikePicture(file.name)) {
+    await showPicture(context, file);
+    return;
+  }
+
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/${_safeName(file.name)}';
+    await File(path).writeAsBytes(base64Of(file.dataUri!));
+    final result = await OpenFile.open(path);
+    if (result.type != ResultType.done && context.mounted) {
+      say(context, result.message.isNotEmpty ? result.message : 'No app on this phone can open it.');
+    }
+  } catch (e) {
+    if (context.mounted) say(context, 'The file could not be opened: $e');
+  }
+}
+
+/// The upload name arrives with characters a filesystem will not take.
+String _safeName(String? name) {
+  final plain = (name ?? 'document')
+      .replaceAll(RegExp(r'[\s·–—_/]+'), '-')
+      .replaceAll(RegExp(r'[^A-Za-z0-9.\-]'), '');
+  final trimmed = plain.replaceAll(RegExp(r'^-+'), '');
+  return trimmed.isEmpty ? 'document' : trimmed;
+}
+
+bool _looksLikePicture(String? name) =>
+    RegExp(r'\.(png|jpe?g|webp|gif)$', caseSensitive: false).hasMatch(name ?? '');
+
 // ---- the form sheet --------------------------------------------------------
 
 enum FieldKind { text, number, integer, multiline, dropdown, chips, multichips, date, check, photo }
@@ -381,6 +423,10 @@ class FieldSpec {
   final List<String> values;
   final String? photoHelper;
 
+  /// A date the member is booking ahead — leave starts in the future — so the picker must not
+  /// clamp at today the way a date that records something already done does.
+  final bool futureDate;
+
   FieldSpec(
     this.key,
     this.label, {
@@ -392,6 +438,7 @@ class FieldSpec {
     this.options = const {},
     this.values = const [],
     this.photoHelper,
+    this.futureDate = false,
   });
 
   FieldSpec.dropdown(this.key, this.label, Map<String, String> choices,
@@ -400,7 +447,8 @@ class FieldSpec {
         options = choices,
         values = choices.keys.toList(),
         maxLines = null,
-        photoHelper = null;
+        photoHelper = null,
+        futureDate = false;
 
   FieldSpec.multichips(this.key, this.label, List<String> choices,
       {this.required = true, this.initial, this.helper})
@@ -408,7 +456,8 @@ class FieldSpec {
         options = {for (final c in choices) c: c},
         values = choices,
         maxLines = null,
-        photoHelper = null;
+        photoHelper = null,
+        futureDate = false;
 
   FieldSpec.photo(this.key, this.label, {this.required = false, this.photoHelper})
       : kind = FieldKind.photo,
@@ -416,7 +465,8 @@ class FieldSpec {
         initial = null,
         maxLines = null,
         options = const {},
-        values = const [];
+        values = const [],
+        futureDate = false;
 }
 
 /// One bottom sheet for every form in the app. Returns the answers as a body ready to post,
@@ -584,6 +634,7 @@ class _FormSheetState extends State<_FormSheet> {
         return _DateField(
           label: f.label,
           initial: DateTime.tryParse(_answers[f.key] as String? ?? '') ?? DateTime.now(),
+          upToFuture: f.futureDate,
           onPicked: (d) => _answers[f.key] = _iso(d),
         );
       case FieldKind.dropdown:
@@ -661,8 +712,13 @@ class _FormSheetState extends State<_FormSheet> {
 class _DateField extends StatefulWidget {
   final String label;
   final DateTime initial;
+  final bool upToFuture;
   final ValueChanged<DateTime> onPicked;
-  const _DateField({required this.label, required this.initial, required this.onPicked});
+  const _DateField(
+      {required this.label,
+      required this.initial,
+      required this.onPicked,
+      this.upToFuture = false});
 
   @override
   State<_DateField> createState() => _DateFieldState();
@@ -679,7 +735,9 @@ class _DateFieldState extends State<_DateField> {
           context: context,
           initialDate: _day,
           firstDate: DateTime(2015),
-          lastDate: DateTime.now(),
+          lastDate: widget.upToFuture
+              ? DateTime.now().add(const Duration(days: 365))
+              : DateTime.now(),
         );
         if (picked == null) return;
         setState(() => _day = picked);

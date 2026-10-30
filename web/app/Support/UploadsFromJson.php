@@ -61,12 +61,31 @@ trait UploadsFromJson
         $mime = match (true) {
             str_ends_with($path, '.pdf') => 'application/pdf',
             str_ends_with($path, '.png') => 'image/png',
-            default => 'image/jpeg',
+            str_ends_with($path, '.webp') => 'image/webp',
+            str_ends_with($path, '.doc') => 'application/msword',
+            str_ends_with($path, '.docx') => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            str_ends_with($path, '.ppt') => 'application/vnd.ms-powerpoint',
+            str_ends_with($path, '.pptx') => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            str_ends_with($path, '.xls') => 'application/vnd.ms-excel',
+            str_ends_with($path, '.xlsx') => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            str_ends_with($path, '.txt') => 'text/plain',
+            str_ends_with($path, '.epub') => 'application/epub+zip',
+            preg_match('#\.(jpe?g)$#', $path) === 1 => 'image/jpeg',
+            default => 'application/octet-stream',
         };
 
         return [
-            'name' => $fallback,
+            'name' => $this->named($fallback, $path),
+            'mime' => $mime,
             'file' => 'data:'.$mime.';base64,'.base64_encode(Storage::disk('local')->get($path)),
         ];
+    }
+
+    /** The stored file's own extension on the name, so a phone can hand the bytes to the right app. */
+    private function named(string $name, string $path): string
+    {
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+
+        return $extension && ! str_ends_with(strtolower($name), '.'.$extension) ? $name.'.'.$extension : $name;
     }
 }

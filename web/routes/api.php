@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\MemberAccountApiController;
 use App\Http\Controllers\Api\MemberApiController;
+use App\Http\Controllers\Api\MemberClassApiController;
 use App\Http\Controllers\Api\MemberFieldApiController;
 use App\Http\Controllers\Api\MemberPortalApiController;
 use App\Http\Controllers\Api\MemberWorkApiController;
@@ -45,6 +47,19 @@ Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::get('/projects/{project}', [MemberApiController::class, 'show'])->whereNumber('project')->name('api.projects.show');
     Route::get('/applications', [MemberApiController::class, 'applications'])->name('api.applications');
     Route::post('/applications/{application}/withdraw', [MemberApiController::class, 'withdraw'])->whereNumber('application')->name('api.applications.withdraw');
+
+    // The trainee's own class and reading, the office's bill against a name, and a worker's leave.
+    // Each one answers with the same query and the same guards as the portal page it stands for.
+    Route::get('/me/class', [MemberClassApiController::class, 'classes'])->name('api.me.class');
+    Route::get('/me/class/{cohort}', [MemberClassApiController::class, 'show'])->whereNumber('cohort')->name('api.me.class.show');
+    Route::get('/me/class/{cohort}/material/{material}', [MemberClassApiController::class, 'materialFile'])->whereNumber('cohort')->whereNumber('material')->name('api.me.class.material');
+    Route::get('/me/library', [MemberClassApiController::class, 'library'])->name('api.me.library');
+    Route::get('/me/library/{item}', [MemberClassApiController::class, 'libraryFile'])->whereNumber('item')->name('api.me.library.open');
+
+    Route::get('/me/invoices', [MemberAccountApiController::class, 'invoices'])->name('api.me.invoices');
+    Route::get('/me/leave', [MemberAccountApiController::class, 'leave'])->name('api.me.leave');
+    Route::post('/me/leave', [MemberAccountApiController::class, 'applyLeave'])->name('api.me.leave.apply');
+    Route::post('/me/leave/{leave}/cancel', [MemberAccountApiController::class, 'cancelLeave'])->whereNumber('leave')->name('api.me.leave.cancel');
 });
 
 // More member screens, each the exact portal page: the kind guard (fundi/CTP) lives in the controller,

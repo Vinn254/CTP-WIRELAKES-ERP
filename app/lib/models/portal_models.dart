@@ -2,6 +2,8 @@
 /// /api/efundi, /api/invitations and /api/training return, one class per block.
 library;
 
+import 'account_models.dart';
+
 class EfundiSite {
   final String? venue;
   final String? county;
@@ -53,6 +55,10 @@ class EfundiRecord {
   final List<EfundiSite> sites;
   final List<RecordFile> documents;
 
+  /// What this grade opens, and what stays shut — the same card the web portal builds from capabilities().
+  final List<Capability> capabilities;
+  final List<Capability> locked;
+
   EfundiRecord({
     required this.level,
     required this.tier,
@@ -70,6 +76,8 @@ class EfundiRecord {
     required this.countyOptions,
     required this.sites,
     required this.documents,
+    required this.capabilities,
+    required this.locked,
   });
 
   factory EfundiRecord.fromJson(Map<String, dynamic> j) => EfundiRecord(
@@ -92,6 +100,12 @@ class EfundiRecord {
             .toList(),
         documents: (j['documents'] as List? ?? [])
             .map((e) => RecordFile.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        capabilities: (j['capabilities'] as List? ?? [])
+            .map((e) => Capability.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        locked: (j['locked'] as List? ?? [])
+            .map((e) => Capability.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 }

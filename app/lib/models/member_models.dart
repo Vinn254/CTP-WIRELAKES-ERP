@@ -67,6 +67,7 @@ class Counts {
   final int workOrders;
   final int fixes;
   final int repairJobs;
+  final int invoices;
 
   Counts({
     required this.projects,
@@ -76,6 +77,7 @@ class Counts {
     required this.workOrders,
     required this.fixes,
     required this.repairJobs,
+    this.invoices = 0,
   });
 
   factory Counts.fromJson(Map<String, dynamic> j) => Counts(
@@ -86,17 +88,24 @@ class Counts {
         workOrders: _i(j['work_orders']),
         fixes: _i(j['fixes']),
         repairJobs: _i(j['repair_jobs']),
+        invoices: _i(j['invoices']),
       );
 }
 
 class Board {
   final Member member;
   final Counts counts;
-  Board({required this.member, required this.counts});
+
+  /// The web sidebar only offers My invoices once the office has raised one — the app hides the
+  /// page until the same flag is true, so a member is never shown a balance they do not owe.
+  final bool invoiced;
+
+  Board({required this.member, required this.counts, this.invoiced = false});
 
   factory Board.fromJson(Map<String, dynamic> j) => Board(
         member: Member.fromJson(j['member'] as Map<String, dynamic>),
         counts: Counts.fromJson(j['counts'] as Map<String, dynamic>),
+        invoiced: j['invoiced'] == true,
       );
 }
 

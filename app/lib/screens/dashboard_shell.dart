@@ -5,12 +5,16 @@ import '../models/member_models.dart';
 import '../services/api_client.dart';
 import '../widgets/ui.dart';
 import 'applications_screen.dart';
+import 'class_screen.dart';
 import 'communities_screen.dart';
 import 'earnings_screen.dart';
 import 'efundi_screen.dart';
 import 'ewaste_screen.dart';
 import 'fixes_screen.dart';
 import 'invitations_screen.dart';
+import 'invoices_screen.dart';
+import 'leave_screen.dart';
+import 'library_screen.dart';
 import 'login_screen.dart';
 import 'member_pages.dart';
 import 'mobilisation_screen.dart';
@@ -129,7 +133,8 @@ class _DashboardShellState extends State<DashboardShell> with WidgetsBindingObse
     }
 
     final board = _board!;
-    final pages = memberPages(board.member, board.counts, canTrain: board.member.canTrain);
+    final pages = memberPages(board.member, board.counts,
+        canTrain: board.member.canTrain, invoiced: board.invoiced);
     final current = pages.firstWhere((p) => p.key == _page,
         orElse: () => pages.first);
 
@@ -163,6 +168,12 @@ class _DashboardShellState extends State<DashboardShell> with WidgetsBindingObse
         return OverviewScreen(api: api, board: board, onOpen: _open, onRefresh: _load);
       case 'training':
         return TrainingScreen(api: api, board: board);
+      case 'class':
+        return ClassScreen(api: api, board: board);
+      case 'library':
+        return LibraryScreen(api: api, board: board);
+      case 'invoices':
+        return InvoicesScreen(api: api, board: board);
       case 'mobilisation':
         return MobilisationScreen(api: api, board: board);
       case 'communities':
@@ -185,6 +196,8 @@ class _DashboardShellState extends State<DashboardShell> with WidgetsBindingObse
         return ProcurementScreen(api: api, board: board);
       case 'earnings':
         return EarningsScreen(api: api, board: board);
+      case 'leave':
+        return LeaveScreen(api: api, board: board);
       case 'projects':
         return ProjectsScreen(api: api, board: board);
       case 'applications':

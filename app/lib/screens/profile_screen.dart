@@ -99,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               PhotoPicker(
                 label: 'Profile photo',
-                helper: 'jpg or png, up to 1 MB',
+                helper: 'jpg or png, up to 5 MB',
                 photo: _picked,
                 onPicked: (p) => setState(() => _picked = p),
               ),

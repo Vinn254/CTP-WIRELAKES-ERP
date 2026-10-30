@@ -20,7 +20,8 @@ class MemberPage {
 }
 
 /// The pages this member can open, exactly as the sidebar builds them.
-List<MemberPage> memberPages(Member member, Counts counts, {bool canTrain = false}) {
+List<MemberPage> memberPages(Member member, Counts counts,
+    {bool canTrain = false, bool invoiced = false}) {
   final isCtp = !member.isFundi;
   final pages = <MemberPage>[
     const MemberPage('overview', 'Overview', Icons.dashboard_outlined),
@@ -30,6 +31,10 @@ List<MemberPage> memberPages(Member member, Counts counts, {bool canTrain = fals
     pages.addAll(const [
       MemberPage('training', 'My training', Icons.school_outlined,
           hint: 'Cohorts you applied to, your attendance and the modules you still need.'),
+      MemberPage('class', 'My class', Icons.class_outlined,
+          hint: 'The week your trainer approved, your units and marks, and the handouts.'),
+      MemberPage('library', 'My library', Icons.menu_book_outlined,
+          hint: 'Reading the Registrar has filed for the course you sit in.'),
       MemberPage('mobilisation', 'My mobilisation', Icons.campaign_outlined,
           hint: 'The people you brought into the programme and what they went on to do.'),
     ]);
@@ -47,6 +52,13 @@ List<MemberPage> memberPages(Member member, Counts counts, {bool canTrain = fals
       pages.add(const MemberPage('trainer', 'Training CTPs', Icons.workspace_premium_outlined,
           hint: 'The sites you train at, your cohort and the progress you record.'));
     }
+  }
+
+  // What the office has billed this member. A member who has never been invoiced is never shown a balance screen.
+  if (invoiced) {
+    pages.add(MemberPage('invoices', 'My invoices', Icons.mail_outline,
+        badge: counts.invoices,
+        hint: 'What the office has billed you, what it has received and the Paybill to settle it.'));
   }
 
   pages.add(const MemberPage('ewaste', 'E-Waste collection', Icons.recycling_outlined,
@@ -67,6 +79,9 @@ List<MemberPage> memberPages(Member member, Counts counts, {bool canTrain = fals
         hint: 'Ask for materials the programme should provide for your site. The office decides.'));
     pages.add(const MemberPage('earnings', 'My earnings', Icons.payments_outlined,
         hint: 'Every payout, what was paid out and what was deducted from it.'));
+    // Leave is for the people who work in the programme — an E-Fundi holds a post, a CTP trainee does not.
+    pages.add(const MemberPage('leave', 'My leave', Icons.schedule_outlined,
+        hint: 'Your days left of each type, and an application for Human Resources to answer.'));
   }
 
   pages

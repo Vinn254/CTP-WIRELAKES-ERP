@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../models/account_models.dart';
 import '../models/field_models.dart';
 import '../models/member_models.dart';
 import '../models/portal_models.dart';
@@ -29,12 +30,18 @@ class PickedPhoto {
 class InlineFile {
   final String? name;
   final String? dataUri;
-  const InlineFile({this.name, this.dataUri});
-  const InlineFile.none() : name = null, dataUri = null;
-  bool get hasFile => dataUri != null && dataUri!.isNotEmpty;
 
-  factory InlineFile.fromJson(Map<String, dynamic> j) =>
-      InlineFile(name: j['name'] as String?, dataUri: j['file'] as String?);
+  /// What the file is, so a picture can be shown on screen and anything else handed to the app that opens it.
+  final String? mime;
+  const InlineFile({this.name, this.dataUri, this.mime});
+  const InlineFile.none() : name = null, dataUri = null, mime = null;
+  bool get hasFile => dataUri != null && dataUri!.isNotEmpty;
+  bool get isPicture => (mime ?? '').startsWith('image/');
+
+  factory InlineFile.fromJson(Map<String, dynamic> j) => InlineFile(
+      name: j['name'] as String?,
+      dataUri: j['file'] as String?,
+      mime: j['mime'] as String?);
 }
 
 /// Thin wrapper around the Laravel API with a Sanctum bearer token.
@@ -322,6 +329,53 @@ class ApiClient {
 
   Future<String> withdrawSeat(int enrollmentId) async {
     final data = await post('/training/$enrollmentId/withdraw', {});
+    return (data as Map)['message'].toString();
+  }
+
+  // ---- My class & My library (CTP) -----------------------------------------
+
+  Future<List<ClassSeat>> classSeats() async {
+    final data = await get('/me/class') as Map<String, dynamic>;
+    return (data['seats'] as List? ?? [])
+        .map((e) => ClassSeat.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<ClassBoard> classBoard(int cohortId) async =>
+      ClassBoard.fromJson(await get('/me/class/$cohortId') as Map<String, dynamic>);
+
+  Future<InlineFile> materialFile(int cohortId, int materialId) async => InlineFile.fromJson(
+      await get('/me/class/$cohortId/material/$materialId') as Map<String, dynamic>);
+
+  Future<LibraryBoard> library({String? course, String? kind}) async {
+    final query = [
+      if (course != null && course.isNotEmpty) 'training_id=$course',
+      if (kind != null && kind.isNotEmpty) 'kind=$kind',
+    ].join('&');
+    final data = await get('/me/library${query.isEmpty ? '' : '?$query'}') as Map<String, dynamic>;
+    return LibraryBoard.fromJson(data);
+  }
+
+  Future<InlineFile> libraryFile(int itemId) async =>
+      InlineFile.fromJson(await get('/me/library/$itemId') as Map<String, dynamic>);
+
+  // ---- My invoices ----------------------------------------------------------
+
+  Future<InvoiceBoard> invoices() async =>
+      InvoiceBoard.fromJson(await get('/me/invoices') as Map<String, dynamic>);
+
+  // ---- My leave (E-Fundi) ----------------------------------------------------
+
+  Future<LeaveBoard> leave() async =>
+      LeaveBoard.fromJson(await get('/me/leave') as Map<String, dynamic>);
+
+  Future<String> applyLeave(Map<String, dynamic> application) async {
+    final data = await post('/me/leave', application);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> cancelLeave(int leaveId) async {
+    final data = await post('/me/leave/$leaveId/cancel', {});
     return (data as Map)['message'].toString();
   }
 

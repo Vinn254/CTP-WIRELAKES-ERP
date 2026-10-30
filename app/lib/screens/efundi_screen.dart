@@ -109,7 +109,8 @@ class _EfundiScreenState extends State<EfundiScreen> {
       final file = await widget.api.efundiFile(doc.slot);
       if (!mounted) return;
       if (file.hasFile) {
-        await showPicture(context, file);
+        // A picture opens on screen; a certificate or portfolio goes to the app that reads it.
+        await openDocument(context, file);
       } else {
         // The portal keeps the document list; a slot with nothing stored is said so, not hidden.
         say(context, '${doc.label} is not on file. Ask the programme office to add it — '
@@ -147,6 +148,25 @@ class _EfundiScreenState extends State<EfundiScreen> {
                   LabeledValue(label: 'Where you work', value: r.place!),
                 if (widget.board.member.code != null && widget.board.member.code!.isNotEmpty)
                   LabeledValue(label: 'E-Fundi ID', value: widget.board.member.code!),
+              ],
+            ),
+          ),
+          SectionCard(
+            title: 'What your grade carries',
+            subtitle: 'Your grade decides which of these your own portal opens. The programme office '
+                'moves a fundi up when they are ready to carry more.',
+            trailing: Tag(r.level),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final c in r.capabilities)
+                  RecordRow(title: c.title, subtitle: c.blurb),
+                RecordRow(
+                  title: 'Not open to your grade',
+                  subtitle: r.locked.isEmpty
+                      ? 'Nothing — a senior fundi carries the whole list.'
+                      : r.locked.map((c) => c.title).join(' · '),
+                ),
               ],
             ),
           ),

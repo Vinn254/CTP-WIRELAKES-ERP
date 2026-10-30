@@ -12,6 +12,7 @@ use App\Models\ProjectMatch;
 use App\Models\Trainer;
 use App\Support\Marketplace;
 use App\Support\MemberPortal;
+use App\Support\UploadsFromJson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class MemberPortalApiController extends Controller
 {
+    use UploadsFromJson;
+
     private function member()
     {
         $member = MemberPortal::resolve(auth()->user());
@@ -58,6 +61,14 @@ class MemberPortalApiController extends Controller
             ->map(fn (array $d, string $slot) => ['slot' => $slot, 'label' => $d['label']])
             ->values();
 
+        // The grade card the web portal builds from capabilities() — what this grade opens and what stays shut.
+        $open = $fundi->capabilities();
+        $card = fn (string $ability) => [
+            'key' => $ability,
+            'title' => FundiRegistration::CAPABILITY_LABELS[$ability][0],
+            'blurb' => FundiRegistration::CAPABILITY_LABELS[$ability][1],
+        ];
+
         return response()->json([
             'level' => FundiRegistration::tierLabel($fundi->tier),
             'tier' => $fundi->tier,
@@ -65,6 +76,8 @@ class MemberPortalApiController extends Controller
             'status_label' => $fundi->statusLabel(),
             'place' => $fundi->placeLabel(),
             'can_train' => $fundi->canTrain(),
+            'capabilities' => array_map($card, $open),
+            'locked' => array_map($card, array_values(array_diff(array_keys(FundiRegistration::CAPABILITY_LABELS), $open))),
             'availability' => $fundi->availability,
             'availability_label' => $fundi->availabilityLabel(),
             'availability_note' => $fundi->availability_note,
@@ -115,10 +128,7 @@ class MemberPortalApiController extends Controller
         $path = $docs[$slot]['path'];
         abort_unless(Storage::disk('local')->exists($path), 404);
 
-        return response()->json([
-            'name' => $docs[$slot]['label'],
-            'file' => 'data:application/octet-stream;base64,'.base64_encode(Storage::disk('local')->get($path)),
-        ]);
+        return response()->json($this->inline($path, $docs[$slot]['label']));
     }
 
     // ---- Invited to you (fundi marketplace) ------------------------------
