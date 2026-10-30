@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             $model::observe(ActivityObserver::class);
         }
 
-        CtpRegistration::observe(new NewMemberObserver('CTP'));
-        FundiRegistration::observe(new NewMemberObserver('E-Fundi'));
+        CtpRegistration::observe(NewMemberObserver::class);
+        FundiRegistration::observe(NewMemberObserver::class);
     }
 }

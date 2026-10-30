@@ -213,7 +213,7 @@ class CtpRegistration extends Model
             'sponsor_id' => 'nullable|integer|exists:partners,id',
             'id_scan' => ($fromOffice ? 'nullable' : 'required').'|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'passport_photo' => ($fromOffice ? 'nullable' : 'required').'|image|mimes:jpg,jpeg,png|max:1024',
+            'passport_photo' => ($fromOffice ? 'nullable' : 'required').'|image|mimes:jpg,jpeg,png|max:5120',
         ];
     }
 

@@ -124,7 +124,7 @@ class FundiController extends Controller
     public function storePhoto(Request $request, FundiRegistration $fundi)
     {
         $request->validate([
-            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ], [], ['passport_photo' => 'Profile photo']);
 
         $fundi->attachPhoto($request);

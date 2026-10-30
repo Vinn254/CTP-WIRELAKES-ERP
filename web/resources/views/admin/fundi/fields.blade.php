@@ -105,19 +105,19 @@
     </div>
 </div>
 
-<h3 style="margin-top:20px;">Referee</h3>
+<h3 style="margin-top:20px;">Referee <span class="hint">— optional for an attaché or a junior fundi</span></h3>
 <div class="form-grid-3">
     <div class="field">
-        <label>Name <span class="req">*</span></label>
-        <input type="text" name="referee_name" value="{{ old('referee_name') }}" required>
+        <label>Name</label>
+        <input type="text" name="referee_name" value="{{ old('referee_name') }}">
     </div>
     <div class="field">
-        <label>Phone <span class="req">*</span></label>
-        <input type="tel" name="referee_phone" value="{{ old('referee_phone') }}" required maxlength="20">
+        <label>Phone</label>
+        <input type="tel" name="referee_phone" value="{{ old('referee_phone') }}" maxlength="20">
     </div>
     <div class="field">
-        <label>Role / relationship <span class="req">*</span></label>
-        <input type="text" name="referee_role" value="{{ old('referee_role') }}" required>
+        <label>Role / relationship</label>
+        <input type="text" name="referee_role" value="{{ old('referee_role') }}">
     </div>
 </div>
 

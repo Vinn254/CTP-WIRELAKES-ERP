@@ -149,7 +149,7 @@ class Staff
             'next_of_kin_2_name' => 'nullable|required_with:next_of_kin_2_phone,next_of_kin_2_relation|string|max:150',
             'next_of_kin_2_phone' => 'nullable|required_with:next_of_kin_2_name,next_of_kin_2_relation|string|max:30',
             'next_of_kin_2_relation' => 'nullable|required_with:next_of_kin_2_name,next_of_kin_2_phone|string|max:60',
-            'photo' => ($needPhoto ? 'required|' : 'nullable|').'image|mimes:jpg,jpeg,png|max:2048',
+            'photo' => ($needPhoto ? 'required|' : 'nullable|').'image|mimes:jpg,jpeg,png|max:5120',
             'roles' => 'nullable|array',
             'roles.*' => 'in:'.implode(',', array_keys(Roles::all())),
             'departments' => 'nullable|array',

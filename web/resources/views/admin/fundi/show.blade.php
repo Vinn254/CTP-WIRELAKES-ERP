@@ -137,7 +137,7 @@
                 <dt>County</dt><dd>{{ $fundi->county ?: '—' }}</dd>
                 <dt>Sub-county</dt><dd>{{ $fundi->sub_county ?: '—' }}</dd>
                 <dt>Ward</dt><dd>{{ $fundi->ward ?: '—' }}</dd>
-                <dt>Referee</dt><dd>{{ $fundi->referee_name }} · {{ $fundi->referee_phone }} <span class="hint">({{ $fundi->referee_role }})</span></dd>
+                <dt>Referee</dt><dd>@if ($fundi->referee_name){{ $fundi->referee_name }} · {{ $fundi->referee_phone }} <span class="hint">({{ $fundi->referee_role }})</span>@else<span class="hint">None given</span>@endif</dd>
             </dl>
             <details class="need-form">
                 <summary>Correct the business and location</summary>

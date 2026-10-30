@@ -295,7 +295,7 @@ class MemberWorkApiController extends Controller
         $this->liftUploads($request, ['passport_photo']);
 
         $request->validate([
-            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ], [
             'passport_photo.required' => 'Choose the photo to put on your profile.',
             'passport_photo.image' => 'A profile photo is a picture — jpg or png.',

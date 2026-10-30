@@ -8,7 +8,7 @@
     <p class="sub">You do NOT need to have started as a CTP. Skilled workers apply directly. After approval you get a Fundi ID (e.g. EF-0001) and portal access to the project marketplace.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · Review + referee check</span>
+        <span class="step">2 · Review by the office</span>
         <span class="step">3 · Get your EF ID + portal login</span>
     </div>
     @include('partials.errors')
@@ -64,24 +64,6 @@
             </fieldset>
 
             <fieldset>
-                <legend>Business information</legend>
-                <div class="form-grid-3">
-                    <div class="field">
-                        <label>Business name</label>
-                        <input type="text" name="business_name" value="{{ old('business_name') }}">
-                    </div>
-                    <div class="field">
-                        <label>Business registration no.</label>
-                        <input type="text" name="business_reg_no" value="{{ old('business_reg_no') }}">
-                    </div>
-                    <div class="field">
-                        <label>Years in business</label>
-                        <input type="number" name="years_in_business" value="{{ old('years_in_business') }}" min="0" max="70">
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset>
                 <legend>Specialisations <span class="req">*</span></legend>
                 <div class="chip-grid">
                     @foreach ($specialisations as $s)
@@ -125,57 +107,57 @@
                         <input type="text" name="ward" value="{{ old('ward') }}" required>
                     </div>
                 </div>
-                <div class="field">
-                    <label>CTP code of the person who mobilised you
-                        <span class="hint">(optional — ask them for their code, e.g. CTP-0001)</span></label>
-                    <input type="text" name="mobiliser_code" value="{{ old('mobiliser_code', $refPrefill) }}" maxlength="20">
-                    <div class="hint">Whoever brought you into the programme is credited with your registration once
-                        the office approves it. Leave it empty if nobody mobilised you.</div>
-                </div>
+                {{-- Came on a CTP's own link: the credit rides with the application, the office records it. --}}
+                @if ($refPrefill !== '')
+                    <input type="hidden" name="mobiliser_code" value="{{ $refPrefill }}">
+                @endif
             </fieldset>
 
             <fieldset>
-                <legend>Referee (recommendation) <span class="req">*</span></legend>
-                <p class="help">One credible person who can vouch for your skill and character — a previous employer, a senior fundi, a partner organisation or a community leader. Admins contact the referee before approval.</p>
+                <legend>Referee (recommendation)</legend>
+                <p class="help">Optional. One person who can vouch for your skill and character — a previous
+                    employer, a senior fundi, a partner organisation or a community leader. Attachés and junior
+                    fundis fresh from training need not fill this in.</p>
                 <div class="form-grid-3">
                     <div class="field">
-                        <label>Referee name <span class="req">*</span></label>
-                        <input type="text" name="referee_name" value="{{ old('referee_name') }}" required>
+                        <label>Referee name <span class="hint">(optional)</span></label>
+                        <input type="text" name="referee_name" value="{{ old('referee_name') }}">
                     </div>
                     <div class="field">
-                        <label>Referee phone <span class="req">*</span></label>
-                        <input type="tel" name="referee_phone" value="{{ old('referee_phone') }}" required maxlength="20">
+                        <label>Referee phone <span class="hint">(optional)</span></label>
+                        <input type="tel" name="referee_phone" value="{{ old('referee_phone') }}" maxlength="20">
                     </div>
                     <div class="field">
-                        <label>Referee role / relationship <span class="req">*</span></label>
-                        <input type="text" name="referee_role" value="{{ old('referee_role') }}" required placeholder="e.g. Former employer at J&B Electricals">
+                        <label>Referee role / relationship <span class="hint">(optional)</span></label>
+                        <input type="text" name="referee_role" value="{{ old('referee_role') }}" placeholder="e.g. Former employer at J&B Electricals">
                     </div>
                 </div>
             </fieldset>
 
             <fieldset>
                 <legend>Documents &amp; portfolio</legend>
+                <p class="help">Only your profile photo and National ID scan are needed. Everything below is optional.</p>
                 <div class="form-grid">
                     <div class="field">
                         <label>Profile photo <span class="req">*</span></label>
                         <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
-                        <p class="help">A clear front photo of your face — it goes on your E-Fundi profile and is what sites and the office identify you by.</p>
+                        <p class="help">A clear front photo of your face — it goes on your E-Fundi profile and is what sites and the office identify you by. JPG or PNG, up to 5 MB.</p>
                     </div>
                     <div class="field">
                         <label>National ID scan <span class="req">*</span></label>
                         <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf" required>
                     </div>
                     <div class="field">
-                        <label>Business certificate (if any)</label>
+                        <label>Business certificate <span class="hint">(optional)</span></label>
                         <input type="file" name="business_cert" accept=".jpg,.jpeg,.png,.pdf">
                     </div>
                 </div>
                 <div class="field">
-                    <label>Trade / professional certificates (up to 6)</label>
+                    <label>Trade / professional certificates <span class="hint">(optional — up to 6)</span></label>
                     <input type="file" name="trade_certs[]" multiple accept=".jpg,.jpeg,.png,.pdf">
                 </div>
                 <div class="field">
-                    <label>Portfolio photos of your work (up to 6)</label>
+                    <label>Portfolio photos of your work <span class="hint">(optional — up to 6)</span></label>
                     <input type="file" name="portfolio[]" multiple accept=".jpg,.jpeg,.png">
                 </div>
             </fieldset>

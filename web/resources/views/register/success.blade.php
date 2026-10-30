@@ -24,8 +24,8 @@
                     Put your reference {{ $record->reference }} as the reason for any payment you make.</li>
             @endif
             <li>A Director/Admin reviews your documents.</li>
-            @if ($type === 'fundi')
-                <li>The admin contacts your referee to confirm the recommendation.</li>
+            @if ($type === 'fundi' && $record->referee_name)
+                <li>The admin may contact your referee to confirm the recommendation.</li>
             @endif
             <li>On approval you are issued a {{ $type === 'ctp' ? 'CTP' : 'Fundi' }} ID
                 ({{ $type === 'ctp' ? 'CTP-0001' : 'EF-0001' }} style), plus an activation link by email or WhatsApp

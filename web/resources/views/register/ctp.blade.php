@@ -138,7 +138,7 @@
                     <div class="field">
                         <label>Profile photo <span class="req">*</span></label>
                         <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
-                        <p class="help">A clear front photo of your face — it goes on your CTP profile and is what the office and your sites identify you by.</p>
+                        <p class="help">A clear front photo of your face — it goes on your CTP profile and is what the office and your sites identify you by. JPG or PNG, up to 5 MB.</p>
                     </div>
                 </div>
                 <p class="help">Files are stored securely and are visible only to programme Directors and Admins.</p>

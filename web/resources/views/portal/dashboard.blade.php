@@ -64,6 +64,7 @@
         <div class="field">
             <label>Profile photo <span class="req">*</span></label>
             <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+            <p class="help">JPG or PNG, up to 5 MB. A new photo replaces the one on file.</p>
         </div>
         <button class="btn btn-lime" type="submit">Save photo</button>
     </form>

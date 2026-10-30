@@ -59,7 +59,9 @@ body.has-hero .site-header:not(.solid) .brand img, html.dark .site-header.solid 
 .nav-cta { display: flex; gap: 8px; margin-left: 14px; }
 .header-side { display: flex; align-items: center; gap: 10px; }
 .nav-login { white-space: nowrap; }
-.site-header:not(.solid) .nav-login { color: #fff; border-color: rgba(255,255,255,.65); background: rgba(255,255,255,.1); }
+/* The Log in link sits inside the dropped card, which is a white panel even over the hero, so it keeps the
+   card's own button colours rather than the header's cream. */
+html:not(.dark) .site-header:not(.solid) .join-drop .btn-ghost { background: #eef2ec; color: var(--ink); border-color: var(--line); }
 .join-toggle { display: inline-flex; align-items: center; gap: 6px; }
 .join-toggle .ico { width: 15px; height: 15px; }
 .btn .ico { width: 16px; height: 16px; }

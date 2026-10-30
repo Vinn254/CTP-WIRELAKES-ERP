@@ -308,7 +308,7 @@ class CtpProfileController extends Controller
     public function storePhoto(Request $request, CtpRegistration $ctp)
     {
         $request->validate([
-            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:1024',
+            'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ], [], ['passport_photo' => 'Profile photo']);
 
         $ctp->attachPhoto($request);

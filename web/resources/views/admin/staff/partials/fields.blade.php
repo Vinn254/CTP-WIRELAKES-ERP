@@ -19,7 +19,7 @@
                 alt="{{ $owner->name }} — profile photo"></a></span>
         @endif
         <input type="file" name="photo" accept=".jpg,.jpeg,.png">
-        <div class="hint">A clear face picture, up to 2 MB — the one that shows on their directory row.
+        <div class="hint">A clear face picture, up to 5 MB — the one that shows on their directory row.
             A new one replaces the photo on record.</div>
     </div>
     <div class="field">
