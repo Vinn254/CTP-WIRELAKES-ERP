@@ -13,7 +13,7 @@
             <a class="btn btn-outline btn-block" href="{{ route('register.ctp') }}">Apply as a student</a>
         </div>
         <div class="card">
-            <h3>E-Fundi</h3>
+            <h3>Fundi / Trainer</h3>
             <a class="btn btn-lime btn-block" href="{{ route('register.fundi') }}">Apply</a>
         </div>
     </div>

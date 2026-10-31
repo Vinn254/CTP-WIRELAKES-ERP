@@ -5,7 +5,7 @@
 <section class="section" style="max-width:860px;margin:34px auto;">
     <span class="tag">E-Fundi Registration</span>
     <h1>Become a verified E-Fundi</h1>
-    <p class="sub">You do NOT need to have started as a CTP. Skilled workers apply directly. After approval you get a Fundi ID (e.g. EF-0001) and portal access to the project marketplace.</p>
+    <p class="sub">Skilled workers and trainers apply on this form. After approval you get an EF ID and your portal login.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
         <span class="step">2 · Review by the office</span>
@@ -131,10 +131,10 @@
             </fieldset>
 
             <fieldset>
-                <legend>Referee (recommendation)</legend>
-                <p class="help">Optional. One person who can vouch for your skill and character — a previous
-                    employer, a senior fundi, a partner organisation or a community leader. Attachés and junior
-                    fundis fresh from training need not fill this in.</p>
+                <legend>Referee <span class="hint">(optional)</span></legend>
+                <p class="help">One person who can vouch for your skill and character — a previous employer, a
+                    senior fundi, a partner organisation or a community leader. Leave it blank if you have nobody
+                    to name yet.</p>
                 <div class="form-grid-3">
                     <div class="field">
                         <label>Referee name <span class="hint">(optional)</span></label>
@@ -149,11 +149,6 @@
                         <input type="text" name="referee_role" value="{{ old('referee_role') }}" placeholder="e.g. Former employer at J&B Electricals">
                     </div>
                 </div>
-            </fieldset>
-
-            <fieldset>
-                <legend>Who is sponsoring you? <span class="hint">(optional)</span></legend>
-                @include('partials.sponsor-fields', ['partners' => $partners])
             </fieldset>
 
             <fieldset>

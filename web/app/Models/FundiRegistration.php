@@ -23,12 +23,13 @@ class FundiRegistration extends Model
 {
     use NormalizedIdentity;
 
+    /** The ladder is asked top-down on every screen: the full E-Fundi grades first, then the juniors, then the interns. */
     public const TIERS = [
-        'fundi_intern' => 'Fundi-Intern — graduated, no experience, seeking an internship',
-        'attachment' => 'Attachment applicant — still in school, not yet graduated',
-        'junior_fundi' => 'Junior Fundi — recent graduate with internship experience',
         'senior_fundi' => 'Senior Fundi — long industry experience',
         'trainer' => 'Trainer — teaches one of the programme’s training fields and takes CTPs at a site',
+        'junior_fundi' => 'Junior Fundi — recent graduate with internship experience',
+        'attachment' => 'Attachment applicant — still in school, not yet graduated',
+        'fundi_intern' => 'Fundi-Intern — graduated, no experience, seeking an internship',
     ];
 
     public const SPECIALISATIONS = [

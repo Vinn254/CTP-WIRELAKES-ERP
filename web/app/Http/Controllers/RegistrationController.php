@@ -67,7 +67,6 @@ class RegistrationController extends Controller
             'tiers' => $this->fundiTiers(),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
-            'partners' => Partner::orderBy('name')->get(['id', 'name']),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }
@@ -96,9 +95,6 @@ class RegistrationController extends Controller
             'training_field_ids.*' => 'integer|exists:trainings,id',
             // A junior or an attaché fresh from training may have nobody to name yet, so the referee is optional.
             'referee_name' => 'nullable|string|max:150',
-            'sponsor_id' => 'nullable|integer|exists:partners,id',
-            'sponsor_name' => 'nullable|string|max:150',
-            'sponsor_contact' => 'nullable|string|max:120',
             'referee_phone' => 'nullable|string|max:20',
             'referee_role' => 'nullable|string|max:150',
             'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
@@ -108,8 +104,6 @@ class RegistrationController extends Controller
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'cv' => 'CV', 'training_field_ids' => 'Field of training',
-            'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name',
-            'sponsor_contact' => 'Sponsor contact',
             'passport_photo' => 'Profile photo',
         ]);
 
