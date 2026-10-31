@@ -740,7 +740,16 @@ html.dark {
 }
 html.dark body { color: var(--ink); }
 html.dark .site-header.solid { background: #111914; box-shadow: none; }
-html.dark .main-nav { background: #111914; }
+/* The dark panel colour belongs to the opened mobile menu only. Painted at every width it floats as a slab
+   behind the desktop links when the header is transparent over the hero. */
+@media (max-width: 900px) {
+  html.dark .main-nav { background: #111914; }
+}
+/* On a dark header a lime-soft chip with brand-green words is unreadable, so the dark theme keeps its own pair. */
+html.dark .main-nav a:not(.btn):hover, html.dark .main-nav a.active,
+html.dark .join-drop a:hover, html.dark .join-drop a.active,
+html.dark .site-header:not(.solid) .join-drop a:not(.btn):hover,
+html.dark .site-header:not(.solid) .join-drop a.active:not(.btn) { background: #243226; color: #b5e39f; }
 html.dark .join-drop { background: #111914; border-color: var(--line); }
 html.dark .brand { color: #8fd96f; }
 html.dark h1, html.dark h2, html.dark h3, html.dark h4 { color: #b5e39f; }
