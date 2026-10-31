@@ -598,6 +598,9 @@ html.dark .ov-cell.hot { background: #2b2413; }
 .ov-cell-body b { display: block; font-size: .9rem; color: var(--green-dark); }
 .ov-cell-body small { display: block; color: var(--muted); font-size: .77rem; line-height: 1.35;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A card that has to explain itself — what a module holds, or what waits behind a signature — wraps instead of
+   trailing off, so the line is never cut where the reader still needs it. */
+.ov-cell.wrap .ov-cell-body small { white-space: normal; }
 .ov-pill { position: absolute; top: 8px; right: 11px; background: var(--warn); color: #fff; border-radius: 999px;
   font-size: .7rem; font-weight: 800; padding: 1px 8px; }
 

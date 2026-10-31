@@ -52,13 +52,19 @@
     $choosing = ! $isSuper && ! $acting && request()->routeIs('admin.departments')
         && count(\App\Support\Workspace::cards($me)) > 1;
 
-    // Every account opens the office from the same first icon: the department cards for a super admin, their own
-    // workspace overview for anyone holding a job title.
-    $office = [
-        ['label' => $isSuper ? 'All departments' : ($acting ? \App\Support\Roles::all()[$acting]['name'] : 'My overview'),
-            'icon' => 'grid', 'href' => route('admin.departments'),
-            'active' => request()->routeIs('admin.departments') && ! $choosing, 'badge' => 0],
-    ];
+    // Every account opens the office from the same first icon: the director's own desk for a super admin, their
+    // workspace overview for anyone holding a job title, and the department cards for everyone.
+    $office = [];
+
+    if ($isSuper) {
+        $office[] = ['label' => "Director's desk", 'icon' => 'sliders', 'href' => route('admin.director.index'),
+            'active' => request()->routeIs('admin.director.index'),
+            'badge' => \App\Support\DirectorDesk::waiting()];
+    }
+
+    $office[] = ['label' => $isSuper ? 'All departments' : ($acting ? \App\Support\Roles::all()[$acting]['name'] : 'My overview'),
+        'icon' => 'grid', 'href' => route('admin.departments'),
+        'active' => request()->routeIs('admin.departments') && ! $choosing, 'badge' => 0];
 
     // The title they chose is not the only one they hold, so the cards stay one click away.
     if ($acting || $choosing) {

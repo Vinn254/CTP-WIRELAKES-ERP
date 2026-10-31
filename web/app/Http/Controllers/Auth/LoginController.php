@@ -67,10 +67,10 @@ class LoginController extends Controller
         // is confirmed by a code to the holder's own email — a stolen password alone no longer opens the office.
         if (in_array($user->role, ['admin', 'superadmin'], true)) {
             if (! EmailOtp::enabled()) {
-                return EmailOtp::signInWithoutCode($user, $request, route('admin.departments'));
+                return EmailOtp::signInWithoutCode($user, $request, $this->homeFor($user));
             }
 
-            if (! EmailOtp::start($user, $email, 'login', $request, route('admin.departments'))) {
+            if (! EmailOtp::start($user, $email, 'login', $request, $this->homeFor($user))) {
                 return back()->withErrors([
                     'email' => 'A code went to your email a moment ago. Wait a minute, then look in your inbox.',
                 ])->onlyInput('email');
@@ -91,6 +91,10 @@ class LoginController extends Controller
     /** Where a member or an office account belongs once it is signed in. */
     private function homeFor(User $user): string
     {
+        if ($user->role === 'superadmin') {
+            return route('admin.director.index');
+        }
+
         return route(in_array($user->role, ['admin', 'superadmin'], true) ? 'admin.departments' : 'portal.dashboard');
     }
 

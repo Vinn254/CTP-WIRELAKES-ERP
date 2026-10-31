@@ -67,7 +67,7 @@ class OtpVerificationController extends Controller
         $request->session()->regenerate();
 
         $redirect = $pending['to'] ?? route(in_array($user->role, ['admin', 'superadmin'], true)
-            ? 'admin.departments'
+            ? ($user->role === 'superadmin' ? 'admin.director.index' : 'admin.departments')
             : 'portal.dashboard');
 
         return filled($pending['flash'] ?? null)

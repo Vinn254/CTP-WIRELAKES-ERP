@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ConstructionController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\CtpProfileController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\DirectorController;
 use App\Http\Controllers\Admin\ExecutionController;
 use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
@@ -147,6 +148,9 @@ Route::post('/activate/{token}', [ActivateController::class, 'accept'])->name('a
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(function () {
     Route::get('/', [DepartmentController::class, 'index'])->name('departments');
     Route::get('/department/{department}', [DepartmentController::class, 'show'])->name('department');
+
+    // The director's own desk: the whole office on one page, open to the programme director alone.
+    Route::get('/director', [DirectorController::class, 'index'])->name('director.index');
     Route::get('/registrations/{type}', [ReviewController::class, 'index'])->name('registrations.index');
     Route::get('/registrations/{type}/{id}', [ReviewController::class, 'show'])->whereNumber('id')->name('registrations.show');
     Route::get('/registrations/{type}/{id}/file/{doc}', [ReviewController::class, 'file'])->name('registrations.file');
