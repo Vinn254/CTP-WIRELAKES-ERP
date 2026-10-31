@@ -2,6 +2,9 @@
 @section('title', 'Application '.$record->reference)
 
 @php
+    use App\Support\Departments;
+    // Read as another office's copy: the person, their papers and where they stand — nothing that decides.
+    $read = Departments::hosted();
     $labels = [
         'reference' => 'Reference', 'full_name' => 'Full name', 'contact_name' => 'Contact name',
         'organisation' => 'Organisation', 'national_id' => 'National ID', 'phone' => 'Phone',
@@ -39,12 +42,12 @@
     // The face they registered with, when the application carries one — the first thing a reviewer checks.
     $photoSlot = $type === 'ctp' ? 'passport' : ($type === 'fundi' ? 'passport_photo' : null);
     $photoUrl = $photoSlot && isset($docs[$photoSlot])
-        ? route('admin.registrations.file', [$type, $record->id, $photoSlot]) : null;
+        ? dept_link('admin.registrations.file', ['type' => $type, 'id' => $record->id, 'doc' => $photoSlot]) : null;
     $place = collect([$record->county ?? null, $record->sub_county ?? null, $record->ward ?? null])->filter()->join(' · ');
 @endphp
 
 @section('content')
-<a class="back" href="{{ route('admin.registrations.index', $type) }}">Back to {{ $label }}</a>
+<a class="back" href="{{ dept_link('admin.registrations.index', ['type' => $type]) }}">Back to {{ $label }}</a>
 
 <div class="applicant-head card">
     <span class="avatar-lg{{ $photoUrl ? ' has-photo' : '' }}">
@@ -114,14 +117,14 @@
                 @include('partials.doc-card', [
                     'label' => $docNames[$docKey] ?? \Illuminate\Support\Str::headline($slot),
                     'path' => $path,
-                    'url' => route('admin.registrations.file', [$type, $record->id, $slot]),
+                    'url' => dept_link('admin.registrations.file', ['type' => $type, 'id' => $record->id, 'doc' => $slot]),
                 ])
             @empty
                 <p class="help">No documents uploaded.</p>
             @endforelse
         </div>
 
-        @if ($record->status === 'pending_payment')
+        @if (! $read && $record->status === 'pending_payment')
             <div class="card">
                 <h3>Payment on this application</h3>
                 <p class="help">{{ \App\Support\Finance::paybillLine() }} Nothing waits on it — record the money here only
@@ -165,7 +168,7 @@
             </div>
         @endif
 
-        @if (in_array($record->status, ['pending_payment', 'pending_review'], true))
+        @if (! $read && in_array($record->status, ['pending_payment', 'pending_review'], true))
             <div class="card decision">
                 <h3>Decision</h3>
                 <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
@@ -188,14 +191,16 @@
                 <h3>{{ method_exists($record, 'statusLabel') ? $record->statusLabel() : ucfirst($record->status) }}</h3>
                 @if ($record->status === 'rejected')
                     <p>Reason sent to the applicant:<br><em>“{{ $record->rejection_reason }}”</em></p>
+                    @unless ($read)
                     <form method="POST" action="{{ route('admin.registrations.approve', [$type, $record->id]) }}"
                           data-confirm="Reverse the rejection and approve this application?">
                         @csrf
                         <button class="btn btn-outline btn-sm" type="submit">Approve instead</button>
                     </form>
+                    @endunless
                 @else
                     <p>{{ $personName }} is a member — ID <b>{{ $memberCode }}</b>.</p>
-                    @if ($invite)
+                    @if ($invite && ! $read)
                         <div class="link-box">
                             <label class="hint" for="member-activation-link">Activation link — emailed to {{ $record->email }}; copy it again if they cannot find it</label>
                             <input type="text" readonly id="member-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
@@ -220,7 +225,7 @@
                 @endif
             </div>
 
-            @if ($type === 'ctp' && in_array($record->status, \App\Models\CtpRegistration::WORKING, true))
+            @if (! $read && $type === 'ctp' && in_array($record->status, \App\Models\CtpRegistration::WORKING, true))
                 <div class="card">
                     <h3>Project level</h3>
                     <p class="help">A CTP who has finished attachment, internship and their course moves into the fundi

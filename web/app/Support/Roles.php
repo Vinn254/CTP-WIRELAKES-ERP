@@ -36,8 +36,8 @@ class Roles
         ],
         'hr_officer' => [
             'name' => 'Human Resources Officer',
-            'desc' => 'Human Resources — careers board, applicants and signed weeks — with Membership in view',
-            'departments' => ['hr', 'membership'],
+            'desc' => 'Human Resources — careers board, applicants, staff files, signed weeks and leave',
+            'departments' => ['hr'],
         ],
         'projects_desk' => [
             'name' => 'Projects Officer',

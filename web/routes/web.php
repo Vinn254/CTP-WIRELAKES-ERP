@@ -649,6 +649,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         // System Administrator can put a new field of training on it from here, which is why the POST is registered.
         Route::get('/trainings/in/{department}', [TrainingController::class, 'index'])->name('trainings.index');
         Route::post('/trainings/in/{department}', [TrainingController::class, 'store'])->name('trainings.store');
+        // The people the programme has taken on, read by the desks that serve them. Only an approved record is
+        // listed on a copy, and every button that decides an application stays with the owning office.
+        Route::get('/registrations/{type}/in/{department}', [ReviewController::class, 'index'])->name('registrations.index');
+        Route::get('/registrations/{type}/{id}/in/{department}', [ReviewController::class, 'show'])
+            ->whereNumber('id')->name('registrations.show');
+        // The papers on that record are read with it — a desk with the copy opens the same file, never the owning screen.
+        Route::get('/registrations/{type}/{id}/file/{doc}/in/{department}', [ReviewController::class, 'file'])
+            ->name('registrations.file');
+        Route::get('/promoters/in/{department}', [CtpProfileController::class, 'index'])->name('promoters.index');
+        Route::get('/fundis/in/{department}', [FundiController::class, 'index'])->name('fundis.index');
+        // The accounts list, read by Human Resources — the desk that sets what each account may open. It invites
+        // from the same copy, which is why that POST is registered here too.
+        Route::get('/staff/in/{department}', [StaffController::class, 'index'])->name('staff.index');
+        Route::post('/staff/invite/in/{department}', [StaffController::class, 'invite'])->name('staff.invite');
+        Route::post('/staff/invites/{invite}/revoke/in/{department}', [StaffController::class, 'revoke'])
+            ->name('staff.invite.revoke');
     });
 });
 

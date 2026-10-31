@@ -9,6 +9,7 @@ use App\Models\FundiRegistration;
 use App\Models\Partner;
 use App\Models\ProjectApplication;
 use App\Models\Trainer;
+use App\Support\Departments;
 use App\Support\Documents;
 use App\Support\Execution;
 use App\Support\ReviewActions;
@@ -39,7 +40,12 @@ class FundiController extends Controller
 
         $search = trim((string) $request->query('q'));
 
-        $fundis = FundiRegistration::query()
+        // Read as another office's copy: only the E-Fundis the programme has taken on and works with. An application
+        // still waiting on a decision belongs to the desk that answers it.
+        $guest = Departments::hosted();
+        $taken = fn ($q) => $guest ? $q->where('status', 'active') : $q;
+
+        $fundis = $taken(FundiRegistration::query())
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->when($tier !== 'all', fn ($q) => $q->where('tier', $tier))
             ->when($availability !== 'all', fn ($q) => $q->where('availability', $availability))
@@ -66,7 +72,7 @@ class FundiController extends Controller
             'county' => $county,
             'skill' => $skill,
             'search' => $search,
-            'counts' => FundiRegistration::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
+            'counts' => $taken(FundiRegistration::selectRaw('status, count(*) c')->groupBy('status'))->pluck('c', 'status'),
             'availableNow' => FundiRegistration::where('status', 'active')->where('availability', 'available')->count(),
             'tiers' => FundiRegistration::TIERS,
             'availabilities' => FundiRegistration::AVAILABILITY,

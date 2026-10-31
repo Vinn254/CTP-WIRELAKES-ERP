@@ -2,10 +2,13 @@
 @section('title', 'Staff & roles')
 
 @php
+    use App\Support\Departments;
     $accountLabels = ['admin' => 'Admin', 'superadmin' => 'Super admin'];
     $deptLabels = collect($liveDepartments)->mapWithKeys(fn ($d) => [$d['slug'] => $d['name']]);
     $heldRoles = fn ($slugs) => \App\Support\Roles::namesFor(is_array($slugs) ? $slugs : []);
     $manageRow = fn ($u) => $canTicks && $u->id !== auth()->id() && $u->role !== 'superadmin';
+    // Inviting a person in is worked from Website & Membership too, as that desk's own copy of this list.
+    $copy = Departments::hosted();
 @endphp
 
 @section('content')
@@ -32,7 +35,8 @@
 @if ($canManage)
     @include('partials.sheet-start', ['name' => 'invite', 'title' => 'Invite a staff member',
         'sub' => 'They set their own password on the activation link, which is valid 14 days.'])
-        <form method="POST" action="{{ route('admin.staff.invite') }}" class="invite-form">
+        <form method="POST" action="{{ dept_link('admin.staff.invite') }}" class="invite-form"
+              @if ($copy) data-host-write @endif>
             @csrf
             <input type="hidden" name="_sheet" value="invite">
             <div class="inline-form field-grid">
@@ -228,7 +232,8 @@
                                     <a class="btn btn-sm btn-lime" href="{{ route('invite.show', $inv->token) }}" target="_blank">Open link</a>
                                     <button class="btn btn-sm btn-outline" type="button"
                                             onclick="copyInvite('{{ route('invite.show', $inv->token) }}', this)">Copy link</button>
-                                    <form method="POST" action="{{ route('admin.staff.invite.revoke', $inv->id) }}"
+                                    <form method="POST" action="{{ dept_link('admin.staff.invite.revoke', ['invite' => $inv->id]) }}"
+                                          @if ($copy) data-host-write @endif
                                           data-danger data-confirm="Revoke the invitation for {{ $inv->email }}? The link will stop working.">
                                         @csrf
                                         <button class="btn btn-sm btn-danger" type="submit">Revoke</button>

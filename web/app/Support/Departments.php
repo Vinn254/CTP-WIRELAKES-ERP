@@ -81,7 +81,7 @@ class Departments
     private const NAV = [
         'membership' => [
             ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.registrations.index', 'ctp'], 'badge' => 'applicants'],
-            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index'], 'invite' => true],
+            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.host.staff.index', 'membership'], 'invite' => true],
             ['label' => 'Site content & pages', 'icon' => 'layout', 'route' => ['admin.content.index']],
             ['label' => 'Membership settings', 'icon' => 'sliders', 'route' => ['admin.content.edit', 'membership']],
             ['label' => 'Projects', 'icon' => 'briefcase', 'route' => ['admin.projects.index'], 'badge' => 'applications'],
@@ -115,6 +115,7 @@ class Departments
             ['label' => 'Teaching papers', 'icon' => 'mail', 'route' => ['admin.registers.index'], 'badge' => 'papers'],
             ['label' => 'Library', 'icon' => 'book', 'route' => ['admin.library.index']],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
+            ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.host.registrations.index', ['type' => 'ctp', 'department' => 'training']]],
             ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
         ],
         'efundi' => [
@@ -150,6 +151,8 @@ class Departments
             ['label' => 'Invoices', 'icon' => 'mail', 'route' => ['admin.invoices.index'], 'badge' => 'invoices'],
             ['label' => 'E-Fundi payouts', 'icon' => 'users', 'route' => ['admin.payouts.index'], 'badge' => 'payouts'],
             ['label' => 'Staff payroll', 'icon' => 'briefcase', 'route' => ['admin.staffpay.index'], 'badge' => 'payroll'],
+            ['label' => 'CTP members', 'icon' => 'users', 'route' => ['admin.host.promoters.index', 'finance']],
+            ['label' => 'E-Fundi members', 'icon' => 'hardhat', 'route' => ['admin.host.fundis.index', 'finance']],
         ],
         'procurement' => [
             ['label' => 'Purchases', 'icon' => 'link', 'route' => ['admin.procurement.index'], 'badge' => 'requests'],
@@ -161,12 +164,15 @@ class Departments
             ['label' => 'Careers & applicants', 'icon' => 'award', 'route' => ['admin.careers.index'], 'badge' => 'careers'],
             ['label' => 'Onboarding', 'icon' => 'check', 'route' => ['admin.onboarding.index'], 'badge' => 'onboarding'],
             ['label' => 'Staff directory', 'icon' => 'users', 'route' => ['admin.directory.index']],
+            ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.host.registrations.index', ['type' => 'ctp', 'department' => 'hr']]],
+            ['label' => 'CTP members', 'icon' => 'users', 'route' => ['admin.host.promoters.index', 'hr']],
+            ['label' => 'E-Fundis', 'icon' => 'hardhat', 'route' => ['admin.host.fundis.index', 'hr']],
             ['label' => 'Trainers', 'icon' => 'award', 'route' => ['admin.host.trainers.index', 'hr'], 'badge' => 'trainers'],
             ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
             ['label' => 'Deduction rates', 'icon' => 'sliders', 'route' => ['admin.payroll.rates']],
             ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
-            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index'], 'invite' => true],
+            ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
         ],
         'me_gis' => [
             ['label' => 'Impact dashboard', 'icon' => 'grid', 'route' => ['admin.impacts.index']],
@@ -228,12 +234,10 @@ class Departments
         'admin.careers.' => 'hr',
         'admin.directory.' => 'hr',
         'admin.onboarding.' => 'hr',
-        // Raising an invitation is Module 1's desk, the way the founder wants it worked: "system admin should be
-        // able to invite user in the system also but hr will see the invited users". What an account may then
-        // open is still set by Human Resources alone.
-        'admin.staff.index' => 'membership',
-        'admin.staff.invite' => 'membership',
-        'admin.staff.users.update' => 'hr',
+        // The office accounts are kept by the desk that hires the people holding them — Human Resources. The founder's
+        // rule is worked the same way: "system admin should be able to invite user in the system also but hr will see
+        // the invited users and add their details on onboarding". So Website & Membership is given its own copy of
+        // the list to invite from, while the job titles, the activation and the onboarding stay with HR alone.
         'admin.staff.' => 'hr',
         'admin.leave.' => 'hr',
         // admin.myleave.* deliberately has no owner: a worker's own balance goes with them to every desk they hold.
@@ -242,6 +246,10 @@ class Departments
     /** Tiles on a department overview page, with the note shown under each. */
     private const NOTES = [
         'admin.registrations.index' => 'Review, approve or reject every application',
+        'admin.host.registrations.index' => 'The applications this programme has already taken on, read here — deciding one stays with Website & Membership',
+        'admin.host.promoters.index' => 'Every CTP the programme has approved, read here with the record the desk works from',
+        'admin.host.fundis.index' => 'Every E-Fundi the programme has approved, read here with the record the desk works from',
+        'admin.host.staff.index' => 'Invite a person in and withdraw a link still waiting; Human Resources sets what the account opens',
         'admin.content.index' => 'Edit the text, images and sections of each public page',
         'admin.content.edit' => 'Fees, CTP tracks and E-Fundi tiers used by the forms',
         'admin.partners.index' => 'Requests from the public page and the partner wall',
@@ -320,9 +328,9 @@ class Departments
     public const HOSTED = [
         'admin.host.projects.show' => ['admin.projects.show', ['marketplace', 'execution', 'construction', 'communities', 'promoters', 'efundi']],
         'admin.host.projects.index' => ['admin.projects.index', ['marketplace', 'execution', 'construction']],
-        'admin.host.promoters.show' => ['admin.promoters.show', ['membership', 'communities', 'training']],
+        'admin.host.promoters.show' => ['admin.promoters.show', ['membership', 'communities', 'training', 'hr', 'finance']],
         'admin.host.communities.show' => ['admin.communities.show', ['membership', 'training', 'marketplace', 'execution', 'construction']],
-        'admin.host.fundis.show' => ['admin.fundis.show', ['marketplace', 'execution', 'training']],
+        'admin.host.fundis.show' => ['admin.fundis.show', ['marketplace', 'execution', 'training', 'hr', 'finance']],
         // The office that hires a trainer, buys their materials or runs the accounts reads the same teaching list —
         // who is licensed for which training, at which site, on what rate. Training & Certification alone decides
         // an application, so the copies carry no buttons.
@@ -341,15 +349,26 @@ class Departments
         // the M&E screen, never a link out of the department.
         'admin.host.activity.index' => ['admin.activity.index', ['membership']],
         'admin.host.activity.export' => ['admin.activity.export', ['membership']],
-        // Human Resources approves the week; every other desk reads the very same sheet as its own copy — Training to
-        // see who is on a site, Finance as the work paid for, the rest to know what their people logged.
-        'admin.host.timelogs.index' => ['admin.timelogs.index', ['membership', 'promoters', 'communities', 'efundi',
-            'training', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
-        'admin.host.timelogs.week' => ['admin.timelogs.week', ['membership', 'promoters', 'communities', 'efundi',
-            'training', 'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
+        // Human Resources approves the week and Finance pays it; no other desk is given the register — a worker's own
+        // sheet stays on their desk as "My time log".
+        'admin.host.timelogs.index' => ['admin.timelogs.index', ['finance']],
+        'admin.host.timelogs.week' => ['admin.timelogs.week', ['finance']],
         // Human Resources answers a leave application; each desk sees the ones its own people hold, read here.
         'admin.host.leave.index' => ['admin.leave.index', ['membership', 'promoters', 'communities', 'training', 'efundi',
             'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
+        // The people registers, read by the desks that serve those people but do not decide on them: Human Resources
+        // and the Registrar read who the programme has taken on, Finance reads who it bills. Only an approved, active
+        // record is listed for them — an application still waiting on a decision belongs to the desk that answers it.
+        'admin.host.registrations.index' => ['admin.registrations.index', ['hr', 'training']],
+        'admin.host.registrations.show' => ['admin.registrations.show', ['hr', 'training']],
+        'admin.host.registrations.file' => ['admin.registrations.file', ['hr', 'training']],
+        'admin.host.promoters.index' => ['admin.promoters.index', ['hr', 'finance']],
+        'admin.host.fundis.index' => ['admin.fundis.index', ['hr', 'finance']],
+        // The accounts list, copied into Website & Membership for the System Administrator, who invites a person in.
+        // Setting what that account may open stays with Human Resources, so the copy carries the invitation form only.
+        'admin.host.staff.index' => ['admin.staff.index', ['membership']],
+        'admin.host.staff.invite' => ['admin.staff.invite', ['membership']],
+        'admin.host.staff.invite.revoke' => ['admin.staff.invite.revoke', ['membership']],
         // Website & Membership keeps the public intake register; the desk running an area reads the lines that
         // came in on its own page here, and answers them from the record it is pointed to by email.
         'admin.host.applications.index' => ['admin.applications.index', ['training', 'marketplace', 'execution',
@@ -522,7 +541,9 @@ class Departments
         $items[] = ['label' => 'Requisitions', 'icon' => 'clipboard',
             'route' => ['admin.requisitions.index'], 'badge' => 'requisitions'];
 
-        if ($slug !== 'hr') {
+        // Human Resources alone answers a week; Finance is the desk that pays it out, so it reads the signed sheets.
+        // Every other desk works its own week from "My time log" and is not given the office register.
+        if (in_array($slug, ['finance'], true)) {
             $items[] = ['label' => 'Time logs', 'icon' => 'clock',
                 'route' => ['admin.host.timelogs.index', $slug], 'badge' => 'timelogs'];
         }

@@ -3,22 +3,29 @@
 
 @php
     use App\Models\FundiRegistration;
+    use App\Support\Departments;
+    $read = Departments::hosted();
     $tabs = ['all' => 'All'] + FundiRegistration::STATUSES;
     $filters = ['tier' => $tier, 'availability' => $availability, 'county' => $county, 'skill' => $skill, 'q' => $search];
 @endphp
 
 @section('content')
 <h1>E-Fundi register</h1>
-<p class="page-lede">Every registered fundi, their skills and whether they are free for work.</p>
+<p class="page-lede">{{ $read
+    ? 'Every E-Fundi the programme took on, read here.'
+    : 'Every registered fundi, their skills and whether they are free for work.' }}</p>
 
 <div class="stat-row">
     <div class="stat"><small>On the register</small><b>{{ $counts->sum() }}</b></div>
     <div class="stat"><small>Available for work</small><b>{{ $availableNow }}</b></div>
-    <div class="stat"><small>Waiting on a payment</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
-    <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
-    <div class="stat"><small>Blocked</small><b>{{ ($counts['suspended'] ?? 0) + ($counts['blacklisted'] ?? 0) }}</b></div>
+    @unless ($read)
+        <div class="stat"><small>Waiting on a payment</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
+        <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
+        <div class="stat"><small>Blocked</small><b>{{ ($counts['suspended'] ?? 0) + ($counts['blacklisted'] ?? 0) }}</b></div>
+    @endunless
 </div>
 
+@unless ($read)
 <p style="margin:0 0 14px;">
     <button class="btn btn-lime btn-sm" type="button" data-sheet="add-fundi">+ Add an E-Fundi from the office</button>
     <span class="hint" style="margin-left:10px;">
@@ -26,19 +33,20 @@
         A person already on the register is reopened on their own record, never added a second time.
     </span>
 </p>
+@endunless
 
-<form method="GET" class="filter-bar">
+<form method="GET" action="{{ dept_link('admin.fundis.index') }}" class="filter-bar">
     <input type="search" name="q" value="{{ $search }}" placeholder="Search EF ID, name, phone or business" aria-label="Search EF ID, name, phone or business">
     <button class="btn btn-sm btn-outline" type="submit">Filter</button>
     @if (collect($filters)->filter(fn ($v) => $v !== 'all' && $v !== '')->isNotEmpty())
-        <a class="btn btn-sm btn-ghost" href="{{ route('admin.fundis.index', ['status' => $status]) }}">Clear</a>
+        <a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.fundis.index', ['status' => $status]) }}">Clear</a>
     @endif
 
     <div class="form-grid-2">
         <div>
             <label for="status">Fundi status</label>
             <select name="status" id="status" onchange="this.form.submit()">
-                @foreach ($tabs as $s => $lbl)
+                @foreach ($read ? ['all' => 'All taken on', 'active' => 'Active'] : $tabs as $s => $lbl)
                     <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
                 @endforeach
             </select>
@@ -95,7 +103,7 @@
             <tr>
                 <td><b>{{ $f->ef_code ?: '—' }}</b>@if (! $f->ef_code)<div class="hint">{{ $f->reference }}</div>@endif</td>
                 <td>
-                    <a href="{{ route('admin.fundis.show', $f) }}"><b>{{ $f->full_name }}</b></a>
+                    <a href="{{ dept_link('admin.fundis.show', ['fundi' => $f]) }}"><b>{{ $f->full_name }}</b></a>
                     <div class="hint">{{ $f->business_name ?: $f->phone }}@if ($f->mobiliser) · brought by {{ $f->mobiliser->ctp_code }}@endif</div>
                 </td>
                 <td><span class="tag">{{ FundiRegistration::tierLabel($f->tier) }}</span></td>
@@ -107,7 +115,7 @@
                 <td>{{ $f->trainers_count ?: '—' }}</td>
                 <td><span class="fee-tag {{ $f->fee_status }}">{{ FundiRegistration::FEE_STATUSES[$f->fee_status] ?? $f->fee_status }}</span></td>
                 <td><span class="status {{ in_array($f->status, ['active'], true) ? 'active' : (in_array($f->status, ['pending_payment', 'pending_review'], true) ? 'pending_review' : 'closed') }}">{{ $f->statusLabel() }}</span></td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.fundis.show', $f) }}">Open record</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ dept_link('admin.fundis.show', ['fundi' => $f]) }}">Open record</a></td>
             </tr>
         @empty
             <tr><td colspan="10" class="empty-cell">
@@ -143,7 +151,7 @@
         @forelse ($fundis as $f)
             @php $led = $ledger[$f->id] ?? null; @endphp
             <tr>
-                <td><a href="{{ route('admin.fundis.show', $f) }}"><b>{{ $f->full_name }}</b></a>
+                <td><a href="{{ dept_link('admin.fundis.show', ['fundi' => $f]) }}"><b>{{ $f->full_name }}</b></a>
                     <div class="hint">{{ $f->ef_code ?: $f->reference }}@if ($f->business_name) · {{ $f->business_name }}@endif</div></td>
                 <td><span class="tag">{{ $f->gradeLabel() }}</span></td>
                 <td>{{ $f->county ?: '—' }}
@@ -152,7 +160,7 @@
                 <td>{{ $led['running'] ?? 0 }}</td>
                 <td>{{ \App\Support\Finance::ksh($led['value'] ?? 0) }}</td>
                 <td>{{ $led['verdict'] ?? 'No work handed over yet' }}</td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.fundis.show', $f) }}">Open record</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ dept_link('admin.fundis.show', ['fundi' => $f]) }}">Open record</a></td>
             </tr>
             @if ($led && $led['orders']->isNotEmpty())
                 <tr>
@@ -187,6 +195,7 @@
     <b>Training &amp; Certification &rsaquo; Trainers</b> for the site approvals themselves.
 </p>
 
+@unless ($read)
 @include('partials.sheet-start', ['name' => 'add-fundi', 'title' => 'Add an E-Fundi from the office',
     'sub' => 'Enter an E-Fundi application at the counter for someone offline.'])
     <form method="POST" action="{{ route('admin.fundis.store') }}" enctype="multipart/form-data"
@@ -200,4 +209,5 @@
         </div>
     </form>
 @include('partials.sheet-end')
+@endunless
 @endsection

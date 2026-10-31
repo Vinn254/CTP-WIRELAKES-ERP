@@ -12,16 +12,22 @@
         'fundi' => $waiting + ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'],
         default => ['pending_review' => 'Pending', 'active' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All'],
     };
+    // Read as another office's copy: only the people already taken on, and no filter that lists the waiting ones.
+    if ($guest) {
+        $statuses = ['active' => 'Approved', 'all' => 'All'];
+    }
+    $self = dept_link('admin.registrations.index', ['type' => $type]);
+    $switch = dept_link('admin.registrations.index', ['type' => '__TYPE__']);
 @endphp
 
 @section('content')
 <h1>{{ $label }}</h1>
-<p class="page-lede">Review and approve new CTP and E-Fundi applications.</p>
+<p class="page-lede">{{ $guest ? 'The members the programme has taken on, read only.' : 'Review and approve new CTP and E-Fundi applications.' }}</p>
 
-<form method="GET" action="{{ route('admin.registrations.index', $type) }}" class="filter-bar inline-filter">
+<form method="GET" action="{{ $self }}" class="filter-bar inline-filter">
     <label class="field">
         <span>Register</span>
-        <select name="type" onchange="location.href='{{ route('admin.registrations.index', ['type' => '__TYPE__']) }}'.replace('__TYPE__', this.value)+'?status='+encodeURIComponent(document.getElementById('reg-status').value);">
+        <select name="type" onchange="location.href='{{ $switch }}'.replace('__TYPE__', this.value)+'?status='+encodeURIComponent(document.getElementById('reg-status').value);">
             @foreach ($types as $t => $lbl)
                 <option value="{{ $t }}" @selected($t === $type)>{{ $lbl }}@if ($pendingByType[$t] ?? 0) ({{ $pendingByType[$t] }})@endif</option>
             @endforeach
@@ -80,12 +86,12 @@
                 <td><span class="status {{ $r->status }}">{{ method_exists($r, 'statusLabel') ? $r->statusLabel() : str_replace('_', ' ', $r->status) }}</span></td>
                 <td>{{ $r->created_at->format('d M Y') }}</td>
                 <td class="actions">
-                    <a class="btn btn-sm btn-outline" href="{{ route('admin.registrations.show', [$type, $r->id]) }}">Review</a>
+                    <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.registrations.show', ['type' => $type, 'id' => $r->id]) }}">{{ $guest ? 'View' : 'Review' }}</a>
                     @if ($type === 'ctp')<a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.promoters.show', ['ctp' => $r->id]) }}">Profile</a>@endif
                 </td>
             </tr>
         @empty
-            <tr><td colspan="10" class="empty-cell">No {{ str_replace('_', ' ', $status) }} applications yet.</td></tr>
+            <tr><td colspan="10" class="empty-cell">No {{ $guest ? 'members' : str_replace('_', ' ', $status) }} {{ $guest ? 'taken on yet' : 'applications' }} yet.</td></tr>
         @endforelse
     </tbody>
 </table>

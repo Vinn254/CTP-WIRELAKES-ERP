@@ -27,9 +27,13 @@
 
 <div class="stat-row">
     <div class="stat"><small>Site records</small><b>{{ $counts->sum() }}</b></div>
-    <div class="stat"><small>Awaiting decision</small><b>{{ $counts['applied'] ?? 0 }}</b></div>
+    @unless ($read)
+        <div class="stat"><small>Awaiting decision</small><b>{{ $counts['applied'] ?? 0 }}</b></div>
+    @endunless
     <div class="stat"><small>Approved site records</small><b>{{ $counts['approved'] ?? 0 }}</b></div>
-    <div class="stat"><small>Eligible to be posted</small><b>{{ $fundis->count() + $staff->count() + $applicants->count() }}</b></div>
+    @unless ($read)
+        <div class="stat"><small>Eligible to be posted</small><b>{{ $fundis->count() + $staff->count() + $applicants->count() }}</b></div>
+    @endunless
 </div>
 
 <form method="GET" action="{{ route($read ? 'admin.host.trainers.index' : 'admin.trainers.index', $here) }}" class="filter-bar inline-filter">
@@ -37,7 +41,7 @@
     <label class="field">
         <span>Trainer status</span>
         <select name="status" onchange="this.form.submit()">
-            @foreach ($tabs as $s => $lbl)
+            @foreach ($read ? ['all' => 'All licensed'] : $tabs as $s => $lbl)
                 <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
             @endforeach
         </select>

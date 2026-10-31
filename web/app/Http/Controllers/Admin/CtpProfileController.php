@@ -8,6 +8,7 @@ use App\Models\CtpRegistration;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Support\Departments;
 use App\Support\Documents;
 use App\Support\Execution;
 use App\Support\ReviewActions;
@@ -26,7 +27,12 @@ class CtpProfileController extends Controller
         abort_unless(in_array($status, ['all', ...array_keys(CtpRegistration::STATUSES)], true), 404);
         $search = trim((string) $request->query('q'));
 
-        $ctps = CtpRegistration::query()
+        // Read as another office's copy: the CTPs the programme took on and works with, never an application that
+        // is still waiting on a decision — deciding one stays with the desk that answers it.
+        $guest = Departments::hosted();
+        $taken = fn ($q) => $guest ? $q->whereIn('status', CtpRegistration::WORKING) : $q;
+
+        $ctps = $taken(CtpRegistration::query())
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->when($search !== '', function ($q) use ($search) {
                 $q->where(fn ($w) => $w
@@ -40,7 +46,7 @@ class CtpProfileController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $alumni = CtpRegistration::alumni()
+        $alumni = $taken(CtpRegistration::alumni())
             ->withCount(['referrals as mobilised_count' => fn ($q) => $q->whereIn('status', CtpRegistration::WORKING)])
             ->orderByRaw("case when fundi_tier = 'senior_fundi' then 0 when fundi_tier = 'junior_fundi' then 1 else 2 end")
             ->orderBy('full_name')
@@ -50,11 +56,11 @@ class CtpProfileController extends Controller
         return view('admin.ctp.index', array_merge($this->applicationData(), [
             'ctps' => $ctps,
             'alumni' => $alumni,
-            'alumniTotal' => CtpRegistration::alumni()->count(),
+            'alumniTotal' => $alumni->total(),
             'alumniLedger' => Execution::ledgerFor('ctp', $alumni->pluck('id')->all()),
             'status' => $status,
             'search' => $search,
-            'counts' => CtpRegistration::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
+            'counts' => $taken(CtpRegistration::selectRaw('status, count(*) c')->groupBy('status'))->pluck('c', 'status'),
             'tiers' => Project::CTP_POOL_TIERS,
         ]));
     }

@@ -10,6 +10,7 @@ use App\Models\Trainer;
 use App\Models\Training;
 use App\Models\TrainingVenue;
 use App\Models\User;
+use App\Support\Departments;
 use Illuminate\Http\Request;
 
 /**
@@ -24,15 +25,21 @@ class TrainerController extends Controller
     {
         $status = $request->input('status', 'all');
 
+        // Read as another office's copy: the people the programme has licensed to train, not the applications still
+        // waiting on Training & Certification to decide them.
+        $guest = Departments::hosted();
+        $status = $guest ? 'all' : $status;
+        $licensed = fn ($q) => $guest ? $q->where('status', 'approved') : $q;
+
         return view('admin.trainers.index', [
-            'trainers' => Trainer::with(['fundi:id,full_name,ef_code,tier,county,phone', 'staff:id,name,email',
+            'trainers' => $licensed(Trainer::with(['fundi:id,full_name,ef_code,tier,county,phone', 'staff:id,name,email',
                 'applicant:id,name,email,phone', 'trainings:id,name', 'venue:id,name,county,sub_county,ward',
-                'cohorts.venue:id,name'])
+                'cohorts.venue:id,name']))
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->orderByRaw("case status when 'applied' then 0 when 'approved' then 1 else 2 end")
                 ->orderByDesc('id')->get(),
             'status' => $status,
-            'counts' => Trainer::selectRaw('status, count(*) n')->groupBy('status')->pluck('n', 'status'),
+            'counts' => $licensed(Trainer::selectRaw('status, count(*) n')->groupBy('status'))->pluck('n', 'status'),
             'statuses' => Trainer::STATUSES,
             'holders' => Trainer::HOLDERS,
             'trainings' => Training::orderByRaw("case status when 'active' then 0 else 1 end")->orderBy('name')

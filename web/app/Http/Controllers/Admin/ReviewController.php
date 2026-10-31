@@ -9,6 +9,7 @@ use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Support\Departments;
 use App\Support\Documents;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
@@ -18,10 +19,17 @@ use Illuminate\Support\Str;
 class ReviewController extends Controller
 {
     public const TYPES = [
-        'ctp' => ['model' => CtpRegistration::class, 'label' => 'CTP Applications', 'code' => 'ctp_code'],
-        'fundi' => ['model' => FundiRegistration::class, 'label' => 'Fundi Applications', 'code' => 'ef_code'],
-        'hirer' => ['model' => HirerRegistration::class, 'label' => 'Hirer Applications', 'code' => 'hirer_code'],
+        'ctp' => ['model' => CtpRegistration::class, 'label' => 'CTP Applications', 'guest' => 'CTP members', 'code' => 'ctp_code'],
+        'fundi' => ['model' => FundiRegistration::class, 'label' => 'Fundi Applications', 'guest' => 'E-Fundi members', 'code' => 'ef_code'],
+        'hirer' => ['model' => HirerRegistration::class, 'label' => 'Hirer Applications', 'guest' => 'Hirers', 'code' => 'hirer_code'],
     ];
+
+    /**
+     * What a desk that does not answer applications is shown from this register: the people the programme has
+     * taken on and works with. An application still waiting on a decision belongs to Website & Membership alone,
+     * so it is never listed on another office's copy of the screen.
+     */
+    public const TAKEN_ON = ['active', 'graduated', 'deployed'];
 
     /** Whitelisted document slots per type; numeric indexes allowed for json arrays. */
     public const DOCS = [
@@ -45,15 +53,19 @@ class ReviewController extends Controller
     public function index(Request $request, string $type)
     {
         $model = $this->model($type);
+        $guest = Departments::hosted();
         $statuses = match ($type) {
             'ctp' => array_keys(CtpRegistration::STATUSES),
             'fundi' => array_keys(FundiRegistration::STATUSES),
             default => ['pending_review', 'active', 'rejected'],
         };
-        $status = $request->query('status', 'pending_review');
+        $status = $request->query('status', $guest ? 'all' : 'pending_review');
         abort_unless(in_array($status, [...$statuses, 'all'], true), 404);
 
-        $records = $model::query()
+        // Read on another office's copy: only the people already taken on, never the applications still waiting.
+        $taken = fn ($q) => $guest ? $q->whereIn('status', self::TAKEN_ON) : $q;
+
+        $records = $taken($model::query())
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(15)
@@ -61,7 +73,8 @@ class ReviewController extends Controller
 
         return view('admin.registrations.index', [
             'type' => $type,
-            'label' => self::TYPES[$type]['label'],
+            'label' => self::TYPES[$type][$guest ? 'guest' : 'label'],
+            'guest' => $guest,
             'status' => $status,
             'records' => $records,
             'assigned' => ProjectApplication::where('applicant_type', $type)
@@ -70,15 +83,20 @@ class ReviewController extends Controller
                 ->orderBy('created_at')
                 ->get()
                 ->groupBy('applicant_id'),
-            'counts' => $model::selectRaw('status, count(*) c')->groupBy('status')->pluck('c', 'status'),
+            'counts' => $taken($model::selectRaw('status, count(*) c')->groupBy('status'))->pluck('c', 'status'),
             'pendingByType' => collect(['ctp', 'fundi'])
-                ->mapWithKeys(fn ($t) => [$t => self::TYPES[$t]['model']::where('status', 'pending_review')->count()]),
+                ->mapWithKeys(fn ($t) => [$t => $guest ? 0 : self::TYPES[$t]['model']::where('status', 'pending_review')->count()]),
         ]);
     }
 
     public function show(string $type, int $id)
     {
         $record = $this->model($type)::findOrFail($id);
+
+        // A desk that does not answer applications may only read someone the programme has taken on.
+        if (Departments::hosted()) {
+            abort_unless(in_array($record->status, self::TAKEN_ON, true), 404);
+        }
 
         return view('admin.registrations.show', [
             'type' => $type,

@@ -4,41 +4,49 @@
 @php
     use App\Models\CtpRegistration;
     use App\Models\FundiRegistration;
+    use App\Support\Departments;
+    $read = Departments::hosted();
     $tabs = ['all' => 'All'] + collect(CtpRegistration::STATUSES)->map(fn ($l) => $l)->all();
     $certClass = fn (?string $s) => $s === 'approved' ? 'active' : ($s === 'recommended' ? 'pending_review' : 'closed');
 @endphp
 
 @section('content')
 <h1>CTP profiles</h1>
-<p class="page-lede">Every community technical promoter and where each one stands.</p>
+<p class="page-lede">{{ $read
+    ? 'Every CTP the programme took on, read here.'
+    : 'Every community technical promoter and where each one stands.' }}</p>
 
 <div class="stat-row">
     <div class="stat"><small>Active CTPs</small><b>{{ $counts['active'] ?? 0 }}</b></div>
-    <div class="stat"><small>Waiting on a payment</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
-    <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
+    @unless ($read)
+        <div class="stat"><small>Waiting on a payment</small><b>{{ $counts['pending_payment'] ?? 0 }}</b></div>
+        <div class="stat"><small>Awaiting review</small><b>{{ $counts['pending_review'] ?? 0 }}</b></div>
+    @endunless
     <div class="stat"><small>Deployed</small><b>{{ ($counts['deployed'] ?? 0) + ($counts['graduated'] ?? 0) }}</b></div>
     <div class="stat"><small>Alumni</small><b>{{ $alumniTotal }}</b></div>
 </div>
 
+@unless ($read)
 <p style="margin:0 0 14px;">
     <button class="btn btn-lime btn-sm" type="button" data-sheet="add-ctp">+ Add a CTP from the office</button>
     <span class="hint" style="margin-left:10px;">
         For someone who cannot reach the website — the same application and review steps.
     </span>
 </p>
+@endunless
 
-<form method="GET" class="filter-bar">
+<form method="GET" action="{{ dept_link('admin.promoters.index') }}" class="filter-bar">
     <input type="search" name="q" value="{{ $search }}" placeholder="Search ID, name, phone or county" aria-label="Search ID, name, phone or county">
     <label class="field">
         <span>CTP status</span>
         <select name="status" onchange="this.form.submit()">
-            @foreach ($tabs as $s => $lbl)
+            @foreach ($read ? ['all' => 'All taken on', 'active' => 'Active'] : $tabs as $s => $lbl)
                 <option value="{{ $s }}" @selected($status === $s)>{{ $lbl }}@if ($s !== 'all') ({{ $counts[$s] ?? 0 }})@endif</option>
             @endforeach
         </select>
     </label>
     <button class="btn btn-sm btn-outline" type="submit">Search</button>
-    @if ($search)<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.index', ['status' => $status]) }}">Clear</a>@endif
+    @if ($search)<a class="btn btn-sm btn-ghost" href="{{ dept_link('admin.promoters.index', ['status' => $status]) }}">Clear</a>@endif
 </form>
 
 <table class="data">
@@ -54,7 +62,7 @@
             <tr>
                 <td><b>{{ $c->ctp_code ?: '—' }}</b>@if (! $c->ctp_code)<div class="hint">not issued yet</div>@endif</td>
                 <td>
-                    <a href="{{ route('admin.promoters.show', $c) }}"><b>{{ $c->full_name }}</b></a>
+                    <a href="{{ dept_link('admin.promoters.show', ['ctp' => $c]) }}"><b>{{ $c->full_name }}</b></a>
                     <div class="hint">{{ $c->phone }} · {{ $c->email }}</div>
                 </td>
                 <td><span class="tag">{{ $c->trackLabel() }}</span>
@@ -64,8 +72,8 @@
                 <td><span class="fee-tag {{ $c->fee_status }}">{{ CtpRegistration::FEE_STATUSES[$c->fee_status] ?? $c->fee_status }}</span></td>
                 <td><span class="status {{ $c->status }}">{{ $c->statusLabel() }}</span></td>
                 <td>{{ $c->created_at->format('d M Y') }}</td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $c) }}">Open profile</a>
-                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.edit', $c) }}">Edit</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ dept_link('admin.promoters.show', ['ctp' => $c]) }}">Open profile</a>
+                    @unless ($read)<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.edit', $c) }}">Edit</a>@endunless</td>
             </tr>
         @empty
             <tr><td colspan="9" class="empty-cell">No CTPs in this view yet.</td></tr>
@@ -106,7 +114,7 @@
             <tr>
                 <td><b>{{ $a->ctp_code ?: '—' }}</b>@if (! $a->ctp_code)<div class="hint">not issued yet</div>@endif</td>
                 <td>
-                    <a href="{{ route('admin.promoters.show', $a) }}"><b>{{ $a->full_name }}</b></a>
+                    <a href="{{ dept_link('admin.promoters.show', ['ctp' => $a]) }}"><b>{{ $a->full_name }}</b></a>
                     <div class="hint">{{ $a->statusLabel() }}@if ($a->track) · {{ $a->trackLabel() }}@endif</div>
                 </td>
                 <td>{{ $a->county ?: '—' }}
@@ -136,6 +144,10 @@
                     <div class="hint">{{ $led['verdict'] ?? 'No work handed over yet' }}</div></td>
                 <td>{{ $a->mobilised_count }}</td>
                 <td>
+                    @if ($read)
+                        <span class="tag">{{ $a->gradeLabel() }}</span>
+                        <div class="hint">Shows as <b>{{ $a->gradeLabel() }}</b></div>
+                    @else
                     <form method="POST" action="{{ route('admin.promoters.tier', $a) }}" class="inline-form"
                           data-confirm="Change what {{ $a->full_name }} reads as? Their record stays this row."
                           data-title="Move on as">
@@ -150,9 +162,10 @@
                         <button class="btn btn-sm btn-primary" type="submit">Save</button>
                     </form>
                     <div class="hint">Shows as <b>{{ $a->gradeLabel() }}</b>@if ($a->fundi_tier) · takes their projects @else · attachment work only @endif</div>
+                    @endif
                 </td>
-                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.promoters.show', $a) }}">Open profile</a>
-                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.edit', $a) }}">Edit</a></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" href="{{ dept_link('admin.promoters.show', ['ctp' => $a]) }}">Open profile</a>
+                    @unless ($read)<a class="btn btn-sm btn-ghost" href="{{ route('admin.promoters.edit', $a) }}">Edit</a>@endunless</td>
             </tr>
         @empty
             <tr><td colspan="9" class="empty-cell">
@@ -166,6 +179,7 @@
 
 <div class="pagination">{{ $alumni->links() }}</div>
 
+@unless ($read)
 @include('partials.sheet-start', ['name' => 'add-ctp', 'title' => 'Add a CTP from the office',
     'sub' => 'Enter a CTP application at the counter for someone offline.'])
     <form method="POST" action="{{ route('admin.promoters.store') }}" enctype="multipart/form-data"
@@ -179,4 +193,5 @@
         </div>
     </form>
 @include('partials.sheet-end')
+@endunless
 @endsection
