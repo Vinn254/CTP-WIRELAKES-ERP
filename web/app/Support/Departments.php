@@ -601,6 +601,37 @@ class Departments
         return static::copyOf($routeName) !== null || static::canSee($user, static::owner($routeName));
     }
 
+    /**
+     * The copy this account is given of another department's screen, as [hosted route, its department]. Used when a
+     * desk walks up to the owning module's page: it is reading the same rows it already has in its own office, so it
+     * is sent there rather than left on a dead end. Null when no department of this account is given the screen —
+     * then the 403 stands, and the record stays where it belongs.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    public static function copyFor(?User $user, string $owningRouteName): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $slugs = static::visibleSlugs($user);
+
+        foreach (self::HOSTED as $hostedName => [$owning, $hosts]) {
+            if ($owning !== $owningRouteName) {
+                continue;
+            }
+
+            foreach ($slugs as $slug) {
+                if (in_array($slug, $hosts, true)) {
+                    return [$hostedName, $slug];
+                }
+            }
+        }
+
+        return null;
+    }
+
     /** Overview tiles for a department — the same screens as its sidebar. */
     public static function tiles(string $slug): array
     {

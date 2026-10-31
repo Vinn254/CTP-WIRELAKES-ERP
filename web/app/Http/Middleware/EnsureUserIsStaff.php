@@ -46,6 +46,20 @@ class EnsureUserIsStaff
 
         if ($owner !== null && ! in_array($owner, Departments::visibleSlugs($user), true)) {
             $ownerName = Departments::find($owner)['name'] ?? $owner;
+
+            // A desk that is given its own read-only copy of this screen is taken there instead of being turned
+            // around: it already reads these rows in its own office, so nothing new is opened by the redirect.
+            if ($request->isMethodCacheable() && ($copy = Departments::copyFor($user, (string) $name))) {
+                [$route, $slug] = $copy;
+                $names = app('router')->getRoutes()->getByName($route)?->parameterNames() ?? [];
+                $params = collect($request->route()->parameters())->only($names)->all();
+
+                return redirect()
+                    ->route($route, $params + ['department' => $slug])
+                    ->with('status', 'This is the '.$ownerName.' page. Your desk reads its own copy, '
+                        .'where nothing can be changed.');
+            }
+
             abort(403, 'The '.$ownerName.' screens are outside your department access.');
         }
 
