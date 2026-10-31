@@ -14,6 +14,7 @@ use App\Support\Roles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class StaffController extends Controller
@@ -117,10 +118,16 @@ class StaffController extends Controller
         $this->gate();
         $this->guardTarget($user);
 
-        // The account type is not part of this form. What this desk sets is the job titles and the modules they open.
+        // The account type is not part of this form. What this desk sets is who the person is, the job titles
+        // they hold and the modules those open.
         $request->validate([
             'active' => 'boolean',
-        ] + $this->rules($request), ['trainer_training_id.required' => 'Tick the field of training for this trainer.'], ['trainer_training_id' => 'Field of training']);
+            'name' => 'required|string|max:120',
+            'email' => ['required', 'email', 'max:160', Rule::unique('users', 'email')->ignore($user->id)],
+        ] + $this->rules($request), [
+            'email.unique' => 'That email already belongs to another account in the system.',
+            'trainer_training_id.required' => 'Tick the field of training for this trainer.',
+        ], ['trainer_training_id' => 'Field of training']);
 
         [$roles, $departments] = $this->grant($request->input('roles', []), $request->input('departments', []));
 
@@ -137,7 +144,11 @@ class StaffController extends Controller
 
         // These columns decide what a person can do in the system, so they are written directly, never filled
         // from a request array by name.
+        $was = $user->email;
+
         $user->forceFill([
+            'name' => $request->input('name'),
+            'email' => Accounts::email($request->input('email')),
             'active' => $request->boolean('active', $user->active),
             'roles' => $roles,
             'departments' => $departments,
@@ -145,9 +156,11 @@ class StaffController extends Controller
         ])->save();
 
         Audit::auth('updated', $user->name.' holds '.($roles ? Roles::labelsFor($user) : 'no role').
-            ' by '.auth()->user()->name.'.', $user);
+            ($was === $user->email ? '' : ' — login moved from '.$was)
+            .' by '.auth()->user()->name.'.', $user);
 
-        return back()->with('status', $user->name.' updated.');
+        return back()->with('status', $user->name.' updated.'
+            .($was === $user->email ? '' : ' They sign in with '.$user->email.' from now on.'));
     }
 
     /**

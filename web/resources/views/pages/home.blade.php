@@ -21,7 +21,7 @@
                         ['url' => content('home', 'hero', 'cta1_url', '/apply'), 'label' => content('home', 'hero', 'cta1_label', 'Apply to join'), 'class' => 'btn-lime'],
                         ['url' => content('home', 'hero', 'cta2_url', ''), 'label' => content('home', 'hero', 'cta2_label', ''), 'class' => 'btn-outline'],
                         ['url' => content('home', 'hero', 'cta3_url', '/careers'), 'label' => content('home', 'hero', 'cta3_label', 'Apply for a job'), 'class' => 'btn-outline'],
-                        ['url' => content('home', 'hero', 'cta4_url', '/projects#apply'), 'label' => content('home', 'hero', 'cta4_label', 'Ask us to do it for you'), 'class' => 'btn-outline'],
+                        ['url' => content('home', 'hero', 'cta4_url', '/projects#apply'), 'label' => content('home', 'hero', 'cta4_label', 'Request a service'), 'class' => 'btn-outline'],
                     ];
                 @endphp
                 @foreach ($ctas as $cta)

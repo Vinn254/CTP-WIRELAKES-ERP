@@ -12,7 +12,7 @@
 <section class="section" id="apply">
     <div class="split">
         <div class="split-text">
-            <span class="tag">Ask us to do it for you</span>
+            <span class="tag">Request a service</span>
             <h2>{{ $page['apply_title'] }}</h2>
             <p class="sub">{{ $page['apply_note'] }}</p>
             <p class="sub">You do not need an account and you do not attach any document.</p>

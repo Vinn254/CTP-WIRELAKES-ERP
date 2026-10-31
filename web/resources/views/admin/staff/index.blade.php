@@ -83,7 +83,8 @@
 @endif
 
 <h2 class="sec-title">Staff accounts</h2>
-<table class="data">
+<div class="table-scroll">
+<table class="data pin-last">
     <thead>
         <tr><th>Name</th><th>Email</th><th>Account</th><th>Roles</th><th>Modules opened</th><th>Status</th><th>Joined</th>@if ($canTicks)<th></th>@endif</tr>
     </thead>
@@ -136,17 +137,30 @@
         @endforeach
     </tbody>
 </table>
-
-@if ($canTicks)
+</div>
     @foreach ($users as $u)
         @if ($manageRow($u))
             @include('partials.sheet-start', ['name' => 'edit-'.$u->id,
-                'title' => 'Edit access — '.$u->name,
-                'sub' => 'The job titles they hold and the modules those open. Their sign-in is switched on their row.'])
+                'title' => 'Edit account — '.$u->name,
+                'sub' => 'Their name, the email they sign in with, the job titles they hold and the modules those open.'])
             <form method="POST" action="{{ route('admin.staff.users.update', $u->id) }}" class="fee-form"
-                  data-confirm="Save the access on {{ $u->name }}?" data-title="Save access">
+                  data-confirm="Save the account of {{ $u->name }}?" data-title="Save account">
                 @csrf
                 <input type="hidden" name="_sheet" value="edit-{{ $u->id }}">
+
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label>Full name <span class="req">*</span></label>
+                        <input type="text" name="name" maxlength="120"
+                               value="{{ old('_sheet') === 'edit-'.$u->id ? old('name', $u->name) : $u->name }}" required>
+                    </div>
+                    <div class="field">
+                        <label>Email — this is their login <span class="req">*</span></label>
+                        <input type="email" name="email" maxlength="160"
+                               value="{{ old('_sheet') === 'edit-'.$u->id ? old('email', $u->email) : $u->email }}" required>
+                        <p class="help">The sign-in code and every notice for this desk go to this address.</p>
+                    </div>
+                </div>
 
                 <div class="field full">
                     <label>Roles <span class="hint">— tick every one this person holds</span></label>
@@ -183,13 +197,12 @@
 
                 <div class="sheet-actions">
                     <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
-                    <button class="btn btn-sm btn-lime" type="submit">Save access</button>
+                    <button class="btn btn-sm btn-lime" type="submit">Save account</button>
                 </div>
             </form>
             @include('partials.sheet-end')
         @endif
     @endforeach
-@endif
 
 <h2 class="sec-title">Invitations <span class="tag">{{ $invites->count() }}</span></h2>
 @if ($invites->isEmpty())
