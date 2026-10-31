@@ -233,7 +233,7 @@
 <div class="card">
     <h3>Your training record</h3>
     <dl class="kv">
-        <dt>Highest education</dt><dd>{{ CtpRegistration::EDUCATION_LEVELS[$member->education_level] ?? $member->education_level }}</dd>
+        <dt>Highest education</dt><dd>{{ $member->educationLabel() }}</dd>
         <dt>Year left school</dt><dd>{{ $member->year_left_school ?: '—' }}</dd>
         <dt>Certificates held</dt>
         <dd>@if (count((array) $member->certificates_held))<span class="chips">@foreach ($member->certificates_held as $c)<span class="chip">{{ $c }}</span>@endforeach</span>@else<span class="hint">None recorded</span>@endif</dd>

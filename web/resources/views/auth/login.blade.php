@@ -23,8 +23,7 @@
         <p class="back"><a href="{{ route('password.request') }}">Forgot your password?</a></p>
         <p class="login-join">
             No account yet?
-            <a href="{{ route('register.fundi') }}">Become a Fundi</a> ·
-            <a href="{{ route('register.ctp') }}">Become a student (CTP)</a>
+            <a href="{{ route('apply') }}">Apply to join the programme</a>
         </p>
         <p class="help">
             @if (config('account.otp.enabled'))

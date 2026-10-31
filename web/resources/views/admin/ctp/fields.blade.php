@@ -82,17 +82,12 @@
         <input type="text" name="referral_code" value="{{ old('referral_code') }}" maxlength="20" placeholder="CTP-0001">
         <div class="help">The promoter who brought this person in. Counts toward their 15 / 30 credit; self-referral is dropped.</div>
     </div>
-    <div class="field">
-        <label>Sponsoring partner (if any)</label>
-        <select name="sponsor_id">
-            <option value="">None</option>
-            @foreach ($partners as $p)
-                <option value="{{ $p->id }}" @selected((int) old('sponsor_id') === $p->id)>{{ $p->name }}</option>
-            @endforeach
-        </select>
-        <div class="help">A sponsored CTP is recorded with the partner's name and enters the review queue straight away.</div>
-    </div>
 </div>
+
+<h3 style="margin-top:20px;">Sponsor</h3>
+@include('partials.sponsor-fields', ['partners' => $partners, 'office' => true])
+<p class="help">A CTP a partner is sponsoring pays nothing and goes into the review queue at once; a sponsor
+    written in by hand is confirmed with that person first.</p>
 
 <h3 style="margin-top:20px;">Documents</h3>
 <div class="form-grid-3">

@@ -38,21 +38,14 @@ class RegistrationController extends Controller
         return collect(FundiRegistration::TIERS)->merge($typed)->all();
     }
 
-    private function ctpTracks(): array
+    public function apply()
     {
-        $out = [];
-        foreach (content_rows('membership', 'ctp_tracks') as $r) {
-            if (empty($r['code'])) continue;
-            $out[$r['code']] = ['label' => $r['label'] ?? $r['code'], 'desc' => $r['desc'] ?? ''];
-        }
-        if ($out) return $out;
-        return collect(CtpRegistration::TRACKS)->map(fn ($l) => ['label' => $l, 'desc' => ''])->all();
+        return view('register.apply');
     }
 
     public function ctpForm(Request $request)
     {
         return view('register.ctp', $this->formData() + [
-            'tracks' => $this->ctpTracks(),
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
@@ -60,11 +53,7 @@ class RegistrationController extends Controller
 
     public function storeCtp(Request $request)
     {
-        $rules = CtpRegistration::applicationRules();
-        // The tracks on offer are CMS copy, so the form accepts whatever the office has published.
-        $rules['track'] = 'required|in:'.implode(',', array_keys($this->ctpTracks()));
-
-        $data = $request->validate($rules, [], CtpRegistration::applicationLabels());
+        $data = $request->validate(CtpRegistration::applicationRules(), [], CtpRegistration::applicationLabels());
 
         $ctp = CtpRegistration::startApplication($data);
         $ctp->storeFiles($request);
@@ -78,6 +67,7 @@ class RegistrationController extends Controller
             'tiers' => $this->fundiTiers(),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }
@@ -106,6 +96,9 @@ class RegistrationController extends Controller
             'training_field_ids.*' => 'integer|exists:trainings,id',
             // A junior or an attaché fresh from training may have nobody to name yet, so the referee is optional.
             'referee_name' => 'nullable|string|max:150',
+            'sponsor_id' => 'nullable|integer|exists:partners,id',
+            'sponsor_name' => 'nullable|string|max:150',
+            'sponsor_contact' => 'nullable|string|max:120',
             'referee_phone' => 'nullable|string|max:20',
             'referee_role' => 'nullable|string|max:150',
             'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
@@ -115,6 +108,8 @@ class RegistrationController extends Controller
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'cv' => 'CV', 'training_field_ids' => 'Field of training',
+            'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name',
+            'sponsor_contact' => 'Sponsor contact',
             'passport_photo' => 'Profile photo',
         ]);
 

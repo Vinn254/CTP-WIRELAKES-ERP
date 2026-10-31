@@ -53,14 +53,9 @@
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
-            <div class="nav-cta join-menu">
-                <button type="button" class="btn btn-primary btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">Join / Sign up @include('partials.icon', ['n' => 'chevron'])</button>
-                <div class="join-drop">
-                    <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a student (CTP)</a>
-                    <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
-                    <span class="join-sep"></span>
-                    <a class="btn btn-ghost btn-sm nav-login" href="{{ route('login') }}">Log in</a>
-                </div>
+            <div class="nav-cta">
+                <a class="btn btn-primary btn-sm" href="{{ route('apply') }}">Apply</a>
+                <a class="btn btn-ghost btn-sm nav-login" href="{{ route('login') }}">Log in</a>
             </div>
         </nav>
         <div class="header-side">
@@ -133,8 +128,7 @@ document.addEventListener('click', function (e) {
         <div>
             <h4>Join the programme</h4>
             <p>
-                <a href="{{ route('register.ctp') }}">Become a student (CTP)</a><br>
-                <a href="{{ route('register.fundi') }}">Become a Fundi</a><br>
+                <a href="{{ route('apply') }}">Apply to join</a><br>
                 <a href="{{ route('login') }}">Member &amp; fundi login</a><br>
                 <a href="{{ route('donate') }}">Donate</a>
             </p>

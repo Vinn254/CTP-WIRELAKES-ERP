@@ -56,7 +56,7 @@
                 <dt>Full name</dt><dd>{{ $ctp->full_name }}</dd>
                 <dt>National ID</dt><dd>{{ $ctp->national_id }}</dd>
                 <dt>Date of birth</dt><dd>{{ $ctp->dob->format('d M Y') }} <span class="hint">({{ $ctp->dob->age }} years)</span></dd>
-                <dt>Gender</dt><dd>{{ ucfirst($ctp->gender) }}</dd>
+                <dt>Gender</dt><dd>{{ $ctp->gender ? ucfirst($ctp->gender) : '—' }}</dd>
                 <dt>Phone</dt><dd>{{ $ctp->phone }}</dd>
                 <dt>Email</dt><dd>{{ $ctp->email }}</dd>
             </dl>
@@ -86,7 +86,7 @@
         <div class="card">
             <h3>Education</h3>
             <dl class="kv">
-                <dt>Highest level</dt><dd>{{ CtpRegistration::EDUCATION_LEVELS[$ctp->education_level] ?? $ctp->education_level }}</dd>
+                <dt>Highest level</dt><dd>{{ $ctp->educationLabel() }}</dd>
                 <dt>Year left school</dt><dd>{{ $ctp->year_left_school ?: '—' }}</dd>
                 <dt>Certificates held</dt>
                 <dd>
@@ -100,7 +100,9 @@
                 <dd>{{ $ctp->trackLabel() }}
                     <div class="hint">{{ $ctp->track === 'junior'
                         ? 'Practical check + certification check instead of the full cohort.'
-                        : 'Full cohort — theory, practical, assessment, certificate.' }}</div>
+                        : ($ctp->track === 'school_leaver'
+                            ? 'Full cohort — theory, practical, assessment, certificate.'
+                            : 'The office picks the track when it reviews this application.') }}</div>
                 </dd>
             </dl>
         </div>
@@ -233,20 +235,16 @@
                     on {{ $ctp->fee_paid_at?->format('d M Y') ?? 'record' }} — money in is never rewritten. A sponsor can still be
                     recorded on the profile without changing that.</p>
             @endif
+            @if ($ctp->sponsorSummary())
+                <p class="hint">{{ $ctp->sponsorSummary() }}</p>
+            @endif
             <form method="POST" action="{{ route('admin.promoters.sponsor', $ctp) }}"
-                  data-confirm="Set the sponsoring partner for {{ $ctp->full_name }}?" data-title="Sponsorship">
+                  data-confirm="Save the sponsor for {{ $ctp->full_name }}?" data-title="Sponsorship">
                 @csrf
-                <div class="field">
-                    <label>Sponsoring partner</label>
-                    <select name="sponsor_id">
-                        <option value="">No sponsor</option>
-                        @foreach ($partners as $p)
-                            <option value="{{ $p->id }}" @selected($ctp->sponsor_id === $p->id)>{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="help">Partners are kept in <b>Website &amp; Membership → Partners</b>; only the sponsorship link lives here.</div>
-                </div>
-                <button class="btn btn-outline btn-sm" type="submit">Save sponsorship</button>
+                @include('partials.sponsor-fields', ['partners' => $partners, 'record' => $ctp, 'office' => true])
+                <div class="help">Partners are kept in <b>Website &amp; Membership → Partners</b>. Only a partner
+                    sponsor covers the fee — a sponsor written in here is a name to contact, not a waiver.</div>
+                <button class="btn btn-outline btn-sm" type="submit">Save sponsor</button>
             </form>
         </div>
 

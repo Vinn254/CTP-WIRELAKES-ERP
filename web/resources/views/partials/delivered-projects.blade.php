@@ -35,7 +35,7 @@
             <p class="delivered-note">
                 Applying takes an account on the member portal.
                 <a href="{{ route('login') }}">Log in as an E-Fundi</a>
-                &nbsp;·&nbsp; no account yet? <a href="{{ route('register.fundi') }}">Become a Fundi</a>
+                &nbsp;·&nbsp; no account yet? <a href="{{ route('apply') }}">Apply to join</a>
             </p>
         @endunless
     </section>

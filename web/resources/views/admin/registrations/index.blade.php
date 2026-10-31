@@ -63,7 +63,7 @@
                 </td>
                 <td>{{ $r->phone }}</td>
                 @if ($type === 'fundi')<td><span class="tag">{{ \App\Models\FundiRegistration::tierLabel($r->tier) }}</span></td>@endif
-                @if ($type === 'ctp')<td><span class="tag">{{ Str::headline($r->track) }}</span>
+                @if ($type === 'ctp')<td><span class="tag">{{ $r->trackLabel() }}</span>
                     @if ($r->fundi_tier)<div class="hint">reads as {{ $r->gradeLabel() }}</div>@endif</td>@endif
                 <td>{{ $r->county ?? implode(', ', array_slice((array) $r->service_counties, 0, 2)) }}@if ($type === 'fundi' && count((array) $r->service_counties) > 2)<span class="hint"> +{{ count((array) $r->service_counties) - 2 }}</span>@endif</td>
                 <td>

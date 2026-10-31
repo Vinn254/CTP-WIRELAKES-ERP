@@ -1,21 +1,24 @@
 @extends('layouts.app')
-@section('title', 'Become a student (CTP)')
+@section('title', 'Student application (CTP)')
 
 @section('content')
 <section class="section" style="max-width:860px;margin:34px auto;">
-    <span class="tag">CTP Registration</span>
-    <h1>Become a Community Technology Promoter</h1>
+    <span class="tag">Student (CTP)</span>
+    <h1>Apply as a student</h1>
+    <p class="sub">A short form. After approval you get a CTP ID and a portal login; the office records your track and
+        your papers as it reviews you.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
-        <span class="step">2 · Director/Admin review</span>
+        <span class="step">2 · Review by the office</span>
         <span class="step">3 · Get your CTP ID + portal login</span>
     </div>
+    <p class="back"><a href="{{ route('apply') }}">&larr; Not what you came for? Choose another application</a></p>
     @include('partials.errors')
     <div class="card">
         <form method="POST" action="{{ route('register.ctp.store') }}" enctype="multipart/form-data">
             @csrf
             <fieldset>
-                <legend>Personal details</legend>
+                <legend>Your details</legend>
                 <div class="form-grid">
                     <div class="field">
                         <label>Full name (as on ID) <span class="req">*</span></label>
@@ -36,24 +39,14 @@
                         <input type="email" name="email" value="{{ old('email') }}" required>
                     </div>
                 </div>
-                <div class="form-grid">
-                    <div class="field">
-                        <label>Date of birth <span class="req">*</span></label>
-                        <input type="date" name="dob" value="{{ old('dob') }}" required>
-                    </div>
-                    <div class="field">
-                        <label>Gender <span class="req">*</span></label>
-                        <select name="gender" required>
-                            @foreach (['male' => 'Male', 'female' => 'Female', 'other' => 'Other'] as $k => $v)
-                                <option value="{{ $k }}" @selected(old('gender') === $k)>{{ $v }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="field">
+                    <label>Date of birth <span class="req">*</span></label>
+                    <input type="date" name="dob" value="{{ old('dob') }}" required>
                 </div>
             </fieldset>
 
             <fieldset>
-                <legend>Location</legend>
+                <legend>Where you live</legend>
                 <div class="form-grid">
                     <div class="field">
                         <label>County <span class="req">*</span></label>
@@ -69,39 +62,36 @@
                         <input type="text" name="sub_county" value="{{ old('sub_county') }}" required>
                     </div>
                 </div>
+                <div class="field">
+                    <label>Ward <span class="req">*</span></label>
+                    <input type="text" name="ward" value="{{ old('ward') }}" required>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Your photo and ID</legend>
                 <div class="form-grid">
                     <div class="field">
-                        <label>Ward <span class="req">*</span></label>
-                        <input type="text" name="ward" value="{{ old('ward') }}" required>
+                        <label>Profile photo <span class="req">*</span></label>
+                        <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
+                        <p class="help">A clear front photo of your face — it goes on your student profile and is what
+                            the office and your sites identify you by. JPG or PNG, up to 5 MB.</p>
                     </div>
                     <div class="field">
-                        <label>Village / estate <span class="req">*</span></label>
-                        <input type="text" name="village" value="{{ old('village') }}" required>
+                        <label>National ID scan <span class="hint">(optional)</span></label>
+                        <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf">
+                        <p class="help">Attach it if you have a photo of your ID. The office can also take it at the counter.</p>
                     </div>
                 </div>
             </fieldset>
 
             <fieldset>
-                <legend>Track &amp; education</legend>
+                <legend>Who sent you</legend>
                 <div class="field">
-                    <label>Highest education level <span class="req">*</span></label>
-                    <select name="education_level" required>
-                        @foreach (['none' => 'None', 'primary' => 'Primary', 'secondary' => 'Secondary (KCSE)', 'certificate' => 'Certificate', 'diploma' => 'Diploma', 'degree' => 'Degree', 'postgraduate' => 'Postgraduate'] as $k => $v)
-                            <option value="{{ $k }}" @selected(old('education_level') === $k)>{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <label style="display:block;margin-bottom:8px;">Choose your track <span class="req">*</span></label>
-                @foreach ($tracks as $key => $tr)
-                    <label class="tier-option">
-                        <input type="radio" name="track" value="{{ $key }}" @checked(old('track') === $key) required>
-                        <span><b>{{ $tr['label'] }}</b>@if($tr['desc'])<small>{{ $tr['desc'] }}</small>@endif</span>
-                    </label>
-                @endforeach
-                <div class="field" style="margin-top:14px;">
-                    <label>Referral code (if a CTP referred you)</label>
+                    <label>Referral code (if a CTP referred you) <span class="hint">(optional)</span></label>
                     <input type="text" name="referral_code" value="{{ old('referral_code', $refPrefill ?? '') }}" maxlength="20" placeholder="CTP-0001">
-                    <div class="help">Self-referral is blocked. Each referred CTP counts once for its referrer.</div>
+                    <div class="help">The code of the promoter who invited you. It is how they get credit for
+                        bringing you into the programme.</div>
                     @if (! empty($refPrefill))
                         <div class="help">Filled from the link you opened — the CTP who invited you.</div>
                     @endif
@@ -109,42 +99,13 @@
             </fieldset>
 
             <fieldset>
-                <legend>Partner sponsorship</legend>
-                <div class="field">
-                    <label>Is a partner organisation sponsoring you?</label>
-                    <select name="sponsor_id">
-                        <option value="">No</option>
-                        @foreach ($partners as $p)
-                            <option value="{{ $p->id }}" @selected((int) old('sponsor_id') === $p->id)>{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="help">The office confirms a sponsor with the partner before your application moves ahead.</div>
-                </div>
+                <legend>Who is sponsoring you? <span class="hint">(optional)</span></legend>
+                @include('partials.sponsor-fields', ['partners' => $partners])
                 <p class="help">{{ \App\Support\Finance::paybillLine() }} Put your national ID number as the reason so the
                     office can match your payment to your application.</p>
             </fieldset>
 
-            <fieldset>
-                <legend>Documents</legend>
-                <div class="form-grid-3">
-                    <div class="field">
-                        <label>National ID scan <span class="req">*</span></label>
-                        <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf" required>
-                    </div>
-                    <div class="field">
-                        <label>School certificate (if any)</label>
-                        <input type="file" name="certificate" accept=".jpg,.jpeg,.png,.pdf">
-                    </div>
-                    <div class="field">
-                        <label>Profile photo <span class="req">*</span></label>
-                        <input type="file" name="passport_photo" accept=".jpg,.jpeg,.png" required>
-                        <p class="help">A clear front photo of your face — it goes on your CTP profile and is what the office and your sites identify you by. JPG or PNG, up to 5 MB.</p>
-                    </div>
-                </div>
-                <p class="help">Files are stored securely and are visible only to programme Directors and Admins.</p>
-            </fieldset>
-
-            <button class="btn btn-primary btn-lg btn-block" type="submit">Submit CTP application</button>
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Submit application</button>
         </form>
     </div>
 </section>

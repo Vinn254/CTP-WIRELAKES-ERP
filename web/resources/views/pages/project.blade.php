@@ -53,7 +53,7 @@
                 <div class="apply-state">
                     <p class="hint" style="margin:0 0 10px;">Applying is done from the member portal, so the office can
                         verify the skills behind each application.</p>
-                    <a class="btn btn-primary" href="{{ route('register.fundi') }}">Register as a Fundi</a>
+                    <a class="btn btn-primary" href="{{ route('apply') }}">Apply to join the programme</a>
                     &nbsp;
                     <a class="btn btn-ghost btn-sm" href="{{ route('login') }}">Log in to apply</a>
                 </div>

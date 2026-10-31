@@ -143,6 +143,7 @@
                 <dt>Sub-county</dt><dd>{{ $fundi->sub_county ?: '—' }}</dd>
                 <dt>Ward</dt><dd>{{ $fundi->ward ?: '—' }}</dd>
                 <dt>Referee</dt><dd>@if ($fundi->referee_name){{ $fundi->referee_name }} · {{ $fundi->referee_phone }} <span class="hint">({{ $fundi->referee_role }})</span>@else<span class="hint">None given</span>@endif</dd>
+                <dt>Sponsor</dt><dd>{{ $fundi->sponsorSummary() ?: 'None stated' }}</dd>
             </dl>
             <details class="need-form">
                 <summary>Correct the business and location</summary>
@@ -274,6 +275,16 @@
                     <button class="btn btn-outline btn-block" type="submit" style="margin-top:12px;">Record payment</button>
                 </form>
             @endif
+        </div>
+
+        <div class="card">
+            <h3>Sponsor</h3>
+            <form method="POST" action="{{ route('admin.fundis.sponsor', $fundi) }}"
+                  data-confirm="Save the sponsor for {{ $fundi->full_name }}?" data-title="Sponsor">
+                @csrf
+                @include('partials.sponsor-fields', ['partners' => $partners, 'record' => $fundi, 'office' => true])
+                <button class="btn btn-outline btn-sm" type="submit">Save sponsor</button>
+            </form>
         </div>
 
         <div class="card">

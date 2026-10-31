@@ -104,6 +104,10 @@ Route::get('/careers/{opening}', [CareersController::class, 'show'])->whereNumbe
 Route::post('/careers/{opening}/apply', [CareersController::class, 'apply'])->whereNumber('opening')
     ->middleware('throttle:6,1')->name('careers.apply');
 
+// One Apply button on the site. A person says here whether they are a student (CTP) or an E-Fundi and is
+// shifted to that form — the student's is the short one, the E-Fundi's carries the trade detail.
+Route::get('/apply', [RegistrationController::class, 'apply'])->name('apply');
+
 // Registrations
 Route::prefix('register')->name('register.')->middleware('throttle:8,1')->group(function () {
     Route::get('/ctp', [RegistrationController::class, 'ctpForm'])->name('ctp');
@@ -445,6 +449,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/fundis/{fundi}/skills', [FundiController::class, 'updateSkills'])->whereNumber('fundi')->name('fundis.skills');
     Route::post('/fundis/{fundi}/place', [FundiController::class, 'updatePlace'])->whereNumber('fundi')->name('fundis.place');
     Route::post('/fundis/{fundi}/fee', [FundiController::class, 'markFee'])->whereNumber('fundi')->name('fundis.fee');
+    Route::post('/fundis/{fundi}/sponsor', [FundiController::class, 'setSponsor'])->whereNumber('fundi')->name('fundis.sponsor');
     Route::post('/fundis/{fundi}/approve', [FundiController::class, 'approve'])->whereNumber('fundi')->name('fundis.approve');
     Route::post('/fundis/{fundi}/reject', [FundiController::class, 'reject'])->whereNumber('fundi')->name('fundis.reject');
     Route::post('/fundis/{fundi}/reissue', [FundiController::class, 'reissue'])->whereNumber('fundi')->name('fundis.reissue');

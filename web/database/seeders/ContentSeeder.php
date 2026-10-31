@@ -41,8 +41,8 @@ class ContentSeeder extends Seeder
             [['kicker' => 'Community Technology Promoters · Kenya',
               'title' => 'We train and certify people — then give the projects to our Fundis.',
               'lede' => 'WireLakes Technologies connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.',
-              'cta1_label' => 'Become a student (CTP)', 'cta1_url' => '/register/ctp',
-              'cta2_label' => 'Become a Fundi', 'cta2_url' => '/register/fundi']]);
+              'cta1_label' => 'Apply to join', 'cta1_url' => '/apply',
+              'cta2_label' => '', 'cta2_url' => '']]);
 
         $this->put('home', 'hero_slides', 'Hero sliding images', 'repeater',
             ['image' => ['Photo', 'image'], 'caption' => ['Caption', 'text']],

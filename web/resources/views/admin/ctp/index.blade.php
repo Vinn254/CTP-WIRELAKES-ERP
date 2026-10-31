@@ -57,7 +57,7 @@
                     <a href="{{ route('admin.promoters.show', $c) }}"><b>{{ $c->full_name }}</b></a>
                     <div class="hint">{{ $c->phone }} · {{ $c->email }}</div>
                 </td>
-                <td><span class="tag">{{ Str::headline($c->track) }}</span>
+                <td><span class="tag">{{ $c->trackLabel() }}</span>
                     @if ($c->fundi_tier)<div class="hint">reads as {{ $c->gradeLabel() }}</div>@endif</td>
                 <td>{{ $c->county }}<div class="hint">{{ collect([$c->sub_county, $c->ward])->filter()->join(', ') }}</div></td>
                 <td>{{ $c->mobilised_count }}</td>
@@ -107,7 +107,7 @@
                 <td><b>{{ $a->ctp_code ?: '—' }}</b>@if (! $a->ctp_code)<div class="hint">not issued yet</div>@endif</td>
                 <td>
                     <a href="{{ route('admin.promoters.show', $a) }}"><b>{{ $a->full_name }}</b></a>
-                    <div class="hint">{{ $a->statusLabel() }} · {{ Str::headline($a->track) }} track</div>
+                    <div class="hint">{{ $a->statusLabel() }}@if ($a->track) · {{ $a->trackLabel() }}@endif</div>
                 </td>
                 <td>{{ $a->county ?: '—' }}
                     <div class="hint">{{ collect([$a->sub_county, $a->ward])->filter()->join(', ') }}</div></td>

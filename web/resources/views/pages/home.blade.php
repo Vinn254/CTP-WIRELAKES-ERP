@@ -16,10 +16,19 @@
             <p class="lede">{{ content('home','hero','lede','WireLakes Technologies connects Kenyan communities with technical training, skilled E-Fundis, employment, enterprise development and green-economy projects — across all 47 counties.') }}</p>
             @include('partials.extra-fields', ['page' => 'home', 'section' => 'hero', 'used' => ['kicker', 'title', 'lede', 'cta1_label', 'cta1_url', 'cta2_label', 'cta2_url', 'cta3_label', 'cta3_url', 'cta4_label', 'cta4_url']])
             <div class="hero-ctas">
-                <a class="btn btn-lime btn-lg" href="{{ safe_href(content('home','hero','cta1_url','/register/ctp')) }}">{{ content('home','hero','cta1_label','Become a student (CTP)') }}</a>
-                <a class="btn btn-outline btn-lg" href="{{ safe_href(content('home','hero','cta2_url','/register/fundi')) }}">{{ content('home','hero','cta2_label','Become a Fundi') }}</a>
-                <a class="btn btn-outline btn-lg" href="{{ safe_href(content('home','hero','cta3_url','/careers')) }}">{{ content('home','hero','cta3_label','Apply for a job') }}</a>
-                <a class="btn btn-outline btn-lg" href="{{ safe_href(content('home','hero','cta4_url','/projects#apply')) }}">{{ content('home','hero','cta4_label','Ask us to do it for you') }}</a>
+                @php
+                    $ctas = [
+                        ['url' => content('home', 'hero', 'cta1_url', '/apply'), 'label' => content('home', 'hero', 'cta1_label', 'Apply to join'), 'class' => 'btn-lime'],
+                        ['url' => content('home', 'hero', 'cta2_url', ''), 'label' => content('home', 'hero', 'cta2_label', ''), 'class' => 'btn-outline'],
+                        ['url' => content('home', 'hero', 'cta3_url', '/careers'), 'label' => content('home', 'hero', 'cta3_label', 'Apply for a job'), 'class' => 'btn-outline'],
+                        ['url' => content('home', 'hero', 'cta4_url', '/projects#apply'), 'label' => content('home', 'hero', 'cta4_label', 'Ask us to do it for you'), 'class' => 'btn-outline'],
+                    ];
+                @endphp
+                @foreach ($ctas as $cta)
+                    @if (trim((string) $cta['url']) !== '' && trim((string) $cta['label']) !== '')
+                        <a class="btn {{ $cta['class'] }} btn-lg" href="{{ safe_href($cta['url']) }}">{{ $cta['label'] }}</a>
+                    @endif
+                @endforeach
             </div>
         </div>
         <div class="hero-slider" aria-label="Highlights">

@@ -11,6 +11,7 @@
         <span class="step">2 · Review by the office</span>
         <span class="step">3 · Get your EF ID + portal login</span>
     </div>
+    <p class="back"><a href="{{ route('apply') }}">&larr; Not what you came for? Choose another application</a></p>
     @include('partials.errors')
     <div class="card">
         <form method="POST" action="{{ route('register.fundi.store') }}" enctype="multipart/form-data">
@@ -148,6 +149,11 @@
                         <input type="text" name="referee_role" value="{{ old('referee_role') }}" placeholder="e.g. Former employer at J&B Electricals">
                     </div>
                 </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Who is sponsoring you? <span class="hint">(optional)</span></legend>
+                @include('partials.sponsor-fields', ['partners' => $partners])
             </fieldset>
 
             <fieldset>

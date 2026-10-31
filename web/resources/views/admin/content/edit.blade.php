@@ -5,7 +5,7 @@
     use App\Http\Controllers\Admin\ContentController;
     $pageTitle = ContentController::PAGES[$page];
     $visibles = $sections->where('is_visible', true)->count();
-    $publicUrl = $page === 'site' ? route('home') : ($page === 'membership' ? route('register.ctp') : route($page));
+    $publicUrl = $page === 'site' ? route('home') : ($page === 'membership' ? route('apply') : route($page));
     $fieldTypes = ['text' => 'Short text', 'textarea' => 'Long text', 'image' => 'Image upload', 'video' => 'Video clip', 'url' => 'URL / link', 'price' => 'Price (KSh)'];
 @endphp
 

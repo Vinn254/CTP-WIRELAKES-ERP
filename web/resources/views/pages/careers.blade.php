@@ -14,9 +14,7 @@
             <h3>No opening is taking applications right now</h3>
             <p>Register as a student or an E-Fundi and we will reach you when your trade comes up.</p>
             <p>
-                <a class="btn btn-outline btn-sm" href="{{ route('register.ctp') }}">Become a student (CTP)</a>
-                &nbsp;
-                <a class="btn btn-lime btn-sm" href="{{ route('register.fundi') }}">Become a Fundi</a>
+                <a class="btn btn-lime btn-sm" href="{{ route('apply') }}">Apply to join the programme</a>
             </p>
         </div>
     @else

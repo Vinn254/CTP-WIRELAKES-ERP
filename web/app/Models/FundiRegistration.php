@@ -102,6 +102,7 @@ class FundiRegistration extends Model
         'tier', 'county', 'sub_county', 'ward', 'mobilised_by_ctp',
         'business_name', 'business_reg_no', 'years_in_business',
         'specialisations', 'service_counties', 'training_field_ids', 'referee_name', 'referee_phone', 'referee_role',
+        'sponsor_id', 'sponsor_name', 'sponsor_contact',
         'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'passport_photo_path', 'cv_path',
         'status', 'availability', 'availability_note',
         'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
@@ -146,6 +147,26 @@ class FundiRegistration extends Model
     public function mobiliser(): BelongsTo
     {
         return $this->belongsTo(CtpRegistration::class, 'mobilised_by_ctp');
+    }
+
+    /** The partner backing this fundi, when the sponsor is one of ours. */
+    public function sponsor(): BelongsTo
+    {
+        return $this->belongsTo(Partner::class, 'sponsor_id');
+    }
+
+    /** Who backs this person: a partner we work with, or a sponsor the applicant wrote in by hand. */
+    public function sponsorSummary(): ?string
+    {
+        if ($this->sponsor) {
+            return $this->sponsor->name.' — a programme partner.';
+        }
+        if (! $this->sponsor_name) {
+            return null;
+        }
+
+        return $this->sponsor_name.' — named on the application, not a programme partner.'
+            .($this->sponsor_contact ? ' Contact: '.$this->sponsor_contact.'.' : ' No contact given.');
     }
 
     /** The member account the office opened once the fundi was approved. */
@@ -255,6 +276,9 @@ class FundiRegistration extends Model
             'training_field_ids' => 'required_if:tier,trainer|nullable|array|min:1|max:12',
             'training_field_ids.*' => 'integer|exists:trainings,id',
             'referee_name' => 'nullable|string|max:150',
+            'sponsor_id' => 'nullable|integer|exists:partners,id',
+            'sponsor_name' => 'nullable|string|max:150',
+            'sponsor_contact' => 'nullable|string|max:120',
             'referee_phone' => 'nullable|string|max:20',
             'referee_role' => 'nullable|string|max:150',
             'id_scan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
@@ -268,6 +292,7 @@ class FundiRegistration extends Model
         ], [
             'national_id' => 'National ID', 'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'years_in_business' => 'Years trading', 'cv' => 'CV',
+            'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name', 'sponsor_contact' => 'Sponsor contact',
             'passport_photo' => 'Profile photo', 'training_field_ids' => 'Field of training',
         ]);
 

@@ -10,7 +10,7 @@
         states the date applications close.</p>
 
     <p>
-        <a class="btn btn-outline btn-sm" href="{{ route('register.fundi') }}">Register as a Fundi to apply</a>
+        <a class="btn btn-outline btn-sm" href="{{ route('apply') }}">Apply to join, then apply from your portal</a>
         &nbsp;
         <a class="btn btn-ghost btn-sm" href="/register/hirer">Post a project as a hirer →</a>
     </p>

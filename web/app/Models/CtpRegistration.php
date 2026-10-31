@@ -71,7 +71,7 @@ class CtpRegistration extends Model
         'id_scan_path', 'certificate_path', 'passport_photo_path',
         'service_counties', 'available_for_mobilisation', 'trainer_opt_in',
         'status', 'status_note', 'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
-        'sponsor_id', 'source', 'added_by',
+        'sponsor_id', 'sponsor_name', 'sponsor_contact', 'source', 'added_by',
         'user_id', 'approved_by', 'approved_at', 'rejection_reason', 'ctp_code',
     ];
 
@@ -115,6 +115,20 @@ class CtpRegistration extends Model
     public function sponsor(): BelongsTo
     {
         return $this->belongsTo(Partner::class, 'sponsor_id');
+    }
+
+    /** Who backs this person: a partner we work with, or a sponsor the applicant wrote in by hand. */
+    public function sponsorSummary(): ?string
+    {
+        if ($this->sponsor) {
+            return $this->sponsor->name.' — a programme partner.';
+        }
+        if (! $this->sponsor_name) {
+            return null;
+        }
+
+        return $this->sponsor_name.' — named on the application, not a programme partner.'
+            .($this->sponsor_contact ? ' Contact: '.$this->sponsor_contact.'.' : ' No contact given.');
     }
 
     /** The staff member who typed this application in at the office. */
@@ -194,24 +208,33 @@ class CtpRegistration extends Model
      * an officer types it in at the office. An office entry can arrive without the papers — they are
      * photographed at the counter and attached to the profile later.
      */
+    /**
+     * The public student application is deliberately short — name, ID, contacts, where they live and their
+     * photo. Gender, village, education and track are what the office records while it reviews the person,
+     * so they are required only when the counter itself is typing the application in.
+     */
     public static function applicationRules(bool $fromOffice = false): array
     {
+        $asked = $fromOffice ? 'required' : 'nullable';
+
         return [
             'full_name' => 'required|string|max:150',
             'national_id' => ['required', 'max:20', Rule::unique('ctp_registrations', 'national_id')],
             'phone' => ['required', 'max:20', Rule::unique('ctp_registrations', 'phone')],
             'email' => ['required', 'email', Rule::unique('ctp_registrations', 'email')],
             'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
-            'gender' => 'required|in:male,female,other',
+            'gender' => $asked.'|in:male,female,other',
             'county' => 'required|string|max:100',
             'sub_county' => 'required|string|max:100',
             'ward' => 'required|string|max:100',
-            'village' => 'required|string|max:100',
-            'education_level' => 'required|in:'.implode(',', array_keys(self::EDUCATION_LEVELS)),
-            'track' => 'required|in:'.implode(',', array_keys(self::TRACKS)),
+            'village' => $asked.'|string|max:100',
+            'education_level' => $asked.'|in:'.implode(',', array_keys(self::EDUCATION_LEVELS)),
+            'track' => $asked.'|in:'.implode(',', array_keys(self::TRACKS)),
             'referral_code' => 'nullable|string|max:20',
             'sponsor_id' => 'nullable|integer|exists:partners,id',
-            'id_scan' => ($fromOffice ? 'nullable' : 'required').'|file|mimes:jpg,jpeg,png,pdf|max:3072',
+            'sponsor_name' => 'nullable|string|max:150',
+            'sponsor_contact' => 'nullable|string|max:120',
+            'id_scan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'certificate' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'passport_photo' => ($fromOffice ? 'nullable' : 'required').'|image|mimes:jpg,jpeg,png|max:5120',
         ];
@@ -223,6 +246,7 @@ class CtpRegistration extends Model
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'passport_photo' => 'Profile photo', 'dob' => 'Date of birth',
             'sub_county' => 'Sub-county', 'sponsor_id' => 'Sponsoring partner',
+            'sponsor_name' => 'Sponsor name', 'sponsor_contact' => 'Sponsor contact',
         ];
     }
 
@@ -359,7 +383,13 @@ class CtpRegistration extends Model
 
     public function trackLabel(): string
     {
-        return self::TRACKS[$this->track] ?? Str::headline($this->track);
+        // A student the office has not processed yet has no track, and every screen still has to say so plainly.
+        return self::TRACKS[$this->track] ?? (Str::headline((string) $this->track) ?: 'Not recorded yet');
+    }
+
+    public function educationLabel(): string
+    {
+        return self::EDUCATION_LEVELS[$this->education_level] ?? (Str::headline((string) $this->education_level) ?: 'Not recorded yet');
     }
 
     public function feeSettled(): bool

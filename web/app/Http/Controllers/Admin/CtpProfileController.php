@@ -117,26 +117,46 @@ class CtpProfileController extends Controller
         });
     }
 
-    /** A partner covering the fee is recorded on the CTP's own profile — a sponsored promoter pays nothing. */
+    /**
+     * Who backs this promoter. A partner of the programme covers the fee — a sponsor written in by hand is
+     * only a name and a contact, so it never touches the money or the queue.
+     */
     public function setSponsor(Request $request, CtpRegistration $ctp)
     {
-        $data = $request->validate(['sponsor_id' => 'nullable|integer|exists:partners,id'],
-            [], ['sponsor_id' => 'Sponsoring partner']);
+        $data = $request->validate([
+            'sponsor_id' => 'nullable|integer|exists:partners,id',
+            'sponsor_name' => 'nullable|string|max:150',
+            'sponsor_contact' => 'nullable|string|max:120',
+        ], [], [
+            'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name',
+            'sponsor_contact' => 'Sponsor contact',
+        ]);
 
-        $sponsor = isset($data['sponsor_id']) ? Partner::findOrFail($data['sponsor_id']) : null;
+        $sponsor = ! empty($data['sponsor_id']) ? Partner::findOrFail($data['sponsor_id']) : null;
         $openApplication = in_array($ctp->status, ['pending_payment', 'pending_review'], true);
         $owesFee = $ctp->fee_status === 'awaiting_payment';
+        // A partner is the sponsorship of record; the written-in name only stands when no partner is picked.
+        $written = ['sponsor_name' => $sponsor ? null : ($data['sponsor_name'] ?? null),
+            'sponsor_contact' => $sponsor ? null : ($data['sponsor_contact'] ?? null)];
 
         if ($sponsor) {
             $settlesFee = $openApplication && $owesFee;
             $ctp->update($settlesFee
                 ? ['sponsor_id' => $sponsor->id, 'fee_status' => 'sponsored', 'fee_amount' => null,
-                    'fee_paid_at' => now(), 'status' => 'pending_review']
-                : ['sponsor_id' => $sponsor->id]);
+                    'fee_paid_at' => now(), 'status' => 'pending_review'] + $written
+                : ['sponsor_id' => $sponsor->id] + $written);
 
             return back()->with('status', $settlesFee
                 ? $ctp->full_name.' is sponsored by '.$sponsor->name.' — the application is in the review queue.'
                 : $sponsor->name.' recorded as the sponsoring partner of '.$ctp->full_name.'; their settled payment stays as it is.');
+        }
+
+        if ($data['sponsor_name'] ?? null) {
+            $ctp->update(['sponsor_id' => null] + $written);
+
+            return back()->with('status', $data['sponsor_name'].' is recorded as the sponsor of '.$ctp->full_name
+                .' — not a programme partner, so their fee is untouched'.($data['sponsor_contact'] ?? null
+                    ? ' and we have a contact to use.' : ' but no contact was given.'));
         }
 
         $takesBackFee = $openApplication && $ctp->fee_status === 'sponsored';
@@ -147,7 +167,7 @@ class CtpProfileController extends Controller
             'fee_paid_at' => $takesBackFee ? null : $ctp->fee_paid_at,
             // Removing a sponsor never sends an application back behind a payment — it stays reviewable.
             'status' => $ctp->status,
-        ]);
+        ] + $written);
 
         return back()->with('status', $takesBackFee
             ? 'Sponsorship removed — '.$ctp->full_name.'\'s payment is outstanding again. The application stays in the review queue.'

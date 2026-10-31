@@ -134,6 +134,9 @@
     </div>
 </div>
 
+<h3 style="margin-top:20px;">Sponsor</h3>
+@include('partials.sponsor-fields', ['partners' => $partners, 'office' => true])
+
 <h3 style="margin-top:20px;">Documents</h3>
 <div class="form-grid-3">
     <div class="field">

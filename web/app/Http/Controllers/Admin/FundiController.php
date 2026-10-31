@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccountInvite;
 use App\Models\County;
 use App\Models\FundiRegistration;
+use App\Models\Partner;
 use App\Models\ProjectApplication;
 use App\Models\Trainer;
 use App\Support\Documents;
@@ -87,6 +88,7 @@ class FundiController extends Controller
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
             'counties' => County::orderBy('name')->pluck('name'),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -115,6 +117,7 @@ class FundiController extends Controller
             'availabilities' => FundiRegistration::AVAILABILITY,
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'counties' => County::orderBy('name')->pluck('name'),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
             'isExecutive' => auth()->user()->role === 'superadmin',
         ]);
     }
@@ -239,6 +242,38 @@ class FundiController extends Controller
     public function markFee(Request $request, FundiRegistration $fundi)
     {
         return back()->with('status', ReviewActions::recordFee($fundi, ReviewActions::feeFrom($request)));
+    }
+
+    /**
+     * Who backs this E-Fundi. A partner of the programme is picked from the list; anybody else is typed in
+     * with a way to reach them. It is a recorded relationship only — the money on the record never moves here.
+     */
+    public function setSponsor(Request $request, FundiRegistration $fundi)
+    {
+        $data = $request->validate([
+            'sponsor_id' => 'nullable|integer|exists:partners,id',
+            'sponsor_name' => 'nullable|string|max:150',
+            'sponsor_contact' => 'nullable|string|max:120',
+        ], [], [
+            'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name',
+            'sponsor_contact' => 'Sponsor contact',
+        ]);
+
+        $sponsor = ! empty($data['sponsor_id']) ? Partner::findOrFail($data['sponsor_id']) : null;
+        // A partner is the sponsorship of record, so a written-in name cannot sit beside it.
+        $record = [
+            'sponsor_id' => $sponsor?->id,
+            'sponsor_name' => $sponsor ? null : ($data['sponsor_name'] ?? null),
+            'sponsor_contact' => $sponsor ? null : ($data['sponsor_contact'] ?? null),
+        ];
+        $fundi->update($record);
+
+        return back()->with('status', match (true) {
+            $sponsor => $sponsor->name.' recorded as the sponsoring partner of '.$fundi->full_name.'.',
+            $record['sponsor_name'] => $record['sponsor_name'].' recorded as the sponsor of '.$fundi->full_name
+                .' — not a programme partner'.($record['sponsor_contact'] ? ', contact '.$record['sponsor_contact'].'.' : ', with no contact given.'),
+            default => 'Sponsor removed from '.$fundi->full_name.'.',
+        });
     }
 
     /** Issue the E-Fundi ID and open the portal account — inside Module 5, not sent back to Module 1. */
