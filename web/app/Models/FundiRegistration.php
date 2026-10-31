@@ -29,7 +29,7 @@ class FundiRegistration extends Model
         'trainer' => 'Trainer — teaches one of the programme’s training fields and takes CTPs at a site',
         'junior_fundi' => 'Junior Fundi — recent graduate with internship experience',
         'attachment' => 'Attachment applicant — still in school, not yet graduated',
-        'fundi_intern' => 'Fundi-Intern — graduated, no experience, seeking an internship',
+        'fundi_intern' => 'Intern — graduated, no experience, seeking an internship',
     ];
 
     public const SPECIALISATIONS = [

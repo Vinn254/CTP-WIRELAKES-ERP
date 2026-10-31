@@ -36,7 +36,7 @@ Module 5 owns **the person and their skill record**. Everything else is a separa
 | --- | --- |
 | **Senior Fundi** | projects, supervising, mobilising, e-waste collection, **training CTPs at a site** |
 | **Junior Fundi** | projects, mobilising, e-waste collection |
-| **Fundi-Intern** | projects, mobilising, e-waste collection |
+| **Intern** | projects, mobilising, e-waste collection |
 | **Attachment applicant** | projects, e-waste collection |
 
 A junior, an intern and an attachment applicant work **under a senior fundi** on a job. Only a senior can be handed a
@@ -101,7 +101,7 @@ One signed-in account per grade, so each interface can be seen as the person who
 | `mary.achieng@example.ke` | EF-0002 | Senior Fundi | approved at Nyanda Technical School, teaches TRN-0001 and TRN-0002 |
 | `brian.mason@example.ke` | EF-0001 | Senior Fundi | no site yet — the apply-to-train empty state |
 | `peter.otieno@example.ke` | EF-0004 | Junior Fundi | none — 403 on the trainer routes |
-| `grace.mobilised@example.ke` | EF-0003 | Fundi-Intern | none — 403 on the trainer routes |
+| `grace.mobilised@example.ke` | EF-0003 | Intern | none — 403 on the trainer routes |
 | `naomi.wanjiru@example.ke` | EF-0005 | Attachment | none — 403 on the trainer routes |
 
 Their passwords are seeded in the local database only and are deliberately not written into this repo.

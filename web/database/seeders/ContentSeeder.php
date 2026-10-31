@@ -125,7 +125,7 @@ class ContentSeeder extends Seeder
             [
                 ['question' => 'What is a CTP?', 'answer' => 'A Community Technology Promoter — the on-the-ground agent who is simultaneously a trainee (learning a skill), a mobilizer (bringing people into the programme) and a community agent (identifying needs and registering communities).'],
                 ['question' => 'Who can become a CTP?', 'answer' => 'School leavers (training track) and junior graduates wanting practical experience (junior practical-check track).'],
-                ['question' => 'What is the difference between a Fundi-Intern, an Attachment applicant, a Junior Fundi and a Senior Fundi?', 'answer' => 'Fundi-Intern: graduated, no experience, seeking an internship. Attachment applicant: still in school and not yet graduated — only they can apply for industrial attachment. Junior Fundi: recent graduate who already has internship experience. Senior Fundi: long industry experience, fully eligible to lead projects and mentor. Trainer: teaches one of the programme’s training fields and takes CTPs at a site.'],
+                ['question' => 'What is the difference between an Intern, an Attachment applicant, a Junior Fundi and a Senior Fundi?', 'answer' => 'Intern: graduated, no experience, seeking an internship. Attachment applicant: still in school and not yet graduated — only they can apply for industrial attachment. Junior Fundi: recent graduate who already has internship experience. Senior Fundi: long industry experience, fully eligible to lead projects and mentor. Trainer: teaches one of the programme’s training fields and takes CTPs at a site.'],
                 ['question' => 'Do I have to be a CTP first to become a Fundi?', 'answer' => 'No. Fundi registration is a standalone path. Skilled workers apply directly with their certificates and a referee.'],
                 ['question' => 'What documents do I need to register?', 'answer' => 'CTP: national ID scan, passport photo, and any school certificate. Fundi: ID scan and passport photo, with a CV if you have one. Hirer: an ID or organisation document.'],
                 ['question' => 'Is registering as a hirer free?', 'answer' => 'Yes — hirer registration is free, but every organisation is verified by an admin to prevent fraud.'],
@@ -181,7 +181,7 @@ class ContentSeeder extends Seeder
         $this->put('membership', 'fundi_tiers', 'E-Fundi tiers', 'repeater',
             ['code' => ['Code (do not change once live)', 'text'], 'label' => ['Tier name', 'text'], 'desc' => ['Who it is for', 'textarea']],
             [
-                ['code' => 'fundi_intern', 'label' => 'Fundi-Intern', 'desc' => 'Graduated, no experience, seeking an internship'],
+                ['code' => 'fundi_intern', 'label' => 'Intern', 'desc' => 'Graduated, no experience, seeking an internship'],
                 ['code' => 'attachment', 'label' => 'Attachment applicant', 'desc' => 'Still in school, not yet graduated'],
                 ['code' => 'junior_fundi', 'label' => 'Junior Fundi', 'desc' => 'Recent graduate with internship experience'],
                 ['code' => 'senior_fundi', 'label' => 'Senior Fundi', 'desc' => 'Long industry experience'],

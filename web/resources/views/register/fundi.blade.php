@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Become a Fundi')
+@section('title', 'Become a Fundi or Trainer')
 
 @section('content')
 <section class="section" style="max-width:860px;margin:34px auto;">
-    <span class="tag">E-Fundi Registration</span>
-    <h1>Become a verified E-Fundi</h1>
+    <span class="tag">Fundi / Trainer Registration</span>
+    <h1>Become a verified Fundi or Trainer</h1>
     <p class="sub">Skilled workers and trainers apply on this form. After approval you get an EF ID and your portal login.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
@@ -104,24 +104,26 @@
             </fieldset>
 
             <fieldset>
-                <legend>Where you work <span class="req">*</span></legend>
-                <p class="help">Your own area, not just the counties you travel to. The programme counts the work
-                    and the mobilisation credit in the community you registered in.</p>
+                <legend>Where you work</legend>
+                <p class="help">The county fills itself from the list above — you can still change it.
+                    Sub-county and ward are only asked because they place your work.</p>
                 <div class="form-grid-3">
                     <div class="field">
-                        <label>County <span class="req">*</span></label>
-                        <input type="text" name="county" list="fundi-counties" value="{{ old('county') }}" required>
-                        <datalist id="fundi-counties">
-                            @foreach ($counties as $c)<option value="{{ $c }}"></option>@endforeach
-                        </datalist>
+                        <label>County</label>
+                        <select name="county" id="fundi-county">
+                            <option value="">Pick a county above</option>
+                            @foreach ($counties as $c)
+                                <option value="{{ $c }}" @selected(old('county') === $c)>{{ $c }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="field">
-                        <label>Sub-county <span class="req">*</span></label>
-                        <input type="text" name="sub_county" value="{{ old('sub_county') }}" required>
+                        <label>Sub-county <span class="hint">(optional)</span></label>
+                        <input type="text" name="sub_county" value="{{ old('sub_county') }}" maxlength="100">
                     </div>
                     <div class="field">
-                        <label>Ward <span class="req">*</span></label>
-                        <input type="text" name="ward" value="{{ old('ward') }}" required>
+                        <label>Ward <span class="hint">(optional)</span></label>
+                        <input type="text" name="ward" value="{{ old('ward') }}" maxlength="100">
                     </div>
                 </div>
                 {{-- Came on a CTP's own link: the credit rides with the application, the office records it. --}}
@@ -172,8 +174,26 @@
                 </div>
             </fieldset>
 
-            <button class="btn btn-primary btn-lg btn-block" type="submit">Submit Fundi application</button>
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Submit application</button>
         </form>
     </div>
+
+    <script>
+        // The counties list above already names the applicant's county, so the box fills itself.
+        (function () {
+            var list = document.querySelector('select[name="service_counties[]"]');
+            var county = document.getElementById('fundi-county');
+            if (!list || !county) return;
+
+            var chosen = false;
+            county.addEventListener('change', function () { chosen = true; });
+            list.addEventListener('change', function () {
+                if (chosen) return;
+                var first = list.selectedOptions[0];
+                if (first) county.value = first.value;
+            });
+            list.dispatchEvent(new Event('change'));
+        })();
+    </script>
 </section>
 @endsection

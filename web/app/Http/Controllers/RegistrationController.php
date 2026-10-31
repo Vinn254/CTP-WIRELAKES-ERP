@@ -81,9 +81,10 @@ class RegistrationController extends Controller
             'dob' => 'required|date|before:'.now()->subYears(16)->toDateString(),
             'gender' => 'required|in:male,female,other',
             'tier' => 'required|in:'.implode(',', array_keys($this->fundiTiers())),
-            'county' => 'required|string|max:100',
-            'sub_county' => 'required|string|max:100',
-            'ward' => 'required|string|max:100',
+            // The county comes from the list the applicant served, so it is never typed and never blocks them.
+            'county' => 'nullable|string|max:100',
+            'sub_county' => 'nullable|string|max:100',
+            'ward' => 'nullable|string|max:100',
             'mobiliser_code' => 'nullable|string|max:20',
             'specialisations' => 'required|array|min:1',
             'specialisations.*' => 'in:'.implode(',', FundiRegistration::SPECIALISATIONS),
@@ -118,6 +119,7 @@ class RegistrationController extends Controller
         $record['status'] = 'pending_review';
         $record['specialisations'] = array_values(array_unique($data['specialisations']));
         $record['service_counties'] = array_values(array_unique($data['service_counties']));
+        $record['county'] = ($data['county'] ?? null) ?: ($record['service_counties'][0] ?? null);
         $record['training_field_ids'] = array_values(array_unique(array_map('intval', $data['training_field_ids'] ?? []))) ?: null;
 
         $fundi = FundiRegistration::create($record);
