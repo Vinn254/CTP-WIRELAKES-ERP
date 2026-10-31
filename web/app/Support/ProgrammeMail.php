@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Mail\ContactNotice;
 use App\Models\ContactMessage;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
@@ -66,6 +67,29 @@ class ProgrammeMail
     }
 
     /**
+     * The mailbox that hears about every person who joins. The System Administrator is the one account that must
+     * never learn about a registration second-hand, so it is named here rather than left to a department tick.
+     */
+    public static function systemAdmin(): ?string
+    {
+        return static::desk('sysadmin') ?: 'sysadmin@'.static::DOMAIN;
+    }
+
+    /**
+     * The accounts that hold the System Administrator title, so a notice reaches the person actually sitting on
+     * that desk and not only the mailbox. Read from the staff list, which is where the office sets the title.
+     *
+     * @return array<int, string>
+     */
+    public static function systemAdmins(): array
+    {
+        return User::query()->where('active', true)->whereNotNull('email')->where('role', 'admin')
+            ->get(['email', 'roles'])
+            ->filter(fn (User $user) => in_array('system_administrator', (array) ($user->roles ?? []), true))
+            ->pluck('email')->map(fn ($address) => mb_strtolower(trim($address)))->all();
+    }
+
+    /**
      * Every address that must see a message about one module: its own desk first, then the office staff who hold
      * the tick, then the general mailbox and the director, so nothing is stranded on a desk nobody watches.
      *
@@ -92,6 +116,11 @@ class ProgrammeMail
             'label' => 'Director — everything that happens',
             'value' => static::director(),
             'read' => 'Copied on a new CTP or E-Fundi application, a request from a public page and a message from the website.',
+        ], [
+            'key' => static::key('sysadmin'),
+            'label' => 'System Administrator — every registration',
+            'value' => static::systemAdmin(),
+            'read' => 'Copied on every person who joins: a CTP, an E-Fundi, a trainer, a hirer, a community or a job applicant.',
         ]];
 
         foreach (Departments::live() as $d) {
