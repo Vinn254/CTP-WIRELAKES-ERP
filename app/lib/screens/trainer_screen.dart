@@ -247,8 +247,12 @@ class _TrainerScreenState extends State<TrainerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (s.trainings.isNotEmpty)
+          if (s.trainings.isNotEmpty) ...[
+            const Text('Your field of training at this site',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: ink)),
+            const SizedBox(height: 6),
             Wrap(spacing: 6, runSpacing: 6, children: [for (final t in s.trainings) Tag(t)]),
+          ],
           if (s.status == 'applied')
             const Padding(
               padding: EdgeInsets.only(top: 8),

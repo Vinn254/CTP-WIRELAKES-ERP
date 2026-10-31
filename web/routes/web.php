@@ -634,6 +634,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         Route::get('/applications/in/{department}', [AdminApplicationController::class, 'index'])->name('applications.index');
         Route::get('/applications/{application}/in/{department}', [AdminApplicationController::class, 'show'])
             ->whereNumber('application')->name('applications.show');
+        // The teaching list, read by the desks that hire a trainer, pay one, or buy the materials they teach with.
+        Route::get('/trainers/in/{department}', [TrainerController::class, 'index'])->name('trainers.index');
     });
 });
 

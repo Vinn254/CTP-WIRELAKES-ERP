@@ -90,6 +90,7 @@ class Departments
             ['label' => 'Donations', 'icon' => 'heart', 'route' => ['admin.donations.index']],
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
             ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+            ['label' => 'Trainers', 'icon' => 'award', 'route' => ['admin.host.trainers.index', 'membership'], 'badge' => 'trainers'],
             ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
         'promoters' => [
@@ -153,11 +154,13 @@ class Departments
             ['label' => 'Purchases', 'icon' => 'link', 'route' => ['admin.procurement.index'], 'badge' => 'requests'],
             ['label' => 'Suppliers', 'icon' => 'building', 'route' => ['admin.suppliers.index']],
             ['label' => 'Inventory', 'icon' => 'grid', 'route' => ['admin.inventory.index'], 'badge' => 'lowstock'],
+            ['label' => 'Trainers', 'icon' => 'award', 'route' => ['admin.host.trainers.index', 'procurement'], 'badge' => 'trainers'],
         ],
         'hr' => [
             ['label' => 'Careers & applicants', 'icon' => 'award', 'route' => ['admin.careers.index'], 'badge' => 'careers'],
             ['label' => 'Onboarding', 'icon' => 'check', 'route' => ['admin.onboarding.index'], 'badge' => 'onboarding'],
             ['label' => 'Staff directory', 'icon' => 'users', 'route' => ['admin.directory.index']],
+            ['label' => 'Trainers', 'icon' => 'award', 'route' => ['admin.host.trainers.index', 'hr'], 'badge' => 'trainers'],
             ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
             ['label' => 'Deduction rates', 'icon' => 'sliders', 'route' => ['admin.payroll.rates']],
@@ -261,6 +264,7 @@ class Departments
         'admin.trainings.index' => 'The trainings the programme runs, and the modules expected under each',
         'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
         'admin.trainers.index' => 'Who takes each training — an E-Fundi, a staff account or an applicant — and what they are paid',
+        'admin.host.trainers.index' => 'The same teaching list, read here — who is licensed for what, and where',
         'admin.registers.index' => 'What the trainers handed in — registers, marks, timetables and lesson plans waiting to be answered',
         'admin.registers.show' => 'One paper read whole, then approved onto the trainees’ records or sent back with what to fix',
         'admin.library.index' => 'Books, notes, slides and PDFs the students read for each course',
@@ -317,6 +321,10 @@ class Departments
         'admin.host.promoters.show' => ['admin.promoters.show', ['membership', 'communities', 'training']],
         'admin.host.communities.show' => ['admin.communities.show', ['membership', 'training', 'marketplace', 'execution', 'construction']],
         'admin.host.fundis.show' => ['admin.fundis.show', ['marketplace', 'execution', 'training']],
+        // The office that hires a trainer, buys their materials or runs the accounts reads the same teaching list —
+        // who is licensed for which training, at which site, on what rate. Training & Certification alone decides
+        // an application, so the copies carry no buttons.
+        'admin.host.trainers.index' => ['admin.trainers.index', ['membership', 'hr', 'procurement']],
         'admin.host.inventory.show' => ['admin.inventory.show', ['membership', 'marketplace', 'execution', 'construction']],
         'admin.host.cohorts.show' => ['admin.cohorts.show', ['communities']],
         'admin.host.payouts.show' => ['admin.payouts.show', ['execution', 'construction']],

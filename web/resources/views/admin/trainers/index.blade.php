@@ -3,6 +3,10 @@
 
 @php
     use App\Models\Trainer;
+    use App\Support\Departments;
+
+    $read = Departments::hosted();
+    $here = $read ? ['department' => Departments::currentSlug()] : [];
     $tabs = ['all' => 'All'] + Trainer::STATUSES;
 @endphp
 
@@ -10,11 +14,15 @@
 <div class="head-row">
     <div>
         <h1>Trainers</h1>
-        <p class="page-lede">Who trains, site by site, with licences, hours and rates.</p>
+        <p class="page-lede">{{ $read
+            ? 'Who is licensed to train, read here. Training & Certification decides.'
+            : 'Who trains, site by site, with licences, hours and rates.' }}</p>
     </div>
-    <div class="head-actions">
-        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-trainer">Add a trainer</button>
-    </div>
+    @unless ($read)
+        <div class="head-actions">
+            <button class="btn btn-sm btn-lime" type="button" data-sheet="add-trainer">Add a trainer</button>
+        </div>
+    @endunless
 </div>
 
 <div class="stat-row">
@@ -24,7 +32,8 @@
     <div class="stat"><small>Eligible to be posted</small><b>{{ $fundis->count() + $staff->count() + $applicants->count() }}</b></div>
 </div>
 
-<form method="GET" action="{{ route('admin.trainers.index') }}" class="filter-bar inline-filter">
+<form method="GET" action="{{ route($read ? 'admin.host.trainers.index' : 'admin.trainers.index', $here) }}" class="filter-bar inline-filter">
+    @foreach ($here as $key => $value)<input type="hidden" name="{{ $key }}" value="{{ $value }}">@endforeach
     <label class="field">
         <span>Trainer status</span>
         <select name="status" onchange="this.form.submit()">
@@ -36,6 +45,7 @@
     <noscript><button class="btn btn-sm btn-outline" type="submit">Apply</button></noscript>
 </form>
 
+@unless ($read)
 @include('partials.sheet-start', ['name' => 'add-trainer', 'title' => 'Add a trainer for one site',
     'sub' => 'Put an E-Fundi, a staff account or an applicant on the teaching list.'])
     @if ($fundis->isEmpty() && $staff->isEmpty() && $applicants->isEmpty())
@@ -129,12 +139,13 @@
         </form>
     @endif
 @include('partials.sheet-end')
+@endunless
 
 <table class="data">
     <thead>
         <tr>
             <th>Trainer</th><th>Recorded as</th><th>Can teach</th><th>Site this record covers</th>
-            <th>Hours / week</th><th>Rate</th><th>Cohorts</th><th>Status</th><th></th>
+            <th>Hours / week</th><th>Rate</th><th>Cohorts</th><th>Status</th>@unless ($read)<th></th>@endunless
         </tr>
     </thead>
     <tbody>
@@ -159,6 +170,7 @@
                 </td>
                 <td><span class="status {{ $t->status === 'approved' ? 'active' : ($t->status === 'applied' ? 'pending_review' : 'closed') }}">{{ $t->statusLabel() }}</span>
                     @if ($t->note)<div class="hint">{{ \Illuminate\Support\Str::limit($t->note, 50) }}</div>@endif</td>
+                @unless ($read)
                 <td class="actions">
                     @if ($t->status !== 'approved')
                         <form method="POST" action="{{ route('admin.trainers.decide', $t) }}" class="mini-form"
@@ -218,9 +230,10 @@
                         </form>
                     </details>
                 </td>
+                @endunless
             </tr>
         @empty
-            <tr><td colspan="9" class="empty-cell">
+            <tr><td colspan="{{ $read ? 8 : 9 }}" class="empty-cell">
                 No teaching records in this view.
             </td></tr>
         @endforelse
