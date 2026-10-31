@@ -142,6 +142,11 @@
             <dt>Phone</dt><dd>{{ $member->phone }}</dd>
             <dt>Email</dt><dd>{{ $member->email }}</dd>
             <dt>Grade</dt><dd>{{ FundiRegistration::TIERS[$member->tier] ?? $member->tier }}</dd>
+            @if ($member->trainingFields()->isNotEmpty())
+                <dt>Field of training</dt>
+                <dd>{{ $member->trainingFields()->pluck('name')->join(', ') }}
+                    <div class="hint">What you said you teach on your application. The office approves a trainer site by site.</div></dd>
+            @endif
             <dt>Where you work</dt><dd>{{ $place ?: '—' }}</dd>
             <dt>Business</dt><dd>{{ $member->business_name ?: 'I trade as myself' }}
                 @if ($member->business_reg_no)<span class="hint">· {{ $member->business_reg_no }}</span>@endif</dd>
@@ -213,8 +218,8 @@
                     </span>
                 </div>
             @empty
-                <p class="hint">Nothing was uploaded with your application. Ask the programme office to add a trade
-                    certificate or portfolio — they are recorded on your E-Fundi file.</p>
+                <p class="hint">Nothing was uploaded with your application. Ask the programme office to add your CV
+                    or certificates — they are recorded on your E-Fundi file.</p>
             @endforelse
         </div>
     </div>

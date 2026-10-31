@@ -65,7 +65,12 @@
             <p>{{ FundiRegistration::TIERS[$fundi->tier] ?? $fundi->tier }}</p>
             <dl class="kv">
                 <dt>May train CTPs</dt>
-                <dd>{{ in_array($fundi->tier, \App\Models\Trainer::TEACHING_TIERS, true) ? 'Yes — only a senior fundi is approved at a site' : 'No — only a senior fundi trains' }}</dd>
+                <dd>{{ in_array($fundi->tier, \App\Models\Trainer::TEACHING_TIERS, true) ? 'Yes — a Senior Fundi or a Trainer is approved at a site' : 'No — only a Senior Fundi or a Trainer trains' }}</dd>
+                @if ($fundi->trainingFields()->isNotEmpty())
+                    <dt>Field of training</dt>
+                    <dd><span class="chips">@foreach ($fundi->trainingFields() as $field)<span class="chip">{{ $field->name }}</span>@endforeach</span>
+                        <div class="hint">What they said they teach on their application — the office approves a trainer site by site.</div></dd>
+                @endif
                 <dt>Sees projects for</dt>
                 <dd>
                     <span class="chips">@foreach (\App\Models\Project::CATEGORIES as $key => $rule)

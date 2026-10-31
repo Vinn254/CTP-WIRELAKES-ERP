@@ -9,6 +9,7 @@ use App\Models\FundiRegistration;
 use App\Models\HirerRegistration;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Support\Documents;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,8 @@ class ReviewController extends Controller
         'ctp' => ['id_scan' => 'id_scan_path', 'certificate' => 'certificate_path', 'passport' => 'passport_photo_path'],
         'fundi' => [
             'passport_photo' => 'passport_photo_path',
-            'id_scan' => 'id_scan_path', 'business_cert' => 'business_cert_path',
+            'id_scan' => 'id_scan_path', 'cv' => 'cv_path',
+            'business_cert' => 'business_cert_path',
             'trade_cert' => 'trade_cert_paths', 'portfolio' => 'portfolio_paths',
         ],
         'hirer' => ['org_doc' => 'org_doc_path'],
@@ -145,7 +147,10 @@ class ReviewController extends Controller
         $path = $this->resolvePath($type, $record, $doc);
         abort_unless($path, 404, 'Document not uploaded.');
 
-        return Documents::file($request, $path, Str::headline($slot));
+        $slot = explode('.', $doc, 2)[0];
+
+        // Str::headline makes "cv" read as Cv on the saved file; the paper is a CV.
+        return Documents::file($request, $path, $slot === 'cv' ? 'CV' : Str::headline($slot));
     }
 
     private function documentList(string $type, $record): array

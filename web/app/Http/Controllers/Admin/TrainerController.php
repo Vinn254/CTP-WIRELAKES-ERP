@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * The training register. A trainer is whoever the programme licenses to deliver a training, and that is
  * three kinds of person: an E-Fundi from the fundi pool, a staff account, or an applicant taken on at Careers.
  * All three sit on the same list and work the same desk — only the record holding the person differs. An E-Fundi
- * must be senior to carry a cohort; the office licenses the other two by hand.
+ * must be a Senior Fundi or a Trainer to carry a cohort; the office licenses the other two by hand.
  */
 class TrainerController extends Controller
 {
@@ -43,7 +43,9 @@ class TrainerController extends Controller
             'fundis' => FundiRegistration::where('status', 'active')
                 ->whereIn('tier', Trainer::TEACHING_TIERS)
                 ->with(['trainers:id,fundi_id,venue_id,status', 'trainers.venue:id,name'])
-                ->orderBy('full_name')->get(['id', 'full_name', 'ef_code', 'tier', 'county']),
+                ->orderBy('full_name')->get(['id', 'full_name', 'ef_code', 'tier', 'county', 'training_field_ids']),
+            // The field a Trainer stated on their application, named here so the office reads it before deciding.
+            'fieldNames' => Training::pluck('name', 'id'),
             // A staff account already on the payroll, and an applicant the careers desk is still talking to.
             'staff' => User::query()->where('active', true)->whereIn('role', ['admin', 'superadmin'])
                 ->orderBy('name')->get(['id', 'name', 'email', 'role']),
@@ -125,7 +127,8 @@ class TrainerController extends Controller
         $fundi = FundiRegistration::findOrFail($fundiId);
 
         abort_unless(in_array($fundi->tier, Trainer::TEACHING_TIERS, true), 422,
-            $fundi->full_name.' is a '.FundiRegistration::tierLabel($fundi->tier).'. Only a senior fundi can train CTPs.');
+            $fundi->full_name.' is a '.FundiRegistration::tierLabel($fundi->tier)
+                .'. Only a Senior Fundi or a Trainer can be put forward to train CTPs.');
     }
 
     /**

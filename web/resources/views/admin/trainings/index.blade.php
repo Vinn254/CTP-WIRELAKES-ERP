@@ -1,15 +1,29 @@
 @extends('layouts.admin')
 @section('title', 'Training')
 
+@php
+    use App\Support\Departments;
+
+    // Copied into Website & Membership so the System Administrator can put another field of training on the list
+    // without leaving their desk. The copy is read-only apart from that one add.
+    $read = Departments::hosted();
+    $here = $read ? ['department' => Departments::currentSlug()] : [];
+    $canAdd = ! $read || Departments::mayExtendCatalogue(auth()->user());
+@endphp
+
 @section('content')
 <div class="head-row">
     <div>
         <h1>Training</h1>
-        <p class="page-lede">The courses the programme teaches, with the modules each one sets.</p>
+        <p class="page-lede">{{ $read
+            ? 'The trainings on offer, read here — add a field of training if you run the accounts.'
+            : 'The courses the programme teaches, with the modules each one sets.' }}</p>
     </div>
-    <div class="head-actions">
-        <button class="btn btn-sm btn-lime" type="button" data-sheet="add-training">Add a training</button>
-    </div>
+    @if ($canAdd)
+        <div class="head-actions">
+            <button class="btn btn-sm btn-lime" type="button" data-sheet="add-training">Add a training</button>
+        </div>
+    @endif
 </div>
 
 @include('partials.errors')
@@ -22,9 +36,11 @@
     <div class="stat"><small>Trainer listings</small><b>{{ $trainings->sum('trainers_count') }}</b></div>
 </div>
 
+@if ($canAdd)
 @include('partials.sheet-start', ['name' => 'add-training', 'title' => 'Add a training the programme will run',
     'sub' => 'The catalogue is closed: a training is listed here before a cohort can be opened on it.'])
-    <form method="POST" action="{{ route('admin.trainings.store') }}" class="fee-form"
+    <form method="POST" action="{{ route($read ? 'admin.host.trainings.store' : 'admin.trainings.store', $here) }}"
+          class="fee-form" @if ($read) data-host-write @endif
           data-confirm="Add this training to the programme list?" data-title="Add training">
         @csrf
         <input type="hidden" name="_sheet" value="add-training">
@@ -58,12 +74,13 @@
         </div>
     </form>
 @include('partials.sheet-end')
+@endif
 
 <table class="data">
     <thead>
         <tr>
             <th>Training</th><th>Code</th><th>What it covers</th>
-            <th>Modules</th><th>Intakes</th><th>Trainers</th><th>Status</th><th></th>
+            <th>Modules</th><th>Intakes</th><th>Trainers</th><th>Status</th>@unless ($read)<th></th>@endunless
         </tr>
     </thead>
     <tbody>
@@ -73,26 +90,37 @@
                 <td><span class="tag">{{ $t->code }}</span></td>
                 <td>{{ $t->summary ?: '—' }}</td>
                 <td>{{ $t->modules_count }}
-                    <div class="hint"><a href="#modules-{{ $t->id }}">Set the modules</a></div>
+                    @unless ($read)
+                        <div class="hint"><a href="#modules-{{ $t->id }}">Set the modules</a></div>
+                    @endunless
                 </td>
                 <td>{{ $t->cohorts_count }}
                     @if ($t->cohorts->count() > 1)
                         <div class="chips runs-chips">
                             @foreach ($t->cohorts as $r)
-                                <a class="chip" href="{{ route('admin.cohorts.results', ['cohort' => $r->id]) }}"
-                                   title="{{ $r->reference }} — {{ $r->dateLabel() }}">{{ $r->yearLabel() }} {{ $r->termLabel() }}</a>
+                                @if ($read)
+                                    <span class="chip" title="{{ $r->reference }} — {{ $r->dateLabel() }}">{{ $r->yearLabel() }} {{ $r->termLabel() }}</span>
+                                @else
+                                    <a class="chip" href="{{ route('admin.cohorts.results', ['cohort' => $r->id]) }}"
+                                       title="{{ $r->reference }} — {{ $r->dateLabel() }}">{{ $r->yearLabel() }} {{ $r->termLabel() }}</a>
+                                @endif
                             @endforeach
                         </div>
                     @endif
-                    <div class="hint">
-                        <a href="{{ route('admin.cohorts.index') }}">Cohorts</a> ·
-                        <a href="{{ route('admin.cohorts.results') }}">Results</a>
-                    </div>
+                    @unless ($read)
+                        <div class="hint">
+                            <a href="{{ route('admin.cohorts.index') }}">Cohorts</a> ·
+                            <a href="{{ route('admin.cohorts.results') }}">Results</a>
+                        </div>
+                    @endunless
                 </td>
                 <td>{{ $t->trainers_count }}
-                    <div class="hint"><a href="{{ route('admin.trainers.index') }}">Trainers</a></div>
+                    @unless ($read)
+                        <div class="hint"><a href="{{ route('admin.trainers.index') }}">Trainers</a></div>
+                    @endunless
                 </td>
                 <td><span class="status {{ $t->status === 'active' ? 'active' : 'closed' }}">{{ $t->statusLabel() }}</span></td>
+                @unless ($read)
                 <td class="actions">
                     <form method="POST" action="{{ route('admin.trainings.toggle', $t) }}" class="mini-form">
                         @csrf
@@ -125,9 +153,10 @@
                         <button class="btn btn-sm btn-ghost" type="submit">Remove</button>
                     </form>
                 </td>
+                @endunless
             </tr>
             <tr id="modules-{{ $t->id }}" class="sub-row">
-                <td colspan="8">
+                <td colspan="{{ $read ? 7 : 8 }}">
                     <b class="hint">Modules under {{ $t->name }}</b>
                     <p class="hint">What the trainer delivers and what the trainee must be marked on before they
                         reach 100% and can be certified. A training with no modules still runs — adding them is
@@ -139,6 +168,7 @@
                             <span class="hint">{{ $m->hoursLabel() }}</span>
                             @if ($m->outcome)<span class="hint">Expected: {{ $m->outcome }}</span>@endif
                             <span class="tag gray">{{ $m->completions()->count() }} marked</span>
+                            @unless ($read)
                             <details class="need-form" style="display:inline-block;">
                                 <summary class="btn btn-sm btn-ghost">Edit</summary>
                                 <form method="POST" action="{{ route('admin.trainings.modules.update', [$t, $m]) }}"
@@ -162,9 +192,11 @@
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-ghost" type="submit">Remove</button>
                             </form>
+                            @endunless
                         </div>
                     @endforeach
 
+                    @unless ($read)
                     <form method="POST" action="{{ route('admin.trainings.modules.store', $t) }}" class="fee-form"
                           data-confirm="Add the modules you have typed to {{ $t->name }}?" data-title="Add modules">
                         @csrf
@@ -208,21 +240,24 @@
                         <p class="hint">Use <b>+ Add another module</b> to put several in at once — they are numbered
                             in the order you type them. Leave a row blank and it is not added.</p>
                     </form>
+                    @endunless
                 </td>
             </tr>
         @empty
-            <tr><td colspan="8" class="empty-cell">
+            <tr><td colspan="{{ $read ? 7 : 8 }}" class="empty-cell">
                 No trainings on the list. Add the trades the programme runs before posting a cohort.
             </td></tr>
         @endforelse
     </tbody>
 </table>
 
+@unless ($read)
 <p class="sub" style="color:var(--muted);margin:14px 0 0;">
     A training that has already run an intake or been given to a trainer cannot be deleted — take it off the list
     instead, so those records keep what they were. The same rule holds for a module that has been marked on a
     trainee's record.
 </p>
+@endunless
 
 <script>
     // The module rows are a repeater: + drops another row so several modules go in with one submit.

@@ -179,13 +179,16 @@
             @if ($owningRoute)
                 <div class="card callout" style="margin-bottom:16px;">
                     <b>{{ $dept['name'] ?? '' }} copy</b> — this record belongs to
-                    {{ $ownerName }}, and reading it here changes nothing.
+                    {{ $ownerName }}.
                     @if (Departments::canSee($me, $ownerSlug))
+                        Reading it here changes nothing.
                         <a href="{{ route($owningRoute, collect($route?->parameters())->except('department')->all()) }}">
                             Open it in {{ $ownerName }}
                         </a>
+                    @elseif ($owningRoute === 'admin.trainings.index' && Departments::mayExtendCatalogue($me))
+                        You can put another field of training on this list here; {{ $ownerName }} decides the rest of it.
                     @else
-                        Only the staff who run {{ $ownerName }} can change it.
+                        Reading it here changes nothing — only the staff who run {{ $ownerName }} can change it.
                     @endif
                 </div>
             @endif
@@ -210,8 +213,9 @@
 @if ($owningRoute && ! Departments::canSee($me, $ownerSlug))
 <script>
     // The copy is read-only for this staff member. The server refuses the write either way; this saves them the
-    // click, and says where the record is actually kept.
-    document.querySelectorAll('main.admin-content form[method="post" i] button, main.admin-content form[method="post" i] input[type=submit]')
+    // click, and says where the record is actually kept. A form carrying data-host-write is the one exception —
+    // the office standing here is allowed to add to the list (the System Administrator extending the catalogue).
+    document.querySelectorAll('main.admin-content form[method="post" i]:not([data-host-write]) button, main.admin-content form[method="post" i]:not([data-host-write]) input[type=submit]')
         .forEach((el) => { el.disabled = true; el.title = 'Read-only copy — the {{ $ownerName }} office changes this record.'; });
     document.querySelectorAll('main.admin-content a[href$="/edit"], main.admin-content a[href*="/edit?"]')
         .forEach((el) => el.remove());

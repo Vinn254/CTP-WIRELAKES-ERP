@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Training;
 use App\Models\TrainingModule;
+use App\Support\Departments;
 use Illuminate\Http\Request;
 
 /**
@@ -28,6 +29,12 @@ class TrainingController extends Controller
 
     public function store(Request $request)
     {
+        // The catalogue is closed, but a new field of training can be put on it from Website & Membership too —
+        // the System Administrator's own desk, as well as Training & Certification. Everything else here stays
+        // with the office that owns the list.
+        abort_unless(Departments::mayExtendCatalogue($request->user()), 403,
+            'Only Training & Certification or the System Administrator can put a new training on the programme list.');
+
         $data = Training::dataFrom($request);
         $data['code'] = trim((string) ($data['code'] ?? '')) ?: Training::codeFromName($data['name']);
 

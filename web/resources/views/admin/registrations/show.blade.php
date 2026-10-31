@@ -11,23 +11,25 @@
         'fundi_tier' => 'Fundi pool',
         'tier' => 'Fundi tier', 'business_name' => 'Business name', 'business_reg_no' => 'Business reg no.',
         'years_in_business' => 'Years in business', 'specialisations' => 'Specialisations',
-        'service_counties' => 'Service counties', 'referee_name' => 'Referee name',
+        'service_counties' => 'Service counties', 'training_field_ids' => 'Field of training',
+        'referee_name' => 'Referee name',
         'referee_phone' => 'Referee phone', 'referee_role' => 'Referee role', 'org_type' => 'Organisation type',
         'ctp_code' => 'CTP ID', 'ef_code' => 'Fundi ID', 'hirer_code' => 'Hirer ID',
         'status' => 'Status', 'rejection_reason' => 'Rejection reason',
     ];
+    $trainingNames = \App\Models\Training::pluck('name', 'id');
     $groups = [
         'Personal details' => ['full_name', 'contact_name', 'national_id', 'dob', 'gender', 'email', 'phone'],
         'Location' => ['county', 'sub_county', 'ward', 'village'],
         'Programme' => ['track', 'fundi_tier', 'tier', 'education_level', 'business_name', 'business_reg_no', 'years_in_business',
-                        'specialisations', 'service_counties', 'referral_code', 'org_type', 'organisation'],
+                        'specialisations', 'service_counties', 'training_field_ids', 'referral_code', 'org_type', 'organisation'],
         'Referee' => ['referee_name', 'referee_phone', 'referee_role'],
         'Membership' => ['ctp_code', 'ef_code', 'hirer_code', 'status', 'rejection_reason'],
     ];
     $hidden = ['id', 'created_at', 'updated_at', 'id_scan_path', 'certificate_path', 'passport_photo_path',
-        'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'org_doc_path'];
+        'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'cv_path', 'org_doc_path'];
     $docNames = ['id_scan' => 'National ID scan', 'certificate' => 'School certificate',
-        'passport' => 'Profile photo', 'passport_photo' => 'Profile photo',
+        'passport' => 'Profile photo', 'passport_photo' => 'Profile photo', 'cv' => 'CV',
         'business_cert' => 'Business certificate', 'trade_cert' => 'Trade certificate', 'portfolio' => 'Portfolio photo',
         'org_doc' => 'Organisation document'];
     $data = collect($record->toArray())->except($hidden);
@@ -83,7 +85,11 @@
                     @foreach ($rows as $key => $value)
                         <dt>{{ $labels[$key] ?? \Illuminate\Support\Str::headline($key) }}</dt>
                         <dd>
-                            @if (is_array($value))
+                            @if ($key === 'training_field_ids')
+                                <span class="chips">@foreach ($value as $id)
+                                    <span class="chip">{{ $trainingNames[$id] ?? 'Training #'.$id }}</span>
+                                @endforeach</span>
+                            @elseif (is_array($value))
                                 <span class="chips">@foreach ($value as $v)<span class="chip">{{ \Illuminate\Support\Str::headline((string) $v) }}</span>@endforeach</span>
                             @elseif (in_array($key, ['dob'], true))
                                 {{ \Illuminate\Support\Carbon::parse($value)->format('d M Y') }}

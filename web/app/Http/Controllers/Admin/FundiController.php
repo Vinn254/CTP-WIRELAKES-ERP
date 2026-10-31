@@ -71,6 +71,7 @@ class FundiController extends Controller
             'availabilities' => FundiRegistration::AVAILABILITY,
             'counties' => County::orderBy('name')->pluck('name'),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
+            'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
         ]);
     }
 
@@ -84,6 +85,7 @@ class FundiController extends Controller
         return view('admin.fundi.apply', [
             'tiers' => FundiRegistration::TIERS,
             'specialisations' => FundiRegistration::SPECIALISATIONS,
+            'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
             'counties' => County::orderBy('name')->pluck('name'),
         ]);
     }
@@ -150,7 +152,7 @@ class FundiController extends Controller
             .FundiRegistration::tierLabel($data['tier'])
             .(in_array($data['tier'], Trainer::TEACHING_TIERS, true)
                 ? ' — they can now be put forward to train CTPs at a site.'
-                : ' — a grade below junior fundi cannot train CTPs.'));
+                : ' — this grade works under a senior fundi and does not train CTPs.'));
     }
 
     /** The office can correct availability when a fundi stops answering or finishes a job without saying so. */

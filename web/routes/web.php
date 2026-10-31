@@ -636,6 +636,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
             ->whereNumber('application')->name('applications.show');
         // The teaching list, read by the desks that hire a trainer, pay one, or buy the materials they teach with.
         Route::get('/trainers/in/{department}', [TrainerController::class, 'index'])->name('trainers.index');
+        // The trainings catalogue, read by Website & Membership. It is the one list that office may add to: the
+        // System Administrator can put a new field of training on it from here, which is why the POST is registered.
+        Route::get('/trainings/in/{department}', [TrainingController::class, 'index'])->name('trainings.index');
+        Route::post('/trainings/in/{department}', [TrainingController::class, 'store'])->name('trainings.store');
     });
 });
 

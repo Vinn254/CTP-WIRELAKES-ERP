@@ -90,6 +90,7 @@ class Departments
             ['label' => 'Donations', 'icon' => 'heart', 'route' => ['admin.donations.index']],
             ['label' => 'Public messages', 'icon' => 'mail', 'route' => ['admin.messages.index']],
             ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+            ['label' => 'Trainings', 'icon' => 'award', 'route' => ['admin.host.trainings.index', 'membership']],
             ['label' => 'Trainers', 'icon' => 'award', 'route' => ['admin.host.trainers.index', 'membership'], 'badge' => 'trainers'],
             ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
@@ -265,6 +266,7 @@ class Departments
         'admin.venues.index' => 'Partner schools, community sites and centres that host cohorts',
         'admin.trainers.index' => 'Who takes each training — an E-Fundi, a staff account or an applicant — and what they are paid',
         'admin.host.trainers.index' => 'The same teaching list, read here — who is licensed for what, and where',
+        'admin.host.trainings.index' => 'The trainings on offer, read here — a System Administrator can add a field',
         'admin.registers.index' => 'What the trainers handed in — registers, marks, timetables and lesson plans waiting to be answered',
         'admin.registers.show' => 'One paper read whole, then approved onto the trainees’ records or sent back with what to fix',
         'admin.library.index' => 'Books, notes, slides and PDFs the students read for each course',
@@ -325,6 +327,12 @@ class Departments
         // who is licensed for which training, at which site, on what rate. Training & Certification alone decides
         // an application, so the copies carry no buttons.
         'admin.host.trainers.index' => ['admin.trainers.index', ['membership', 'hr', 'procurement']],
+        // The programme's list of trainings, copied into Website & Membership so the System Administrator can put
+        // another field on it at any time. Reading is all the copy gives a desk without that title — a new training
+        // is still only added by Training & Certification or the System Administrator, and switching one off,
+        // editing one, removing one or setting its modules stays with the owning office.
+        'admin.host.trainings.index' => ['admin.trainings.index', ['membership']],
+        'admin.host.trainings.store' => ['admin.trainings.store', ['membership']],
         'admin.host.inventory.show' => ['admin.inventory.show', ['membership', 'marketplace', 'execution', 'construction']],
         'admin.host.cohorts.show' => ['admin.cohorts.show', ['communities']],
         'admin.host.payouts.show' => ['admin.payouts.show', ['execution', 'construction']],
@@ -423,6 +431,19 @@ class Departments
     {
         return $user !== null && ($user->isSuperAdmin()
             || in_array('hr', $user->departmentSlugs(), true)
+            || in_array('system_administrator', $user->roleSlugs(), true));
+    }
+
+    /**
+     * Who may put a new field on the programme's list of trainings. The catalogue is closed — nothing is invented —
+     * but the founder's rule is that the System Administrator can always extend it: "add mathematics as training
+     * field but system admin should always be able to add more training fields". Training & Certification and the
+     * executive keep the rest of the screen (edits, switching a training off, its modules).
+     */
+    public static function mayExtendCatalogue(?User $user): bool
+    {
+        return $user !== null && ($user->isSuperAdmin()
+            || in_array('training', $user->departmentSlugs(), true)
             || in_array('system_administrator', $user->roleSlugs(), true));
     }
 

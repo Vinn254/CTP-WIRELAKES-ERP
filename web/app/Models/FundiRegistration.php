@@ -28,6 +28,7 @@ class FundiRegistration extends Model
         'attachment' => 'Attachment applicant — still in school, not yet graduated',
         'junior_fundi' => 'Junior Fundi — recent graduate with internship experience',
         'senior_fundi' => 'Senior Fundi — long industry experience',
+        'trainer' => 'Trainer — teaches one of the programme’s training fields and takes CTPs at a site',
     ];
 
     public const SPECIALISATIONS = [
@@ -62,12 +63,15 @@ class FundiRegistration extends Model
      * What each grade is allowed to do in the programme. A senior fundi carries the trade and is
      * the only grade that can train CTPs; a junior, an intern or an attachment applicant works under a
      * senior — they apply for the jobs their grade covers, mobilise in their area and collect e-waste.
+     * A Trainer is graded on the teaching only: they take a site and a cohort, and are handed project work
+     * or junior fundis only once the office also grades them as a fundi.
      */
     public const CAPABILITIES = [
         'senior_fundi' => ['projects', 'supervise', 'mobilise', 'waste', 'train'],
         'junior_fundi' => ['projects', 'mobilise', 'waste'],
         'fundi_intern' => ['projects', 'mobilise', 'waste'],
         'attachment' => ['projects', 'waste'],
+        'trainer' => ['train'],
     ];
 
     /** The card a fundi's own interface is built from: what the ability is and what it opens. */
@@ -90,17 +94,15 @@ class FundiRegistration extends Model
     public const DOCUMENTS = [
         'passport_photo' => 'passport_photo_path',
         'id_scan' => 'id_scan_path',
-        'business_cert' => 'business_cert_path',
-        'trade_certs' => 'trade_cert_paths',
-        'portfolio' => 'portfolio_paths',
+        'cv' => 'cv_path',
     ];
 
     protected $fillable = [
         'reference', 'full_name', 'national_id', 'phone', 'email', 'dob', 'gender',
         'tier', 'county', 'sub_county', 'ward', 'mobilised_by_ctp',
         'business_name', 'business_reg_no', 'years_in_business',
-        'specialisations', 'service_counties', 'referee_name', 'referee_phone', 'referee_role',
-        'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'passport_photo_path',
+        'specialisations', 'service_counties', 'training_field_ids', 'referee_name', 'referee_phone', 'referee_role',
+        'id_scan_path', 'business_cert_path', 'trade_cert_paths', 'portfolio_paths', 'passport_photo_path', 'cv_path',
         'status', 'availability', 'availability_note',
         'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
         'user_id', 'rejection_reason', 'ef_code',
@@ -110,6 +112,7 @@ class FundiRegistration extends Model
         'dob' => 'date',
         'specialisations' => 'array',
         'service_counties' => 'array',
+        'training_field_ids' => 'array',
         'trade_cert_paths' => 'array',
         'portfolio_paths' => 'array',
         'fee_amount' => 'float',
@@ -246,24 +249,26 @@ class FundiRegistration extends Model
             'specialisations.*' => 'in:'.implode(',', self::SPECIALISATIONS),
             'service_counties' => 'required|array|min:1|max:47',
             'service_counties.*' => 'string|max:100',
+            // A Trainer is graded on teaching, so the field they teach is asked for. It comes from the programme's
+            // own training list and is deliberately NOT tied to their trade skills — a Mathematics teacher who also
+            // wires houses is still a Mathematics teacher.
+            'training_field_ids' => 'required_if:tier,trainer|nullable|array|min:1|max:12',
+            'training_field_ids.*' => 'integer|exists:trainings,id',
             'referee_name' => 'nullable|string|max:150',
             'referee_phone' => 'nullable|string|max:20',
             'referee_role' => 'nullable|string|max:150',
             'id_scan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'passport_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
-            'business_cert' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'trade_certs' => 'nullable|array|max:6',
-            'trade_certs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'portfolio' => 'nullable|array|max:6',
-            'portfolio.*' => 'image|mimes:jpg,jpeg,png|max:3072',
+            'cv' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
         ], [
             'national_id.unique' => 'That National ID is already on the E-Fundi register — open that record and reopen it, do not add the person twice.',
             'phone.unique' => 'That phone number is already on the E-Fundi register — open that record instead of adding the person twice.',
             'email.unique' => 'That email is already on the E-Fundi register — open that record instead of adding the person twice.',
+            'training_field_ids.required_if' => 'A Trainer teaches a field — tick the training or trainings they take at a site.',
         ], [
             'national_id' => 'National ID', 'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
-            'years_in_business' => 'Years trading', 'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
-            'passport_photo' => 'Profile photo',
+            'years_in_business' => 'Years trading', 'cv' => 'CV',
+            'passport_photo' => 'Profile photo', 'training_field_ids' => 'Field of training',
         ]);
 
         // One person, one account: the office cannot open a second record for somebody already on the programme.
@@ -278,6 +283,7 @@ class FundiRegistration extends Model
             ...collect($data)->except(array_merge(array_keys(self::DOCUMENTS), ['mobiliser_code']))->all(),
             'specialisations' => array_values(array_unique($data['specialisations'])),
             'service_counties' => array_values(array_unique($data['service_counties'])),
+            'training_field_ids' => array_values(array_unique(array_map('intval', $data['training_field_ids'] ?? []))) ?: null,
         ];
     }
 
@@ -286,16 +292,9 @@ class FundiRegistration extends Model
     {
         $dir = 'registrations/fundi/'.$this->reference;
 
-        foreach (['id_scan' => 'id_scan_path', 'business_cert' => 'business_cert_path', 'passport_photo' => 'passport_photo_path'] as $input => $column) {
+        foreach (self::DOCUMENTS as $input => $column) {
             if ($request->hasFile($input)) {
                 $this->{$column} = $request->file($input)->store($dir, 'local');
-            }
-        }
-
-        foreach (['trade_certs' => 'trade_cert_paths', 'portfolio' => 'portfolio_paths'] as $input => $column) {
-            $files = collect($request->file($input, []))->filter()->map(fn ($f) => $f->store($dir, 'local'))->values()->all();
-            if ($files) {
-                $this->{$column} = array_merge((array) $this->{$column}, $files);
             }
         }
 
@@ -339,7 +338,7 @@ class FundiRegistration extends Model
         return self::CAPABILITIES[$this->tier] ?? [];
     }
 
-    /** A senior fundi is the only grade the programme hands a training cohort to. */
+    /** The grades the programme hands a training cohort to — a Senior Fundi and a Trainer. */
     public function canTrain(): bool
     {
         return $this->can('train');
@@ -357,9 +356,18 @@ class FundiRegistration extends Model
         return $this->trainers()->with(['venue:id,name,type', 'trainings'])->get();
     }
 
+    /** The fields this person says they teach, named from the programme's own training list. */
+    public function trainingFields(): Collection
+    {
+        return filled($this->training_field_ids)
+            ? Training::whereIn('id', $this->training_field_ids)->orderBy('name')->get(['id', 'name'])
+            : new Collection;
+    }
+
     /**
      * The paperwork held on this record, in the order the office reads it. The paths are private —
-     * they only open through the fundi's own file route, never from a url.
+     * they only open through the fundi's own file route, never from a url. A form no longer asks for a business
+     * certificate, trade certificates or a portfolio, but a record that already holds them keeps showing them.
      *
      * @return array<string, array{label: string, path: string}>
      */
@@ -368,6 +376,7 @@ class FundiRegistration extends Model
         $slots = [
             'passport_photo' => ['passport_photo_path', 'Profile photo'],
             'id_scan' => ['id_scan_path', 'National ID scan'],
+            'cv' => ['cv_path', 'CV'],
             'business_cert' => ['business_cert_path', 'Business registration'],
         ];
 

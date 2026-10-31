@@ -45,7 +45,8 @@
                 <option value="{{ $key }}" @selected(old('tier') === $key)>{{ $label }}</option>
             @endforeach
         </select>
-        <div class="help">The grade decides what this fundi can be handed — only a <b>senior fundi</b> can train CTPs.</div>
+        <div class="help">The grade decides what this fundi can be handed — only a <b>Senior Fundi</b> or a
+            <b>Trainer</b> can train CTPs.</div>
     </div>
     <div class="field">
         <label>Years trading</label>
@@ -69,6 +70,18 @@
         </select>
         <div class="help">Hold Ctrl (or Cmd) to pick several. Matching a fundi to a job reads this list.</div>
     </div>
+</div>
+
+<div class="field" style="margin-top:16px;">
+    <label>Field of training they teach</label>
+    <div class="chip-grid">
+        @foreach ($trainings as $t)
+            <label><input type="checkbox" name="training_field_ids[]" value="{{ $t->id }}"
+                @checked(in_array($t->id, array_map('intval', (array) old('training_field_ids', [])), true))> {{ $t->name }}</label>
+        @endforeach
+    </div>
+    <div class="help">Tick at least one for a Trainer. The pick comes from the programme’s training list and is not
+        held to their trade skills — a Mathematics trainer may also wire houses.</div>
 </div>
 
 <h3 style="margin-top:20px;">Where they work</h3>
@@ -132,16 +145,8 @@
         <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf">
     </div>
     <div class="field">
-        <label>Business registration</label>
-        <input type="file" name="business_cert" accept=".jpg,.jpeg,.png,.pdf">
-    </div>
-    <div class="field">
-        <label>Trade certificates (up to 6)</label>
-        <input type="file" name="trade_certs[]" multiple accept=".jpg,.jpeg,.png,.pdf">
-    </div>
-    <div class="field">
-        <label>Portfolio photos (up to 6)</label>
-        <input type="file" name="portfolio[]" multiple accept=".jpg,.jpeg,.png">
+        <label>CV</label>
+        <input type="file" name="cv" accept=".jpg,.jpeg,.png,.pdf">
     </div>
 </div>
 <p class="help">All optional here — attach what is in hand now and finish the file on the record. A public

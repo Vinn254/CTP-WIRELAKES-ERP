@@ -77,6 +77,22 @@
             </fieldset>
 
             <fieldset>
+                <legend>Field of training you teach</legend>
+                <p class="help">Tick the trainings you take at a site. They do not have to be one of your skills above —
+                    a fundi who trains CTPs in Mathematics is still a Mathematics trainer. Tick at least one if you
+                    chose <b>Trainer</b>; leave it empty if you are here for project work.</p>
+                <div class="chip-grid">
+                    @foreach ($trainings as $t)
+                        <label>
+                            <input type="checkbox" name="training_field_ids[]" value="{{ $t->id }}"
+                                @checked(in_array($t->id, array_map('intval', (array) old('training_field_ids', [])), true))>
+                            {{ $t->name }}
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+
+            <fieldset>
                 <legend>Counties you serve <span class="req">*</span></legend>
                 <div class="help" style="margin-bottom:8px;">Select one or more — hold Ctrl (or Cmd) to pick several.</div>
                 <select name="service_counties[]" multiple size="8" required style="height:auto;">
@@ -135,8 +151,8 @@
             </fieldset>
 
             <fieldset>
-                <legend>Documents &amp; portfolio</legend>
-                <p class="help">Only your profile photo and National ID scan are needed. Everything below is optional.</p>
+                <legend>Documents</legend>
+                <p class="help">Only your profile photo and National ID scan are needed. A CV is optional.</p>
                 <div class="form-grid">
                     <div class="field">
                         <label>Profile photo <span class="req">*</span></label>
@@ -148,17 +164,10 @@
                         <input type="file" name="id_scan" accept=".jpg,.jpeg,.png,.pdf" required>
                     </div>
                     <div class="field">
-                        <label>Business certificate <span class="hint">(optional)</span></label>
-                        <input type="file" name="business_cert" accept=".jpg,.jpeg,.png,.pdf">
+                        <label>CV <span class="hint">(optional)</span></label>
+                        <input type="file" name="cv" accept=".jpg,.jpeg,.png,.pdf">
+                        <p class="help">Your work history, if you have one written down. JPG, PNG or PDF, up to 3 MB.</p>
                     </div>
-                </div>
-                <div class="field">
-                    <label>Trade / professional certificates <span class="hint">(optional — up to 6)</span></label>
-                    <input type="file" name="trade_certs[]" multiple accept=".jpg,.jpeg,.png,.pdf">
-                </div>
-                <div class="field">
-                    <label>Portfolio photos of your work <span class="hint">(optional — up to 6)</span></label>
-                    <input type="file" name="portfolio[]" multiple accept=".jpg,.jpeg,.png">
                 </div>
             </fieldset>
 

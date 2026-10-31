@@ -49,9 +49,9 @@
 @include('partials.sheet-start', ['name' => 'add-trainer', 'title' => 'Add a trainer for one site',
     'sub' => 'Put an E-Fundi, a staff account or an applicant on the teaching list.'])
     @if ($fundis->isEmpty() && $staff->isEmpty() && $applicants->isEmpty())
-        <p class="hint" style="margin:10px 0 0;">There is nobody to put forward yet: no active senior fundi, no staff
-            account and no applicant the careers desk is talking to. A fundi can also apply to train from their own
-            portal, and lands here as “Applied”.</p>
+        <p class="hint" style="margin:10px 0 0;">There is nobody to put forward yet: no active Senior Fundi or Trainer,
+            no staff account and no applicant the careers desk is talking to. A fundi can also apply to train from their
+            own portal, and lands here as “Applied”.</p>
     @else
         <form method="POST" action="{{ route('admin.trainers.store') }}" class="fee-form"
               data-confirm="Open a trainer application for this person at the site you chose?" data-title="Add trainer">
@@ -63,10 +63,14 @@
                     <select name="holder" required>
                         <option value="">Choose the person</option>
                         @if ($fundis->isNotEmpty())
-                            <optgroup label="E-Fundi (a senior grade trains)">
+                            <optgroup label="E-Fundi (a Senior Fundi or a Trainer trains)">
                                 @foreach ($fundis as $f)
                                     <option value="fundi:{{ $f->id }}" @selected(old('holder') === 'fundi:'.$f->id)>
                                         {{ $f->full_name }} — {{ $f->ef_code }} ({{ \App\Models\FundiRegistration::tierLabel($f->tier) }})
+                                        @php $wants = collect((array) $f->training_field_ids)->map(fn ($id) => $fieldNames[$id] ?? null)->filter(); @endphp
+                                        @if ($wants->isNotEmpty())
+                                            · wants to teach {{ $wants->join(', ') }}
+                                        @endif
                                         @if ($f->trainers->isNotEmpty())
                                             · already at {{ $f->trainers->map(fn ($t) => ($t->venue->name ?? 'a site').': '.$t->statusLabel())->join(', ') }}
                                         @endif
@@ -93,8 +97,8 @@
                             </optgroup>
                         @endif
                     </select>
-                    <div class="help">The desk is the same for all three. Only an E-Fundi has to be a senior grade —
-                        a staff account or an applicant is licensed by the office here.</div>
+                    <div class="help">The desk is the same for all three. Only an E-Fundi has to be a Senior Fundi or a
+                        Trainer — a staff account or an applicant is licensed by the office here.</div>
                 </div>
                 <div class="field">
                     <label>Site they would train at <span class="req">*</span></label>

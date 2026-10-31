@@ -23,15 +23,19 @@ class RegistrationController extends Controller
         return [Rule::unique($table, $column)];
     }
 
-    /** code => "Label — description" from the CMS, falling back to model constants. */
+    /**
+     * code => "Label — description". The office can reword a grade on the CMS, but a grade the programme's code
+     * carries is always on the form — otherwise a grade added in the app would be missing from the public page
+     * until somebody remembered to edit the site content.
+     */
     private function fundiTiers(): array
     {
-        $out = [];
-        foreach (content_rows('membership', 'fundi_tiers') as $r) {
-            if (empty($r['code'])) continue;
-            $out[$r['code']] = trim(($r['label'] ?? $r['code']).(! empty($r['desc']) ? ' — '.$r['desc'] : ''));
-        }
-        return $out ?: FundiRegistration::TIERS;
+        $typed = collect(content_rows('membership', 'fundi_tiers'))
+            ->filter(fn ($r) => filled($r['code'] ?? null))
+            ->mapWithKeys(fn ($r) => [trim($r['code']) => trim(($r['label'] ?? $r['code'])
+                .(! empty($r['desc']) ? ' — '.$r['desc'] : ''))]);
+
+        return collect(FundiRegistration::TIERS)->merge($typed)->all();
     }
 
     private function ctpTracks(): array
@@ -73,6 +77,7 @@ class RegistrationController extends Controller
         return view('register.fundi', $this->formData() + [
             'tiers' => $this->fundiTiers(),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
+            'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }
@@ -95,28 +100,28 @@ class RegistrationController extends Controller
             'specialisations.*' => 'in:'.implode(',', FundiRegistration::SPECIALISATIONS),
             'service_counties' => 'required|array|min:1',
             'service_counties.*' => 'string|max:100',
+            // A Trainer teaches a field of the programme's own list. It is not held to their trade skills —
+            // somebody who trains CTPs in Mathematics may well also wire houses.
+            'training_field_ids' => 'required_if:tier,trainer|nullable|array|min:1|max:12',
+            'training_field_ids.*' => 'integer|exists:trainings,id',
             // A junior or an attaché fresh from training may have nobody to name yet, so the referee is optional.
             'referee_name' => 'nullable|string|max:150',
             'referee_phone' => 'nullable|string|max:20',
             'referee_role' => 'nullable|string|max:150',
             'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-            'business_cert' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'trade_certs' => 'nullable|array|max:6',
-            'trade_certs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
-            'portfolio' => 'nullable|array|max:6',
-            'portfolio.*' => 'image|mimes:jpg,jpeg,png|max:3072',
+            'cv' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
         ], [], [
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
-            'trade_certs.*' => 'Trade certificate', 'portfolio.*' => 'Portfolio photo',
+            'cv' => 'CV', 'training_field_ids' => 'Field of training',
             'passport_photo' => 'Profile photo',
         ]);
 
         $ref = $this->reference('EF');
         // The same person cannot sit on both registers under different cases or spellings.
         \App\Support\Accounts::guard($data);
-        $files = ['id_scan', 'business_cert', 'trade_certs', 'portfolio', 'passport_photo'];
+        $files = ['id_scan', 'cv', 'passport_photo'];
         $record = collect($data)->except(array_merge($files, ['mobiliser_code']))->all();
         $record['mobilised_by_ctp'] = CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id;
         $record['reference'] = $ref;
@@ -124,6 +129,7 @@ class RegistrationController extends Controller
         $record['status'] = 'pending_review';
         $record['specialisations'] = array_values(array_unique($data['specialisations']));
         $record['service_counties'] = array_values(array_unique($data['service_counties']));
+        $record['training_field_ids'] = array_values(array_unique(array_map('intval', $data['training_field_ids'] ?? []))) ?: null;
 
         $fundi = FundiRegistration::create($record);
 
@@ -135,11 +141,9 @@ class RegistrationController extends Controller
         if ($request->hasFile('id_scan')) {
             $fundi->id_scan_path = $store($request->file('id_scan'));
         }
-        if ($request->hasFile('business_cert')) {
-            $fundi->business_cert_path = $store($request->file('business_cert'));
+        if ($request->hasFile('cv')) {
+            $fundi->cv_path = $store($request->file('cv'));
         }
-        $fundi->trade_cert_paths = collect($request->file('trade_certs', []))->filter()->map($store)->values()->all();
-        $fundi->portfolio_paths = collect($request->file('portfolio', []))->filter()->map($store)->values()->all();
         $fundi->save();
 
         return redirect()->route('register.success', ['type' => 'fundi', 'reference' => $ref]);

@@ -258,7 +258,7 @@ class _EfundiScreenState extends State<EfundiScreen> {
                 'they edit this record. Nothing is deleted.',
             child: r.documents.isEmpty
                 ? const Text('Nothing was uploaded with your application. Ask the programme office '
-                    'to add a trade certificate or portfolio — they are recorded on your E-Fundi file.',
+                    'to add your CV or certificates — they are recorded on your E-Fundi file.',
                     style: TextStyle(color: muted, fontSize: 13))
                 : Column(
                     children: [

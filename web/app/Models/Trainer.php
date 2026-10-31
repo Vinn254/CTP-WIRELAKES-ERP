@@ -27,10 +27,10 @@ class Trainer extends Model
         'suspended' => 'Suspended',
     ];
 
-    /** Only a senior fundi carries the trade far enough to teach it. A junior, intern or
-     *  attachment applicant works under a senior — they do not run a cohort. The rule is checked only
-     *  of an E-Fundi holder: a staff account or an accepted applicant is licensed by the office directly. */
-    public const TEACHING_TIERS = ['senior_fundi'];
+    /** A senior fundi carries the trade far enough to teach it, and a Trainer is graded on the teaching itself.
+     *  A junior, an intern or attachment applicant works under a senior — they do not run a cohort. The rule is
+     *  checked only of an E-Fundi holder: a staff account or an accepted applicant is licensed by the office directly. */
+    public const TEACHING_TIERS = ['senior_fundi', 'trainer'];
 
     /** Whoever stands behind a teaching posting. The desk is the same for all three — only the record holding
      *  the person differs, so a programme's trainers are never split across three different screens. */
