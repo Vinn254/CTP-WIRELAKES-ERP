@@ -7,6 +7,7 @@ use App\Models\Donation;
 use App\Models\Partner;
 use App\Models\WorkOrder;
 use App\Support\MemberPortal;
+use App\Support\ProgrammeMail;
 use App\Support\SafeUrl;
 use App\Support\Uploads;
 use Illuminate\Http\Request;
@@ -121,7 +122,7 @@ class PageController extends Controller
 
     public function contact()
     {
-        return view('pages.contact');
+        return view('pages.contact', ['topics' => ProgrammeMail::topics()]);
     }
 
     public function storeContact(Request $request)
@@ -130,11 +131,15 @@ class PageController extends Controller
             'name' => 'required|string|max:120',
             'email' => 'required|email|max:120',
             'phone' => 'nullable|string|max:20',
+            'topic' => 'required|string|in:'.implode(',', array_keys(ProgrammeMail::topics())),
             'message' => 'required|string|max:2000',
-        ]);
+        ], ['topic.required' => 'Choose what your message is about so it reaches the right desk.'],
+            ['topic' => 'What it is about']);
 
-        ContactMessage::create($request->all());
+        $note = ContactMessage::create($request->all());
+        ProgrammeMail::notifyOffice($note);
 
-        return back()->with('status', 'Message received — we will get back to you shortly.');
+        return back()->with('status', 'Message received — it has gone to the '.$note->topicLabel().' desk. '
+            .'We will get back to you shortly.');
     }
 }

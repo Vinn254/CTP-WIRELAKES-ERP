@@ -17,17 +17,23 @@ use Throwable;
  */
 class OfficeAlert
 {
-    /** The addresses the programme is run from. */
+    /**
+     * The addresses the programme is run from. The director's mailbox is always on it, because a notice that only
+     * reaches a staff account is invisible the day that account is switched off.
+     */
     public static function recipients(): array
     {
-        return User::query()->where('role', 'superadmin')->where('active', true)
-            ->whereNotNull('email')->pluck('email')->all();
+        $to = array_values(array_filter([ProgrammeMail::director()]));
+
+        return array_values(array_unique(array_merge($to, User::query()->where('role', 'superadmin')->where('active', true)
+            ->whereNotNull('email')->pluck('email')->all())));
     }
 
-    /** Announce a new CTP or E-Fundi application to the office. */
+    /** Announce a new CTP or E-Fundi application to the office and to the desk that runs that register. */
     public static function newMember(Model $member, string $what): void
     {
-        $to = static::recipients();
+        $to = array_values(array_unique(array_merge(static::recipients(),
+            ProgrammeMail::route($what === 'CTP' ? 'promoters' : 'efundi'))));
 
         if (! $to) {
             return;
@@ -50,7 +56,7 @@ class OfficeAlert
         // the area desk gets its own copy of the line.
         static::mailApplication($application, static::recipients(), route('admin.applications.index'));
 
-        $areaUsers = Departments::staffEmails(ProgrammeAreas::department($application->area));
+        $areaUsers = ProgrammeMail::route(ProgrammeAreas::department($application->area));
         static::mailApplication($application, $areaUsers, route('admin.host.applications.show', [
             'application' => $application->id,
             'department' => ProgrammeAreas::department($application->area),

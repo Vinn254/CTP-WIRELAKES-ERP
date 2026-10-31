@@ -7,6 +7,7 @@ use App\Models\CtpRegistration;
 use App\Models\Setting;
 use App\Support\Finance;
 use App\Support\MailCheck;
+use App\Support\ProgrammeMail;
 use Illuminate\Http\Request;
 
 /**
@@ -28,6 +29,7 @@ class ProgrammeController extends Controller
 
         return view('admin.me-gis.settings', [
             'rows' => $rows,
+            'mailboxes' => ProgrammeMail::rows(),
             'canEdit' => Finance::isExecutive(),
             'mobilisation' => CtpRegistration::MOBILISATION_TIERS,
             'mail' => MailCheck::settings(),
@@ -53,14 +55,19 @@ class ProgrammeController extends Controller
         abort_unless(Finance::isExecutive(), 403,
             'Programme settings are changed by a programme executive. Staff can see the current values.');
 
+        // The desk mailboxes ride on the same form, so a bad address is caught before anything is written.
+        $boxes = ProgrammeMail::rows();
+
         $data = $request->validate(
             collect(Setting::EDITABLE)->mapWithKeys(fn ($meta, $key) => [$key => match ($meta['type']) {
                 'money' => 'required|numeric|min:0|max:10000000',
                 'flag' => 'required|in:on,off',
                 default => 'required|string|max:190',
-            }])->all(),
-            [],
-            collect(Setting::EDITABLE)->mapWithKeys(fn ($meta, $key) => [$key => $meta['label']])->all()
+            }])
+                ->merge(collect($boxes)->mapWithKeys(fn ($row) => [$row['key'] => 'nullable|email|max:160']))->all(),
+            ['email' => 'The mailbox :attribute is not an email address.'],
+            collect(Setting::EDITABLE)->mapWithKeys(fn ($meta, $key) => [$key => $meta['label']])
+                ->merge(collect($boxes)->mapWithKeys(fn ($row) => [$row['key'] => $row['label']]))->all()
         );
 
         foreach (Setting::EDITABLE as $key => $meta) {
@@ -69,6 +76,16 @@ class ProgrammeController extends Controller
 
             if ($value !== $current) {
                 Setting::set($key, $meta['type'] === 'money' ? (string) (float) $value : $value);
+            }
+        }
+
+        foreach ($boxes as $row) {
+            $value = mb_strtolower(trim((string) ($data[$row['key']] ?? '')));
+
+            if ($value === '') {
+                Setting::where('key', $row['key'])->delete(); // blank means the desk falls back, it is not switched off
+            } elseif ($value !== (string) Setting::get($row['key'], '')) {
+                Setting::set($row['key'], $value);
             }
         }
 

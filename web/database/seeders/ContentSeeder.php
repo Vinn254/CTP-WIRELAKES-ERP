@@ -26,7 +26,7 @@ class ContentSeeder extends Seeder
 
         $this->put('site', 'contact', 'Contact details', 'single',
             ['email' => ['Email', 'text'], 'phone' => ['Phone', 'text'], 'address' => ['Address', 'textarea']],
-            [['email' => 'info@ctp-wirelakes.ke', 'phone' => '+254 700 000 000', 'address' => "WireLakes Technologies\nKisumu, Kenya"]]);
+            [['email' => 'info@wirelakestechnologies.com', 'phone' => '+254 700 000 000', 'address' => "WireLakes Technologies\nKisumu, Kenya"]]);
 
         $this->put('site', 'footer', 'Footer', 'single',
             ['about_text' => ['About blurb', 'textarea'], 'fine_print' => ['Copyright line', 'text']],
@@ -159,7 +159,7 @@ class ContentSeeder extends Seeder
 
         $this->put('contact', 'office', 'Office card', 'single',
             ['card_title' => ['Card title', 'text'], 'address' => ['Address lines', 'textarea'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'], 'faq_note' => ['FAQ link note', 'text']],
-            [['card_title' => 'Kisumu head office', 'address' => "WireLakes Technologies\nKisumu, Kenya", 'phone' => '+254 700 000 000', 'email' => 'info@ctp-wirelakes.ke', 'faq_note' => 'Read the FAQ first? Many answers are there →']]);
+            [['card_title' => 'Kisumu head office', 'address' => "WireLakes Technologies\nKisumu, Kenya", 'phone' => '+254 700 000 000', 'email' => 'info@wirelakestechnologies.com', 'faq_note' => 'Read the FAQ first? Many answers are there →']]);
 
         $this->put('contact', 'form', 'Message form heading', 'single',
             ['title' => ['Title', 'text']],

@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
 
         Setting::updateOrCreate(['key' => 'membership_fee_ctp'], ['value' => '1000']);
         Setting::updateOrCreate(['key' => 'membership_fee_fundi'], ['value' => '1000']);
-        Setting::updateOrCreate(['key' => 'programme_email'], ['value' => 'info@ctp-wirelakes.ke']);
+        Setting::updateOrCreate(['key' => 'programme_email'], ['value' => 'info@wirelakestechnologies.com']);
         Setting::updateOrCreate(['key' => 'programme_phone'], ['value' => '+254 700 000 000']);
 
         // The first account comes from the environment, never from this file. Leave both keys empty on a real

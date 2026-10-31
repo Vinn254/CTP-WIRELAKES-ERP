@@ -37,6 +37,20 @@
             </div>
         @endforeach
 
+        <h2 class="sec-title">Where each desk is answered</h2>
+        <p class="help">Type the mailbox the office actually reads for that module. Leave one blank and the notice
+            keeps going to the staff accounts holding that module — a mailbox adds a reader, it never removes one.</p>
+        <div class="form-grid-2">
+            @foreach ($mailboxes as $box)
+                <div class="field">
+                    <label for="{{ $box['key'] }}">{{ $box['label'] }}</label>
+                    <input type="email" id="{{ $box['key'] }}" name="{{ $box['key'] }}" maxlength="160"
+                           value="{{ old($box['key'], $box['value']) }}" @disabled(! $canEdit)>
+                    <div class="help">{{ $box['read'] }}</div>
+                </div>
+            @endforeach
+        </div>
+
         @if ($canEdit)
             <button class="btn btn-primary" type="submit">Save the programme settings</button>
         @endif

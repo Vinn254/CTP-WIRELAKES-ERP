@@ -9,7 +9,7 @@
         <div class="card">
             <h3>{{ content('contact','office','card_title','Kisumu head office') }}</h3>
             <p>{!! nl2br(e(content('contact','office','address',"WireLakes Technologies\nKisumu, Kenya"))) !!}</p>
-            <p>📞 {{ content('contact','office','phone','+254 700 000 000') }}<br>✉️ <a href="mailto:{{ $officeEmail = content('contact','office','email','info@ctp-wirelakes.ke') }}">{{ $officeEmail }}</a></p>
+            <p>📞 {{ content('contact','office','phone','+254 700 000 000') }}<br>✉️ <a href="mailto:{{ $officeEmail = content('contact','office','email','info@wirelakestechnologies.com') }}">{{ $officeEmail }}</a></p>
         </div>
         <p style="margin-top:16px;"><a class="btn btn-outline" href="{{ route('faq') }}">{{ content('contact','office','faq_note','Read the FAQ first? Many answers are there →') }}</a></p>
     </div>
@@ -31,6 +31,16 @@
             <div class="field">
                 <label>Email <span class="req">*</span></label>
                 <input type="email" name="email" value="{{ old('email') }}" required>
+            </div>
+            <div class="field">
+                <label>What is it about? <span class="req">*</span></label>
+                <select name="topic" required>
+                    <option value="">Choose a desk</option>
+                    @foreach ($topics as $slug => $label)
+                        <option value="{{ $slug }}" @selected(old('topic') === $slug)>{{ $label }}</option>
+                    @endforeach
+                </select>
+                <p class="help">Your message goes straight to the office that answers for this.</p>
             </div>
             <div class="field">
                 <label>Message <span class="req">*</span></label>

@@ -4,7 +4,7 @@
     $brandName = content('site','branding','brand_name','WireLakes Technologies');
     $themeGreen = content('site','branding','theme_green','#066722');
     $themeLime = content('site','branding','theme_lime','#4cb614');
-    $siteEmail = content('site','contact','email','info@ctp-wirelakes.ke');
+    $siteEmail = content('site','contact','email','info@wirelakestechnologies.com');
     $heroPhoto = content('site','backgrounds','hero_photo');
     $pagePhoto = content('site','backgrounds','page_photo');
     $photoDark = min(max((float) content('site','backgrounds','photo_darkness','0.66'), 0.3), 0.85);
