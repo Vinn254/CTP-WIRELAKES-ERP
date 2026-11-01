@@ -233,6 +233,8 @@ class ProgrammeAreas
         $links = array_merge(self::AREAS[$slug]['quick'] ?? [], [
             ['label' => 'Become a student — register as a CTP', 'url' => '/register/ctp', 'class' => 'btn-primary'],
             ['label' => 'Register as a Fundi (E-Fundi)', 'url' => '/register/fundi', 'class' => 'btn-lime'],
+            // A Trainer is an E-Fundi grade, so the same register takes them in with that grade already picked.
+            ['label' => 'Teach for us — register as a Trainer', 'url' => '/register/fundi?tier=trainer', 'class' => 'btn-lime'],
             ['label' => 'Apply for a job — Careers', 'url' => '/careers', 'class' => 'btn-outline'],
             ['label' => 'Already registered? Log in', 'url' => '/login', 'class' => 'btn-ghost'],
         ]);
@@ -241,8 +243,8 @@ class ProgrammeAreas
 
         return collect($links)
             ->filter(function (array $link) use ($slug, &$seen) {
-                $key = parse_url($link['url'], PHP_URL_PATH);
-                if (isset($seen[$key]) || $key === '/'.self::route($slug)) {
+                $key = $link['url'];
+                if (isset($seen[$key]) || parse_url($key, PHP_URL_PATH) === '/'.self::route($slug)) {
                     return false;
                 }
 

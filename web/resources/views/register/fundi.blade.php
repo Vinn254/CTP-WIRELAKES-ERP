@@ -58,7 +58,7 @@
                 <legend>Which category describes you? <span class="req">*</span></legend>
                 @foreach ($tiers as $key => $label)
                     <label class="tier-option">
-                        <input type="radio" name="tier" value="{{ $key }}" @checked(old('tier') === $key) required>
+                        <input type="radio" name="tier" value="{{ $key }}" @checked(old('tier', $tierPreset) === $key) required>
                         <span><b>{{ Str::before($label, ' —') }}</b><small>{{ Str::after($label, ' — ') }}</small></span>
                     </label>
                 @endforeach

@@ -63,11 +63,16 @@ class RegistrationController extends Controller
 
     public function fundiForm(Request $request)
     {
+        $tiers = $this->fundiTiers();
+        $asked = trim((string) $request->query('tier'));
+
         return view('register.fundi', $this->formData() + [
-            'tiers' => $this->fundiTiers(),
+            'tiers' => $tiers,
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
+            // A page that sent them here for one grade leaves that grade already chosen on the form.
+            'tierPreset' => isset($tiers[$asked]) ? $asked : '',
         ]);
     }
 
