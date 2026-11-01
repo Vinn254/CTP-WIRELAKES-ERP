@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use App\Models\Partner;
+use App\Models\Training;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -47,6 +48,8 @@ class RegistrationController extends Controller
     {
         return view('register.ctp', $this->formData() + [
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
+            // The student picks the training they want from the programme's own list; choosing nothing is allowed.
+            'trainings' => Training::active()->orderBy('name')->get(['id', 'name', 'code']),
             'refPrefill' => Str::upper(trim((string) $request->query('ref'))),
         ]);
     }

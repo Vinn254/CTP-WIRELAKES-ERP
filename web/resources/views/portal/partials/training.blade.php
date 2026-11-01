@@ -233,6 +233,8 @@
 <div class="card">
     <h3>Your training record</h3>
     <dl class="kv">
+        <dt>Your programme</dt>
+        <dd>@if ($member->programme)<span class="chip">{{ $member->programme->name }}</span>@else<span class="hint">Not placed yet — the office picks your training when it reviews your application.</span>@endif</dd>
         <dt>Highest education</dt><dd>{{ $member->educationLabel() }}</dd>
         <dt>Year left school</dt><dd>{{ $member->year_left_school ?: '—' }}</dd>
         <dt>Certificates held</dt>

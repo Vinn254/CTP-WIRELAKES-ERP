@@ -78,6 +78,17 @@
         </select>
     </div>
     <div class="field">
+        <label>Programme (the training they want)</label>
+        <select name="training_id">
+            <option value="">Not chosen — the office will place them</option>
+            @foreach ($trainings as $t)
+                <option value="{{ $t->id }}" @selected((string) old('training_id') === (string) $t->id)>{{ $t->name }}</option>
+            @endforeach
+        </select>
+        <div class="help">From the trainings the programme runs. A student who chose nothing on their form is placed
+            here or at the Registrar's desk.</div>
+    </div>
+    <div class="field">
         <label>Mobilising CTP code (if any)</label>
         <input type="text" name="referral_code" value="{{ old('referral_code') }}" maxlength="20" placeholder="CTP-0001">
         <div class="help">The promoter who brought this person in. Counts toward their 15 / 30 credit; self-referral is dropped.</div>

@@ -35,6 +35,7 @@
         <p class="sub ctp-term">
             @if ($isCtp)
                 {{ $member->trackLabel() }} · current term <b>{{ $term['label'] }}</b>
+                · {{ $member->programme?->name ?: 'waiting on your programme' }}
             @else
                 Projects at your level are shown under <b>My projects</b>
             @endif

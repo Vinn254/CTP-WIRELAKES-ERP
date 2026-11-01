@@ -5,8 +5,8 @@
 <section class="section" style="max-width:860px;margin:34px auto;">
     <span class="tag">Student (CTP)</span>
     <h1>Apply as a student</h1>
-    <p class="sub">A short form. After approval you get a CTP ID and a portal login; the office records your track and
-        your papers as it reviews you.</p>
+    <p class="sub">A short form. Choose the training you want a place on. After approval you get a CTP ID and a portal
+        login; the office records your track and your papers as it reviews you.</p>
     <div class="steps">
         <span class="step now">1 · Fill the form</span>
         <span class="step">2 · Review by the office</span>
@@ -65,6 +65,23 @@
                 <div class="field">
                     <label>Ward <span class="req">*</span></label>
                     <input type="text" name="ward" value="{{ old('ward') }}" required>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>The training you want</legend>
+                <div class="field">
+                    <label>Programme</label>
+                    <select name="training_id">
+                        <option value="">Not sure yet — let the office place me</option>
+                        @foreach ($trainings as $t)
+                            <option value="{{ $t->id }}" @selected((string) old('training_id') === (string) $t->id)>
+                                {{ $t->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="help">Pick the training you want a place on. These are the programmes the college runs
+                        with its partner sites. If you are not sure, leave it — the Academic Registrar or the System
+                        Administrator will place you on one when the office reviews your application.</p>
                 </div>
             </fieldset>
 

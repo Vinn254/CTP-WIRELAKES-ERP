@@ -25,6 +25,7 @@
         <p class="ah-meta">
             <span class="tag">{{ $ctp->ctp_code ?: 'ID not issued yet' }}</span>
             <span>{{ $ctp->trackLabel() }}</span>
+            @if ($ctp->programme)<span class="tag">{{ $ctp->programme->name }}</span>@endif
             @if ($ctp->fundi_tier)
                 <span class="tag gold">Moved on as a {{ $ctp->gradeLabel() }}</span>
             @endif
@@ -117,6 +118,41 @@
                             : 'The office picks the track when it reviews this application.') }}</div>
                 </dd>
             </dl>
+        </div>
+
+        <div class="card">
+            <h3>Programme</h3>
+            <dl class="kv">
+                <dt>Training placed on</dt>
+                <dd>
+                    @if ($ctp->programme)
+                        <span class="chip">{{ $ctp->programme->name }}</span>
+                        <div class="hint">The classes, the reading on the library and the certificate all follow this training.</div>
+                    @else
+                        <span class="hint">Not placed yet.</span>
+                        <div class="hint">Pick it on the application form, or place the student here — this office, the
+                            Academic Registrar and the System Administrator all can.</div>
+                    @endif
+                </dd>
+            </dl>
+
+            @if (Departments::assignsProgramme($me))
+                <form method="POST" action="{{ dept_link('admin.promoters.programme', ['ctp' => $ctp]) }}"
+                      class="mini-form" data-title="Programme"
+                      data-confirm="Place {{ $ctp->full_name }} on this training? Their class list and reading follow it.">
+                    @csrf
+                    <div class="field">
+                        <label>Programme</label>
+                        <select name="training_id">
+                            <option value="">No programme — leave the choice open</option>
+                            @foreach ($trainings as $t)
+                                <option value="{{ $t->id }}" @selected($ctp->training_id === $t->id)>{{ $t->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button class="btn btn-sm btn-primary" type="submit">Save placement</button>
+                </form>
+            @endif
         </div>
 
         <div class="card">

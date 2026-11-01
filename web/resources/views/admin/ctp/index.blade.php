@@ -66,6 +66,7 @@
                     <div class="hint">{{ $c->phone }} · {{ $c->email }}</div>
                 </td>
                 <td><span class="tag">{{ $c->trackLabel() }}</span>
+                    @if ($c->programme)<div class="hint">{{ $c->programme->name }}</div>@endif
                     @if ($c->fundi_tier)<div class="hint">reads as {{ $c->gradeLabel() }}</div>@endif</td>
                 <td>{{ $c->county }}<div class="hint">{{ collect([$c->sub_county, $c->ward])->filter()->join(', ') }}</div></td>
                 <td>{{ $c->mobilised_count }}</td>

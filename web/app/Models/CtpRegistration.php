@@ -67,7 +67,7 @@ class CtpRegistration extends Model
         'reference', 'full_name', 'national_id', 'phone', 'email', 'dob', 'gender',
         'county', 'sub_county', 'ward', 'village', 'gps_lat', 'gps_lng',
         'education_level', 'year_left_school', 'certificates_held',
-        'track', 'fundi_tier', 'referral_code', 'referred_by', 'referred_at',
+        'track', 'training_id', 'fundi_tier', 'referral_code', 'referred_by', 'referred_at',
         'id_scan_path', 'certificate_path', 'passport_photo_path',
         'service_counties', 'available_for_mobilisation', 'trainer_opt_in',
         'status', 'status_note', 'fee_status', 'fee_amount', 'fee_method', 'fee_reference', 'fee_paid_at',
@@ -230,6 +230,9 @@ class CtpRegistration extends Model
             'village' => $asked.'|string|max:100',
             'education_level' => $asked.'|in:'.implode(',', array_keys(self::EDUCATION_LEVELS)),
             'track' => $asked.'|in:'.implode(',', array_keys(self::TRACKS)),
+            // What the student wants to be trained in. Optional on purpose: a person who cannot choose is placed
+            // on a programme by the Academic Registrar or the System Administrator when the office reviews them.
+            'training_id' => 'nullable|integer|exists:trainings,id',
             'referral_code' => 'nullable|string|max:20',
             'sponsor_id' => 'nullable|integer|exists:partners,id',
             'sponsor_name' => 'nullable|string|max:150',
@@ -246,6 +249,7 @@ class CtpRegistration extends Model
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'passport_photo' => 'Profile photo', 'dob' => 'Date of birth',
             'sub_county' => 'Sub-county', 'sponsor_id' => 'Sponsoring partner',
+            'training_id' => 'Programme',
             'sponsor_name' => 'Sponsor name', 'sponsor_contact' => 'Sponsor contact',
         ];
     }
@@ -385,6 +389,17 @@ class CtpRegistration extends Model
     {
         // A student the office has not processed yet has no track, and every screen still has to say so plainly.
         return self::TRACKS[$this->track] ?? (Str::headline((string) $this->track) ?: 'Not recorded yet');
+    }
+
+    /** The training this student is applying for, or the one the office has placed them on. */
+    public function programme(): BelongsTo
+    {
+        return $this->belongsTo(Training::class, 'training_id');
+    }
+
+    public function programmeLabel(): string
+    {
+        return $this->programme?->name ?: 'No programme chosen yet';
     }
 
     public function educationLabel(): string

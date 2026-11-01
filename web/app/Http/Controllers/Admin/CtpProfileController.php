@@ -98,6 +98,7 @@ class CtpProfileController extends Controller
                 ->where('id', '!=', $ctp->id)
                 ->orderBy('full_name')->get(['id', 'ctp_code', 'full_name']),
             'tiers' => Project::CTP_POOL_TIERS,
+            'trainings' => \App\Models\Training::active()->orderBy('name')->get(['id', 'name']),
             'invite' => AccountInvite::where('member_type', 'ctp')->where('member_id', $ctp->id)->first(),
         ]);
     }
@@ -214,6 +215,8 @@ class CtpProfileController extends Controller
         return [
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
+            // The training a student is placed on comes off the programme's own catalogue.
+            'trainings' => \App\Models\Training::active()->orderBy('name')->get(['id', 'name']),
             'tracks' => $tracks ?: collect(CtpRegistration::TRACKS)->map(fn ($l) => ['label' => $l, 'desc' => ''])->all(),
         ];
     }
@@ -391,6 +394,28 @@ class CtpProfileController extends Controller
         ReviewActions::setPoolTier($ctp, $data['fundi_tier'] ?? null);
 
         return back()->with('status', $ctp->full_name.' now reads as '.$ctp->gradeLabel().' and sees their projects.');
+    }
+
+    /**
+     * Which of the programme's trainings this student is placed on. The applicant picks it on their form; a person
+     * who could not choose waits for this decision, taken by the CTP Promoters office, the Academic Registrar or the
+     * System Administrator. Setting it again overwrites the old placement — one record, never two.
+     */
+    public function assignProgramme(Request $request, CtpRegistration $ctp)
+    {
+        abort_unless(Departments::assignsProgramme($request->user()), 403,
+            'The CTP Promoters office, the Academic Registrar or the System Administrator places a student on a training.');
+
+        $data = $request->validate(
+            ['training_id' => 'nullable|integer|exists:trainings,id'],
+            [],
+            ['training_id' => 'Programme']
+        );
+
+        $ctp->update(['training_id' => $data['training_id'] ?? null]);
+
+        return back()->with('status', $ctp->full_name.' is placed on '
+            .($ctp->programme ? $ctp->programme->name : 'no programme yet — the choice is left open').'.');
     }
 
     private function documents(CtpRegistration $ctp): array

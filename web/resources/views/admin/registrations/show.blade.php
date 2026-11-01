@@ -11,6 +11,7 @@
         'email' => 'Email', 'dob' => 'Date of birth', 'gender' => 'Gender',
         'county' => 'County', 'sub_county' => 'Sub-county', 'ward' => 'Ward', 'village' => 'Village',
         'education_level' => 'Education level', 'track' => 'Track', 'referral_code' => 'Referral code',
+        'training_id' => 'Programme',
         'fundi_tier' => 'Fundi pool',
         'tier' => 'Fundi tier', 'business_name' => 'Business name', 'business_reg_no' => 'Business reg no.',
         'years_in_business' => 'Years in business', 'specialisations' => 'Specialisations',
@@ -24,7 +25,7 @@
     $groups = [
         'Personal details' => ['full_name', 'contact_name', 'national_id', 'dob', 'gender', 'email', 'phone'],
         'Location' => ['county', 'sub_county', 'ward', 'village'],
-        'Programme' => ['track', 'fundi_tier', 'tier', 'education_level', 'business_name', 'business_reg_no', 'years_in_business',
+        'Programme' => ['track', 'training_id', 'fundi_tier', 'tier', 'education_level', 'business_name', 'business_reg_no', 'years_in_business',
                         'specialisations', 'service_counties', 'training_field_ids', 'referral_code', 'org_type', 'organisation'],
         'Referee' => ['referee_name', 'referee_phone', 'referee_role'],
         'Membership' => ['ctp_code', 'ef_code', 'hirer_code', 'status', 'rejection_reason'],
@@ -88,7 +89,9 @@
                     @foreach ($rows as $key => $value)
                         <dt>{{ $labels[$key] ?? \Illuminate\Support\Str::headline($key) }}</dt>
                         <dd>
-                            @if ($key === 'training_field_ids')
+                            @if ($key === 'training_id')
+                                <span class="chip">{{ $trainingNames[$value] ?? 'Training #'.$value }}</span>
+                            @elseif ($key === 'training_field_ids')
                                 <span class="chips">@foreach ($value as $id)
                                     <span class="chip">{{ $trainingNames[$id] ?? 'Training #'.$id }}</span>
                                 @endforeach</span>

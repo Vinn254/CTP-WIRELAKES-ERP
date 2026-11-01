@@ -329,6 +329,9 @@ class Departments
         'admin.host.projects.show' => ['admin.projects.show', ['marketplace', 'execution', 'construction', 'communities', 'promoters', 'efundi']],
         'admin.host.projects.index' => ['admin.projects.index', ['marketplace', 'execution', 'construction']],
         'admin.host.promoters.show' => ['admin.promoters.show', ['membership', 'communities', 'training', 'hr', 'finance']],
+        // Placing a student on one of the programme's trainings is the Registrar's and the System Administrator's
+        // decision as much as the CTP Promoters', so those desks write it from their own copy of the record.
+        'admin.host.promoters.programme' => ['admin.promoters.programme', ['training', 'membership']],
         'admin.host.communities.show' => ['admin.communities.show', ['membership', 'training', 'marketplace', 'execution', 'construction']],
         'admin.host.fundis.show' => ['admin.fundis.show', ['marketplace', 'execution', 'training', 'hr', 'finance']],
         // The office that hires a trainer, buys their materials or runs the accounts reads the same teaching list —
@@ -489,6 +492,19 @@ class Departments
     public static function mayExtendCatalogue(?User $user): bool
     {
         return $user !== null && ($user->isSuperAdmin()
+            || in_array('training', $user->departmentSlugs(), true)
+            || in_array('system_administrator', $user->roleSlugs(), true));
+    }
+
+    /**
+     * Who places a student on one of the programme's trainings. A person who chose nothing on the application waits
+     * for this decision: the Academic Registrar's office and the System Administrator assign the programme, and the
+     * CTP Promoters office sets it as it types an application in at the counter.
+     */
+    public static function assignsProgramme(?User $user): bool
+    {
+        return $user !== null && ($user->isSuperAdmin()
+            || in_array('promoters', $user->departmentSlugs(), true)
             || in_array('training', $user->departmentSlugs(), true)
             || in_array('system_administrator', $user->roleSlugs(), true));
     }

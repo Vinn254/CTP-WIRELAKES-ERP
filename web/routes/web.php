@@ -289,6 +289,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/promoters/{ctp}/reject', [CtpProfileController::class, 'reject'])->whereNumber('ctp')->name('promoters.reject');
     Route::post('/promoters/{ctp}/reissue', [CtpProfileController::class, 'reissue'])->whereNumber('ctp')->name('promoters.reissue');
     Route::post('/promoters/{ctp}/tier', [CtpProfileController::class, 'setTier'])->whereNumber('ctp')->name('promoters.tier');
+    // Which training this student is placed on. The applicant picks it on the form; when they could not choose, the
+    // Academic Registrar or the System Administrator decides it here.
+    Route::post('/promoters/{ctp}/programme', [CtpProfileController::class, 'assignProgramme'])->whereNumber('ctp')->name('promoters.programme');
 
     // Module 3 — Community Management. Communities, their needs pipeline and their beneficiaries.
     Route::get('/communities', [CommunityController::class, 'index'])->name('communities.index');
@@ -625,6 +628,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         Route::get('/projects/in/{department}', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}/in/{department}', [ProjectController::class, 'show'])->whereNumber('project')->name('projects.show');
         Route::get('/promoters/{ctp}/in/{department}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
+        // Placing a student on a training is the one decision on this record the Registrar and the System
+        // Administrator make, so the desk that holds that duty is given the button on its own copy.
+        Route::post('/promoters/{ctp}/programme/in/{department}', [CtpProfileController::class, 'assignProgramme'])
+            ->whereNumber('ctp')->name('promoters.programme');
         Route::get('/communities/{community}/in/{department}', [CommunityController::class, 'show'])->whereNumber('community')->name('communities.show');
         Route::get('/fundis/{fundi}/in/{department}', [FundiController::class, 'show'])->whereNumber('fundi')->name('fundis.show');
         Route::get('/cohorts/{cohort}/in/{department}', [CohortController::class, 'show'])->whereNumber('cohort')->name('cohorts.show');
