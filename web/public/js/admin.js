@@ -313,6 +313,14 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') document.querySelectorAll('.sheet.open').forEach(close);
     });
+
+    // An Edit button on a register may point at the card that lives on the record's own page: #sheet-<name>.
+    document.addEventListener('DOMContentLoaded', function () {
+        var hash = location.hash || '';
+        if (hash.indexOf('#sheet-') !== 0) return;
+        var el = card(decodeURIComponent(hash.slice(7)));
+        if (el) show(el);
+    });
 })();
 
 // Every office page prints and leaves as a spreadsheet from the two buttons in the header.
@@ -362,13 +370,7 @@
         });
     }
 
-    // A page that carries two registers gets them one under the other, with a clear line between.
-    function exportCsv() {
-        var list = tables();
-        if (!list.length) return;
-        var sheet = list.map(body).join('\r\n\r\n');
-        var head = document.querySelector('.admin-topbar h1');
-        var name = ((head && head.innerText) || 'office').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'office';
+    function download(sheet, name) {
         var link = document.createElement('a');
         link.href = URL.createObjectURL(new Blob(['\ufeff' + sheet], { type: 'text/csv;charset=utf-8' }));
         link.download = name + '.csv';
@@ -378,14 +380,64 @@
         setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
     }
 
+    function slug(text) {
+        return (text || 'office').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'office';
+    }
+
+    function pageName() {
+        var head = document.querySelector('.admin-topbar h1');
+        return head ? head.innerText : '';
+    }
+
+    // The topbar button takes the whole page: two registers on it come out one under the other.
+    function exportCsv() {
+        var list = tables();
+        if (list.length) download(list.map(body).join('\r\n\r\n'), slug(pageName()));
+    }
+
+    /** The heading a register sits under names the sheet taken from it. */
+    function tableName(table, i) {
+        var el = table;
+        while (el) {
+            if (el.previousElementSibling) {
+                el = el.previousElementSibling;
+                if (/^(H1|H2|H3|H4|CAPTION)$/.test(el.tagName) && el.innerText.trim()) return el.innerText;
+            } else {
+                el = el.parentElement;
+            }
+        }
+        return slug(pageName()) + (tables().length > 1 ? '-' + (i + 1) : '');
+    }
+
     document.addEventListener('click', function (e) {
         if (e.target.closest('[data-print]')) { window.print(); return; }
+        var one = e.target.closest('[data-csv-table]');
+        if (one) {
+            var t = tables()[parseInt(one.getAttribute('data-csv-table'), 10)];
+            if (t) download(body(t), slug(tableName(t, parseInt(one.getAttribute('data-csv-table'), 10))));
+            return;
+        }
         if (e.target.closest('[data-csv]')) exportCsv();
     });
 
-    // A page with no table on it has nothing to take away, so the button is not offered.
+    // A page with no table on it has nothing to take away, so the button is not offered. Every register that is
+    // on the page carries its own Download, so a desk with three tables takes the one it is looking at.
     document.addEventListener('DOMContentLoaded', function () {
+        var list = tables();
         var csv = document.querySelector('[data-csv]');
-        if (csv && !tables().length) csv.remove();
+        if (csv && !list.length) csv.remove();
+        list.forEach(function (table, i) {
+            var at = table.classList.contains('data') && table.parentElement.classList.contains('table-scroll')
+                ? table.parentElement : table;
+            var tools = document.createElement('div');
+            tools.className = 'table-tools';
+            tools.innerHTML = '<button class="btn btn-sm btn-ghost" type="button" data-csv-table="' + i + '"'
+                + ' title="Save this table as a spreadsheet (.csv)">'
+                + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"'
+                + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+                + '<path d="M12 3v12m0 0 4-4m-4 4-4-4"/>'
+                + '<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Download</span></button>';
+            at.parentNode.insertBefore(tools, at);
+        });
     });
 })();

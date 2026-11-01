@@ -1,13 +1,15 @@
 @php
     // One card writes a staff file, whether it starts from an applicant or amends a person already on the register.
-    $val = function (string $key) use ($owner) {
+    // On a list every row carries this form, so what was typed is kept only on the sheet that was submitted.
+    $sheet = $sheet ?? null;
+    $val = function (string $key) use ($owner, $sheet) {
         $held = $owner->{$key} ?? null;
 
         if ($key === 'started_on' && $held) {
             $held = \Illuminate\Support\Carbon::parse($held)->toDateString();
         }
 
-        return old($key, $held ?? '');
+        return old('_sheet') === $sheet ? old($key, $held ?? '') : ($held ?? '');
     };
 @endphp
 <div class="form-grid-2">

@@ -81,13 +81,31 @@
                                 <span class="tag gray">not written</span>
                             @endif</td>
                         <td class="actions">
-                            <a class="btn btn-sm btn-outline" href="{{ route('admin.directory.show', $r) }}">Open</a>
+                            <button class="btn btn-sm btn-outline" type="button" data-sheet="edit-{{ $r->id }}">Edit</button>
+                            <a class="btn btn-sm btn-ghost" href="{{ route('admin.directory.show', $r) }}">Open</a>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
+
+    @foreach ($records as $r)
+        @include('partials.sheet-start', ['name' => 'edit-'.$r->id, 'title' => 'Edit — '.$r->name,
+            'sub' => 'What this desk holds on the person. Their account and the modules it opens are set under Staff & roles.'])
+        <form method="POST" action="{{ route('admin.directory.update', $r) }}" class="fee-form"
+              enctype="multipart/form-data" data-confirm="Save these changes to {{ $r->name }}’s file?"
+              data-title="Edit the file">
+            @csrf
+            <input type="hidden" name="_sheet" value="edit-{{ $r->id }}">
+            @include('admin.staff.partials.fields', ['owner' => $r, 'sheet' => 'edit-'.$r->id])
+            <div class="sheet-actions">
+                <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+                <button class="btn btn-sm btn-lime" type="submit">Save the file</button>
+            </div>
+        </form>
+        @include('partials.sheet-end')
+    @endforeach
 @endif
 
 <p class="hint">Everyone holding a staff account is fetched onto this list on its own. A person arrives from

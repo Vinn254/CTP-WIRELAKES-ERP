@@ -54,7 +54,7 @@
     <div class="card">
         <table class="data">
             <thead>
-                <tr><th>Asset</th><th>Sub-area</th><th>Status</th><th>Held by / where</th><th>Warranty &amp; licence</th><th>Tickets</th></tr>
+                <tr><th>Asset</th><th>Sub-area</th><th>Status</th><th>Held by / where</th><th>Warranty &amp; licence</th><th>Tickets</th><th></th></tr>
             </thead>
             <tbody>
                 @forelse ($rows as $a)
@@ -76,9 +76,12 @@
                             <a href="{{ route('admin.technology.asset', $a) }}">{{ $a->tickets()->count() }} on file</a>
                             @if ($open)<div><span class="tag">{{ $open }} open</span></div>@endif
                         </td>
+                        <td class="actions">
+                            <a class="btn btn-sm btn-outline" href="{{ route('admin.technology.asset', $a) }}#sheet-edit-asset">Edit</a>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="empty-cell">
+                    <tr><td colspan="7" class="empty-cell">
                         Nothing on the register yet. Add the first device, licence or kit — its sub-area decides which of
                         the five it counts under.
                     </td></tr>
@@ -93,7 +96,7 @@
     <div class="card">
         <table class="data">
             <thead>
-                <tr><th>Project</th><th>Sub-area</th><th>Technology</th><th>Mentor</th><th>Community</th><th>Stage</th></tr>
+                <tr><th>Project</th><th>Sub-area</th><th>Technology</th><th>Mentor</th><th>Community</th><th>Stage</th><th></th></tr>
             </thead>
             <tbody>
                 @forelse ($rows as $p)
@@ -110,9 +113,12 @@
                             <span class="status {{ $projPill[$p->status] ?? 'pending_review' }}">{{ $p->statusLabel() }}</span>
                             <div class="hint">{{ $p->progress_percent }}%</div>
                         </td>
+                        <td class="actions">
+                            <a class="btn btn-sm btn-outline" href="{{ route('admin.technology.project', $p) }}">Edit</a>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="empty-cell">
+                    <tr><td colspan="7" class="empty-cell">
                         No robotics, programming or AI work recorded yet.
                     </td></tr>
                 @endforelse

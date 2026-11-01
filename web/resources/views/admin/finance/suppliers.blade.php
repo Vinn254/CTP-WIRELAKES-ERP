@@ -60,7 +60,7 @@
                 <td><span class="status {{ $s->status === 'approved' ? 'active' : 'closed' }}">{{ $s->statusLabel() }}</span></td>
                 <td class="actions">
                     <details class="need-form">
-                        <summary>Correct / change list status</summary>
+                        <summary>Edit</summary>
 
                         <form method="POST" action="{{ route('admin.suppliers.update', $s) }}" class="fee-form"
                               data-confirm="Save these details for {{ $s->code }}?" data-title="Correct supplier">

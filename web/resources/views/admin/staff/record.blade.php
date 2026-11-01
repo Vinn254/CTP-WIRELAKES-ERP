@@ -129,7 +129,7 @@
           data-title="Amend the file">
         @csrf
         <input type="hidden" name="_sheet" value="file">
-        @include('admin.staff.partials.fields', ['owner' => $record])
+        @include('admin.staff.partials.fields', ['owner' => $record, 'sheet' => 'file'])
         <div class="sheet-actions">
             <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
             <button class="btn btn-sm btn-lime" type="submit">Save the file</button>

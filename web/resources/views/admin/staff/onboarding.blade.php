@@ -60,7 +60,7 @@
               data-title="Onboard">
             @csrf
             <input type="hidden" name="_sheet" value="onboard-{{ $a->id }}">
-            @include('admin.staff.partials.fields', ['owner' => $a])
+            @include('admin.staff.partials.fields', ['owner' => $a, 'sheet' => 'onboard-'.$a->id])
 
             <div class="field full">
                 <label>Roles <span class="hint">— tick every one this person holds</span></label>

@@ -84,7 +84,7 @@
                                 <a class="btn btn-sm btn-ghost"
                                    href="{{ download_href(route('admin.library.open', $item)) }}">Download</a>
                                 <button class="btn btn-sm btn-ghost" type="button"
-                                        data-sheet="fix-{{ $item->id }}">Correct</button>
+                                        data-sheet="fix-{{ $item->id }}">Edit</button>
                                 <form method="POST"
                                       action="{{ route('admin.library.shelf', [$item, $item->status === 'on' ? 'off' : 'on']) }}"
                                       data-confirm="{{ $item->status === 'on' ? 'Take '.$item->title.' off the shelf? Students stop seeing it; the file stays on record.' : 'Put '.$item->title.' back on the shelf for the students?' }}"

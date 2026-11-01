@@ -399,6 +399,10 @@ html.dark .status.suspended { background: #3d2416; color: #f5b98a; }
 .page-tools { display: flex; align-items: center; gap: 6px; }
 .page-tools .btn { display: inline-flex; align-items: center; gap: 6px; }
 .page-tools .btn svg { width: 15px; height: 15px; }
+/* A register that sits on a page with others carries its own Download above its own rows. */
+.table-tools { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 6px; }
+.table-tools .btn { display: inline-flex; align-items: center; gap: 6px; }
+.table-tools .btn svg { width: 14px; height: 14px; }
 .admin-topbar .theme-toggle { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.32); padding: 7px 9px; }
 .admin-topbar .theme-toggle:hover { background: var(--lime); color: #083d0d; border-color: var(--lime); }
 .profile { display: flex; align-items: center; gap: 9px; padding: 3px 12px 3px 3px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); }
@@ -1104,7 +1108,8 @@ html.dark .band-3 small, html.dark .band-4 small { color: #dff0d6; }
 /* Module 12 — a report: recount, export, print, and a page that prints cleanly */
 .report-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 18px; }
 @media print {
-  .admin-sidebar, .admin-topbar, .report-bar, .back, .filter-bar, .nav-group, .side-foot, .page-tools, partials, .btn { display: none !important; }
+  .admin-sidebar, .admin-topbar, .report-bar, .back, .filter-bar, .nav-group, .side-foot, .page-tools, .table-tools, table.data .avatar, partials, .btn { display: none !important; }
+  /* A printed register lists people by name, not by the disc beside them — the column keeps its place. */
   .admin-shell { display: block; }
   .admin-content { padding: 0; }
   body, html { background: #fff; color: #000; }

@@ -52,7 +52,10 @@
                 <td>{{ $o->closing_on?->format('d M Y') ?: 'until closed' }}</td>
                 <td><span class="status {{ $o->status === 'open' ? 'active' : ($o->status === 'draft' ? 'pending_review' : 'closed') }}">
                     {{ $o->statusLabel() }}</span></td>
-                <td><a class="btn btn-sm btn-outline" href="{{ route('admin.careers.show', $o) }}">Open</a></td>
+                <td class="actions">
+                    <button class="btn btn-sm btn-outline" type="button" data-sheet="edit-{{ $o->id }}">Edit</button>
+                    <a class="btn btn-sm btn-ghost" href="{{ route('admin.careers.show', $o) }}">Open</a>
+                </td>
             </tr>
         @empty
             <tr><td colspan="9" class="empty-cell">Nothing is posted yet. Use “Post an opening” below.</td></tr>
@@ -61,6 +64,22 @@
 </table>
 
 {{ $openings->links() }}
+
+@foreach ($openings as $o)
+    @include('partials.sheet-start', ['name' => 'edit-'.$o->id, 'title' => 'Edit — '.$o->reference,
+        'sub' => 'Amend what the public page says. Anyone who already applied keeps their application.'])
+    <form method="POST" action="{{ route('admin.careers.update', $o) }}" class="fee-form"
+          data-confirm="Save the changes to {{ $o->reference }}?" data-title="Edit the opening">
+        @csrf
+        <input type="hidden" name="_sheet" value="edit-{{ $o->id }}">
+        @include('admin.careers.partials.fields', ['o' => $o, 'sheet' => 'edit-'.$o->id])
+        <div class="sheet-actions">
+            <button class="btn btn-sm btn-ghost" type="button" data-close-sheet>Cancel</button>
+            <button class="btn btn-sm btn-lime" type="submit">Save the posting</button>
+        </div>
+    </form>
+    @include('partials.sheet-end')
+@endforeach
 
 @include('partials.sheet-start', ['name' => 'post', 'title' => 'Post an opening',
     'sub' => 'Work the programme is hiring for. Save a draft, then open it when the public page should carry it.'])
