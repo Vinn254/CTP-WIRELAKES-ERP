@@ -5,7 +5,16 @@
     use App\Support\Departments;
     $me = auth()->user();
     $queue = array_sum(array_column($waiting, 'waiting'));
-    $pages = array_sum(array_map(fn ($g) => count($g['items']), $groups));
+
+    // Their own file is not a department's desk, so it is lifted out of the groups and put beside them.
+    $ownDesk = fn (array $group) => ['label' => $group['label'], 'note' => $group['note'],
+        'items' => array_values(array_filter($group['items'],
+            fn (array $i) => ($i['route'][0] ?? '') !== 'admin.profile.index'))];
+    $profile = collect($groups)->flatMap(fn (array $g) => $g['items'])
+        ->first(fn (array $i) => ($i['route'][0] ?? '') === 'admin.profile.index');
+    $groups = array_values(array_filter(array_map($ownDesk, $groups), fn (array $g) => $g['items'] !== []));
+
+    $pages = array_sum(array_map(fn ($g) => count($g['items']), $groups)) + ($profile ? 1 : 0);
 @endphp
 
 @section('content')
@@ -39,6 +48,10 @@
     </div>
 @elseif ($groups)
     <div class="ov-queue calm"><span class="ov-queue-label">All clear</span>Nothing is waiting on your desks.</div>
+@endif
+
+@if ($profile)
+    @include('partials.profile-card')
 @endif
 
 @foreach ($groups as $group)

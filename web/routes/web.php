@@ -28,6 +28,8 @@ use App\Http\Controllers\Admin\MeGisController;
 use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PayrollController;
+use App\Http\Controllers\Admin\PapersController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\StaffPayController;
 use App\Http\Controllers\Admin\StatementController;
 use App\Http\Controllers\Admin\ProgrammeController;
@@ -64,6 +66,7 @@ use App\Http\Controllers\PortalClassController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalLeaveController;
 use App\Http\Controllers\PortalLibraryController;
+use App\Http\Controllers\PortalProfileController;
 use App\Http\Controllers\PortalTrainerPaperController;
 use App\Http\Controllers\PublicProjectController;
 use App\Http\Controllers\RegistrationController;
@@ -244,6 +247,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/my-leave/apply', [LeaveController::class, 'apply'])->name('myleave.apply');
     Route::post('/my-leave/{leave}/cancel', [LeaveController::class, 'cancel'])->whereNumber('leave')->name('myleave.cancel');
 
+    // A person's own file. Every office account opens it: what Human Resources holds, the documents sent in to be
+    // checked, and the edits asked for. Nothing typed here reaches a record — the desk answers it on the queue below.
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/photo', [ProfileController::class, 'photo'])->name('profile.photo');
+    Route::get('/profile/paper/{document}/file', [ProfileController::class, 'file'])->whereNumber('document')->name('profile.file');
+    Route::post('/profile/document', [ProfileController::class, 'document'])->name('profile.document');
+    Route::post('/profile/paper/{document}', [ProfileController::class, 'paper'])->whereNumber('document')->name('profile.paper');
+    Route::post('/profile/change', [ProfileController::class, 'change'])->name('profile.change');
+    Route::post('/profile/change/{change}/withdraw', [ProfileController::class, 'withdraw'])->whereNumber('change')->name('profile.change.withdraw');
+
+    // The office side of the same file: Human Resources answers a staff file and an E-Fundi, the Academic Registrar
+    // answers a CTP student. The queue is cut by whoever stands at it, and a desk may file a paper itself.
+    Route::get('/papers', [PapersController::class, 'index'])->name('papers.index');
+    Route::get('/papers/paper/{document}/file', [PapersController::class, 'file'])->whereNumber('document')->name('papers.file');
+    Route::post('/papers/upload', [PapersController::class, 'store'])->name('papers.store');
+    Route::post('/papers/document/{document}', [PapersController::class, 'decide'])->whereNumber('document')->name('papers.document');
+    Route::post('/papers/change/{change}', [PapersController::class, 'answer'])->whereNumber('change')->name('papers.change');
+
     // Payroll. Human Resources runs the month off the staff file — allowances in, every deduction out — and sends
     // the sheet to Finance, which sees the staff to be paid and settles them one by one on the money register.
     Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
@@ -274,7 +295,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // Module 2 — CTP Promoter Management. Everything a CTP needs is decided here, not in Module 1.
     Route::get('/promoters', [CtpProfileController::class, 'index'])->name('promoters.index');
-    Route::get('/promoters/create', [CtpProfileController::class, 'create'])->name('promoters.create');
     Route::post('/promoters', [CtpProfileController::class, 'store'])->name('promoters.store');
     Route::get('/promoters/{ctp}', [CtpProfileController::class, 'show'])->whereNumber('ctp')->name('promoters.show');
     Route::get('/promoters/{ctp}/file/{slot}', [CtpProfileController::class, 'file'])->whereNumber('ctp')->name('promoters.file');
@@ -346,13 +366,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/timelogs', [TimeLogController::class, 'index'])->name('timelogs.index');
     Route::get('/timelogs/{user}/week/{week}', [TimeLogController::class, 'week'])->whereNumber('user')
         ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
+    // The same week on the ruled paper the office signs by hand — printed or downloaded, with the programme's logo.
+    Route::get('/timelogs/{user}/week/{week}/sheet', [TimeLogController::class, 'sheet'])->whereNumber('user')
+        ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.sheet');
     Route::post('/timelogs/{user}/week/{week}/decide', [TimeLogController::class, 'decide'])->whereNumber('user')
         ->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.decide');
 
-    // A worker's own sheet: pick the month and the week of it, write Monday to Friday, sign the week.
+    // A worker's own sheet: pick the month and the week of it, write Monday to Friday, keep it as a draft or send it.
     Route::get('/my-time-log', [MyTimeLogController::class, 'index'])->name('mytime.index');
     Route::post('/my-time-log/day', [MyTimeLogController::class, 'saveDay'])->name('mytime.day');
-    Route::post('/my-time-log/week', [MyTimeLogController::class, 'sign'])->name('mytime.sign');
+    Route::post('/my-time-log/week', [MyTimeLogController::class, 'saveWeek'])->name('mytime.week');
+    Route::get('/my-time-log/week/{week}/sheet', [MyTimeLogController::class, 'sheet'])
+        ->where('week', '\d{4}-\d{2}-\d{2}')->name('mytime.sheet');
 
     Route::get('/cohorts', [CohortController::class, 'index'])->name('cohorts.index');
     Route::get('/cohorts/results', [CohortController::class, 'results'])->name('cohorts.results');
@@ -644,6 +669,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
         Route::get('/timelogs/in/{department}', [TimeLogController::class, 'index'])->name('timelogs.index');
         Route::get('/timelogs/{user}/week/{week}/in/{department}', [TimeLogController::class, 'week'])
             ->whereNumber('user')->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.week');
+        // The printed sheet comes with the copy: the desk that reads a week can print it too.
+        Route::get('/timelogs/{user}/week/{week}/sheet/in/{department}', [TimeLogController::class, 'sheet'])
+            ->whereNumber('user')->where('week', '\d{4}-\d{2}-\d{2}')->name('timelogs.sheet');
         // Every desk sees who of its own is away, on the same rows Human Resources answers.
         Route::get('/leave/in/{department}', [LeaveController::class, 'index'])->name('leave.index');
         // The public intake register, read by the desk whose area page took the application in.
@@ -691,14 +719,24 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/library', [PortalLibraryController::class, 'index'])->name('library');
     Route::get('/library/{item}/open', [PortalLibraryController::class, 'open'])->whereNumber('item')->name('library.open');
     Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
-    // An E-Fundi trainer fills and signs the same week sheet the Training desk approves.
+    // An E-Fundi trainer fills the same week sheet the Training desk approves — kept as a draft, then sent.
     Route::get('/trainer/week', [PortalController::class, 'trainerWeek'])->name('trainer.week');
     Route::post('/trainer/week/day', [PortalController::class, 'saveTrainerDay'])->name('trainer.week.day');
-    Route::post('/trainer/week/sign', [PortalController::class, 'signTrainerWeek'])->name('trainer.week.sign');
+    Route::post('/trainer/week/save', [PortalController::class, 'saveTrainerWeek'])->name('trainer.week.save');
+    Route::get('/trainer/week/{week}/sheet', [PortalController::class, 'trainerWeekSheet'])
+        ->where('week', '\d{4}-\d{2}-\d{2}')->name('trainer.week.sheet');
     // An E-Fundi books leave here and Human Resources answers it — a CTP trainee is never shown this screen.
     Route::get('/leave', [PortalLeaveController::class, 'index'])->name('leave.index');
     Route::post('/leave/apply', [PortalLeaveController::class, 'apply'])->name('leave.apply');
     Route::post('/leave/{leave}/cancel', [PortalLeaveController::class, 'cancel'])->whereNumber('leave')->name('leave.cancel');
+    // The member's own file: what the programme holds, the papers sent in to be checked, the edits asked for. A CTP
+    // student is answered by the Academic Registrar, an E-Fundi by Human Resources — the page is the same either way.
+    Route::get('/profile', [PortalProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/paper/{document}/file', [PortalProfileController::class, 'file'])->whereNumber('document')->name('profile.file');
+    Route::post('/profile/document', [PortalProfileController::class, 'document'])->name('profile.document');
+    Route::post('/profile/paper/{document}', [PortalProfileController::class, 'paper'])->whereNumber('document')->name('profile.paper');
+    Route::post('/profile/change', [PortalProfileController::class, 'change'])->name('profile.change');
+    Route::post('/profile/change/{change}/withdraw', [PortalProfileController::class, 'withdraw'])->whereNumber('change')->name('profile.change.withdraw');
     // Module 5 — the E-Fundi's own record. They keep availability, skills and counties; the office keeps the grade.
     Route::get('/efundi', [PortalController::class, 'efundi'])->name('efundi');
     Route::post('/efundi/availability', [PortalController::class, 'saveAvailability'])->name('efundi.availability');

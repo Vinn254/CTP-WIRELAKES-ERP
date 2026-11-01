@@ -122,6 +122,13 @@
     @endif
 </div>
 
+@include('partials.profile-desk', array_merge($desk, [
+    'uploadRoute' => 'admin.papers.store',
+    'fileRoute' => 'admin.papers.file',
+    'decideRoute' => 'admin.papers.document',
+    'answerRoute' => 'admin.papers.change',
+]))
+
 @include('partials.sheet-start', ['name' => 'file', 'title' => 'Amend the file',
     'sub' => 'What Human Resources holds on this person. Pay and next of kin stay on this desk.'])
     <form method="POST" action="{{ route('admin.directory.update', $record) }}" class="fee-form"

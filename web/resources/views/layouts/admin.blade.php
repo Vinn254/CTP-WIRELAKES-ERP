@@ -4,7 +4,8 @@
     $brandName = content('site','branding','brand_name','WireLakes Technologies');
     $brandLogo = content('site','branding','logo');
     $route = request()->route();
-    $deptSlug = ($route ? $route->parameter('department') : null) ?: Departments::owner($route ? $route->getName() : null);
+    $deptSlug = ($route ? $route->parameter('department') : null)
+        ?: Departments::sidebarSlug($route ? $route->getName() : null);
     $dept = $deptSlug ? Departments::find($deptSlug) : null;
     // A shared record shown as this department's copy: which screen it copies, and who really owns it.
     $owningRoute = Departments::hosted() ? (Departments::HOSTED[$route?->getName()][0] ?? null) : null;
@@ -22,6 +23,13 @@
 
         if ($item['same'] ?? false) {
             return request()->routeIs($target);
+        }
+
+        // One desk behind two screens: the entry stays lit on whichever of them is open.
+        foreach ($item['also'] ?? [] as $pattern) {
+            if (request()->routeIs($pattern)) {
+                return true;
+            }
         }
 
         return request()->routeIs(preg_replace('/\.[^.]+$/', '.', $target).'*');

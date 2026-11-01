@@ -188,6 +188,24 @@ class TimeSheet
         ];
     }
 
+    /**
+     * One person's week laid out as the ruled paper the office signs by hand: the logo at the head, the days in the
+     * order the sheet prints them, the totals, and the two signature boxes. Opened on screen, or saved as a file
+     * when the url carries ?download=1 — the same page either way, so a downloaded sheet still prints.
+     */
+    public static function paper(Request $request, User $worker, Carbon|string $weekStart, string $back, string $backLabel)
+    {
+        $sheet = static::sheet($worker, $weekStart);
+
+        return Documents::page($request, view('admin.timelogs.document', [
+            'sheet' => $sheet,
+            'worker' => $worker,
+            'week' => $sheet['start'],
+            'back' => $back,
+            'backLabel' => $backLabel,
+        ])->render(), 'Time log '.$worker->name.' '.TimeLog::weekLabel($sheet['start']));
+    }
+
     /** A week takes the status of its rows: signed once the last day is in, and back when one row is returned. */
     public static function weekStatus(Collection $rows): string
     {
@@ -203,28 +221,109 @@ class TimeSheet
     /** Write one day of the week. A day already on the sheet is corrected in place, never added twice. */
     public static function saveDay(User $worker, Request $request): string
     {
-        $data = TimeLog::dataFrom($request);
+        static::putDay($worker, TimeLog::dataFrom($request), $request->input('department'));
+
+        return 'Day written to the sheet.';
+    }
+
+    /**
+     * One day kept on the sheet. The row for that date is corrected in place, the initials and the department are
+     * taken from the account standing at the screen, and the day always comes back to a draft: a week only leaves the
+     * worker's desk when they send it, and nothing is written into a week already with the office — not even a day
+     * that was left out of it.
+     */
+    private static function putDay(User $worker, array $data, ?string $askedDepartment = null): TimeLog
+    {
         $existing = TimeLog::where('user_id', $worker->id)->where('log_date', $data['log_date'])->first();
+
+        abort_unless(in_array(static::weekStatus(TimeLog::forWeek($worker->id, $data['week_start'])), ['draft', 'returned'], true), 422,
+            'This week is already with the office — it is answered there, never rewritten here.');
 
         if ($existing && ! in_array($existing->status, ['draft', 'returned'], true)) {
             abort(422, 'That day is already signed off — the office corrects an approved week, not the worker.');
         }
 
-        $data['initials'] = TimeLog::initialsOf($worker);
-        $data['department'] = static::departmentFor($worker, $request->input('department'), $existing?->department);
+        $fields = [
+            'week_start' => $data['week_start'], 'log_date' => $data['log_date'],
+            'time_in' => $data['time_in'] ?? null, 'time_out' => $data['time_out'] ?? null,
+            'task' => $data['task'], 'hours' => $data['hours'] ?? null, 'units' => $data['units'] ?? 0,
+            'initials' => TimeLog::initialsOf($worker),
+            'department' => static::departmentFor($worker, $askedDepartment, $existing?->department),
+            // A week written line by line carries no programme per day, so what the day already recorded is kept.
+            'training_id' => $data['training_id'] ?? $existing?->training_id,
+            'cohort_id' => $data['cohort_id'] ?? $existing?->cohort_id,
+            'status' => 'draft', 'approval_note' => null,
+        ];
 
         if ($existing) {
-            $existing->update($data + ['status' => 'draft', 'approval_note' => null]);
+            $existing->update($fields);
 
-            return 'Day written to the sheet.';
+            return $existing;
         }
 
-        $row = new TimeLog($data + ['status' => 'draft']);
+        $row = new TimeLog($fields);
         // The sheet is written for the account standing at the screen, never for one the form picked.
         $row->user_id = $worker->id;
         $row->save();
 
-        return 'Day written to the sheet.';
+        return $row;
+    }
+
+    /**
+     * The whole week written at once, then kept as a draft or sent to the office — the two buttons under the sheet.
+     * A line left blank is left alone, so nothing on this form throws away a day already written.
+     */
+    public static function saveWeek(User $worker, Request $request, bool $submit): string
+    {
+        $start = static::monday($request->input('month'), $request->input('week'));
+        $end = $start->copy()->addDays(4);
+        $rows = TimeLog::forWeek($worker->id, $start);
+
+        abort_unless(in_array(static::weekStatus($rows), ['draft', 'returned'], true), 422,
+            'This week is already with the office — it is answered there, never rewritten here.');
+
+        $written = 0;
+        foreach ((array) $request->input('days', []) as $date => $day) {
+            $task = trim((string) ($day['task'] ?? ''));
+            $in = filled($day['time_in'] ?? null) ? $day['time_in'] : null;
+            $out = filled($day['time_out'] ?? null) ? $day['time_out'] : null;
+
+            // An untouched line is not a day — it stays off the record.
+            if ($task === '' && ! $in && ! $out) {
+                continue;
+            }
+
+            $when = (string) $date;
+            abort_unless(preg_match('/^\d{4}-\d{2}-\d{2}$/', $when), 422, 'A day must be picked from the week shown.');
+            abort_unless($when >= $start->toDateString() && $when <= $end->toDateString(), 422,
+                'Only Monday to Friday of the week you opened can be written.');
+            abort_unless($when <= today()->toDateString(), 422,
+                'A week sheet records days already worked — not a day in the future.');
+            abort_unless($task !== '', 422, Carbon::parse($when)->format('l').' needs the tasks accomplished.');
+
+            $hours = TimeLog::hoursBetween($in, $out);
+            abort_unless(! ($in && $out) || $hours !== null, 422,
+                Carbon::parse($when)->format('l').': time out must be after time in.');
+
+            static::putDay($worker, [
+                'week_start' => $start->toDateString(), 'log_date' => $when,
+                'time_in' => $in, 'time_out' => $out, 'task' => $task,
+                'hours' => $hours, 'units' => (int) round(($hours ?? 0) * 2),
+            ], $request->input('department'));
+
+            $written++;
+        }
+
+        if (! $submit) {
+            return $written === 0
+                ? 'Nothing was written — the week is kept as it stands.'
+                : $written.' '.Str::plural('day', $written).' kept as a draft for the week of '
+                .TimeLog::weekLabel($start).'. Sign the week when it is complete.';
+        }
+
+        abort_unless($written > 0 || $rows->isNotEmpty(), 422, 'Write at least one day before sending the week.');
+
+        return static::sign($worker, $start);
     }
 
     /**

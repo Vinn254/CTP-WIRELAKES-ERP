@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Library')
+@section('title', 'Papers & library — Library')
 
 {{-- The shelf is read programme by programme: a course is picked up top and its titles are traced in one table —
      what is filed, how heavy it is, when it went up and whether the students can open it today. --}}
@@ -14,6 +14,8 @@
         <button class="btn btn-sm btn-lime" type="button" data-sheet="post-item">Post to the library</button>
     </div>
 </div>
+
+@include('partials.papers-desk', ['deskTab' => 'library'])
 
 @include('partials.errors')
 

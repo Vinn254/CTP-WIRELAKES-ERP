@@ -20,7 +20,8 @@
         'heading' => 'My time log',
         'self' => route('portal.trainer.week'),
         'dayAction' => route('portal.trainer.week.day'),
-        'signAction' => route('portal.trainer.week.sign'),
+        'weekAction' => route('portal.trainer.week.save'),
+        'paper' => fn ($week) => route('portal.trainer.week.sheet', ['week' => $week, 'trainer' => $trainer->id]),
         'carry' => ['trainer' => $trainer->id],
         'returnedTo' => 'the office',
     ])

@@ -308,13 +308,25 @@ class PortalController extends Controller
         return $this->trainerWeekBack($request, $trainer, 'Day written to the sheet.');
     }
 
-    public function signTrainerWeek(Request $request)
+    /** Keep the week as a draft to finish later, or write it and send it to the office. */
+    public function saveTrainerWeek(Request $request)
     {
         $trainer = $this->myTrainer($request, $this->myPostings($this->fundi()));
         $me = $request->user();
-        $week = TimeSheet::monday($request->input('month'), $request->input('week'))->toDateString();
 
-        return $this->trainerWeekBack($request, $trainer, TimeSheet::sign($me, $week));
+        return $this->trainerWeekBack($request, $trainer,
+            TimeSheet::saveWeek($me, $request, $request->input('action') === 'submit'));
+    }
+
+    /** The trainer's own week on the ruled paper — printed or downloaded. */
+    public function trainerWeekSheet(Request $request, string $week)
+    {
+        $trainer = $this->myTrainer($request, $this->myPostings($this->fundi()));
+
+        return TimeSheet::paper($request, $request->user(), $week,
+            route('portal.trainer.week', ['trainer' => $trainer->id,
+                'month' => TimeLog::monthOf($week), 'week' => TimeLog::weekNumberOf($week)]),
+            'Back to my time log');
     }
 
     private function trainerWeekBack(Request $request, Trainer $trainer, string $message)

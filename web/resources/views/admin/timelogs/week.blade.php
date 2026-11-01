@@ -8,6 +8,7 @@
     $read = Departments::hosted();
     $weekOf = $sheet['start']->toDateString();
     $link = fn ($w) => Departments::inside('admin.timelogs.week', [$worker, $w]);
+    $paper = Departments::inside('admin.timelogs.sheet', [$worker, $weekOf]);
     $waiting = $sheet['status'] === 'submitted';
 @endphp
 
@@ -28,6 +29,7 @@
         <a class="btn btn-sm btn-outline" href="{{ $link($back) }}">Previous week</a>
         <a class="btn btn-sm btn-outline" href="{{ $link($today) }}">This week</a>
         <a class="btn btn-sm btn-outline" href="{{ $link($onward) }}">Next week</a>
+        <a class="btn btn-sm btn-outline" href="{{ $paper }}">Print or download the sheet</a>
         <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
     </div>
 </div>

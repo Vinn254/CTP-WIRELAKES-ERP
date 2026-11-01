@@ -145,6 +145,7 @@ class FundiController extends Controller
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'counties' => County::orderBy('name')->pluck('name'),
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
+            'desk' => \App\Support\Profile::board('efundi', $fundi),
             'isExecutive' => auth()->user()->role === 'superadmin',
         ]);
     }

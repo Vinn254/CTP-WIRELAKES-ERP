@@ -95,15 +95,14 @@ class Departments
             ['label' => 'Activity trail', 'icon' => 'check', 'route' => ['admin.host.activity.index', 'membership']],
         ],
         'promoters' => [
+            // The counter's own add form sits on this register, so the desk is entered from one page only.
             ['label' => 'CTP profiles', 'icon' => 'users', 'route' => ['admin.promoters.index'], 'badge' => 'promoters'],
-            ['label' => 'Add CTP from office', 'icon' => 'plus', 'route' => ['admin.promoters.create']],
         ],
         'communities' => [
             ['label' => 'Community register', 'icon' => 'globe', 'route' => ['admin.communities.index'], 'badge' => 'communities'],
-            ['label' => 'Needs assessment', 'icon' => 'check', 'route' => ['admin.needs.index'], 'badge' => 'needs'],
             ['label' => 'Beneficiaries', 'icon' => 'users', 'route' => ['admin.beneficiaries.index']],
-            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
-
+            // What a community still needs is read and prioritised on the community's own record, so the desk is
+            // entered from there rather than from a second list beside it.
         ],
         'training' => [
             ['label' => 'Cohorts', 'icon' => 'briefcase', 'route' => ['admin.cohorts.index'], 'badge' => 'seats'],
@@ -112,11 +111,12 @@ class Departments
             ['label' => 'Training', 'icon' => 'award', 'route' => ['admin.trainings.index']],
             ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],
             ['label' => 'Trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
-            ['label' => 'Teaching papers', 'icon' => 'mail', 'route' => ['admin.registers.index'], 'badge' => 'papers'],
-            ['label' => 'Library', 'icon' => 'book', 'route' => ['admin.library.index']],
+            ['label' => 'Papers & library', 'icon' => 'book', 'route' => ['admin.registers.index'], 'badge' => 'papers'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
             ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.host.registrations.index', ['type' => 'ctp', 'department' => 'training']]],
-            ['label' => 'Service requests', 'icon' => 'users', 'route' => ['admin.applications.index'], 'badge' => 'areaapps'],
+            // A service request from an area page belongs to Website & Membership, which answers it; teaching papers
+            // are the Registrar's own queue and sit under Papers & library.
+            ['label' => 'Papers & requests', 'icon' => 'clipboard', 'route' => ['admin.papers.index'], 'badge' => 'profilepapers'],
         ],
         'efundi' => [
             ['label' => 'E-Fundi register', 'icon' => 'users', 'route' => ['admin.fundis.index'], 'badge' => 'fundis'],
@@ -171,7 +171,9 @@ class Departments
             ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
             ['label' => 'Deduction rates', 'icon' => 'sliders', 'route' => ['admin.payroll.rates']],
-            ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave'],
+            ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave',
+                'also' => ['admin.myleave.*']],
+            ['label' => 'Papers & requests', 'icon' => 'clipboard', 'route' => ['admin.papers.index'], 'badge' => 'profilepapers'],
             ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.staff.index']],
         ],
         'me_gis' => [
@@ -243,6 +245,20 @@ class Departments
         // admin.myleave.* deliberately has no owner: a worker's own balance goes with them to every desk they hold.
     ];
 
+    /**
+     * The screens a person works on their own record. They belong to no department — but the sidebar must not go
+     * blank when one of them opens, so it keeps showing the desk that answers them. This map is read by the layout
+     * only; it never grants or refuses access, which stays with the screens themselves.
+     */
+    private const DESK_SESSION = 'departments.desk';
+
+    private const OWN_DESK = [
+        'admin.myleave.' => 'hr',
+        'admin.mytime.' => 'hr',
+        'admin.profile.' => 'hr',
+        'admin.papers.' => 'hr',
+    ];
+
     /** Tiles on a department overview page, with the note shown under each. */
     private const NOTES = [
         'admin.registrations.index' => 'Review, approve or reject every application',
@@ -264,7 +280,6 @@ class Departments
         'admin.directory.index' => 'Everyone who works here — the C14 next of kin and pay',
         'admin.directory.show' => 'One person’s staff file, kept up to date by this desk',
         'admin.promoters.index' => 'Every CTP from application to deployment — profile, track, mobilisation and status',
-        'admin.promoters.create' => 'Open a CTP application on someone’s behalf when they cannot reach the website',
         'admin.communities.index' => 'Every community, its CTP, its needs and who benefited there',
         'admin.needs.index' => 'Prioritise what CTPs flagged and turn a need into a project',
         'admin.beneficiaries.index' => 'People, households and businesses a project reached',
@@ -280,9 +295,11 @@ class Departments
         'admin.library.index' => 'Books, notes, slides and PDFs the students read for each course',
         'admin.timelogs.index' => 'Every week anyone on staff has filled — the days worked, what was done, and Human Resources\' approval for pay',
         'admin.timelogs.week' => 'The signed week as the paper reads: day, clock times, work, initials, hours and units',
+        'admin.timelogs.sheet' => 'The week on the ruled sheet itself — printed or downloaded with the programme’s logo',
         'admin.host.timelogs.index' => 'The same signed weeks, read here — who of the people you work with logged what',
         'admin.host.timelogs.week' => 'The same week sheet, read here as proof of the work before pay',
-        'admin.mytime.index' => 'Your own week sheet — pick the month and the week of it, write Monday to Friday, sign the week',
+        'admin.host.timelogs.sheet' => 'The same week sheet, printed or downloaded from this desk',
+        'admin.mytime.index' => 'Your own week sheet — pick the month and the week of it, write Monday to Friday, keep it as a draft or send it',
         'admin.payroll.index' => 'Run the month from the staff file — allowances in, every deduction out, then send it to Finance',
         'admin.payroll.show' => 'The month’s sheet: each person, their pay, allowances, deductions and net',
         'admin.payroll.rates' => 'The PAYE bands, relief, NSSF, SHIF and housing levy a month is worked at',
@@ -293,6 +310,8 @@ class Departments
         'admin.leave.index' => 'Every application on the register — approve it or send it back with what to fix',
         'admin.host.leave.index' => 'The leave the people of this desk hold, read here',
         'admin.myleave.index' => 'Your balances, the days left, and an application to Human Resources',
+        'admin.profile.index' => 'What the office holds on you, the documents you send in to be checked, and the edits you ask for',
+        'admin.papers.index' => 'Documents sent in for the file and profile edits to be approved — staff and E-Fundis here, a CTP student goes to the Registrar',
         'admin.certification.index' => 'Approve a certificate and issue its code — or decline and revoke it',
         'admin.fundis.index' => 'Every E-Fundi: grade, trade skills, counties covered, availability and standing',
         'admin.marketplace.index' => 'Run the search, put the project to the top of the shortlist, and award it to a fundi who took it',
@@ -356,6 +375,8 @@ class Departments
         // sheet stays on their desk as "My time log".
         'admin.host.timelogs.index' => ['admin.timelogs.index', ['finance']],
         'admin.host.timelogs.week' => ['admin.timelogs.week', ['finance']],
+        // Printing the sheet follows the read: the desk allowed the week is allowed the paper.
+        'admin.host.timelogs.sheet' => ['admin.timelogs.sheet', ['finance']],
         // Human Resources answers a leave application; each desk sees the ones its own people hold, read here.
         'admin.host.leave.index' => ['admin.leave.index', ['membership', 'promoters', 'communities', 'training', 'efundi',
             'marketplace', 'execution', 'construction', 'technology', 'ewaste', 'finance', 'me_gis', 'procurement']],
@@ -591,12 +612,17 @@ class Departments
                 'route' => ['admin.host.timelogs.index', $slug], 'badge' => 'timelogs'];
         }
 
+        // Leave is one desk: the register the office answers and the worker's own booking sit behind the same entry.
         if ($slug !== 'hr') {
-            $items[] = ['label' => 'Leave', 'icon' => 'check', 'route' => ['admin.host.leave.index', $slug]];
+            $items[] = ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.host.leave.index', $slug],
+                'also' => ['admin.leave.*', 'admin.myleave.*']];
         }
 
         $items[] = ['label' => 'My time log', 'icon' => 'clock', 'route' => ['admin.mytime.index']];
-        $items[] = ['label' => 'My leave', 'icon' => 'mail', 'route' => ['admin.myleave.index']];
+
+        // A person's own file goes with them to every desk they hold: what the office holds on them, the papers they
+        // send in to be checked, and the edits they ask for. Nothing on that page is written by their own hand.
+        $items[] = ['label' => 'My profile', 'icon' => 'image', 'route' => ['admin.profile.index']];
 
         return $items;
     }
@@ -624,6 +650,47 @@ class Departments
         $route = app('router')->getCurrentRoute();
 
         return $route?->parameter('department') ?: static::owner($route?->getName());
+    }
+
+    /**
+     * The desk to keep open in the sidebar. A module's own screen names its desk; a person's own screen — their
+     * profile, papers, leave and time log — belongs to no module, so the sidebar stays on whichever desk the person
+     * was standing at, and never goes blank or changes under them.
+     */
+    public static function sidebarSlug(?string $routeName): ?string
+    {
+        if (! $routeName) {
+            return null;
+        }
+
+        $slug = static::owner($routeName);
+
+        if ($slug !== null) {
+            return $slug;
+        }
+
+        foreach (array_keys(self::OWN_DESK) as $prefix) {
+            if (! str_starts_with($routeName, $prefix)) {
+                continue;
+            }
+
+            $last = session(self::DESK_SESSION);
+
+            return collect(static::live())->pluck('slug')->contains($last)
+                ? $last : self::OWN_DESK[$prefix];
+        }
+
+        return null;
+    }
+
+    /** The desk the person is standing at, remembered for their own screens. */
+    public static function rememberDesk(mixed $route): void
+    {
+        $slug = ($route?->parameter('department')) ?: static::owner($route?->getName());
+
+        if ($slug) {
+            session([self::DESK_SESSION => $slug]);
+        }
     }
 
     /** Every department that is given copies of shared records. */
@@ -740,6 +807,7 @@ class Departments
             'seats' => Enrollment::where('state', 'pending')->count(),
             'trainers' => Trainer::where('status', 'applied')->count(),
             'papers' => TeachingDesk::pending(),
+            'profilepapers' => Profile::waitingFor(auth()->user()),
             'timelogs' => TimeSheet::waitingFor(auth()->user()),
             'leave' => LeaveRequest::where('status', 'pending')->count(),
             'certificates' => Certification::where('status', 'recommended')->count(),

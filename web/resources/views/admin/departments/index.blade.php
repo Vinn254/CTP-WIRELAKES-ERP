@@ -35,6 +35,8 @@
     </section>
 @endif
 
+@include('partials.profile-card')
+
 <div class="dept-grid">
     @foreach ($departments as $d)
         @php $waiting = Departments::waiting($d['slug']); @endphp

@@ -50,6 +50,7 @@ class DirectoryController extends Controller
         return view('admin.staff.record', [
             'record' => $record->load(['user', 'application.opening', 'recorder:id,name']),
             'liveDepartments' => \App\Support\Departments::live(),
+            'desk' => \App\Support\Profile::board('staff', $record),
         ]);
     }
 

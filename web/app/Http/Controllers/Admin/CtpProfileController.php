@@ -100,6 +100,7 @@ class CtpProfileController extends Controller
             'tiers' => Project::CTP_POOL_TIERS,
             'trainings' => \App\Models\Training::active()->orderBy('name')->get(['id', 'name']),
             'invite' => AccountInvite::where('member_type', 'ctp')->where('member_id', $ctp->id)->first(),
+            'desk' => \App\Support\Profile::board('ctp', $ctp),
         ]);
     }
 
@@ -111,18 +112,6 @@ class CtpProfileController extends Controller
             'ctp' => $ctp,
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),
         ]);
-    }
-
-    /**
-     * The office can open a CTP application itself — the same questions as the public form, typed in
-     * for someone who cannot reach the website. The record enters the same lifecycle: it waits for the
-     * fee (or is sponsored) and then goes through review like any other application.
-     */
-    public function create(Request $request)
-    {
-        $this->keeps($request);
-
-        return view('admin.ctp.apply', $this->applicationData());
     }
 
     public function store(Request $request)

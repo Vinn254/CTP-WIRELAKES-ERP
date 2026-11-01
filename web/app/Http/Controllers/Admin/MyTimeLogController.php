@@ -31,13 +31,23 @@ class MyTimeLogController extends Controller
         return $this->back($request, 'Day written to the sheet.');
     }
 
-    /** Send the whole week to the office — after that the days are locked until it answers. */
-    public function sign(Request $request)
+    /** Keep the week as a draft to finish later, or write it and send it — the two buttons under the sheet. */
+    public function saveWeek(Request $request)
     {
         $me = $this->worker($request);
-        $week = TimeSheet::monday($request->input('month'), $request->input('week'))->toDateString();
 
-        return $this->back($request, TimeSheet::sign($me, $week));
+        return $this->back($request, TimeSheet::saveWeek($me, $request, $request->input('action') === 'submit'));
+    }
+
+    /** The worker's own week as the ruled paper: printed, or downloaded and kept. */
+    public function sheet(Request $request, string $week)
+    {
+        $me = $this->worker($request);
+        $monday = TimeLog::weekStartOf($week);
+
+        return TimeSheet::paper($request, $me, $monday,
+            route('admin.mytime.index', ['month' => TimeLog::monthOf($monday), 'week' => TimeLog::weekNumberOf($monday)]),
+            'Back to my time log');
     }
 
     private function worker(Request $request)

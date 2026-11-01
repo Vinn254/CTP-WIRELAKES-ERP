@@ -414,6 +414,15 @@
             @endforelse
         </div>
 
+        @if (\App\Support\Profile::decides(auth()->user(), 'ctp'))
+            @include('partials.profile-desk', array_merge($desk, [
+                'uploadRoute' => 'admin.papers.store',
+                'fileRoute' => 'admin.papers.file',
+                'decideRoute' => 'admin.papers.document',
+                'answerRoute' => 'admin.papers.change',
+            ]))
+        @endif
+
         <div class="card">
             <h3>Portal account</h3>
             @if ($ctp->user)

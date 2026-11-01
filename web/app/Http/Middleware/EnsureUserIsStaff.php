@@ -27,6 +27,9 @@ class EnsureUserIsStaff
         // no owning department (the landing, the department overview) is gated in its own controller.
         $name = $request->route()?->getName();
 
+        // Which desk to hold open while this person reads their own screen (profile, papers, leave, time log).
+        Departments::rememberDesk($request->route());
+
         // A shared record shown as a copy inside another department is gated on that department instead: the page has
         // to be one that department is given a copy of, and the staff member has to belong to that department. The
         // owning module's write routes are never registered under /in/, so a copy can only ever be read.

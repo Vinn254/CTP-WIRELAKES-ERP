@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TimeLog;
 use App\Models\User;
+use App\Support\Departments;
 use App\Support\TimeSheet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -71,6 +72,17 @@ class TimeLogController extends Controller
             'onward' => $sheet['start']->copy()->addWeek()->toDateString(),
             'today' => TimeLog::weekStartOf(today())->toDateString(),
         ]);
+    }
+
+    /** One person's week on the ruled paper itself — printed or downloaded by the desk that is allowed that person. */
+    public function sheet(Request $request, User $user, string $week)
+    {
+        $monday = TimeLog::weekStartOf($week);
+        abort_unless(TimeSheet::opens($user, $monday, $request->user()), 403, 'That sheet belongs to another desk.');
+
+        return TimeSheet::paper($request, $user, $monday,
+            Departments::inside('admin.timelogs.week', [$user, $monday->toDateString()]),
+            'Back to the week');
     }
 
     /** Approve the signed week, or send it back with the correction written on it. */

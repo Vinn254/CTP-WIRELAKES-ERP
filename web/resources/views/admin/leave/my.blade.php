@@ -19,5 +19,7 @@
     </div>
 </div>
 
+@include('partials.leave-desk', ['deskTab' => 'mine'])
+
 @include('partials.leave-board')
 @endsection

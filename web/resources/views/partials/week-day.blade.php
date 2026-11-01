@@ -114,9 +114,9 @@
     @endif
     <div class="sheet-actions">
         <button class="btn btn-ghost" type="button" data-close-sheet>Cancel</button>
-        <button class="btn btn-primary" type="submit">{{ $row ? 'Save the correction' : 'Write the day' }}</button>
+        <button class="btn btn-primary" type="submit">{{ $row ? 'Save the correction' : 'Save as draft' }}</button>
     </div>
 </form>
-<p class="hint">{{ TimeLog::STATUSES['draft'] }} until you sign the whole week. A day already on the sheet is
+<p class="hint">{{ TimeLog::STATUSES['draft'] }} until you submit the whole week. A day already on the sheet is
     corrected here, never added a second time.</p>
 @include('partials.sheet-end')

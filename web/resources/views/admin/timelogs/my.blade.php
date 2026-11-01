@@ -6,7 +6,8 @@
         'heading' => 'My time log',
         'self' => route('admin.mytime.index'),
         'dayAction' => route('admin.mytime.day'),
-        'signAction' => route('admin.mytime.sign'),
+        'weekAction' => route('admin.mytime.week'),
+        'paper' => fn ($week) => route('admin.mytime.sheet', ['week' => $week]),
         'carry' => [],
         'returnedTo' => 'Human Resources',
     ])

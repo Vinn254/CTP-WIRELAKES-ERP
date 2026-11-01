@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Teaching papers')
+@section('title', 'Papers & library')
 
 @php
     // What one line of the queue reads as, so the four papers are listed in the same shape.
@@ -28,9 +28,15 @@
 @endphp
 
 @section('content')
-<h1>Teaching papers</h1>
-<p class="page-lede">Registers, mark sheets, timetables and lesson plans trainers have handed in, waiting to be
-    approved or sent back.</p>
+<div class="head-row">
+    <div>
+        <h1>Teaching papers</h1>
+        <p class="page-lede">Registers, mark sheets, timetables and lesson plans trainers have handed in, waiting to be
+            approved or sent back.</p>
+    </div>
+</div>
+
+@include('partials.papers-desk', ['deskTab' => 'papers'])
 
 <div class="stat-row">
     <div class="stat"><small>Waiting on you</small><b>{{ $waiting }}</b></div>
