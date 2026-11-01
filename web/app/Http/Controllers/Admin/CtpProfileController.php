@@ -21,6 +21,22 @@ use Illuminate\Support\Facades\Storage;
  */
 class CtpProfileController extends Controller
 {
+    /** Only the desk that keeps this register — plus the System Administrator — decides what happens to a CTP. */
+    private function keeps(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'promoters'), 403,
+            'The CTP Promoters office decides a CTP\'s fee, approval, status and mobiliser. '
+            .'Reading the register here changes nothing.');
+    }
+
+    /** A person's own details are Human Resources' to put right, wherever the record is read from. */
+    private function keepsOrHr(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'promoters')
+            || Departments::mayEditMembers($request->user()), 403,
+            'Only Human Resources and the CTP Promoters office change what a CTP typed about themselves.');
+    }
+
     public function index(Request $request)
     {
         $status = $request->query('status', 'all');
@@ -86,8 +102,10 @@ class CtpProfileController extends Controller
         ]);
     }
 
-    public function edit(CtpRegistration $ctp)
+    public function edit(Request $request, CtpRegistration $ctp)
     {
+        $this->keepsOrHr($request);
+
         return view('admin.ctp.form', [
             'ctp' => $ctp,
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),
@@ -99,13 +117,17 @@ class CtpProfileController extends Controller
      * for someone who cannot reach the website. The record enters the same lifecycle: it waits for the
      * fee (or is sponsored) and then goes through review like any other application.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $this->keeps($request);
+
         return view('admin.ctp.apply', $this->applicationData());
     }
 
     public function store(Request $request)
     {
+        $this->keeps($request);
+
         $data = $request->validate(
             CtpRegistration::applicationRules(true),
             [],
@@ -129,6 +151,8 @@ class CtpProfileController extends Controller
      */
     public function setSponsor(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         $data = $request->validate([
             'sponsor_id' => 'nullable|integer|exists:partners,id',
             'sponsor_name' => 'nullable|string|max:150',
@@ -196,6 +220,8 @@ class CtpProfileController extends Controller
 
     public function update(Request $request, CtpRegistration $ctp)
     {
+        $this->keepsOrHr($request);
+
         $data = $request->validate([
             'county' => 'required|string|max:100',
             'sub_county' => 'required|string|max:100',
@@ -231,6 +257,8 @@ class CtpProfileController extends Controller
     /** The lifecycle moves in  — suspension also locks the member account. */
     public function setStatus(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         $data = $request->validate([
             'status' => 'required|in:suspended,active,graduated,deployed',
             'status_note' => 'nullable|string|max:500',
@@ -275,25 +303,33 @@ class CtpProfileController extends Controller
      */
     public function markFee(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         return back()->with('status', ReviewActions::recordFee($ctp, ReviewActions::feeFrom($request)));
     }
 
     /** Issue the CTP ID and open the portal account, without leaving Module 2. */
-    public function approve(CtpRegistration $ctp)
+    public function approve(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         return back()->with('status', ReviewActions::approve($ctp, 'ctp_code', true));
     }
 
     public function reject(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
         ReviewActions::reject($ctp, $data['rejection_reason']);
 
         return back()->with('status', $ctp->full_name.' rejected — the reason is shared with the applicant.');
     }
 
-    public function reissue(CtpRegistration $ctp)
+    public function reissue(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         return back()->with('status', ReviewActions::reissue($ctp));
     }
 
@@ -309,6 +345,8 @@ class CtpProfileController extends Controller
     /** Staff can fix the lineage when the applicant mistyped or the code did not match. */
     public function setReferrer(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         $data = $request->validate(['referrer_id' => 'nullable|exists:ctp_registrations,id']);
         $referrer = isset($data['referrer_id']) ? CtpRegistration::findOrFail($data['referrer_id']) : null;
 
@@ -333,6 +371,8 @@ class CtpProfileController extends Controller
      */
     public function storePhoto(Request $request, CtpRegistration $ctp)
     {
+        $this->keepsOrHr($request);
+
         $request->validate([
             'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ], [], ['passport_photo' => 'Profile photo']);
@@ -345,6 +385,8 @@ class CtpProfileController extends Controller
     /** Which projects this CTP can see once they enter the fundi pool. */
     public function setTier(Request $request, CtpRegistration $ctp)
     {
+        $this->keeps($request);
+
         $data = $request->validate(['fundi_tier' => 'nullable|in:'.implode(',', array_keys(Project::CTP_POOL_TIERS))]);
         ReviewActions::setPoolTier($ctp, $data['fundi_tier'] ?? null);
 

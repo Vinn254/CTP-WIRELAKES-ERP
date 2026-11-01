@@ -167,6 +167,16 @@
             </button>
             <h1>@yield('title', 'Admin')</h1>
             <div class="topbar-right">
+                <div class="page-tools">
+                    <button class="btn btn-sm btn-ghost" type="button" data-print
+                            title="Print this page as it reads, without the menu">
+                        @include('partials.icon', ['n' => 'printer']) <span>Print</span>
+                    </button>
+                    <button class="btn btn-sm btn-ghost" type="button" data-csv
+                            title="Save the table on this page as a spreadsheet (.csv)">
+                        @include('partials.icon', ['n' => 'download']) <span>Download</span>
+                    </button>
+                </div>
                 @include('partials.theme-toggle')
                 <span class="profile">
                     <span class="avatar">{{ $initials }}</span>
@@ -193,6 +203,9 @@
                         </a>
                     @elseif ($owningRoute === 'admin.trainings.index' && Departments::mayExtendCatalogue($me))
                         You can put another field of training on this list here; {{ $ownerName }} decides the rest of it.
+                    @elseif (Departments::mayEditMembers($me) && in_array($ownerSlug, ['promoters', 'efundi'], true))
+                        You can put right what this person typed about themselves — where they live, what they studied,
+                        their skills and their picture. {{ $ownerName }} keeps the fee, the approval and the standing.
                     @else
                         Reading it here changes nothing — only the staff who run {{ $ownerName }} can change it.
                     @endif
@@ -202,10 +215,10 @@
         </main>
     </div>
 </div>
-<script src="{{ asset('js/theme.js') }}"></script>
-<script src="{{ asset('js/admin.js') }}"></script>
-<script src="{{ asset('js/lightbox.js') }}"></script>
-<script src="{{ asset('js/idle-guard.js') }}"></script>
+<script src="{{ js_href('js/theme.js') }}"></script>
+<script src="{{ js_href('js/admin.js') }}"></script>
+<script src="{{ js_href('js/lightbox.js') }}"></script>
+<script src="{{ js_href('js/idle-guard.js') }}"></script>
 @if ($owningRoute)
 <script>
     // A copy belongs to the office it is shown in: its back link returns there, not to the register of the
@@ -218,13 +231,13 @@
 @endif
 @if ($owningRoute && ! Departments::canSee($me, $ownerSlug))
 <script>
-    // The copy is read-only for this staff member. The server refuses the write either way; this saves them the
-    // click, and says where the record is actually kept. A form carrying data-host-write is the one exception —
-    // the office standing here is allowed to add to the list (the System Administrator extending the catalogue).
+    // The copy is read-only for this staff member. The server refuses the write as well; this saves them the click,
+    // and says where the record is actually kept. A control carrying data-host-write is the exception — the office
+    // standing here is allowed to change that one part of the record (Human Resources completing a member's details).
     document.querySelectorAll('main.admin-content form[method="post" i]:not([data-host-write]) button, main.admin-content form[method="post" i]:not([data-host-write]) input[type=submit]')
         .forEach((el) => { el.disabled = true; el.title = 'Read-only copy — the {{ $ownerName }} office changes this record.'; });
     document.querySelectorAll('main.admin-content a[href$="/edit"], main.admin-content a[href*="/edit?"]')
-        .forEach((el) => el.remove());
+        .forEach((el) => { if (! el.hasAttribute('data-host-write')) el.remove(); });
 </script>
 @endif
 </body>

@@ -23,6 +23,22 @@ use Illuminate\Support\Facades\Storage;
  */
 class FundiController extends Controller
 {
+
+    /** Only the desk that keeps this register — plus the System Administrator — decides what happens to the record. */
+    private function keeps(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'efundi'), 403,
+            'The E-Fundi Registry office decides a member\'s fee, grade, approval or standing. Reading the register here changes nothing.');
+    }
+
+    /** A person\'s own details are Human Resources\' to put right, wherever the record is read from. */
+    private function keepsOrHr(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'efundi')
+            || Departments::mayEditMembers($request->user()), 403,
+            'Only Human Resources and the E-Fundi Registry office change what a member typed about themselves.');
+    }
+
     public function index(Request $request)
     {
         $status = $request->query('status', 'all');
@@ -79,6 +95,7 @@ class FundiController extends Controller
             'counties' => County::orderBy('name')->pluck('name'),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
             'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
+            'partners' => Partner::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -87,8 +104,10 @@ class FundiController extends Controller
      * in for someone who cannot reach the website. It enters the same lifecycle: the fee is recorded
      * here, then review issues the E-Fundi ID and the portal login.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $this->keeps($request);
+
         return view('admin.fundi.apply', [
             'tiers' => FundiRegistration::TIERS,
             'specialisations' => FundiRegistration::SPECIALISATIONS,
@@ -100,6 +119,8 @@ class FundiController extends Controller
 
     public function store(Request $request)
     {
+        $this->keeps($request);
+
         $fundi = FundiRegistration::create(FundiRegistration::officeApplicationFrom($request));
         $fundi->storeFiles($request);
 
@@ -134,6 +155,8 @@ class FundiController extends Controller
      */
     public function storePhoto(Request $request, FundiRegistration $fundi)
     {
+        $this->keepsOrHr($request);
+
         $request->validate([
             'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ], [], ['passport_photo' => 'Profile photo']);
@@ -146,6 +169,8 @@ class FundiController extends Controller
     /** Grade moves the whole record: what a fundi can be handed and whether they may train CTPs. */
     public function setTier(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         $data = $request->validate([
             'tier' => 'required|in:'.implode(',', array_keys(FundiRegistration::TIERS)),
         ], [], ['tier' => 'Grade']);
@@ -167,6 +192,8 @@ class FundiController extends Controller
     /** The office can correct availability when a fundi stops answering or finishes a job without saying so. */
     public function setAvailability(Request $request, FundiRegistration $fundi)
     {
+        $this->keepsOrHr($request);
+
         $data = FundiRegistration::availabilityFrom($request);
 
         $fundi->update([
@@ -183,6 +210,8 @@ class FundiController extends Controller
      */
     public function block(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         abort_unless(auth()->user()->role === 'superadmin', 403,
             'Only a programme executive can suspend or blacklist an E-Fundi — staff prepare the record, the office signs it off.');
 
@@ -199,8 +228,10 @@ class FundiController extends Controller
     }
 
     /** Reopen a blocked or rejected fundi. Nothing is added twice — the same row carries the history. */
-    public function reinstate(FundiRegistration $fundi)
+    public function reinstate(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         abort_unless(auth()->user()->role === 'superadmin', 403,
             'Only a programme executive can reinstate an E-Fundi.');
 
@@ -216,6 +247,8 @@ class FundiController extends Controller
     /** Skills and the counties covered. The fundi can edit the same two things on their own portal. */
     public function updateSkills(Request $request, FundiRegistration $fundi)
     {
+        $this->keepsOrHr($request);
+
         $data = FundiRegistration::skillsFrom($request);
 
         $fundi->update($data);
@@ -228,6 +261,8 @@ class FundiController extends Controller
     /** Where the fundi works, and the business they trade under. */
     public function updatePlace(Request $request, FundiRegistration $fundi)
     {
+        $this->keepsOrHr($request);
+
         $data = $request->validate([
             'county' => 'required|string|max:100',
             'sub_county' => 'nullable|string|max:100',
@@ -247,6 +282,8 @@ class FundiController extends Controller
 
     public function markFee(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         return back()->with('status', ReviewActions::recordFee($fundi, ReviewActions::feeFrom($request)));
     }
 
@@ -256,6 +293,8 @@ class FundiController extends Controller
      */
     public function setSponsor(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         $data = $request->validate([
             'sponsor_id' => 'nullable|integer|exists:partners,id',
             'sponsor_name' => 'nullable|string|max:150',
@@ -283,8 +322,10 @@ class FundiController extends Controller
     }
 
     /** Issue the E-Fundi ID and open the portal account — inside Module 5, not sent back to Module 1. */
-    public function approve(FundiRegistration $fundi)
+    public function approve(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         $this->guardReview($fundi);
 
         return back()->with('status', ReviewActions::approve($fundi, 'ef_code', true));
@@ -292,6 +333,8 @@ class FundiController extends Controller
 
     public function reject(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         $this->guardReview($fundi);
 
         $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
@@ -300,8 +343,10 @@ class FundiController extends Controller
         return back()->with('status', $fundi->full_name.' rejected — the reason is shared with the applicant.');
     }
 
-    public function reissue(FundiRegistration $fundi)
+    public function reissue(Request $request, FundiRegistration $fundi)
     {
+        $this->keeps($request);
+
         return back()->with('status', ReviewActions::reissue($fundi));
     }
 

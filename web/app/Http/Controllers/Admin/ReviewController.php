@@ -18,6 +18,15 @@ use Illuminate\Support\Str;
 
 class ReviewController extends Controller
 {
+
+    /** A person\'s place in the programme is decided by the desk that takes applications, and the System
+     *  Administrator — never by an office reading its own copy of the register. */
+    private function decides(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'membership'), 403,
+            'Website & Membership reviews an application, records its fee and issues the member ID.');
+    }
+
     public const TYPES = [
         'ctp' => ['model' => CtpRegistration::class, 'label' => 'CTP Applications', 'guest' => 'CTP members', 'code' => 'ctp_code'],
         'fundi' => ['model' => FundiRegistration::class, 'label' => 'Fundi Applications', 'guest' => 'E-Fundi members', 'code' => 'ef_code'],
@@ -109,8 +118,10 @@ class ReviewController extends Controller
         ]);
     }
 
-    public function approve(string $type, int $id)
+    public function approve(Request $request, string $type, int $id)
     {
+        $this->decides($request);
+
         $record = $this->model($type)::findOrFail($id);
 
         return back()->with('status', ReviewActions::approve(
@@ -121,6 +132,8 @@ class ReviewController extends Controller
     /** Record money an applicant paid by M-Pesa bill, bank transfer or cash. */
     public function markFee(Request $request, string $type, int $id)
     {
+        $this->decides($request);
+
         abort_unless(in_array($type, ['ctp', 'fundi'], true), 404, 'Only CTP and E-Fundi applications carry a payment record.');
         $model = $this->model($type);
 
@@ -131,6 +144,8 @@ class ReviewController extends Controller
 
     public function reject(Request $request, string $type, int $id)
     {
+        $this->decides($request);
+
         $record = $this->model($type)::findOrFail($id);
         $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
         ReviewActions::reject($record, $data['rejection_reason']);
@@ -139,8 +154,10 @@ class ReviewController extends Controller
     }
 
     /** Replace a stale activation link for an approved member. */
-    public function reissue(string $type, int $id)
+    public function reissue(Request $request, string $type, int $id)
     {
+        $this->decides($request);
+
         abort_unless(in_array($type, ['ctp', 'fundi'], true), 404);
 
         return back()->with('status', ReviewActions::reissue($this->model($type)::findOrFail($id)));
@@ -149,6 +166,8 @@ class ReviewController extends Controller
     /** Move a CTP who finished the programme into the fundi pool. */
     public function setTier(Request $request, string $type, int $id)
     {
+        $this->decides($request);
+
         abort_unless($type === 'ctp', 404);
         $record = CtpRegistration::findOrFail($id);
 

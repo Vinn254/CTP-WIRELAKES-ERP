@@ -10,6 +10,11 @@
     $isBlocked = in_array($fundi->status, FundiRegistration::BLOCKING, true);
     $openApplication = in_array($fundi->status, ['pending_payment', 'pending_review'], true);
     $held = collect($fundi->specialisations ?? []);
+
+    // Human Resources completes what an E-Fundi typed about themselves; the E-Fundi Registry alone decides
+    // the grade, the fee, the approval and the standing.
+    $keeps = \App\Support\Departments::canSee(auth()->user(), 'efundi');
+    $details = $keeps || \App\Support\Departments::mayEditMembers(auth()->user());
 @endphp
 
 @section('content')
@@ -79,6 +84,7 @@
                     <div class="hint">Set by the grade — a fundi applies to work, a CTP trainee only watches and takes attachments.</div>
                 </dd>
             </dl>
+            @if ($keeps)
             <form method="POST" action="{{ route('admin.fundis.tier', $fundi) }}" class="mini-form"
                   data-confirm="Move {{ $fundi->full_name }} to the selected grade? It changes the projects they can apply for and whether they may train."
                   data-title="Grade">
@@ -93,6 +99,7 @@
                 </div>
                 <button class="btn btn-sm btn-primary" type="submit">Save grade</button>
             </form>
+            @endif
         </div>
 
         <div class="card">
@@ -105,9 +112,10 @@
             @else
                 <p><span class="chips">@foreach ($held as $s)<span class="chip">{{ $s }}</span>@endforeach</span></p>
             @endif
+        @if ($details)
             <details class="need-form">
                 <summary>Update skills and counties covered</summary>
-                <form method="POST" action="{{ route('admin.fundis.skills', $fundi) }}" class="fee-form">
+                <form method="POST" action="{{ route('admin.fundis.skills', $fundi) }}" @if ($details && ! $keeps) data-host-write @endif class="fee-form">
                     @csrf
                     <div class="field">
                         <label>What they can do <span class="req">*</span></label>
@@ -131,6 +139,7 @@
                     <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Save skills</button>
                 </form>
             </details>
+        @endif
         </div>
 
         <div class="card">
@@ -145,9 +154,10 @@
                 <dt>Referee</dt><dd>@if ($fundi->referee_name){{ $fundi->referee_name }} · {{ $fundi->referee_phone }} <span class="hint">({{ $fundi->referee_role }})</span>@else<span class="hint">None given</span>@endif</dd>
                 <dt>Sponsor</dt><dd>{{ $fundi->sponsorSummary() ?: 'None stated' }}</dd>
             </dl>
+        @if ($details)
             <details class="need-form">
                 <summary>Correct the business and location</summary>
-                <form method="POST" action="{{ route('admin.fundis.place', $fundi) }}" class="fee-form">
+                <form method="POST" action="{{ route('admin.fundis.place', $fundi) }}" @if ($details && ! $keeps) data-host-write @endif class="fee-form">
                     @csrf
                     <div class="form-grid-2">
                         <div class="field"><label>County <span class="req">*</span></label>
@@ -167,6 +177,7 @@
                     <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Save record</button>
                 </form>
             </details>
+        @endif
         </div>
 
         <div class="card">
@@ -216,7 +227,8 @@
             </dl>
             <p class="help">The fundi keeps this themselves on their own portal. Correct it here when they stop answering or
                 finish a job without telling the office.</p>
-            <form method="POST" action="{{ route('admin.fundis.availability', $fundi) }}" class="mini-form"
+            @if ($details)
+            <form method="POST" action="{{ route('admin.fundis.availability', $fundi) }}" @if ($details && ! $keeps) data-host-write @endif class="mini-form"
                   data-confirm="Set {{ $fundi->full_name }} as the selected availability?" data-title="Availability">
                 @csrf
                 <div class="field">
@@ -234,6 +246,7 @@
                 </div>
                 <button class="btn btn-sm btn-primary" type="submit" style="margin-top:10px;">Save availability</button>
             </form>
+            @endif
         </div>
 
         <div class="card">
@@ -248,7 +261,7 @@
                 @endif
                 <dt>E-Fundi ID</dt><dd>{{ $fundi->ef_code ?: 'Issued on approval' }}</dd>
             </dl>
-            @if ($fundi->fee_status === 'awaiting_payment' && $openApplication)
+            @if ($keeps && $fundi->fee_status === 'awaiting_payment' && $openApplication)
                 <p class="hint">{{ \App\Support\Finance::paybillLine() }} Nothing waits on a payment — record the money
                     here only when it reaches us so it lands on the ledger.</p>
                 <form method="POST" action="{{ route('admin.fundis.fee', $fundi) }}" class="fee-form"
@@ -277,6 +290,7 @@
             @endif
         </div>
 
+        @if ($keeps)
         <div class="card">
             <h3>Sponsor</h3>
             <form method="POST" action="{{ route('admin.fundis.sponsor', $fundi) }}"
@@ -285,8 +299,10 @@
                 @include('partials.sponsor-fields', ['partners' => $partners, 'record' => $fundi, 'office' => true])
                 <button class="btn btn-outline btn-sm" type="submit">Save sponsor</button>
             </form>
+        @endif
         </div>
 
+        @if ($keeps)
         <div class="card">
             <h3>Application decision</h3>
             @if ($fundi->status === 'pending_payment')
@@ -322,8 +338,10 @@
                 <p class="hint">Registered as <b>{{ $fundi->ef_code }}</b>. Rejections are only open while the application is
                     unpaid or waiting for review; a standing problem afterwards is handled under <i>Standing</i>.</p>
             @endif
+        @endif
         </div>
 
+        @if ($keeps)
         <div class="card">
             <h3>Standing</h3>
             @if (! $isExecutive)
@@ -357,11 +375,13 @@
                 <p class="hint">Suspension and blacklist both lock the portal login and take the fundi out of matching.
                     Nothing is deleted — reopen the same row when the issue is settled.</p>
             @endif
+        @endif
         </div>
 
         <div class="card">
             <h3>Documents ({{ count($docs) }})</h3>
-            <form method="POST" action="{{ route('admin.fundis.photo', $fundi) }}" enctype="multipart/form-data" class="photo-form">
+            @if ($details)
+            <form method="POST" action="{{ route('admin.fundis.photo', $fundi) }}" @if ($details && ! $keeps) data-host-write @endif enctype="multipart/form-data" class="photo-form">
                 @csrf
                 <div class="field">
                     <label>Profile photo</label>
@@ -371,6 +391,7 @@
                 <p class="help">The picture shown on this record and in their portal. Take it at the counter when the
                     application came in without one.</p>
             </form>
+            @endif
             @forelse ($docs as $slot => $doc)
                 @include('partials.doc-card', ['label' => $doc['label'], 'path' => $doc['path'],
                     'url' => route('admin.fundis.file', [$fundi, $slot])])
@@ -388,10 +409,10 @@
             @elseif ($invite)
                 <div class="link-box">
                     <label class="hint" for="fundi-activation-link">Activation link — emailed to the fundi; copy it again if they cannot find it</label>
-                    <input type="text" readonly id="fundi-activation-link" value="{{ route('activate.show', $invite->token) }}" onclick="this.select()">
+                    <input type="text" readonly id="fundi-activation-link" value="Link sent by email — copy it here to send again" onclick="this.select()">
                     <button class="btn btn-sm btn-outline" type="button" onclick="copyText('{{ route('activate.show', $invite->token) }}', this)">Copy link</button>
                 </div>
-                @if ($invite->status === 'pending')
+                @if ($keeps && $invite->status === 'pending')
                     <form method="POST" action="{{ route('admin.fundis.reissue', $fundi) }}" class="mini-form"
                           data-confirm="Issue a fresh activation link? The old one stops working and the new one is emailed to {{ $fundi->email }}." data-title="New activation link">
                         @csrf

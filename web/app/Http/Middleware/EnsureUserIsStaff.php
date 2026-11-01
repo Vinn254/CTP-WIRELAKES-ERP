@@ -47,6 +47,13 @@ class EnsureUserIsStaff
         if ($owner !== null && ! in_array($owner, Departments::visibleSlugs($user), true)) {
             $ownerName = Departments::find($owner)['name'] ?? $owner;
 
+            // Human Resources keeps the file of everyone who joins or works here, so correcting what a person typed
+            // about themselves passes this gate on another desk's register too. The controller behind it checks the
+            // same list again; every other write on this record still belongs to the desk that keeps it.
+            if (Departments::memberDetailWrite($name) && Departments::mayEditMembers($user)) {
+                return $next($request);
+            }
+
             // A desk that is given its own read-only copy of this screen is taken there instead of being turned
             // around: it already reads these rows in its own office, so nothing new is opened by the redirect.
             if ($request->isMethodCacheable() && ($copy = Departments::copyFor($user, (string) $name))) {

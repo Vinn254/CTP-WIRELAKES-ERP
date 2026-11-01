@@ -21,6 +21,14 @@ use Illuminate\Http\Request;
  */
 class TrainerController extends Controller
 {
+
+    /** Only the desk that keeps this register — plus the System Administrator — decides what happens to the record. */
+    private function keeps(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'training'), 403,
+            'Training & Certification decides who teaches, where and on what rate. Reading the list here changes nothing.');
+    }
+
     public function index(Request $request)
     {
         $status = $request->input('status', 'all');
@@ -63,6 +71,8 @@ class TrainerController extends Controller
 
     public function store(Request $request)
     {
+        $this->keeps($request);
+
         $data = Trainer::dataFrom($request);
         $column = Trainer::HOLDER_COLUMN[$data['holder_type']];
         $holderId = (int) $data[$column];
@@ -81,6 +91,8 @@ class TrainerController extends Controller
 
     public function update(Request $request, Trainer $trainer)
     {
+        $this->keeps($request);
+
         $data = Trainer::dataFrom($request);
 
         // Moving a trainer to a different site is a different approval, so it goes through a fresh application.
@@ -97,6 +109,8 @@ class TrainerController extends Controller
     /** Approve, decline or suspend one SITE — a cohort only goes to a trainer approved for that venue. */
     public function decide(Request $request, Trainer $trainer)
     {
+        $this->keeps($request);
+
         $data = $request->validate([
             'decision' => 'required|in:approved,declined,suspended',
             'note' => 'nullable|string|max:500|required_if:decision,declined',

@@ -439,18 +439,45 @@ class Departments
     }
 
     /**
-     * Who runs the staff accounts desk — the one screen that makes and un-makes an office login. Human Resources
-     * hires into the programme, so it keeps this desk beside the executive, and the founder's own words put the
-     * System Administrator on the invitation too: "system admin should be able to invite user in the system also
-     * but hr will see the invited users and add their details on onboarding". Inviting is all the System
-     * Administrator gets — the staff directory, the onboarding card, the leave register and the payroll stay
-     * behind the Human Resources tick.
+     * Who runs the staff accounts desk — the one screen that makes an office login. The founder's rule puts the
+     * invitation with the System Administrator alone: "system admin invite and approves them", and for the members
+     * "hr ... edit their profile detail not invite them". Human Resources still keeps what the person brings —
+     * the onboarding card, the staff file and the job titles — but no link out is ever sent from that desk.
      */
     public static function mayInvite(?User $user): bool
     {
         return $user !== null && ($user->isSuperAdmin()
-            || in_array('hr', $user->departmentSlugs(), true)
             || in_array('system_administrator', $user->roleSlugs(), true));
+    }
+
+    /**
+     * Who puts right a person's own details — the phone, where they live, what they studied, their picture, the
+     * skills they bring. Human Resources keeps the file of everyone who joins or works here, so it edits these even
+     * on its own copy of another office's register. What happens to the record — the fee, the approval, a suspension,
+     * an account invitation — is not a detail: only the desk that keeps the register and the System Administrator
+     * decide that. The founder's line: "hr should only view ctp member, open profile ... hr too see their details and
+     * edit their profile detail not invite them, and trainers also and other employee".
+     */
+    public static function mayEditMembers(?User $user): bool
+    {
+        return $user !== null && ($user->isSuperAdmin() || in_array('hr', $user->departmentSlugs(), true));
+    }
+
+    /**
+     * The handful of writes that only put right what a person typed about themselves, whichever register holds them.
+     * Human Resources opens another desk's copy of a member and corrects these — the phone, where they live, what
+     * they studied, the skills they bring, whether they are free for work, their picture. Nothing on this list
+     * decides what happens to the record, so the desk keeping the register still holds every other write.
+     */
+    public const MEMBER_DETAIL = [
+        'admin.promoters.edit', 'admin.promoters.update', 'admin.promoters.photo',
+        'admin.fundis.skills', 'admin.fundis.place', 'admin.fundis.availability', 'admin.fundis.photo',
+    ];
+
+    /** Is this route one of the member details Human Resources may correct on another desk's register? */
+    public static function memberDetailWrite(?string $route): bool
+    {
+        return $route !== null && in_array($route, self::MEMBER_DETAIL, true);
     }
 
     /**

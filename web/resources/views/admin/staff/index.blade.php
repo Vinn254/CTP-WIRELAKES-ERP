@@ -26,8 +26,10 @@
 
 <p class="page-lede">@if ($canManage)
     Every account made here is an <b>Admin</b> that opens only the modules its roles grant.
+@elseif ($canTicks)
+    The System Administrator sends the invitation; this desk writes the person up and sets what their account opens.
 @else
-    You are signed in without the Human Resources desk, so this list is read-only for you.
+    You are signed in without the desk that keeps these accounts, so this list is read-only for you.
 @endif</p>
 
 @include('partials.errors')

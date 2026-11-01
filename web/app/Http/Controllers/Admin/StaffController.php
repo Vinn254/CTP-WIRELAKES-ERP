@@ -201,8 +201,8 @@ class StaffController extends Controller
         return [$known, $granted];
     }
 
-    /** Staff accounts are a Human Resources record, so HR runs this desk beside the executive — the careers board,
-     *  the staff directory, the payroll and the leave register sit on the same desk. */
+    /** Inviting an account in is the System Administrator's, and theirs alone. What the person brings and the titles
+     *  they hold are kept by Human Resources on the same list — one sends the link, the other writes the file. */
     private function mayManage(): bool
     {
         return Departments::mayInvite(auth()->user());
@@ -217,8 +217,8 @@ class StaffController extends Controller
     private function gate(): void
     {
         abort_unless($this->mayManage(), 403,
-            'Staff accounts and roles are kept by Human Resources — the careers board, the staff directory and the '
-            .'leave register sit on the same desk.');
+            'The System Administrator invites a person in. Human Resources adds their details and the job titles '
+            .'the account opens.');
     }
 
     /**

@@ -6,6 +6,9 @@
     use App\Support\Departments;
 
     $read = Departments::hosted();
+    // A teaching record — the site, the trainings, the hours and the rate — belongs to Training & Certification.
+    // Human Resources corrects the person behind it on their own E-Fundi or staff record.
+    $keeps = Departments::canSee(auth()->user(), 'training');
     $here = $read ? ['department' => Departments::currentSlug()] : [];
     $tabs = ['all' => 'All'] + Trainer::STATUSES;
 @endphp
@@ -153,7 +156,7 @@
     <thead>
         <tr>
             <th>Trainer</th><th>Recorded as</th><th>Can teach</th><th>Site this record covers</th>
-            <th>Hours / week</th><th>Rate</th><th>Cohorts</th><th>Status</th>@unless ($read)<th></th>@endunless
+            <th>Hours / week</th><th>Rate</th><th>Cohorts</th><th>Status</th>@if ($keeps)<th></th>@endif
         </tr>
     </thead>
     <tbody>
@@ -178,7 +181,7 @@
                 </td>
                 <td><span class="status {{ $t->status === 'approved' ? 'active' : ($t->status === 'applied' ? 'pending_review' : 'closed') }}">{{ $t->statusLabel() }}</span>
                     @if ($t->note)<div class="hint">{{ \Illuminate\Support\Str::limit($t->note, 50) }}</div>@endif</td>
-                @unless ($read)
+                @if ($keeps)
                 <td class="actions">
                     @if ($t->status !== 'approved')
                         <form method="POST" action="{{ route('admin.trainers.decide', $t) }}" class="mini-form"
@@ -210,7 +213,8 @@
                     @endif
                     <details class="need-form" style="display:inline-block;">
                         <summary class="btn btn-sm btn-outline">Edit</summary>
-                        <form method="POST" action="{{ route('admin.trainers.update', $t) }}" class="fee-form" style="text-align:left;">
+                        <form method="POST" action="{{ route('admin.trainers.update', $t) }}"
+                              class="fee-form" style="text-align:left;">
                             @csrf @method('PATCH')
                             <input type="hidden" name="holder" value="{{ $t->holder_type }}:{{ $t->holderId() }}">
                             <input type="hidden" name="venue_id" value="{{ $t->venue_id }}">
@@ -238,10 +242,10 @@
                         </form>
                     </details>
                 </td>
-                @endunless
+                @endif
             </tr>
         @empty
-            <tr><td colspan="{{ $read ? 8 : 9 }}" class="empty-cell">
+            <tr><td colspan="{{ $keeps ? 9 : 8 }}" class="empty-cell">
                 No teaching records in this view.
             </td></tr>
         @endforelse

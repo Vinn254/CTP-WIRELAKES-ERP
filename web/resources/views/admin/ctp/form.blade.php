@@ -3,11 +3,19 @@
 
 @php
     use App\Models\CtpRegistration;
+    use App\Support\Departments;
+
     $certs = count((array) $ctp->certificates_held) ? $ctp->certificates_held : [''];
+
+    // Another desk is here only to put right what this person typed, so it returns to its own copy of the register
+    // rather than being bounced out of the CTP Promoters office.
+    $me = auth()->user();
+    $copy = Departments::canSee($me, 'promoters') ? null : Departments::copyFor($me, 'admin.promoters.show');
+    $back = $copy ? route($copy[0], ['ctp' => $ctp, 'department' => $copy[1]]) : route('admin.promoters.show', $ctp);
 @endphp
 
 @section('content')
-<p class="back"><a href="{{ route('admin.promoters.show', $ctp) }}">&larr; {{ $ctp->ctp_code ?: $ctp->full_name }}</a></p>
+<p class="back"><a href="{{ $back }}">&larr; {{ $ctp->ctp_code ?: $ctp->full_name }}</a></p>
 <h1>Edit profile — {{ $ctp->full_name }}</h1>
 <p class="page-lede">Update the field details the programme's modules and map use.</p>
 
@@ -106,7 +114,7 @@
 
     <div class="form-actions">
         <button class="btn btn-primary" type="submit">Save profile</button>
-        <a class="btn btn-ghost" href="{{ route('admin.promoters.show', $ctp) }}">Cancel</a>
+        <a class="btn btn-ghost" href="{{ $back }}">Cancel</a>
     </div>
 </form>
 
