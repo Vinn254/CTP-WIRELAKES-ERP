@@ -395,6 +395,10 @@ html.dark .status.suspended { background: #3d2416; color: #f5b98a; }
 .admin-topbar h1 { font-size: 1.08rem; margin: 0; color: #fff; flex: 1; min-width: 0; }
 .admin-topbar .menu-toggle { display: none; background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.32); border-radius: 9px; padding: 7px 9px; }
 .topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+/* Print and Download stand on every office page, so they sit with the page title rather than inside its table. */
+.page-tools { display: flex; align-items: center; gap: 6px; }
+.page-tools .btn { display: inline-flex; align-items: center; gap: 6px; }
+.page-tools .btn svg { width: 15px; height: 15px; }
 .admin-topbar .theme-toggle { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.32); padding: 7px 9px; }
 .admin-topbar .theme-toggle:hover { background: var(--lime); color: #083d0d; border-color: var(--lime); }
 .profile { display: flex; align-items: center; gap: 9px; padding: 3px 12px 3px 3px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); }
@@ -1100,7 +1104,7 @@ html.dark .band-3 small, html.dark .band-4 small { color: #dff0d6; }
 /* Module 12 — a report: recount, export, print, and a page that prints cleanly */
 .report-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 18px; }
 @media print {
-  .admin-sidebar, .admin-topbar, .report-bar, .back, .filter-bar, .nav-group, .side-foot, partials, .btn { display: none !important; }
+  .admin-sidebar, .admin-topbar, .report-bar, .back, .filter-bar, .nav-group, .side-foot, .page-tools, partials, .btn { display: none !important; }
   .admin-shell { display: block; }
   .admin-content { padding: 0; }
   body, html { background: #fff; color: #000; }

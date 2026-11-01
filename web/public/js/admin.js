@@ -314,3 +314,78 @@
         if (e.key === 'Escape') document.querySelectorAll('.sheet.open').forEach(close);
     });
 })();
+
+// Every office page prints and leaves as a spreadsheet from the two buttons in the header.
+(function () {
+    function clean(cell) {
+        if (!cell) return '';
+        var copy = cell.cloneNode(true);
+        copy.querySelectorAll('button, a.btn, input, select, textarea, script, noscript').forEach(function (el) { el.remove(); });
+        // innerText only keeps the line under a name when the node is laid out, so the copy is hung off screen.
+        var holder = document.createElement('div');
+        holder.style.cssText = 'position:fixed;left:-9999px;top:0';
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = (copy.innerText || copy.textContent || '').replace(/\s*\n\s*/g, ' · ').replace(/\s+/g, ' ').trim();
+        holder.remove();
+        return text;
+    }
+
+    function quote(value) {
+        return '"' + String(value).replace(/"/g, '""') + '"';
+    }
+
+    // The buttons on a row are not a column of the record, so a header with no words drops out with them.
+    function columns(table) {
+        var out = [];
+        Array.prototype.forEach.call(table.querySelectorAll('thead th'), function (th, i) {
+            var text = clean(th);
+            if (text) out.push({ text: text, index: i });
+        });
+        return out;
+    }
+
+    function body(table) {
+        var cols = columns(table);
+        var lines = [cols.map(function (c) { return c.text; })];
+        Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (tr) {
+            // A row that spans the table is a note under the record above it, not a line of the register.
+            if (tr.querySelector('td[colspan]')) return;
+            lines.push(cols.map(function (c) { return clean(tr.children[c.index]); }));
+        });
+        return lines.map(function (line) { return line.map(quote).join(','); }).join('\r\n');
+    }
+
+    function tables() {
+        return Array.prototype.filter.call(document.querySelectorAll('main.admin-content table.data'), function (t) {
+            return t.querySelectorAll('tbody tr').length;
+        });
+    }
+
+    // A page that carries two registers gets them one under the other, with a clear line between.
+    function exportCsv() {
+        var list = tables();
+        if (!list.length) return;
+        var sheet = list.map(body).join('\r\n\r\n');
+        var head = document.querySelector('.admin-topbar h1');
+        var name = ((head && head.innerText) || 'office').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'office';
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob(['\ufeff' + sheet], { type: 'text/csv;charset=utf-8' }));
+        link.download = name + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
+    }
+
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('[data-print]')) { window.print(); return; }
+        if (e.target.closest('[data-csv]')) exportCsv();
+    });
+
+    // A page with no table on it has nothing to take away, so the button is not offered.
+    document.addEventListener('DOMContentLoaded', function () {
+        var csv = document.querySelector('[data-csv]');
+        if (csv && !tables().length) csv.remove();
+    });
+})();

@@ -33,7 +33,6 @@
             <a class="btn btn-sm btn-outline {{ $y === $year ? 'btn-lime' : '' }}"
                href="{{ route($self, $here + ['year' => $y]) }}">{{ $y }}</a>
         @endforeach
-        <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
     </div>
 </div>
 

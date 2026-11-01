@@ -52,7 +52,6 @@
             <a class="btn btn-sm btn-ghost" href="{{ route('admin.payroll.rates') }}">Deduction rates</a>
         @endif
         <a class="btn btn-sm btn-outline" href="{{ route($index) }}">{{ $paying ? 'All months' : 'Payroll register' }}</a>
-        <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
     </div>
 </div>
 

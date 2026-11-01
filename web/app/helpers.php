@@ -89,13 +89,20 @@ if (! function_exists('download_href')) {
 
 if (! function_exists('css_href')) {
     /**
-     * The stylesheet with its own timestamp glued on. A browser that cached the previous copy of app.css
-     * otherwise keeps styling an office screen from before the change was uploaded.
+     * A stylesheet or script with its own timestamp glued on. A browser that cached the previous copy of
+     * app.css or admin.js otherwise keeps styling and behaviour from before the change was uploaded.
      */
     function css_href(string $file = 'css/app.css'): string
     {
         $path = public_path($file);
 
         return asset($file).'?v='.((is_file($path) ? filemtime($path) : null) ?: config('app.build', 1));
+    }
+}
+
+if (! function_exists('js_href')) {
+    function js_href(string $file): string
+    {
+        return css_href($file);
     }
 }

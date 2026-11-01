@@ -123,9 +123,9 @@
         </main>
     </div>
 </div>
-<script src="{{ asset('js/theme.js') }}"></script>
-<script src="{{ asset('js/admin.js') }}"></script>
-<script src="{{ asset('js/lightbox.js') }}"></script>
-<script src="{{ asset('js/idle-guard.js') }}"></script>
+<script src="{{ js_href('js/theme.js') }}"></script>
+<script src="{{ js_href('js/admin.js') }}"></script>
+<script src="{{ js_href('js/lightbox.js') }}"></script>
+<script src="{{ js_href('js/idle-guard.js') }}"></script>
 </body>
 </html>

@@ -67,8 +67,8 @@
         </button>
     </div>
 </header>
-<script src="{{ asset('js/theme.js') }}"></script>
-<script src="{{ asset('js/password.js') }}"></script>
+<script src="{{ js_href('js/theme.js') }}"></script>
+<script src="{{ js_href('js/password.js') }}"></script>
 <script>
 function toggleSiteMenu(btn) {
     const nav = document.getElementById('siteNav');
@@ -154,6 +154,6 @@ document.addEventListener('click', function (e) {
     </div>
     <div class="container fine">{{ content('site','footer','fine_print','© '.date('Y').' WireLakes Technologies') }}</div>
 </footer>
-<script src="{{ asset('js/lightbox.js') }}"></script>
+<script src="{{ js_href('js/lightbox.js') }}"></script>
 </body>
 </html>

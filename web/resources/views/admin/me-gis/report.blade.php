@@ -21,7 +21,6 @@
     <a class="btn btn-sm btn-ghost" href="{{ route('admin.reports.export', ['report' => $report['key'], 'county' => $report['county']]) }}">
         Export as CSV
     </a>
-    <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
 </div>
 
 @include('partials.report-sections')

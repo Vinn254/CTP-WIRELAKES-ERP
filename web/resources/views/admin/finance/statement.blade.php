@@ -20,7 +20,6 @@
         <a class="btn btn-sm btn-outline" href="{{ route('admin.statements.index', ['year' => $year]) }}">All statements</a>
         <a class="btn btn-sm btn-ghost"
            href="{{ route('admin.statements.export', ['statement' => $report['key'], 'year' => $year, 'month' => $month]) }}">Export as CSV</a>
-        <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
     </div>
 </div>
 

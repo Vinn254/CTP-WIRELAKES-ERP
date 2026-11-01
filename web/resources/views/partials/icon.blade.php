@@ -33,6 +33,8 @@
         'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.4 2"/>',
         'clipboard' => '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9.5 4V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1z"/><path d="M9 11h6M9 15h4"/>',
         'chart' => '<path d="M3 3v18h18"/><path d="M7 15v3M12 10v8M17 6v12"/>',
+        'printer' => '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 17h10v4H7z"/><path d="M17.5 12.5h.01"/>',
+        'download' => '<path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
     ];
 
     /** What the office types on a content field, and the line icon the site draws for it. */

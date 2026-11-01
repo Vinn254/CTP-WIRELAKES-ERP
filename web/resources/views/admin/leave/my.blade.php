@@ -17,9 +17,6 @@
             <span>{{ $months }} {{ Str::plural('month', $months) }} accrued</span>
         </p>
     </div>
-    <div class="head-actions">
-        <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()">Print</button>
-    </div>
 </div>
 
 @include('partials.leave-board')
