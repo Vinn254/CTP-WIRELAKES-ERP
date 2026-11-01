@@ -109,7 +109,8 @@ class LibraryController extends Controller
 
         $data = LibraryItem::dataFrom($request, false);
 
-        $changes = collect($data)->except('file')->filter(fn ($value) => $value !== null)->all();
+        // The sheet posts the whole title, so a field the Registrar empties is emptied on the record too.
+        $changes = collect($data)->except('file')->all();
 
         // The same sheet carries the shelf switch, so putting a title back on or off is saved with the correction.
         if (array_key_exists($request->input('status'), LibraryItem::SHELF)) {

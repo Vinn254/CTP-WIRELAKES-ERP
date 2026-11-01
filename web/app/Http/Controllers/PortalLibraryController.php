@@ -9,29 +9,30 @@ use App\Support\MemberPortal;
 use Illuminate\Http\Request;
 
 /**
- * My library — the reading the Academic Registrar has put up for a trainee's course, plus anything the Registrar filed
- * for every student. Titles are read on the screen or saved to the phone; the file itself sits on the private disk and
- * only ever opens through a row this student is entitled to.
+ * My library — the reading the Academic Registrar has put up. Everything on the shelf is open to a student: the
+ * course a title is filed under says who it was written for, it is not a lock, so a trainee not yet on a class roll
+ * still reads what the Registrar posted for their programme. Titles are read on the screen or saved to the phone;
+ * the file itself sits on the private disk and only ever opens through a signed-in trainee.
  */
 class PortalLibraryController extends Controller
 {
     public function index(Request $request)
     {
         $ctp = $this->ctp();
-        $courses = $this->courses($ctp);
+        $mine = $this->courses($ctp);
 
         $kind = $request->input('kind');
         $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
 
-        // A student only ever filters within the courses they actually sit, so anything else falls back to the full list.
+        // The filter offers the student's own programmes first, then any other programme that has reading on the shelf.
+        $courses = $mine->concat(LibraryItem::onShelf()->whereNotNull('training_id')
+            ->with('course:id,name')->get()->pluck('course')->filter()->unique('id')->values())->unique('id')->values();
+
         $course = $request->input('training_id');
         $course = $course === 'general' ? 'general'
             : (ctype_digit((string) $course) && $courses->contains('id', (int) $course) ? (int) $course : null);
 
         $items = LibraryItem::onShelf()->with('course:id,name')
-            ->when($courses->isNotEmpty(), fn ($q) => $q->where(fn ($w) => $w
-                ->whereNull('training_id')->orWhereIn('training_id', $courses->pluck('id'))))
-            ->when($courses->isEmpty(), fn ($q) => $q->whereNull('training_id'))
             ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
             ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
             ->when($kind, fn ($q) => $q->where('kind', $kind))
@@ -46,14 +47,12 @@ class PortalLibraryController extends Controller
         ]);
     }
 
-    /** A single title, opened only by a student whose course it is filed under. */
+    /** A single title, opened by any trainee — the shelf itself is what decides what students may read. */
     public function open(Request $request, LibraryItem $item)
     {
-        $ctp = $this->ctp();
+        $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
-        abort_unless($item->readsFor(null) || $this->courses($ctp)->contains('id', $item->training_id), 403,
-            'That title is filed under another course.');
 
         return Documents::file($request, $item->file_path, $item->file_name ?: $item->title);
     }

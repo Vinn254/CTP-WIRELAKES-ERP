@@ -63,16 +63,12 @@
     @endforeach
 @empty
     <div class="card">
-        <h3>Nothing on the shelf for you yet</h3>
-        <p class="help">The Academic Registrar puts books, notes, slides and PDFs here for each course. When a title is
-            filed under your training, or for every student, it appears on this page — read it in the browser or save
-            it to your phone.</p>
-        @if ($courses->isEmpty())
-            <p class="hint">You are not on a class roll yet, so you only see reading filed for every course.
-                <a href="{{ route('portal.training') }}">My training</a> lists what you can apply for.</p>
-        @endif
+        <h3>Nothing on the shelf yet</h3>
+        <p class="help">The Academic Registrar puts books, notes, slides and PDFs here for the students. Anything they
+            leave on the shelf appears on this page — read it in the browser or save it to your phone. If you were told
+            to read something and it is not here, tell the Training office.</p>
     </div>
 @endforelse
 
-<p class="hint">A title stays private to this programme — it opens from your record and nowhere else.</p>
+<p class="hint">The library opens only from your signed-in account — a link to a title will not show it to anyone else.</p>
 @endsection

@@ -102,19 +102,20 @@ class MemberClassApiController extends Controller
     public function library(Request $request): JsonResponse
     {
         $ctp = $this->ctp();
-        $courses = $this->courses($ctp);
+        $mine = $this->courses($ctp);
 
         $kind = $request->input('kind');
         $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
+
+        // The same shelf the website shows: the student's own programmes first, then any programme with reading on it.
+        $courses = $mine->concat(LibraryItem::onShelf()->whereNotNull('training_id')
+            ->with('course:id,name')->get()->pluck('course')->filter()->unique('id')->values())->unique('id')->values();
 
         $course = $request->input('training_id');
         $course = $course === 'general' ? 'general'
             : (ctype_digit((string) $course) && $courses->contains('id', (int) $course) ? (int) $course : null);
 
         $items = LibraryItem::onShelf()->with('course:id,name')
-            ->when($courses->isNotEmpty(), fn ($q) => $q->where(fn ($w) => $w
-                ->whereNull('training_id')->orWhereIn('training_id', $courses->pluck('id'))))
-            ->when($courses->isEmpty(), fn ($q) => $q->whereNull('training_id'))
             ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
             ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
             ->when($kind, fn ($q) => $q->where('kind', $kind))
@@ -139,14 +140,12 @@ class MemberClassApiController extends Controller
         ]);
     }
 
-    /** GET /api/me/library/{item} — one title, only for a student whose course it is filed under. */
+    /** GET /api/me/library/{item} — one title, handed to any signed-in trainee the way the website hands it. */
     public function libraryFile(LibraryItem $item): JsonResponse
     {
-        $courses = $this->courses($this->ctp());
+        $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
-        abort_unless($item->readsFor(null) || $courses->contains('id', $item->training_id), 403,
-            'That title is filed under another course.');
         abort_unless($item->file_path, 404, 'That title has no file on record.');
 
         return response()->json($this->inline($item->file_path, $item->file_name ?: $item->title));

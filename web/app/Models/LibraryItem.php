@@ -10,8 +10,8 @@ use Illuminate\Support\Str;
 
 /**
  * The Registrar's library — a book, a set of notes, slides or any other reading a CTP student is told to work
- * through. It belongs to a course rather than to one cohort, so the Registrar posts a title once and every student
- * taking that training reads the same copy; a title with no course belongs to the whole student body.
+ * through. The course it is filed under says who the reading was written for and groups it on the shelf; it is not a
+ * lock, so a trainee not yet put on that course's roll still reads what the Registrar posted.
  *
  * The file sits on the private disk and is only ever served through this row, so nothing reaches a student who is
  * not on the programme. Taking a title off the shelf hides it from students but keeps the record.
@@ -73,12 +73,6 @@ class LibraryItem extends Model
         ], [
             'title' => 'Title', 'kind' => 'Type', 'training_id' => 'Course', 'note' => 'What it covers', 'file' => 'The file',
         ]);
-    }
-
-    /** Whether this title is one the student in front of us reads: theirs by course, or for every student. */
-    public function readsFor(?int $courseId): bool
-    {
-        return $this->training_id === null || $this->training_id === $courseId;
     }
 
     public function kindLabel(): string

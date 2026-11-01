@@ -4,8 +4,8 @@ import '../models/member_models.dart';
 import '../services/api_client.dart';
 import '../widgets/ui.dart';
 
-/// My library — the reading the Registrar has put on the shelf for this trainee's courses, plus
-/// what is filed for every student. A title only ever reaches the students it was filed for.
+/// My library — everything the Registrar has left on the shelf. The course a title is filed under groups it
+/// and says who the reading was written for; it does not lock the title away from the other students.
 class LibraryScreen extends StatefulWidget {
   final ApiClient api;
   final Board board;
