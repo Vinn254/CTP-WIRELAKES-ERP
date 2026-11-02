@@ -123,8 +123,8 @@
             </fieldset>
 
             @php $fee = \App\Models\CtpRegistration::feeAmount(); $paybill = \App\Support\Finance::paybill(); @endphp
-            <p class="help" style="margin:0 0 16px;"><b>The registration fee is
-                {{ \App\Support\Finance::ksh($fee) }}</b>, paid after you submit on the Paybill
+            <p class="help" style="margin:0 0 16px;"><b>Student registration fee:
+                {{ \App\Support\Finance::ksh($fee) }}</b> — one time, paid after you submit on the Paybill
                 <b>{{ $paybill['number'] }}</b>, account number <b>{{ $paybill['account'] }}</b>. Once the payment is
                 in, the System Administrator checks it and approves your application. A sponsor named above covers the
                 fee for you.</p>

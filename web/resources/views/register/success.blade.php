@@ -4,7 +4,7 @@
 @php
     $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
     $needsPay = $record->fee_status === 'awaiting_payment';
-    $sponsor = $record->sponsorSummary();
+    $free = $record->feeFreeNote();
     $fee = $record::feeAmount();
     $paybill = \App\Support\Finance::paybill();
 @endphp
@@ -20,9 +20,8 @@
         <h3>What happens next</h3>
         <ol>
             @if (! $needsPay)
-                <li>@if ($sponsor){{ $sponsor }} is sponsoring your membership.
-                    @else There is no registration fee on your application. @endif
-                    <span class="tag gold">No fee to pay</span> Your application is already with the review team.</li>
+                <li>{{ $free }} <span class="tag gold">No fee to pay</span> Your application goes straight to the
+                    <b>System Administrator</b> for approval.</li>
             @else
                 <li><b>Pay the {{ \App\Support\Finance::ksh($fee) }} registration fee</b> on the Paybill
                     <b>{{ $paybill['number'] }}</b>, account number <b>{{ $paybill['account'] }}</b>.
@@ -35,7 +34,7 @@
                 <li>The admin may contact your referee to confirm the recommendation.</li>
             @endif
             <li>On approval you are issued a {{ $type === 'ctp' ? 'CTP' : 'Fundi' }} ID
-                ({{ $type === 'ctp' ? 'CTP-0001' : 'EF-0001' }} style), plus an activation link by email or WhatsApp
+                ({{ $type === 'ctp' ? 'CTP-0001' : 'EF-0001' }} style), plus an activation link by email
                 to set your password and open the member portal.</li>
         </ol>
 

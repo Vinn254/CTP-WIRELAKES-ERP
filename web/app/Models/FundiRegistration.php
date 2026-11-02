@@ -132,6 +132,37 @@ class FundiRegistration extends Model
         return $this->fee_status !== 'awaiting_payment';
     }
 
+    /** A Trainer teaches the programme's own CTPs, so the registration fee is not charged to them. */
+    public function isTrainer(): bool
+    {
+        return $this->tier === 'trainer';
+    }
+
+    /** The grade that carries no registration fee — everything else pays it. */
+    public static function tierCarriesNoFee(?string $tier): bool
+    {
+        return $tier === 'trainer';
+    }
+
+    /** Why this person is not asked for the registration fee, in the words they read. Null when they owe it. */
+    public function feeFreeNote(): ?string
+    {
+        if ($this->fee_status === 'awaiting_payment') {
+            return null;
+        }
+
+        if ($this->isTrainer()) {
+            return 'You are applying as a Trainer, so the programme does not charge you a registration fee.';
+        }
+
+        // Only the name the sponsor is known by — sponsorSummary() carries office notes a stranger should not read.
+        $who = $this->sponsor?->name ?: $this->sponsor_name;
+
+        return $who
+            ? $who.' has taken on your registration fee, so you are not asked to pay it.'
+            : 'There is no registration fee on your application.';
+    }
+
     /** Short name of a tier — the part before the description dash. */
     public static function tierLabel(?string $tier): string
     {
@@ -303,7 +334,8 @@ class FundiRegistration extends Model
         return [
             'reference' => 'EF-APP-'.strtoupper(bin2hex(random_bytes(3))),
             'status' => 'pending_review',
-            'fee_status' => 'awaiting_payment',
+            // A Trainer teaches the programme's own CTPs, so no registration fee is asked of them.
+            'fee_status' => static::tierCarriesNoFee($data['tier'] ?? null) ? 'waived' : 'awaiting_payment',
             'availability' => 'available',
             'mobilised_by_ctp' => CtpRegistration::resolveReferrer($data['mobiliser_code'] ?? null, $data)?->id,
             ...collect($data)->except(array_merge(array_keys(self::DOCUMENTS), ['mobiliser_code']))->all(),

@@ -51,8 +51,7 @@
             </p>
         @else
             <p style="margin:18px 0 0;font-size:15px;background:#f4f7f4;border-radius:8px;padding:12px 14px;">
-                @if ($sponsor){{ $sponsor }} is sponsoring your membership. @endif
-                There is no registration fee for you to pay.
+                <b>{{ $free }}</b>
             </p>
         @endif
 

@@ -130,7 +130,7 @@ class ContentSeeder extends Seeder
                 ['question' => 'What documents do I need to register?', 'answer' => 'CTP: national ID scan, passport photo, and any school certificate. Fundi: ID scan and passport photo, with a CV if you have one. Hirer: an ID or organisation document.'],
                 ['question' => 'Is registering as a hirer free?', 'answer' => 'Yes — hirer registration is free, but every organisation is verified by an admin to prevent fraud.'],
                 ['question' => 'How do I pay what the programme asks for?', 'answer' => 'For any type of payment use the Paybill and account number the office gives you, and put your reference or national ID number as the reason so the payment is matched to your name. No application waits on a payment — it goes straight to review.'],
-                ['question' => 'How long does approval take?', 'answer' => 'Directors and admins review applications with all documents. You will be notified by email and SMS once a decision is made.'],
+                ['question' => 'How long does approval take?', 'answer' => 'Directors and admins review applications with all documents. You will be notified by email once a decision is made.'],
             ]);
 
         // ---------- donate ----------

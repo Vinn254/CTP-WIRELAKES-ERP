@@ -125,6 +125,8 @@ class RegistrationController extends Controller
         $record['reference'] = $ref;
         // Nothing gates an application on payment — it goes straight to the review queue.
         $record['status'] = 'pending_review';
+        // A Trainer teaches the programme's own CTPs, so no registration fee is asked of them.
+        $record['fee_status'] = FundiRegistration::tierCarriesNoFee($data['tier']) ? 'waived' : 'awaiting_payment';
         $record['specialisations'] = array_values(array_unique($data['specialisations']));
         $record['service_counties'] = array_values(array_unique($data['service_counties']));
         $record['county'] = ($data['county'] ?? null) ?: ($record['service_counties'][0] ?? null);

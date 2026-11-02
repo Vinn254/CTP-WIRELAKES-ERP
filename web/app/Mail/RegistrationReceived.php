@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\FundiRegistration;
 use App\Models\Setting;
 use App\Support\Finance;
 use Illuminate\Bus\Queueable;
@@ -38,10 +37,10 @@ class RegistrationReceived extends Mailable
             'member' => $this->member,
             'what' => $this->what,
             'fee' => $class::feeAmount(),
-            'grade' => $this->member instanceof FundiRegistration ? $this->member->gradeLabel() : 'CTP',
+            'grade' => $this->what === 'CTP' ? 'CTP (student)' : ($this->member->gradeLabel() ?: 'E-Fundi'),
             'paybill' => Finance::paybill(),
             'needsPay' => $this->member->fee_status === 'awaiting_payment',
-            'sponsor' => $this->member->sponsorSummary(),
+            'free' => $this->member->feeFreeNote(),
             'support' => Setting::get('programme_email', content('site', 'contact', 'email', '')),
             'phone' => Setting::get('programme_phone', content('site', 'contact', 'phone', '')),
         ]);

@@ -205,6 +205,21 @@ class CtpRegistration extends Model
         return (float) Setting::get('membership_fee_ctp', '1000');
     }
 
+    /** Why this person is not asked for the registration fee, in the words they read. Null when they owe it. */
+    public function feeFreeNote(): ?string
+    {
+        if ($this->fee_status === 'awaiting_payment') {
+            return null;
+        }
+
+        // Only the name the sponsor is known by — sponsorSummary() carries office notes a stranger should not read.
+        $who = $this->sponsor?->name ?: $this->sponsor_name;
+
+        return $who
+            ? $who.' has taken on your registration fee, so you are not asked to pay it.'
+            : 'There is no registration fee on your application.';
+    }
+
     /**
      * The application questions, asked the same way whether the person fills the form themselves or
      * an officer types it in at the office. An office entry can arrive without the papers — they are

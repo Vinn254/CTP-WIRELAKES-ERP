@@ -175,10 +175,12 @@
             </fieldset>
 
             @php $fee = \App\Models\FundiRegistration::feeAmount(); $paybill = \App\Support\Finance::paybill(); @endphp
-            <p class="help" style="margin:0 0 16px;"><b>The registration fee is
-                {{ \App\Support\Finance::ksh($fee) }}</b>, paid after you submit on the Paybill
+            <p class="help" style="margin:0 0 16px;"><b>E-Fundi registration fee:
+                {{ \App\Support\Finance::ksh($fee) }}</b> — one time, paid after you submit on the Paybill
                 <b>{{ $paybill['number'] }}</b>, account number <b>{{ $paybill['account'] }}</b>. Once the payment is
-                in, the System Administrator checks it and approves your application.</p>
+                in, the System Administrator checks it and approves your application.
+                <b>A Trainer does not pay this fee</b> — the programme does not charge the people who teach its
+                CTPs.</p>
 
             <button class="btn btn-primary btn-lg btn-block" type="submit">Submit application</button>
         </form>
