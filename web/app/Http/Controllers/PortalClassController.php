@@ -62,14 +62,16 @@ class PortalClassController extends Controller
             $marksByUnit[$sheet->training_module_id] = $row;
         }
 
-        $units = $cohort->training?->modules ?? collect();
+        $cohort->load(['units', 'venue', 'trainer']);
+
+        $units = $cohort->unitList();
 
         // Each unit weighed the way the Registrar set it — the grade a trainee reads on their own page.
         $grades = $units->mapWithKeys(fn ($unit) => [$unit->id => Grading::compile($seat, $unit)])->all();
 
         return view('portal.class', MemberPortal::board($this->ctp()) + [
             'seat' => $seat,
-            'cohort' => $cohort->load(['training.modules', 'venue', 'trainer']),
+            'cohort' => $cohort,
             'timetable' => $timetable,
             'week' => $timetable?->week() ?? [],
             'units' => $units,

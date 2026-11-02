@@ -57,7 +57,7 @@ class MemberClassApiController extends Controller
 
         $marksByUnit = $this->marksByUnit($cohort, $seat);
 
-        $units = ($cohort->training?->modules ?? collect())->map(function ($unit) use ($seat) {
+        $units = $cohort->unitList()->map(function ($unit) use ($seat) {
             return ['unit' => $unit, 'grade' => Grading::compile($seat, $unit)];
         });
 

@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /** One run of one of the programme's trainings at one place — the unit CTPs apply for. */
@@ -87,6 +89,30 @@ class Cohort extends Model
     public function community(): BelongsTo
     {
         return $this->belongsTo(Community::class);
+    }
+
+    /** The units the office ticked onto this intake — always units of the training the cohort runs. */
+    public function units(): BelongsToMany
+    {
+        return $this->belongsToMany(TrainingModule::class, 'cohort_module')->withTimestamps()
+            ->orderBy('training_modules.position')->orderBy('training_modules.id');
+    }
+
+    /**
+     * What this run teaches. The ticked units, or the whole programme while nothing has been ticked — a cohort
+     * posted before the office started choosing units keeps every unit its students were already marked on.
+     */
+    public function unitList(): Collection
+    {
+        $units = $this->units;
+
+        if ($units->isNotEmpty()) {
+            return $units;
+        }
+
+        return $this->relationLoaded('training')
+            ? ($this->training?->modules ?? collect())
+            : TrainingModule::where('training_id', $this->training_id)->ordered()->get();
     }
 
     public function enrollments(): HasMany

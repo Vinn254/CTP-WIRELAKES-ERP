@@ -148,7 +148,8 @@ class Grading
                     ->map(fn (Collection $scores) => round($scores->avg('score'), 1))->all())->all());
         $board = [];
 
-        foreach ($cohort->training?->modules ?? collect() as $unit) {
+        // The units the office ticked onto this intake are the columns the table is read on.
+        foreach ($cohort->unitList() as $unit) {
             $grading = static::for($unit);
             $grades = [];
             $sums = [];
@@ -205,7 +206,7 @@ class Grading
     /** Every unit a student sits in, weighed and graded — what a transcript and a portal page are built from. */
     public static function forSeat(Enrollment $seat): array
     {
-        $units = $seat->cohort?->training?->modules ?? collect();
+        $units = $seat->cohort?->unitList() ?? collect();
 
         return $units->map(fn (TrainingModule $unit) => ['unit' => $unit] + static::compile($seat, $unit))
             ->filter(fn (array $row) => $row['marked'])->values()->all();

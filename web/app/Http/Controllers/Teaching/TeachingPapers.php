@@ -12,6 +12,7 @@ use App\Models\Timetable;
 use App\Models\TimetableSlot;
 use App\Models\Trainer;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingModule;
 use App\Models\UnitMark;
 use App\Models\UnitMarkSheet;
 use App\Support\Documents;
@@ -52,7 +53,7 @@ abstract class TeachingPapers extends Controller
 
     protected function view(string $screen, Cohort $cohort, array $data = [])
     {
-        $cohort->loadMissing(['training.modules', 'venue:id,name,type,county', 'trainer']);
+        $cohort->loadMissing(['units', 'venue:id,name,type,county', 'trainer']);
 
         return view('teaching.'.$screen, $data + [
             'layout' => $this->layout,
@@ -100,6 +101,21 @@ abstract class TeachingPapers extends Controller
             abort(422, $cohort->reference.' ended on '.$cohort->ends_on->format('d M Y')
                 .' — nothing is recorded on a paper outside the period the office set.');
         }
+    }
+
+    /**
+     * A paper is only written on a unit this intake teaches — the units the office ticked onto the cohort, never a
+     * unit of another run. A register left without a unit (a plain class day) is still allowed.
+     */
+    protected function guardUnit(Cohort $cohort, ?int $moduleId): void
+    {
+        if (! $moduleId) {
+            return;
+        }
+
+        abort_unless($cohort->unitList()->contains('id', $moduleId), 422,
+            (TrainingModule::find($moduleId)?->title ?: 'That unit').' is not taught on '.$cohort->reference
+                .'. The office ticks the units an intake teaches on its cohort page.');
     }
 
     /** Whose hand filled the paper: the posting that holds the cohort, or this office account when none does. */
@@ -150,7 +166,7 @@ abstract class TeachingPapers extends Controller
             'week' => $week,
             'classes' => $this->weekClasses($cohort, $week, $held),
             'kinds' => CohortSession::KINDS,
-            'units' => $cohort->training?->modules ?? collect(),
+            'units' => $cohort->unitList(),
             'years' => TimeSheet::years(),
             'onTheWeek' => $this->slots($cohort)->isNotEmpty(),
         ]);
@@ -257,6 +273,7 @@ abstract class TeachingPapers extends Controller
 
         $day = Carbon::parse($data['held_on']);
         $this->guardDay($cohort, $day->toDateString());
+        $this->guardUnit($cohort, empty($data['training_module_id']) ? null : (int) $data['training_module_id']);
 
         // A class the timetable carries is taught for exactly the length the timetable set it.
         $hours = $this->timetabledHours($cohort, $day, $data['kind'], $data['training_module_id'] ?? null)
@@ -349,7 +366,7 @@ abstract class TeachingPapers extends Controller
         return $this->view('marks', $cohort, [
             'sheets' => $sheets,
             'sheet' => $sheet,
-            'units' => $cohort->training?->modules ?? collect(),
+            'units' => $cohort->unitList(),
             'kinds' => UnitMarkSheet::KINDS,
             'outOf' => UnitMarkSheet::OUT_OF,
             // The Registrar's weights for the unit the grid is open on, and the desk that may correct a sheet
@@ -371,6 +388,7 @@ abstract class TeachingPapers extends Controller
             'mark_note.*.*' => 'nullable|string|max:190',
         ], [], ['training_module_id' => 'Unit']);
 
+        $this->guardUnit($cohort, $request->integer('training_module_id'));
         $this->guardDay($cohort, $data['covered_on']);
 
         $sheet = UnitMarkSheet::firstOrNew([
@@ -440,7 +458,7 @@ abstract class TeachingPapers extends Controller
 
         return $this->view('timetable', $cohort, [
             'paper' => $paper?->load('slots.module:id,title', 'slots'),
-            'units' => $cohort->training?->modules ?? collect(),
+            'units' => $cohort->unitList(),
             'days' => Timetable::DAYS,
             'kinds' => TimetableSlot::KINDS,
         ]);
@@ -493,7 +511,7 @@ abstract class TeachingPapers extends Controller
         return $this->view('lessons', $cohort, [
             'plan' => $paper,
             'lines' => $paper?->lines ?? collect(),
-            'units' => $cohort->training?->modules ?? collect(),
+            'units' => $cohort->unitList(),
             'materialKinds' => TrainingMaterial::KINDS,
         ]);
     }
@@ -562,7 +580,7 @@ abstract class TeachingPapers extends Controller
         return $this->view('materials', $cohort, [
             'papers' => TrainingMaterial::where('cohort_id', $cohort->id)
                 ->with(['module:id,title', 'lesson'])->orderByDesc('given_on')->orderByDesc('id')->get(),
-            'units' => $cohort->training?->modules ?? collect(),
+            'units' => $cohort->unitList(),
             'lessons' => LessonLine::whereHas('plan', fn ($q) => $q->where('cohort_id', $cohort->id))
                 ->orderBy('position')->get(['id', 'position', 'topic', 'planned_on']),
             'kinds' => TrainingMaterial::KINDS,

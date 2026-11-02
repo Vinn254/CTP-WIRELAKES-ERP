@@ -47,7 +47,7 @@ class LessonPlan extends Model
     /** The units the cohort's training lists, so a lesson is planned against a real one and not invented. */
     public function units(): Collection
     {
-        return $this->cohort?->training?->modules ?? collect();
+        return $this->cohort?->unitList() ?? collect();
     }
 
     public function lessonCount(): int

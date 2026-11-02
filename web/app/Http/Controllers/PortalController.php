@@ -246,7 +246,7 @@ class PortalController extends Controller
                 'venue:id,name,type,county,sub_county,ward',
                 'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
                     ->with([
-                        'training.modules',
+                        'units',
                         'enrollments' => fn ($e) => $e->with([
                             'ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'documents', 'certification',
                         ])->orderBy('id'),
@@ -272,7 +272,7 @@ class PortalController extends Controller
         $their = $this->theirTrainee($enrollment);
 
         $their->load([
-            'ctp', 'cohort.training.modules', 'cohort.venue', 'entries', 'moduleMarks', 'documents', 'certification',
+            'ctp', 'cohort.units', 'cohort.venue', 'entries', 'moduleMarks', 'documents', 'certification',
         ]);
 
         return view('portal.trainer-trainee', [

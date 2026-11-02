@@ -181,7 +181,7 @@
             @include('partials.track', ['enrollment' => $e])
 
             @include('partials.modules', ['enrollment' => $e])
-            @include('partials.documents', ['enrollment' => $e, 'modules' => $c?->training?->modules ?? collect()])
+            @include('partials.documents', ['enrollment' => $e, 'modules' => $c?->unitList() ?? collect()])
 
             @include('partials.progress', ['enrollment' => $e])
 

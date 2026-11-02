@@ -1,6 +1,7 @@
 @php
     /** @var \App\Models\Cohort $cohort */
     $many = $mine->count() > 1;
+    $unitCount = $cohort->unitList()->count();
 @endphp
 <div class="head-row">
     <div>
@@ -9,7 +10,7 @@
             <span>{{ $cohort->venue?->name ?? 'No venue set' }}</span>
             <span>{{ $cohort->periodLabel() }}</span>
             <span>{{ $roll->count() }} CTP{{ $roll->count() === 1 ? '' : 's' }} on the roll</span>
-            <span>{{ $cohort->training?->modules?->count() ?? 0 }} {{ Str::plural('unit', (int) ($cohort->training?->modules?->count() ?? 0)) }}</span>
+            <span>{{ $unitCount }} {{ Str::plural('unit', $unitCount) }}</span>
         </p>
     </div>
     @if ($many)

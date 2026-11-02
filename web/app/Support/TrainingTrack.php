@@ -37,12 +37,18 @@ class TrainingTrack
     }
 
     /** A module is only markable on a seat that is held, under the training that cohort runs. */
-    public static function guardModule(Enrollment $enrollment, TrainingModule $module): void
+    public static function guardModule(Enrollment $enrollment, TrainingModule $module, bool $mustBeTaught = true): void
     {
         abort_unless($enrollment->state === 'approved', 422, 'This CTP does not hold a seat in the cohort.');
 
         abort_unless($module->training_id === $enrollment->cohort->training_id, 422,
             $module->title.' is a module of '.$module->training->name.', not of the training this cohort runs.');
+
+        // A new mark only goes on a unit the office ticked onto this intake. Taking an old mark back is always
+        // allowed, so a unit that came off the intake still clears the record it was marked on.
+        abort_unless(! $mustBeTaught || $enrollment->cohort->unitList()->contains('id', $module->id), 422,
+            $module->title.' is not taught on '.$enrollment->cohort->reference.'. The office chooses the units an '
+                .'intake teaches when it posts or edits the cohort.');
     }
 
     public static function markModule(Enrollment $enrollment, TrainingModule $module, array $data, array $actor): string
@@ -67,7 +73,9 @@ class TrainingTrack
     /** A wrong mark is taken back while the run is open; once a certificate exists the record is closed. */
     public static function unmarkModule(Enrollment $enrollment, TrainingModule $module): string
     {
-        self::guardModule($enrollment, $module);
+        // Taking a mark back is allowed even on a unit that has since come off the intake — the office clears the
+        // mark first when it unticks the unit.
+        self::guardModule($enrollment, $module, false);
 
         $mark = $enrollment->moduleMarks()->where('training_module_id', $module->id)->first();
         abort_if(! $mark, 422, $module->title.' is not marked on '.$enrollment->ctp->full_name.'’s record.');

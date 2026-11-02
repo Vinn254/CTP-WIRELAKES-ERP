@@ -173,11 +173,8 @@ class Enrollment extends Model
      *  Read from the training rather than a snapshot, so a module added mid-cohort shows on every roll at once. */
     public function moduleBoard(): array
     {
-        $trainingId = $this->cohort?->training_id;
-
-        $modules = $trainingId
-            ? TrainingModule::where('training_id', $trainingId)->ordered()->get()
-            : collect();
+        // The units this trainee's cohort teaches — the office's ticks on the intake, not the whole programme.
+        $modules = $this->cohort?->unitList() ?? collect();
 
         $marked = ($this->relationLoaded('moduleMarks') ? $this->moduleMarks : $this->moduleMarks()->get())
             ->keyBy('training_module_id');

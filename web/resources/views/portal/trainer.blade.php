@@ -196,12 +196,12 @@
                 Attendance under '.\App\Models\Enrollment::ATTENDANCE_MINIMUM.'% keeps a trainee out of certification, so mark the days.',
         ])
 
-        @if ($c->training && $c->training->modules->isNotEmpty() && ($picked || $shown->count() === 1))
-            <h4 class="dl-group">What you are expected to deliver — {{ $c->training->name }}</h4>
+        @if ($c->unitList()->isNotEmpty() && ($picked || $shown->count() === 1))
+            <h4 class="dl-group">What you are expected to deliver — {{ $c->courseLabel() }}</h4>
             <table class="data">
                 <thead><tr><th>#</th><th>Module</th><th>Hours</th><th>What the trainee ends up able to do</th></tr></thead>
                 <tbody>
-                    @foreach ($c->training->modules as $m)
+                    @foreach ($c->unitList() as $m)
                         <tr>
                             <td>{{ $m->position }}</td>
                             <td><b>{{ $m->title }}</b></td>

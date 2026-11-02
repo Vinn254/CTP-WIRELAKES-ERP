@@ -1,10 +1,17 @@
 @php $editing = $editing ?? $cohort->exists; @endphp
+@php
+    // What the office ticked last time, or what was just posted back. A new intake starts with nothing ticked —
+    // the training is chosen first, then its own units are ticked from the list under that training.
+    $chosenUnits = collect(old('module_ids', $cohort->exists ? $cohort->units->pluck('id')->all() : []))
+        ->map(fn ($id) => (int) $id)->all();
+    $chosenTrainingId = (int) old('training_id', $cohort->training_id ?? 0);
+@endphp
 
 <h3>Training &amp; seats</h3>
 <div class="form-grid">
     <div class="field">
         <label>Training <span class="req">*</span></label>
-        <select name="training_id" required>
+        <select name="training_id" data-choices required>
             <option value="">Choose a training the programme runs</option>
             @foreach ($trainings as $t)
                 <option value="{{ $t->id }}" @selected((int) old('training_id', $cohort->training_id) === $t->id)>{{ $t->name }}</option>
@@ -32,6 +39,29 @@
         <div class="help">What a trainee owes for this intake. The 15/30 mobilisation credit is not applied yet.</div>
     </div>
 </div>
+
+<h3 style="margin-top:20px;">Units this intake teaches</h3>
+<p class="help">Tick the units of the training you chose. The students in this cohort see exactly these on their
+    units page, and their trainer can only register, mark and plan on these. Nothing is typed here — a unit is added
+    under <a href="{{ route('admin.trainings.index') }}">Training</a> first.</p>
+@foreach ($trainings as $t)
+    @php $units = $programmeUnits[$t->id] ?? collect(); @endphp
+    <div class="field" data-for-choice="{{ $t->id }}" @if ($t->id !== $chosenTrainingId) hidden @endif>
+        <label>{{ $t->name }} — {{ $units->count() }} {{ Str::plural('unit', $units->count()) }} listed</label>
+        @if ($units->isEmpty())
+            <div class="help">This training has no units yet, so the intake runs the whole course. Add units under
+                <a href="{{ route('admin.trainings.index') }}">Training</a> and tick them here.</div>
+        @else
+            <div class="chip-grid">
+                @foreach ($units as $u)
+                    <label><input type="checkbox" name="module_ids[]" value="{{ $u->id }}"
+                                  @checked(in_array($u->id, $chosenUnits, true))>
+                        {{ $u->position }}. {{ $u->title }}</label>
+                @endforeach
+            </div>
+        @endif
+    </div>
+@endforeach
 
 <h3 style="margin-top:20px;">Where this intake happens</h3>
 <div class="form-grid">

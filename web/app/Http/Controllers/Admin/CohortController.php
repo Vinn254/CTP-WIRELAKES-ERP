@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cohort;
+use App\Models\CohortSession;
 use App\Models\CtpRegistration;
 use App\Models\Enrollment;
 use App\Models\FinanceEntry;
@@ -14,6 +15,7 @@ use App\Models\Training;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
+use App\Models\UnitMarkSheet;
 use App\Support\Documents;
 use App\Support\Finance;
 use App\Support\Grading;
@@ -21,6 +23,7 @@ use App\Support\TeachingDesk;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 /**
  * Module 4 — a cohort is one intake of one of the programme's trainings, at one place. The office posts it, takes seats,
@@ -33,8 +36,7 @@ class CohortController extends Controller
         $status = $request->input('status', 'all');
         $year = (int) $request->input('year');
 
-        return view('admin.cohorts.index', $this->formData() + [
-            'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
+        return view('admin.cohorts.index', $this->formData() + [            'cohorts' => Cohort::with(['training:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->when($year, fn ($q) => $q->where('academic_year', $year))
                 ->orderByDesc('starts_on')->orderBy('id')->get(),
@@ -56,7 +58,7 @@ class CohortController extends Controller
 
     public function edit(Cohort $cohort)
     {
-        return view('admin.cohorts.form', $this->formData() + [
+        return view('admin.cohorts.form', $this->formData($cohort->training_id) + [
             'cohort' => $cohort,
             'title' => 'Edit '.$cohort->reference,
         ]);
@@ -67,7 +69,9 @@ class CohortController extends Controller
         $data = $this->validated($request);
         $this->guard($data);
 
-        $cohort = Cohort::create([...$data, 'reference' => Cohort::nextReference(), 'status' => 'draft']);
+        $cohort = Cohort::create([...$this->withoutUnits($data), 'reference' => Cohort::nextReference(), 'status' => 'draft']);
+
+        $this->syncUnits($cohort, $data['module_ids'] ?? []);
 
         return redirect()->route('admin.cohorts.show', $cohort)
             ->with('status', $cohort->reference.' — '.$cohort->courseLabel().' created as a draft. Post it when you are ready for CTPs to apply.');
@@ -78,7 +82,9 @@ class CohortController extends Controller
         $data = $this->validated($request);
         $this->guard($data);
 
-        $cohort->update($data);
+        $cohort->update($this->withoutUnits($data));
+
+        $this->syncUnits($cohort, $data['module_ids'] ?? []);
 
         return back()->with('status', $cohort->reference.' updated.');
     }
@@ -115,7 +121,7 @@ class CohortController extends Controller
 
         $enrollments = $cohort
             ? $cohort->enrollments()
-                ->with(['ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'certification', 'cohort.training.modules'])
+                ->with(['ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'certification', 'cohort.units', 'cohort.training'])
                 ->orderByRaw("case state when 'approved' then 0 when 'pending' then 1 else 2 end")
                 ->get()
                 ->sortBy(fn ($e) => mb_strtolower($e->ctp->full_name ?? ''))
@@ -137,16 +143,16 @@ class CohortController extends Controller
     /** The cohort page: the roster, the seat queue and every trainee's progress. */
     public function show(Cohort $cohort)
     {
-        $cohort->load(['training', 'venue', 'trainer.fundi', 'trainer.staff', 'trainer.applicant', 'trainer.trainings', 'community']);
+        $cohort->load(['training', 'units', 'venue', 'trainer.fundi', 'trainer.staff', 'trainer.applicant', 'trainer.trainings', 'community']);
 
         return view('admin.cohorts.show', [
             'cohort' => $cohort,
             'enrollments' => $cohort->enrollments()
-                ->with(['cohort', 'ctp:id,full_name,ctp_code,status,county,sub_county,ward', 'entries', 'certification',
+                ->with(['cohort.units', 'cohort.training', 'ctp:id,full_name,ctp_code,status,county,sub_county,ward', 'entries', 'certification',
                     'moduleMarks', 'documents'])
                 ->orderByRaw("case state when 'pending' then 0 when 'approved' then 1 else 2 end")
                 ->orderBy('id')->get(),
-            'modules' => $cohort->training?->modules ?? collect(),
+            'modules' => $cohort->unitList(),
             'documentKinds' => TrainingDocument::KINDS,
             'candidates' => CtpRegistration::whereIn('status', CtpRegistration::WORKING)
                 ->whereNotIn('id', $cohort->enrollments()->pluck('ctp_id'))
@@ -338,8 +344,17 @@ class CohortController extends Controller
 
     private function validated(Request $request): array
     {
+        $trainingId = (int) $request->input('training_id');
+
         return $request->validate([
             'training_id' => 'required|integer|exists:trainings,id',
+            // The units of the programme this intake runs. The tick list only offers those, and anything else posted
+            // back is dropped when the ticks are saved — a cohort can never be handed another course's unit.
+            'module_ids' => [
+                Rule::requiredIf(fn () => $trainingId && TrainingModule::where('training_id', $trainingId)->exists()),
+                'array',
+            ],
+            'module_ids.*' => 'integer|exists:training_modules,id',
             'venue_id' => 'nullable|integer|exists:training_venues,id',
             'trainer_id' => 'nullable|integer|exists:trainers,id',
             'community_id' => 'nullable|integer|exists:communities,id',
@@ -356,8 +371,11 @@ class CohortController extends Controller
             'practical_hours' => 'nullable|integer|min:0|max:2000',
             'fee_ksh' => 'nullable|numeric|min:0|max:9999999',
             'summary' => 'nullable|string|max:2000',
+        ], [
+            'module_ids.required' => 'Tick at least one unit — the units of this training that the intake will teach.',
         ], [], [
-            'training_id' => 'Training', 'venue_id' => 'Venue', 'trainer_id' => 'Trainer',
+            'training_id' => 'Training', 'module_ids' => 'Units this intake teaches', 'module_ids.*' => 'Unit',
+            'venue_id' => 'Venue', 'trainer_id' => 'Trainer',
             'community_id' => 'Community', 'county' => 'County', 'sub_county' => 'Sub-county', 'seats' => 'Seats',
             'starts_on' => 'Start date', 'ends_on' => 'End date', 'enrol_closes_on' => 'Applications close',
             'academic_year' => 'Academic year', 'term' => 'Term or semester',
@@ -419,16 +437,56 @@ class CohortController extends Controller
         return Training::find($data['training_id'] ?? null)?->name ?? 'that training';
     }
 
-    private function formData(): array
+    /** The ticked units are kept on their own table, so they are taken out before the cohort row is written. */
+    private function withoutUnits(array $data): array
+    {
+        unset($data['module_ids']);
+
+        return $data;
+    }
+
+    /**
+     * Save the office's ticks. A unit belongs to this cohort's own programme — and a unit a student has already been
+     * marked on cannot be taken off the intake, so no mark is ever orphaned by a retick.
+     */
+    private function syncUnits(Cohort $cohort, array $ids): void
+    {
+        $allowed = TrainingModule::where('training_id', $cohort->training_id)->pluck('id')->all();
+        $ids = array_values(array_intersect($ids, $allowed));
+
+        $held = $cohort->units()->pluck('training_module_id')->all();
+        $dropping = array_diff(array_map('intval', $held), $ids);
+
+        if ($dropping) {
+            $read = UnitMarkSheet::where('cohort_id', $cohort->id)->whereIn('training_module_id', $dropping)->exists()
+                || CohortSession::where('cohort_id', $cohort->id)->whereIn('training_module_id', $dropping)->exists()
+                || ModuleCompletion::whereIn('enrollment_id', $cohort->enrollments()->pluck('id'))
+                    ->whereIn('training_module_id', $dropping)->exists();
+
+            if ($read) {
+                $title = TrainingModule::whereIn('id', $dropping)->orderBy('position')->value('title');
+
+                abort(422, '“'.$title.'” already has a register, a marks sheet or a module mark on this intake. '
+                    .'A unit a student has been read on stays on it — clear that mark first, or leave the unit ticked.');
+            }
+        }
+
+        $cohort->units()->sync($ids);
+    }
+
+    private function formData(?int $trainingId = null): array
     {
         return [
-            'trainings' => TrainingController::options(),
+            'trainings' => TrainingController::options($trainingId),
             'venues' => VenueController::options(),
             'trainers' => Trainer::approved()->with(['fundi:id,full_name,ef_code', 'staff:id,name',
                 'applicant:id,name', 'trainings:id,name'])->get(),
             'communities' => \App\Models\Community::where('status', 'active')
                 ->orderBy('county')->orderBy('name')->get(['id', 'name', 'county', 'sub_county', 'ward']),
             'counties' => \App\Models\County::orderBy('name')->pluck('name'),
+            // Every programme's own units, grouped by programme, for the tick list on the cohort form.
+            'programmeUnits' => TrainingModule::orderBy('position')->orderBy('id')->get()
+                ->groupBy('training_id'),
         ];
     }
 }

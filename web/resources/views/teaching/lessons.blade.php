@@ -101,7 +101,7 @@
             @if ($lines->isNotEmpty())
                 <tfoot><tr>
                     <td colspan="3"><b>{{ $lines->count() }} {{ Str::plural('lesson', $lines->count()) }} ·
-                        {{ $cohort->training?->modules?->count() ?? 0 }} {{ Str::plural('unit', (int) ($cohort->training?->modules?->count() ?? 0)) }} on the programme</b></td>
+                        {{ $units->count() }} {{ Str::plural('unit', $units->count()) }} on this intake</b></td>
                     <td class="length" colspan="5">{{ \App\Models\TimetableSlot::clocked($planHours) ?: '0' }} h
                         <span class="hint">of lesson time planned</span></td>
                 </tr></tfoot>

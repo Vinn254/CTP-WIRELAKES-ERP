@@ -65,7 +65,7 @@
         @include('partials.documents', [
             'enrollment' => $enrollment,
             'mode' => 'teaching',
-            'modules' => $cohort?->training?->modules ?? collect(),
+            'modules' => $cohort?->unitList() ?? collect(),
             'documentKinds' => $documentKinds,
         ])
     </div>

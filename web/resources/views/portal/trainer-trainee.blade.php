@@ -27,7 +27,7 @@
         <div class="stat"><small>Attendance</small><b>{{ $attendance === null ? 'not marked' : $attendance.'%' }}</b></div>
         <div class="stat"><small>Records</small><b>{{ $enrollment->entries->count() }}</b></div>
         <div class="stat"><small>Modules marked</small>
-            <b>{{ $enrollment->moduleMarks->count() }}{{ $cohort?->training?->modules?->count() ? ' / '.$cohort->training->modules->count() : '' }}</b></div>
+            <b>{{ $enrollment->moduleMarks->count() }}@if (($unitCount = $cohort?->unitList()->count() ?? 0) > 0) / {{ $unitCount }}@endif</b></div>
         <div class="stat"><small>Documents</small><b>{{ $enrollment->documents->count() }}</b></div>
     </div>
 </div>
@@ -68,7 +68,7 @@
         @include('partials.documents', [
             'enrollment' => $enrollment,
             'mode' => 'trainer',
-            'modules' => $cohort?->training?->modules ?? collect(),
+            'modules' => $cohort?->unitList() ?? collect(),
             'documentKinds' => $documentKinds,
         ])
     </div>

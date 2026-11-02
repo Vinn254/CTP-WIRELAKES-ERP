@@ -60,7 +60,7 @@
                                 <td><b>{{ $e->ctp->full_name }}</b> <span class="hint">{{ $e->ctp->ctp_code }}</span></td>
                                 <td><span class="status {{ $e->state === 'approved' ? 'active' : 'pending_review' }}">{{ $e->stateLabel() }}</span></td>
                                 <td>{{ $e->trackPct() }}%</td>
-                                <td>{{ $e->moduleMarks->count() }}{{ $c->training?->modules?->count() ? ' / '.$c->training->modules->count() : '' }}</td>
+                                <td>{{ $e->moduleMarks->count() }}@if (($unitCount = $c->unitList()->count()) > 0) / {{ $unitCount }}@endif</td>
                                 <td>{{ $e->entries->count() }}</td>
                                 <td>{{ $e->documents->count() }}</td>
                                 <td><a class="btn btn-sm btn-outline" href="{{ route('admin.teaching.trainee', $e) }}">Open</a></td>

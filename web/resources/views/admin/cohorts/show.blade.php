@@ -45,6 +45,17 @@
                 @endif</dd>
             <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ dept_link('admin.communities.show', ['community' => $cohort->community]) }}">{{ $cohort->community->name }}</a>@else<span class="hint">not tied to one</span>@endif</dd>
             <dt>Sessions</dt><dd>{{ $cohort->hoursLabel() }}</dd>
+            <dt>Units taught</dt><dd>
+                @if ($modules->isEmpty())
+                    <span class="hint">This training lists no units yet, so the intake runs the whole course.</span>
+                @else
+                    {{ $modules->count() }} {{ Str::plural('unit', $modules->count()) }}
+                    <div class="hint">{{ $modules->pluck('title')->join(' · ') }}</div>
+                    <div class="help">What the {{ $seated->count() }} student{{ $seated->count() === 1 ? '' : 's' }} in
+                        this intake see on their units page, and all their trainer can register, mark and plan on.
+                        Change the ticks under <a href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>.</div>
+                @endif
+            </dd>
             <dt>Fee per trainee</dt><dd>KSh {{ number_format((float) $cohort->fee_ksh) }}</dd>
             <dt>Applications close</dt><dd>{{ $cohort->enrol_closes_on?->format('d M Y') ?? 'until you close them' }}</dd>
             <dt>Seats taken</dt><dd>{{ $cohort->seatsUsed() }} of {{ $cohort->seats }}@if ($cohort->isFull())<span class="tag gold">full</span>@endif</dd>

@@ -429,7 +429,7 @@ class MemberFieldApiController extends Controller
             'trainings:id,name',
             'venue:id,name,type,county,sub_county,ward',
             'cohorts' => fn ($q) => $q->where('status', '!=', 'draft')
-                ->with(['training.modules', 'enrollments' => fn ($e) => $e->with([
+                ->with(['units', 'enrollments' => fn ($e) => $e->with([
                     'ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'documents', 'certification',
                 ])->orderBy('id')])
                 ->orderByDesc('starts_on'),
