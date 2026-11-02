@@ -3,7 +3,10 @@
 
 @php
     $names = ['ctp' => 'CTP', 'fundi' => 'E-Fundi'];
-    $sponsor = $type === 'ctp' ? $record->sponsor : null;
+    $needsPay = $record->fee_status === 'awaiting_payment';
+    $sponsor = $record->sponsorSummary();
+    $fee = $record::feeAmount();
+    $paybill = \App\Support\Finance::paybill();
 @endphp
 
 @section('content')
@@ -16,12 +19,16 @@
     <div class="card" style="text-align:left;margin-top:26px;">
         <h3>What happens next</h3>
         <ol>
-            @if ($sponsor)
-                <li>{{ $sponsor->name }} is sponsoring your membership.
-                    <span class="tag gold">Sponsored</span> Your application is already with the review team.</li>
+            @if (! $needsPay)
+                <li>@if ($sponsor){{ $sponsor }} is sponsoring your membership.
+                    @else There is no registration fee on your application. @endif
+                    <span class="tag gold">No fee to pay</span> Your application is already with the review team.</li>
             @else
-                <li>Your application is with the review team. {{ \App\Support\Finance::paybillLine() }}
-                    Put your reference {{ $record->reference }} as the reason for any payment you make.</li>
+                <li><b>Pay the {{ \App\Support\Finance::ksh($fee) }} registration fee</b> on the Paybill
+                    <b>{{ $paybill['number'] }}</b>, account number <b>{{ $paybill['account'] }}</b>.
+                    Put your reference {{ $record->reference }} as the reason for the payment.</li>
+                <li>Once the payment is in, the <b>System Administrator</b> checks it against your reference and only
+                    then approves your application.</li>
             @endif
             <li>A Director/Admin reviews your documents.</li>
             @if ($type === 'fundi' && $record->referee_name)
@@ -31,6 +38,10 @@
                 ({{ $type === 'ctp' ? 'CTP-0001' : 'EF-0001' }} style), plus an activation link by email or WhatsApp
                 to set your password and open the member portal.</li>
         </ol>
+
+        <p style="margin-top:16px;">We have posted the same instructions to
+            <b>{{ $record->email }}</b>@if ($record->phone) and can reach you on <b>{{ $record->phone }}</b>@endif.
+            If nothing arrives, check the spelling there or contact us below.</p>
     </div>
 
     <p style="margin-top:22px;">

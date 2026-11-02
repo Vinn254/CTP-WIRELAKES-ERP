@@ -118,9 +118,16 @@
             <fieldset>
                 <legend>Who is sponsoring you? <span class="hint">(optional)</span></legend>
                 @include('partials.sponsor-fields', ['partners' => $partners])
-                <p class="help">{{ \App\Support\Finance::paybillLine() }} Put your national ID number as the reason so the
-                    office can match your payment to your application.</p>
+                <p class="help">A partner or a person who pays your membership fee for you. Leave it blank if you are
+                    paying yourself.</p>
             </fieldset>
+
+            @php $fee = \App\Models\CtpRegistration::feeAmount(); $paybill = \App\Support\Finance::paybill(); @endphp
+            <p class="help" style="margin:0 0 16px;"><b>The registration fee is
+                {{ \App\Support\Finance::ksh($fee) }}</b>, paid after you submit on the Paybill
+                <b>{{ $paybill['number'] }}</b>, account number <b>{{ $paybill['account'] }}</b>. Once the payment is
+                in, the System Administrator checks it and approves your application. A sponsor named above covers the
+                fee for you.</p>
 
             <button class="btn btn-primary btn-lg btn-block" type="submit">Submit application</button>
         </form>

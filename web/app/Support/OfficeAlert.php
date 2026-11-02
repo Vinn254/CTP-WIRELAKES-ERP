@@ -6,6 +6,7 @@ use App\Mail\ApplicationNotice;
 use App\Mail\ApplicationReceived;
 use App\Mail\NewMemberNotice;
 use App\Mail\RegistrationNotice;
+use App\Mail\RegistrationReceived;
 use App\Models\Community;
 use App\Models\HirerRegistration;
 use App\Models\JobApplication;
@@ -191,6 +192,26 @@ class OfficeAlert
             Mail::to($application->email)->send(new ApplicationReceived($application));
         } catch (Throwable $e) {
             logger()->warning('Acknowledgement for the application '.$application->reference.' was not sent: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Tell a CTP or E-Fundi applicant their application is in, and what to do about the registration fee before the
+     * System Administrator can approve them. Same rule as above: a mail server that will not answer costs nobody
+     * their application — the reference on the success screen already carries the same instructions.
+     */
+    public static function memberAcknowledge(Model $member, string $what): void
+    {
+        $email = Accounts::email($member->email ?? null);
+
+        if (! $email) {
+            return;
+        }
+
+        try {
+            Mail::to($email)->send(new RegistrationReceived($member, $what));
+        } catch (Throwable $e) {
+            logger()->warning('Acknowledgement for the '.$what.' application '.$member->reference.' was not sent: '.$e->getMessage());
         }
     }
 }
