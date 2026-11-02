@@ -1,5 +1,6 @@
 @extends('layouts.admin')
-@section('title', 'Papers & requests')
+@php $inDesk = \App\Support\Departments::canSee(auth()->user(), 'training'); @endphp
+@section('title', $inDesk ? 'Papers & library — Papers & requests' : 'Papers & requests')
 
 @php
     use App\Support\Profile;
@@ -17,6 +18,8 @@
             {{ $deskName }} answers them.</p>
     </div>
 </div>
+
+@include('partials.papers-desk', ['deskTab' => 'requests'])
 
 <div class="stat-row">
     <div class="stat"><small>Waiting on you</small><b>{{ $waiting }}</b></div>

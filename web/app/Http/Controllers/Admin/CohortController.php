@@ -16,6 +16,8 @@ use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
 use App\Support\Documents;
 use App\Support\Finance;
+use App\Support\Grading;
+use App\Support\TeachingDesk;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -124,6 +126,10 @@ class CohortController extends Controller
             'cohorts' => $cohorts,
             'cohort' => $cohort,
             'enrollments' => $enrollments,
+            // The marks the unit sheets carry, gathered unit by unit and weighed on the Registrar's grading, so the
+            // results read as one table of marks rather than as separate papers.
+            'board' => $cohort ? Grading::cohortBoard($cohort, $enrollments->where('state', 'approved')) : [],
+            'canCorrect' => TeachingDesk::approves($request->user()),
             'runs' => $cohort ? $this->runsOf($cohort) : collect(),
         ]);
     }

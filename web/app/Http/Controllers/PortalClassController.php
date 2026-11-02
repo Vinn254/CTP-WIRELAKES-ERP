@@ -9,6 +9,7 @@ use App\Models\Timetable;
 use App\Models\TrainingMaterial;
 use App\Models\UnitMarkSheet;
 use App\Support\Documents;
+use App\Support\Grading;
 use App\Support\MemberPortal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -61,17 +62,24 @@ class PortalClassController extends Controller
             $marksByUnit[$sheet->training_module_id] = $row;
         }
 
+        $units = $cohort->training?->modules ?? collect();
+
+        // Each unit weighed the way the Registrar set it — the grade a trainee reads on their own page.
+        $grades = $units->mapWithKeys(fn ($unit) => [$unit->id => Grading::compile($seat, $unit)])->all();
+
         return view('portal.class', MemberPortal::board($this->ctp()) + [
             'seat' => $seat,
             'cohort' => $cohort->load(['training.modules', 'venue', 'trainer']),
             'timetable' => $timetable,
             'week' => $timetable?->week() ?? [],
-            'units' => $cohort->training?->modules ?? collect(),
+            'units' => $units,
             'marksByUnit' => $marksByUnit,
+            'grades' => $grades,
+            'overall' => Grading::overall(
+                collect($grades)->filter(fn (array $g) => $g['marked'])->values()->all()),
             'materials' => TrainingMaterial::where('cohort_id', $cohort->id)
                 ->with(['module:id,title', 'lesson:id,topic', 'uploaderFundi:id,full_name'])
                 ->orderByDesc('given_on')->orderBy('id')->get(),
-            'kinds' => UnitMarkSheet::KINDS,
             'mine' => $this->seats($this->ctp())->get(),
         ]);
     }

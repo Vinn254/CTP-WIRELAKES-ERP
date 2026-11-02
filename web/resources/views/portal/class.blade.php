@@ -72,30 +72,58 @@
         <h3>The units you do</h3>
         <span class="tag">{{ $units->count() }} {{ Str::plural('unit', $units->count()) }}</span>
         <span class="tag">{{ round($seat->trackPct(), 1) }}% of the record</span>
+        @if ($overall !== null)
+            <span class="tag gold">overall {{ $overall }} · {{ \App\Support\Grading::letter($overall) }}</span>
+        @endif
     </div>
 
     @if ($units->isEmpty())
         <p class="help">The office has not put units under {{ $cohort->courseLabel() }} yet, so there is nothing to
             follow for this class.</p>
     @else
-        @foreach ($units as $unit)
-            @php $row = $marksByUnit[$unit->id] ?? ['on' => null, 'marks' => []]; @endphp
-            <div class="row-line">
-                <b>{{ $unit->position }}. {{ $unit->title }}</b>
-                @if ($row['marks'] === [])
-                    <span class="hint">no marks on record yet</span>
-                @else
-                    @foreach ($row['marks'] as $kind => $score)
-                        <span class="tag">{{ $kinds[$kind] }} {{ $score }}/100</span>
+        <div class="table-scroll">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Unit</th>
+                        @foreach (\App\Models\UnitGrading::PARTS as $label)
+                            <th class="num">{{ $label }}</th>
+                        @endforeach
+                        <th class="num">Weighed grade</th>
+                        <th class="num">Pass mark</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($units as $unit)
+                        @php $row = $marksByUnit[$unit->id] ?? ['on' => null, 'marks' => []];
+                               $grade = $grades[$unit->id] ?? null; @endphp
+                        <tr>
+                            <td><b>{{ $unit->position }}. {{ $unit->title }}</b>
+                                @if ($row['on'])<div class="hint">Marked on {{ $row['on'] }}.</div>@endif</td>
+                            @foreach ($grade['parts'] ?? [] as $part)
+                                <td class="num">
+                                    {{ $part['score'] === null ? '—' : $part['score'] }}
+                                    <small>{{ $part['weight'] }}%</small>
+                                </td>
+                            @endforeach
+                            <td class="num"><b>{{ $grade && $grade['marked'] ? $grade['pct'] : '—' }}</b>
+                                @if ($grade && $grade['marked'])
+                                    <div class="hint">{{ $grade['letter'] }}</div>
+                                @endif</td>
+                            <td class="num">{{ $grade['pass_pct'] ?? '—' }}</td>
+                            <td class="{{ $grade && $grade['marked'] ? ($grade['passed'] ? 'flag-good' : 'flag-bad') : '' }}">
+                                {{ $grade['remark'] ?? '—' }}
+                            </td>
+                        </tr>
                     @endforeach
-                @endif
-            </div>
-            @if ($row['on'])
-                <p class="hint">Marked on {{ $row['on'] }}.</p>
-            @endif
-        @endforeach
-        <p class="help">A mark only reaches your record when the Registrar approves the trainer's sheet. Your full
-            record, part by part, is on <a href="{{ route('portal.training') }}">My training</a>.</p>
+                </tbody>
+            </table>
+        </div>
+        <p class="help">The figures under each heading are what you were marked out of 100, and the small number is what
+            that mark is worth on the unit — the Registrar sets those weights. Your weighed grade is the marks added up
+            on those weights, and you pass at the pass mark shown. Your full record, part by part, is on
+            <a href="{{ route('portal.training') }}">My training</a>.</p>
     @endif
 </div>
 

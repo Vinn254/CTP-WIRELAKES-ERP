@@ -1,4 +1,7 @@
 @php
+    use App\Models\UnitGrading;
+    use App\Support\Grading;
+
     $brandName = content('site', 'branding', 'brand_name', 'WireLakes Technologies');
     $logo = content('site', 'branding', 'logo');
     $logo = $logo ? (str_starts_with($logo, 'http') ? $logo : url($logo)) : asset('logo.png');
@@ -115,6 +118,7 @@
                     @php
                         $board = $modules[$e->id] ?? ['modules' => collect(), 'marked' => collect()];
                         $rows = $marks[$e->id] ?? [];
+                        $grade = $grades[$e->id] ?? ['units' => [], 'overall' => null];
                         $att = $e->attendancePct();
                         $cert = $e->certification;
                     @endphp
@@ -148,6 +152,49 @@
                                 </td>
                             </tr>
                         </table>
+
+                        @if ($grade['units'])
+                            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:<?= $muted ?>;
+                                        margin:2px 0 4px;font-weight:700;">Grade on the set weights</div>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                   style="border-collapse:collapse;margin-bottom:10px;">
+                                <tr>
+                                    <td style="<?= $head ?>">Unit</td>
+                                    <td style="<?= $head ?>">CAT</td>
+                                    <td style="<?= $head ?>">Assignment</td>
+                                    <td style="<?= $head ?>">Theory</td>
+                                    <td style="<?= $head ?>">Practical</td>
+                                    <td style="<?= $head ?>">Attendance</td>
+                                    <td style="<?= $head ?>text-align:right;">Weighed grade</td>
+                                    <td style="<?= $head ?>">Remark</td>
+                                </tr>
+                                @foreach ($grade['units'] as $g)
+                                    <tr>
+                                        <td style="<?= $cell ?>"><?= $g['unit']->title ?></td>
+                                        @foreach (array_keys(UnitGrading::PARTS) as $part)
+                                            @php $p = $g['parts'][$part]; @endphp
+                                            <td style="<?= $cell ?>text-align:right;">
+                                                <?= $p['score'] === null ? '—' : $p['score'] ?>
+                                                <span style="color:<?= $muted ?>;font-size:10px;">(<?= $p['weight'] ?>%)</span>
+                                            </td>
+                                        @endforeach
+                                        <td style="<?= $cell ?>text-align:right;">
+                                            <b><?= $g['pct'] ?></b> <?= $g['letter'] ?>
+                                        </td>
+                                        <td style="<?= $cell ?>"><?= $g['remark'] ?></td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td style="<?= $cell ?>border-top:2px solid <?= $line ?>;" colspan="6">
+                                        Course overall
+                                    </td>
+                                    <td style="<?= $cell ?>border-top:2px solid <?= $line ?>;text-align:right;">
+                                        <b><?= $grade['overall'] ?></b> <?= Grading::letter((float) $grade['overall']) ?>
+                                    </td>
+                                    <td style="<?= $cell ?>border-top:2px solid <?= $line ?>;"></td>
+                                </tr>
+                            </table>
+                        @endif
 
                         @if ($rows)
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
@@ -202,8 +249,9 @@
         <div style="background:#f3f8f2;border-top:1px solid <?= $line ?>;padding:16px 26px;font-size:12px;color:<?= $muted ?>;">
             Issued by the Training department of {{ $brandName }} on {{ now()->format('d M Y') }}.
             @if ($issued) The latest certificate on this record was signed on {{ $issued->format('d M Y') }}.@endif
-            Marks are those the Registrar approved on the trainer's unit sheets; a track of 100% with the attendance
-            minimum met is what lets a certificate be put forward.
+            Marks are those the Registrar approved on the trainer's unit sheets; each unit is weighed on the parts the
+            Academic Registrar set for it — CAT, assignment, theory, practical and attendance — and passed at the mark
+            they set. A track of 100% with the attendance minimum met is what lets a certificate be put forward.
         </div>
     </div>
 </div>

@@ -3,14 +3,19 @@
     $seated = $enrollments->where('state', 'approved');
     $rows = $seated->values()->map(function ($e) {
         $board = $e->moduleBoard();
+        $grades = \App\Support\Grading::forSeat($e);
 
         return [
             'e' => $e,
             'attendance' => $e->attendancePct(),
             'modules' => $board['modules']->isEmpty() ? null : $board['marked']->count().' / '.$board['modules']->count(),
+            'cat' => $e->avgScore('cat'),
+            'assignment' => $e->avgScore('assignment'),
             'theory' => $e->avgScore('theory'),
             'practical' => $e->avgScore('practical'),
             'assessment' => $e->avgScore('assessment'),
+            'grade' => \App\Support\Grading::overall($grades),
+            'pass' => $grades ? round(collect($grades)->avg('pass_pct'), 1) : null,
             'track' => $e->trackPct(),
         ];
     });
@@ -27,11 +32,13 @@
     <div class="stat"><small>Certified</small><b>{{ $seated->filter(fn ($e) => $e->certification && $e->certification->status === 'issued')->count() }}</b></div>
 </div>
 
+<div class="table-scroll">
 <table class="data result-table">
     <thead>
         <tr>
             <th>CTP</th><th>Seat</th><th>Stage</th><th>Attendance</th><th>Modules</th>
-            <th>Theory</th><th>Practical</th><th>Assessment</th><th>Track</th><th>Certificate</th><th></th>
+            <th>CAT</th><th>Assignment</th><th>Theory</th><th>Practical</th><th>Assessment</th>
+            <th>Weighed grade</th><th>Track</th><th>Certificate</th><th></th>
         </tr>
     </thead>
     <tbody>
@@ -48,9 +55,17 @@
                     {{ $r['attendance'] === null ? 'not marked' : $r['attendance'].'%' }}
                 </td>
                 <td>{{ $r['modules'] ?? '—' }}</td>
+                <td>{{ $r['cat'] === null ? '—' : $r['cat'] }}</td>
+                <td>{{ $r['assignment'] === null ? '—' : $r['assignment'] }}</td>
                 <td>{{ $r['theory'] === null ? '—' : $r['theory'] }}</td>
                 <td>{{ $r['practical'] === null ? '—' : $r['practical'] }}</td>
                 <td>{{ $r['assessment'] === null ? '—' : $r['assessment'] }}</td>
+                <td class="{{ $r['grade'] === null ? '' : ($r['grade'] >= $r['pass'] ? 'flag-good' : 'flag-bad') }}">
+                    {{ $r['grade'] === null ? '—' : $r['grade'] }}
+                    @if ($r['grade'] !== null)
+                        <div class="hint">{{ \App\Support\Grading::letter($r['grade']) }} · pass {{ $r['pass'] }}</div>
+                    @endif
+                </td>
                 <td class="{{ $r['track'] >= 100 ? 'flag-good' : 'flag-partial' }}"><b>{{ $r['track'] }}%</b></td>
                 <td>
                     @if ($cert)
@@ -63,18 +78,23 @@
                     @endif
                 </td>
                 <td class="actions"><a class="btn btn-sm btn-outline" href="{{ $open($e) }}">Open</a>
+                    @if ($canCorrect ?? false)
+                        <a class="btn btn-sm btn-outline"
+                           href="{{ route('admin.teaching.marks', $e->cohort_id) }}">Edit marks</a>
+                    @endif
                     @if ($studentRecord ?? false)
                         <a class="btn btn-sm btn-ghost" href="{{ route('admin.students.show', $e->ctp_id) }}">Student record</a>
                     @endif
                 </td>
             </tr>
         @empty
-            <tr><td colspan="11" class="empty-cell">
+            <tr><td colspan="14" class="empty-cell">
                 Nobody holds a seat in this cohort yet, so there are no results to show. The office gives a seat, or a CTP
                 applies for one while the cohort is open.
             </td></tr>
         @endforelse
     </tbody>
 </table>
-<p class="hint">Scores are the mean of what has been recorded on each trainee’s own page — theory, practical and the final
-    assessment are out of 100. {{ $whoMarks }}</p>
+</div>
+<p class="hint">Scores are the mean of what has been recorded on each trainee’s own page — every mark is out of 100, and
+    the weighed grade is what the marks come to on the parts the Academic Registrar set for each unit. {{ $whoMarks }}</p>

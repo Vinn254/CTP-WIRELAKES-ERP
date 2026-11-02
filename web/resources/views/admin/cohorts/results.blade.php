@@ -63,8 +63,24 @@
             @include('partials.results', [
                 'enrollments' => $enrollments,
                 'open' => $open,
+                'canCorrect' => $canCorrect,
                 'studentRecord' => true,
                 'whoMarks' => 'The trainer at the site and the office both write these lines, so a trainee has one record, not two.',
+            ])
+        </div>
+
+        <div class="card">
+            <h4 class="dl-group">Grading and marks by unit — {{ $cohort->reference }}</h4>
+            <p class="hint">Every unit taught on this cohort, the marks its sheets carry on average, and what they come
+                to weighed on the grading the Academic Registrar set. This is where the grading is set: Edit changes the
+                weights and the pass mark, Marks opens the sheet so a mark a lecturer did not send in can be typed in
+                here.</p>
+            @include('partials.unit-marks', [
+                'board' => $board,
+                'cohort' => $cohort,
+                'term' => $cohort->periodLabel() ?: '—',
+                'canCorrect' => $canCorrect,
+                'marksUrl' => fn ($unit) => route('admin.teaching.marks', [$cohort, 'training_module_id' => $unit->id]),
             ])
         </div>
 

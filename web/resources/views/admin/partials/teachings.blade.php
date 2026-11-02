@@ -3,9 +3,11 @@
     <label>{{ $label ?? 'What they can teach' }} <span class="req">*</span></label>
     <div style="display:flex;flex-wrap:wrap;gap:2px 18px;margin:8px 0;">
         @foreach ($trainings as $tr)
+            {{-- A course the programme no longer lists is only offered where a record already holds it. --}}
+            @continue(($tr->status ?? 'active') !== 'active' && ! in_array($tr->id, $chosen, true))
             <label class="check-row" style="margin:0 16px 0 0;">
                 <input type="checkbox" name="trainings[]" value="{{ $tr->id }}" @checked(in_array($tr->id, $chosen, true))>
-                {{ $tr->name }}@if (($tr->status ?? 'active') !== 'active') <span class="hint">(not listed)</span>@endif
+                {{ $tr->name }}@if (($tr->status ?? 'active') !== 'active') <span class="hint">(held, no longer listed)</span>@endif
             </label>
         @endforeach
     </div>

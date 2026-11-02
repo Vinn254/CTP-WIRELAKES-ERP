@@ -94,7 +94,9 @@ class FundiController extends Controller
             'availabilities' => FundiRegistration::AVAILABILITY,
             'counties' => County::orderBy('name')->pluck('name'),
             'specialisations' => FundiRegistration::SPECIALISATIONS,
-            'trainings' => \App\Models\Training::active()->get(['id', 'name', 'code']),
+            'trainings' => \App\Models\Training::fieldChoices(
+                FundiRegistration::whereNotNull('training_field_ids')->pluck('training_field_ids')->flatten()
+            ),
             'partners' => Partner::orderBy('name')->get(['id', 'name']),
         ]);
     }

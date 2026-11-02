@@ -15,6 +15,7 @@ use App\Models\TrainingMaterial;
 use App\Models\UnitMark;
 use App\Models\UnitMarkSheet;
 use App\Support\Documents;
+use App\Support\Grading;
 use App\Support\MemberPortal;
 use App\Support\TeachingDesk;
 use App\Support\TimeSheet;
@@ -351,6 +352,10 @@ abstract class TeachingPapers extends Controller
             'units' => $cohort->training?->modules ?? collect(),
             'kinds' => UnitMarkSheet::KINDS,
             'outOf' => UnitMarkSheet::OUT_OF,
+            // The Registrar's weights for the unit the grid is open on, and the desk that may correct a sheet
+            // already handed in — the Registrar sets the grading, so their own marks go onto the record at once.
+            'grading' => $sheet?->module ? Grading::for($sheet->module) : null,
+            'canCorrect' => TeachingDesk::approves($request->user()),
         ]);
     }
 
@@ -373,7 +378,7 @@ abstract class TeachingPapers extends Controller
             'covered_on' => $data['covered_on'],
         ], $this->actor($cohort));
 
-        abort_unless(! $sheet->exists || $sheet->isEditable(), 422,
+        abort_unless(! $sheet->exists || $sheet->isEditable() || TeachingDesk::approves($request->user()), 422,
             $sheet->statusLabel().' — marks already with the Registrar are corrected by them, not here.');
 
         $sheet->note = $data['note'] ?? $sheet->note;
@@ -403,6 +408,15 @@ abstract class TeachingPapers extends Controller
 
         if ($request->boolean('forward')) {
             return back()->with('status', $this->forward($cohort, $sheet));
+        }
+
+        // A sheet the Registrar has already approved is corrected by them, and the record is counted again at once —
+        // a mark they put right cannot wait for a paper to be forwarded to their own desk.
+        if ($sheet->status === 'approved' && TeachingDesk::approves($request->user())) {
+            TeachingDesk::settle($sheet);
+
+            return back()->with('status', $written.' '.Str::plural('mark', $written).' corrected on the sheet for '
+                .$sheet->unitLabel().' — the trainees’ records are counted again now.');
         }
 
         return back()->with('status', $written.' '.Str::plural('mark', $written)

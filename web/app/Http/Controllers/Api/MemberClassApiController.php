@@ -9,8 +9,11 @@ use App\Models\Enrollment;
 use App\Models\LibraryItem;
 use App\Models\Timetable;
 use App\Models\TrainingMaterial;
+use App\Models\UnitGrading;
 use App\Models\UnitMarkSheet;
+use App\Support\Documents;
 use App\Support\Finance;
+use App\Support\Grading;
 use App\Support\Library;
 use App\Support\MemberPortal;
 use App\Support\UploadsFromJson;
@@ -54,6 +57,12 @@ class MemberClassApiController extends Controller
 
         $marksByUnit = $this->marksByUnit($cohort, $seat);
 
+        $units = ($cohort->training?->modules ?? collect())->map(function ($unit) use ($seat) {
+            return ['unit' => $unit, 'grade' => Grading::compile($seat, $unit)];
+        });
+
+        $overall = Grading::overall($units->pluck('grade')->filter(fn (array $g) => $g['marked'])->values()->all());
+
         return response()->json([
             'class' => [
                 'id' => $cohort->id,
@@ -64,6 +73,8 @@ class MemberClassApiController extends Controller
                 'dates' => $cohort->dateLabel(),
                 'trainer' => $cohort->trainer?->personName() ?: 'the office',
                 'track_pct' => round($seat->trackPct(), 1),
+                'grade_pct' => $overall,
+                'grade_letter' => $overall === null ? null : Grading::letter($overall),
             ],
             'timetable_on' => $timetable?->reviewed_at?->format('d M Y'),
             'week' => collect($timetable?->week() ?? [])->map(fn (array $day) => [
@@ -75,14 +86,27 @@ class MemberClassApiController extends Controller
                     'room' => $slot->room,
                 ])->values(),
             ])->values(),
-            'units' => $cohort->training?->modules->map(fn ($unit) => [
-                'position' => $unit->position,
-                'title' => $unit->title,
-                'covered_on' => $marksByUnit[$unit->id]['on'] ?? null,
-                'marks' => collect($marksByUnit[$unit->id]['marks'] ?? [])
-                    ->map(fn ($score, $kind) => ['kind' => $kind, 'label' => UnitMarkSheet::KINDS[$kind] ?? $kind, 'score' => $score])
-                    ->values(),
-            ])->values() ?? collect(),
+            'units' => $units->map(function (array $row) use ($marksByUnit) {
+                $unit = $row['unit'];
+                $grade = $row['grade'];
+
+                return [
+                    'position' => $unit->position,
+                    'title' => $unit->title,
+                    'covered_on' => $marksByUnit[$unit->id]['on'] ?? null,
+                    'marks' => collect(UnitGrading::PARTS)->map(fn (string $label, string $part) => [
+                        'kind' => $part,
+                        'label' => $label,
+                        'weight' => $grade['parts'][$part]['weight'],
+                        'score' => $grade['parts'][$part]['score'],
+                    ])->values(),
+                    'pct' => $grade['marked'] ? $grade['pct'] : null,
+                    'letter' => $grade['marked'] ? $grade['letter'] : null,
+                    'pass_pct' => $grade['pass_pct'],
+                    'passed' => $grade['passed'],
+                    'remark' => $grade['remark'],
+                ];
+            })->values(),
             'materials' => $this->materials($cohort)->map(fn (TrainingMaterial $m) => $this->material($m))->values(),
             'seats' => $this->seats($this->ctp())->get()
                 ->map(fn (Enrollment $e) => ['cohort_id' => $e->cohort_id, 'label' => $e->cohort?->reference.' — '.$e->cohort?->courseLabel()])

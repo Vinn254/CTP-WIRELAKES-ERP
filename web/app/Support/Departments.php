@@ -114,9 +114,8 @@ class Departments
             ['label' => 'Papers & library', 'icon' => 'book', 'route' => ['admin.registers.index'], 'badge' => 'papers'],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
             ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.host.registrations.index', ['type' => 'ctp', 'department' => 'training']]],
-            // A service request from an area page belongs to Website & Membership, which answers it; teaching papers
-            // are the Registrar's own queue and sit under Papers & library.
-            ['label' => 'Papers & requests', 'icon' => 'clipboard', 'route' => ['admin.papers.index'], 'badge' => 'profilepapers'],
+            // Papers & requests is a tab on the Papers & library desk, not a sign of its own here.
+            // Grading is set on a cohort's results, where the marks it weighs are read.
         ],
         'efundi' => [
             ['label' => 'E-Fundi register', 'icon' => 'users', 'route' => ['admin.fundis.index'], 'badge' => 'fundis'],

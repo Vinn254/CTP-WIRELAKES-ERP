@@ -20,9 +20,11 @@ class CtpRegistration extends Model
 {
     use NormalizedIdentity;
 
+    /** A CTP is a **student**. Junior Fundi and Senior Fundi are E-Fundi grades a student is given later, once
+     *  they have done internship and attachment — the two are never the same label. */
     public const TRACKS = [
-        'school_leaver' => 'School-leaver training track',
-        'junior' => 'Junior practical-check track',
+        'school_leaver' => 'Student — full course',
+        'junior' => 'Student — practical check',
     ];
 
     /** The lifecycle in  of the Module 2 workflow — three roles run on this one record. */
@@ -539,8 +541,8 @@ class CtpRegistration extends Model
             $this->status === 'deployed' => 'Deployed — you are working on projects in the field',
             $this->status === 'graduated' => 'Certified — waiting on deployment into projects and internship',
             default => $this->track === 'junior'
-                ? 'Active CTP — book your practical check and certification check'
-                : 'Active CTP — enrolled in the training cohort',
+                ? 'Active student CTP — book your practical check and certification check'
+                : 'Active student CTP — enrolled in the training cohort',
         };
     }
 
@@ -583,7 +585,7 @@ class CtpRegistration extends Model
             $gaps[] = 'Counties they will serve';
         }
         if ($this->track === 'junior' && ! count((array) $this->certificates_held)) {
-            $gaps[] = 'Certificates held (junior track must be verified)';
+            $gaps[] = 'Certificates held (a student on the practical-check track must be verified on them)';
         }
 
         return $gaps;

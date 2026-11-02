@@ -80,8 +80,8 @@
                 @checked(in_array($t->id, array_map('intval', (array) old('training_field_ids', [])), true))> {{ $t->name }}</label>
         @endforeach
     </div>
-    <div class="help">Tick at least one for a Trainer. The pick comes from the programme’s training list and is not
-        held to their trade skills — a Mathematics trainer may also wire houses.</div>
+    <div class="help">Tick at least one for a Trainer. The pick is the programme’s own course list and is not
+        held to their trade skills — an Electrical trainer may also teach Solar.</div>
 </div>
 
 <h3 style="margin-top:20px;">Where they work</h3>

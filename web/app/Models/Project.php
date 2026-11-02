@@ -18,7 +18,7 @@ class Project extends Model
     public const CATEGORIES = [
         'attachment' => ['label' => 'CTP attachment', 'hint' => 'School-going CTPs and attachment applicants', 'ctp' => true, 'tiers' => ['attachment']],
         'internship' => ['label' => 'Graduate internship', 'hint' => 'Graduates seeking their first internship', 'ctp' => false, 'tiers' => ['fundi_intern']],
-        'junior_fundi' => ['label' => 'Junior fundi job', 'hint' => 'Fundis who have completed an internship', 'ctp' => false, 'tiers' => ['junior_fundi']],
+        'junior_fundi' => ['label' => 'Junior fundi job', 'hint' => 'Fundis who have done an internship and attachment', 'ctp' => false, 'tiers' => ['junior_fundi']],
         'senior_fundi' => ['label' => 'Senior fundi job', 'hint' => 'Experienced senior fundis', 'ctp' => false, 'tiers' => ['senior_fundi']],
     ];
 

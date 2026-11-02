@@ -26,7 +26,7 @@ class OnboardingController extends Controller
             'done' => $this->applications(['onboarded'])->take(20),
             'liveDepartments' => Departments::live(),
             'roles' => Roles::all(),
-            'fields' => Training::orderBy('name')->get(['id', 'name']),
+            'fields' => Training::fieldChoices(),
         ]);
     }
 

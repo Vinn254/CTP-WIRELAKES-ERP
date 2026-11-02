@@ -76,7 +76,8 @@
                     <option value="{{ $key }}" @selected(old('track', $ctp->track) === $key)>{{ $label }}</option>
                 @endforeach
             </select>
-            <div class="help">Junior CTPs skip the full cohort — they sit the practical and certification check.</div>
+            <div class="help">A CTP is a student. The one who already holds a certificate skips the full cohort — they
+                sit the practical and certification check.</div>
         </div>
     </div>
 
@@ -88,7 +89,7 @@
             @endforeach
         </div>
         <button class="btn btn-sm btn-ghost" type="button" id="addCert">Add another certificate</button>
-        <div class="help">What the CTP already holds. Junior-track certificates are verified before the certification check.</div>
+        <div class="help">What the student already holds. Certificates for the practical-check track are verified before the certification check.</div>
     </div>
 
     <h3 style="margin-top:20px;">Preferences</h3>

@@ -2,7 +2,9 @@
 @section('title', $ctp->full_name.' — student record')
 
 @php
+    use App\Models\UnitGrading;
     use App\Support\Departments;
+    use App\Support\Grading;
 
     $place = collect([$ctp->ward, $ctp->sub_county, $ctp->county])->filter()->join(', ');
     $seatRow = function ($e, array $modules): array {
@@ -114,6 +116,7 @@
             $board = $modules[$e->id];
             $r = $seatRow($e, $board);
             $unitMarks = $marks[$e->id] ?? [];
+            $grade = $grades[$e->id] ?? ['units' => [], 'overall' => null];
         @endphp
         <div class="card">
             <div class="section-head">
@@ -153,6 +156,58 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($grade['units'])
+                <h4 class="dl-group">Grade on the Registrar's weights</h4>
+                <div class="table-scroll">
+                    <table class="data">
+                        <thead>
+                            <tr>
+                                <th>Unit</th><th>CAT</th><th>Assignment</th><th>Theory</th><th>Practical</th>
+                                <th>Attendance</th><th>Weighed grade</th><th>Pass mark</th><th>Remark</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($grade['units'] as $g)
+                                <tr>
+                                    <td>{{ $g['unit']->title }}</td>
+                                    @foreach (array_keys(UnitGrading::PARTS) as $part)
+                                        @php $p = $g['parts'][$part]; @endphp
+                                        <td class="num">
+                                            {{ $p['score'] === null ? '—' : $p['score'] }}
+                                            <small>{{ $p['weight'] }}%</small>
+                                        </td>
+                                    @endforeach
+                                    <td class="num"><b>{{ $g['pct'] }}</b> {{ $g['letter'] }}</td>
+                                    <td class="num">{{ $g['pass_pct'] }}</td>
+                                    <td class="{{ $g['passed'] ? 'flag-good' : 'flag-bad' }}">{{ $g['remark'] }}</td>
+                                    <td class="actions">
+                                        @if ($canGrade)
+                                            <button class="btn btn-sm btn-outline" type="button"
+                                                    data-sheet="grade-{{ $e->id }}-{{ $g['unit']->id }}">Edit</button>
+                                            <a class="btn btn-sm btn-ghost"
+                                               href="{{ route('admin.teaching.marks', [$e->cohort_id, 'training_module_id' => $g['unit']->id]) }}">Marks</a>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <p class="hint">Course overall
+                    <b>{{ $grade['overall'] === null ? '—' : $grade['overall'].' %' }}</b>
+                    {{ $grade['overall'] === null ? '' : Grading::letter($grade['overall']) }}
+                    — each unit is weighed on the marks the Registrar approved, the way they set it on
+                    <a href="{{ route('admin.cohorts.results', ['cohort' => $e->cohort_id]) }}">the cohort’s results</a>.
+                </p>
+                @foreach ($grade['units'] as $g)
+                    @include('partials.grading-sheet', [
+                        'unit' => $g['unit'],
+                        'grading' => Grading::for($g['unit']),
+                        'sheetName' => 'grade-'.$e->id.'-'.$g['unit']->id,
+                    ])
+                @endforeach
+            @endif
 
             @if ($board['modules']->isNotEmpty())
                 <h4 class="dl-group">Units expected</h4>

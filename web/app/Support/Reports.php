@@ -246,7 +246,11 @@ class Reports
             ->when($county, fn ($q) => $q->where('county', $county))
             ->orderByDesc('id')->limit(60)->get();
 
-        $byCourse = Training::orderBy('name')->get()->map(function (Training $t) {
+        // The trainings the programme lists, and any a cohort has already run — a course taken off the list still
+        // reports on the seats it holds, and a course with no seats at all never shows as if it were running.
+        $byCourse = Training::where(fn ($q) => $q->where('status', 'active')
+            ->orWhereIn('id', Cohort::distinct()->pluck('training_id')))
+            ->orderBy('name')->get()->map(function (Training $t) {
             $rows = Enrollment::whereHas('cohort', fn ($q) => $q->where('training_id', $t->id))->get();
             $done = $rows->where('stage', 'completed')->count();
             $failed = $rows->where('stage', 'failed')->count();

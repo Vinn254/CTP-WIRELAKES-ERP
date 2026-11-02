@@ -27,7 +27,7 @@ class StaffController extends Controller
             'invites' => StaffInvite::latest()->with('trainerField:id,name')->get(),
             'liveDepartments' => Departments::live(),
             'roles' => Roles::all(),
-            'fields' => Training::orderBy('name')->get(['id', 'name']),
+            'fields' => Training::fieldChoices(),
             'isSuper' => auth()->user()->role === 'superadmin',
             'canManage' => $this->mayManage(),
             'canTicks' => Departments::maySetRoles(auth()->user()),

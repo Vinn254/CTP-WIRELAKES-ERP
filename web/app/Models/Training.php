@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -42,6 +43,26 @@ class Training extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active')->orderBy('name');
+    }
+
+    /**
+     * The fields a staff or E-Fundi screen offers: the trainings the programme lists, with any field a record
+     * already holds added back so an existing trainer is never asked to choose again.
+     *
+     * @param  iterable<int>  $held  ids held by the records on this screen
+     * @return Collection<int, self>
+     */
+    public static function fieldChoices(iterable $held = []): Collection
+    {
+        $heldIds = collect($held)->merge(
+            User::whereIn('role', ['admin', 'superadmin'])->whereNotNull('trainer_training_id')->pluck('trainer_training_id')
+        )->merge(
+            StaffInvite::whereNotNull('trainer_training_id')->pluck('trainer_training_id')
+        )->filter()->map(fn ($id) => (int) $id)->unique()->values();
+
+        return self::where(fn (Builder $query) => $query
+            ->where('status', 'active')->orWhereIn('id', $heldIds->all()))
+            ->orderBy('status')->orderBy('name')->get(['id', 'name', 'status']);
     }
 
     public static function codeFromName(string $name): string

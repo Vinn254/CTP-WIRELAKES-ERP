@@ -97,6 +97,14 @@
         </div>
         <p class="hint">{{ $paper->note ?: 'No note with the sheet.' }}</p>
 
+        @php $weights = $paper->module ? \App\Support\Grading::for($paper->module) : null; @endphp
+        @if ($weights)
+            <p class="hint">Weighed here as {{ \App\Support\Grading::weightLine($weights) }}
+                — a trainee passes the unit at {{ $weights->pass_pct }}.
+                <a href="{{ route('admin.cohorts.results', ['cohort' => $paper->cohort_id]) }}">Set the weights on the cohort’s results</a>
+            </p>
+        @endif
+
         @if ($seats->isEmpty())
             <p class="help">Nothing is written on this sheet yet. Send it back to the trainer.</p>
         @else

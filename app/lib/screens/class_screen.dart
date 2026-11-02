@@ -163,7 +163,14 @@ class _ClassScreenState extends State<ClassScreen> {
       SectionCard(
         title: '${c.reference} — ${c.course}',
         subtitle: [c.period, c.dates].where((x) => x != null && x.isNotEmpty).join(' · '),
-        trailing: Tag('${c.trackPct.toStringAsFixed(0)}% of track', color: green),
+        trailing: Wrap(
+          spacing: 6,
+          children: [
+            Tag('${c.trackPct.toStringAsFixed(0)}% of track', color: green),
+            if (c.gradePct != null)
+              Tag('Grade ${c.gradePct} ${c.gradeLetter ?? ''}', color: green),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -173,6 +180,11 @@ class _ClassScreenState extends State<ClassScreen> {
                 label: 'Your track',
                 value: 'The track fills as each module sheet is covered and approved. It reaches '
                     '100% when every unit of this course is marked off.',
+                strong: false),
+            LabeledValue(
+                label: 'Your grade',
+                value: 'Each mark you are given is out of 100, and the Registrar sets what each one is '
+                    'worth on the unit. Your grade is those marks added up on those weights.',
                 strong: false),
           ],
         ),
@@ -211,8 +223,8 @@ class _ClassScreenState extends State<ClassScreen> {
       ),
       SectionCard(
         title: 'Units of this course',
-        subtitle: 'What has been covered, and the marks the trainer recorded against your name once '
-            'the Registrar approved the sheet.',
+        subtitle: 'The units on the programme list for this course, the marks the Registrar approved on each '
+            'part, the weight that part carries, and the grade they come to.',
         child: b.units.isEmpty
             ? const Text('This course has no units on the programme list yet.',
                 style: TextStyle(color: muted, fontSize: 13))
@@ -223,13 +235,14 @@ class _ClassScreenState extends State<ClassScreen> {
                     RecordRow(
                       title: '${u.position}. ${u.title}',
                       subtitle: u.coveredOn ?? 'Not covered yet',
-                      trailing: u.marks.isEmpty
-                          ? const Tag('No marks yet', color: muted)
-                          : Text(u.marks.fold('', (a, m) => '$a ${m.score}'.trim()),
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: green)),
-                      meta: u.marks.isEmpty
-                          ? null
-                          : u.marks.map((m) => '${m.label}: ${m.score}').join(' · '),
+                      trailing: u.pct == null
+                          ? const Tag('Not marked yet', color: muted)
+                          : Text(u.grade,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  color: u.passed ? green : danger)),
+                      meta: u.marks.map((m) => '${m.label}: ${m.shown}').join(' · '),
                     ),
                 ],
               ),

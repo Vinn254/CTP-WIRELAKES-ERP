@@ -21,7 +21,7 @@
     $steps = $member->track === 'junior'
         ? ['Application submitted', 'Approved and CTP ID issued',
            'Practical check (graded)', 'Certification check on your certificates',
-           'Registered as a junior E-Fundi', 'Deployed on projects']
+           'Added to the E-Fundi pool', 'Deployed on projects']
         : ['Application submitted', 'Approved and CTP ID issued',
            'Enrolled in a training cohort', 'Theory and practical sessions',
            'Assessment and certificate', 'Added to the E-Fundi pool', 'Deployed on projects'];
@@ -213,7 +213,7 @@
 @endif
 
 <div class="card">
-    <h3>Where you are on the {{ Str::lower($member->trackLabel()) }}</h3>
+    <h3>Where you are as a student</h3>
     <ol class="steps">
         @foreach ($steps as $i => $step)
             <li class="{{ $i < $doneUpto ? 'done' : ($i === $doneUpto ? 'current' : '') }}">
@@ -225,8 +225,9 @@
     @if ($member->status === 'suspended')
         <p class="help">Your account is suspended — {{ $member->status_note ?: 'speak to your County Coordinator to put it right.' }}</p>
     @elseif ($member->track === 'junior')
-        <p class="help">Junior CTPs skip the full cohort. You sit a graded <b>practical check</b> and a
-            <b>certification check</b> on the certificates you hold. Pass both and you enter the fundi pool at junior level.</p>
+        <p class="help">You are a student on the practical-check track, so you skip the full cohort. You sit a graded
+            <b>practical check</b> and a <b>certification check</b> on the certificates you hold. Pass both and the
+            office grades you as a Junior Fundi — the E-Fundi grade for one who has done internship and attachment.</p>
     @endif
 </div>
 

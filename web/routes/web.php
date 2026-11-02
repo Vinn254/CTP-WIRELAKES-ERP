@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DirectorController;
 use App\Http\Controllers\Admin\ExecutionController;
 use App\Http\Controllers\Admin\EwasteController;
 use App\Http\Controllers\Admin\FundiController;
+use App\Http\Controllers\Admin\GradingController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\DirectoryController;
 use App\Http\Controllers\Admin\InvoiceController;
@@ -468,6 +469,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // A student keeps a title for KSh 50 (a past paper) or KSh 100 (a book or notes). The Registrar counts the money
     // in and confirms it here — that confirmation, not the student's claim, is what opens the download.
     Route::post('/library/purchase/{purchase}/decide', [LibraryController::class, 'decide'])->whereNumber('purchase')->name('library.decide');
+
+    // The Registrar's grading. The weights a unit is graded on are set on the cohort's own results page, where the
+    // marks they weigh are read; this is the post that keeps one unit's weights.
+    Route::post('/grading/{module}', [GradingController::class, 'update'])->whereNumber('module')->name('grading.update');
 
     Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
     Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');

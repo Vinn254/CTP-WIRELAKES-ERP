@@ -8,7 +8,7 @@
     <select name="trainer_training_id" @if ($open ?? false) required @endif>
         <option value="">Choose the training they teach</option>
         @foreach ($fields as $field)
-            <option value="{{ $field->id }}" @selected($picked === $field->id)>{{ $field->name }}</option>
+            <option value="{{ $field->id }}" @selected($picked === $field->id)>{{ $field->name }}@if ($field->status !== 'active') — no longer listed, kept because it is held@endunless</option>
         @endforeach
     </select>
     <div class="help">Only the trainings the programme runs are listed. The Training &amp; Certification desk still

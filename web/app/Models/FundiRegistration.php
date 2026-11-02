@@ -27,7 +27,7 @@ class FundiRegistration extends Model
     public const TIERS = [
         'senior_fundi' => 'Senior Fundi — long industry experience',
         'trainer' => 'Trainer — teaches one of the programme’s training fields and takes CTPs at a site',
-        'junior_fundi' => 'Junior Fundi — recent graduate with internship experience',
+        'junior_fundi' => 'Junior Fundi — has done internship and attachment',
         'attachment' => 'Attachment applicant — still in school, not yet graduated',
         'fundi_intern' => 'Intern — graduated, no experience, seeking an internship',
     ];

@@ -9,6 +9,8 @@ use App\Models\LibraryItem;
 use App\Models\TrainingDocument;
 use App\Models\UnitMarkSheet;
 use App\Support\Documents;
+use App\Support\Grading;
+use App\Support\TeachingDesk;
 use Illuminate\Http\Request;
 
 /**
@@ -29,11 +31,13 @@ class StudentController extends Controller
             'seats' => $seats,
             'terms' => $this->terms($seats),
             'marks' => $this->marks($seats),
+            'grades' => $this->grades($seats),
             'modules' => $this->modules($seats),
             'papers' => TrainingDocument::whereIn('enrollment_id', $seats->pluck('id'))
                 ->with(['enrollment:id,cohort_id', 'module:id,title'])
                 ->orderByDesc('dated_on')->get(),
             'reading' => $this->reading($seats),
+            'canGrade' => TeachingDesk::approves($request->user()),
             'back' => $request->input('back') ?: route('admin.track.index'),
         ]);
     }
@@ -48,6 +52,7 @@ class StudentController extends Controller
             'seats' => $seats,
             'terms' => $this->terms($seats),
             'marks' => $this->marks($seats),
+            'grades' => $this->grades($seats),
             'modules' => $this->modules($seats),
         ])->render(), 'Transcript '.$ctp->ctp_code.' '.$ctp->full_name);
     }
@@ -108,6 +113,22 @@ class StudentController extends Controller
     private function modules($seats)
     {
         return $seats->mapWithKeys(fn (Enrollment $e) => [$e->id => $e->moduleBoard()])->all();
+    }
+
+    /**
+     * Each seat's units weighed on the Registrar's grading, with the course overall beside them — the figure the
+     * record, the printed transcript and the trainee's own screens all repeat.
+     */
+    private function grades($seats): array
+    {
+        $out = [];
+
+        foreach ($seats as $e) {
+            $units = Grading::forSeat($e);
+            $out[$e->id] = ['units' => $units, 'overall' => Grading::overall($units)];
+        }
+
+        return $out;
     }
 
     /** The library titles on the courses this trainee has taken — what they were told to read. */

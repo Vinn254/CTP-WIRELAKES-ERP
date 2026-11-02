@@ -97,14 +97,24 @@ class UnitMark {
   final String kind;
   final String label;
   final String score;
+  final int weight;
 
-  UnitMark({required this.kind, required this.label, required this.score});
+  UnitMark({
+    required this.kind,
+    required this.label,
+    required this.score,
+    required this.weight,
+  });
 
   factory UnitMark.fromJson(Map<String, dynamic> j) => UnitMark(
         kind: (j['kind'] ?? '') as String,
         label: (j['label'] ?? j['kind'] ?? '') as String,
-        score: '${j['score'] ?? ''}',
+        score: j['score'] == null ? '' : '${j['score']}',
+        weight: _i(j['weight']),
       );
+
+  /// The mark as the student reads it: what they got and what it is worth on the unit.
+  String get shown => score.isEmpty ? '—' : '$score · $weight%';
 }
 
 class UnitRow {
@@ -112,12 +122,22 @@ class UnitRow {
   final String title;
   final String? coveredOn;
   final List<UnitMark> marks;
+  final String? pct;
+  final String? letter;
+  final String? passPct;
+  final bool passed;
+  final String remark;
 
   UnitRow({
     required this.position,
     required this.title,
     required this.coveredOn,
     required this.marks,
+    required this.pct,
+    required this.letter,
+    required this.passPct,
+    required this.passed,
+    required this.remark,
   });
 
   factory UnitRow.fromJson(Map<String, dynamic> j) => UnitRow(
@@ -125,7 +145,17 @@ class UnitRow {
         title: (j['title'] ?? '') as String,
         coveredOn: j['covered_on'] as String?,
         marks: _list(j['marks'], UnitMark.fromJson),
+        pct: j['pct'] == null ? null : '${j['pct']}',
+        letter: j['letter'] as String?,
+        passPct: j['pass_pct'] == null ? null : '${j['pass_pct']}',
+        passed: j['passed'] == true,
+        remark: (j['remark'] ?? 'Not marked yet') as String,
       );
+
+  /// The grade line under a unit: "52.6 D · pass 40 — Pass", or what is still owed.
+  String get grade => pct == null
+      ? remark
+      : '$pct ${letter ?? ''} · pass $passPct — $remark'.replaceAll('  ', ' ');
 }
 
 class MaterialRow {
@@ -186,6 +216,8 @@ class ClassDetail {
   final String? dates;
   final String? trainer;
   final double trackPct;
+  final String? gradePct;
+  final String? gradeLetter;
 
   ClassDetail({
     required this.id,
@@ -196,6 +228,8 @@ class ClassDetail {
     required this.dates,
     required this.trainer,
     required this.trackPct,
+    required this.gradePct,
+    required this.gradeLetter,
   });
 
   factory ClassDetail.fromJson(Map<String, dynamic> j) => ClassDetail(
@@ -207,6 +241,8 @@ class ClassDetail {
         dates: j['dates'] as String?,
         trainer: j['trainer'] as String?,
         trackPct: (j['track_pct'] as num?)?.toDouble() ?? 0,
+        gradePct: j['grade_pct'] == null ? null : '${j['grade_pct']}',
+        gradeLetter: j['grade_letter'] as String?,
       );
 }
 

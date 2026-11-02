@@ -124,8 +124,8 @@ class ContentSeeder extends Seeder
             ['question' => ['Question', 'text'], 'answer' => ['Answer', 'textarea']],
             [
                 ['question' => 'What is a CTP?', 'answer' => 'A Community Technology Promoter — the on-the-ground agent who is simultaneously a trainee (learning a skill), a mobilizer (bringing people into the programme) and a community agent (identifying needs and registering communities).'],
-                ['question' => 'Who can become a CTP?', 'answer' => 'School leavers (training track) and junior graduates wanting practical experience (junior practical-check track).'],
-                ['question' => 'What is the difference between an Intern, an Attachment applicant, a Junior Fundi and a Senior Fundi?', 'answer' => 'Intern: graduated, no experience, seeking an internship. Attachment applicant: still in school and not yet graduated — only they can apply for industrial attachment. Junior Fundi: recent graduate who already has internship experience. Senior Fundi: long industry experience, fully eligible to lead projects and mentor. Trainer: teaches one of the programme’s training fields and takes CTPs at a site.'],
+                ['question' => 'Who can become a CTP?', 'answer' => 'Anyone who wants to learn a trade: a school leaver on the full training course, or someone who already holds a certificate and sits the practical-check track. A CTP is a student either way.'],
+                ['question' => 'What is the difference between an Intern, an Attachment applicant, a Junior Fundi and a Senior Fundi?', 'answer' => 'Intern: graduated, no experience, seeking an internship. Attachment applicant: still in school and not yet graduated — only they can apply for industrial attachment. Junior Fundi: has done internship and attachment. Senior Fundi: long industry experience, fully eligible to lead projects and mentor. Trainer: teaches one of the programme’s training fields and takes CTPs at a site.'],
                 ['question' => 'Do I have to be a CTP first to become a Fundi?', 'answer' => 'No. Fundi registration is a standalone path. Skilled workers apply directly with their certificates and a referee.'],
                 ['question' => 'What documents do I need to register?', 'answer' => 'CTP: national ID scan, passport photo, and any school certificate. Fundi: ID scan and passport photo, with a CV if you have one. Hirer: an ID or organisation document.'],
                 ['question' => 'Is registering as a hirer free?', 'answer' => 'Yes — hirer registration is free, but every organisation is verified by an admin to prevent fraud.'],
@@ -175,7 +175,7 @@ class ContentSeeder extends Seeder
             ['code' => ['Code (do not change once live)', 'text'], 'label' => ['Label', 'text'], 'desc' => ['Help text', 'textarea']],
             [
                 ['code' => 'school_leaver', 'label' => 'School-leaver training track', 'desc' => 'You have not yet learned a trade — the programme trains and certifies you from zero.'],
-                ['code' => 'junior', 'label' => 'Junior practical-check track', 'desc' => 'You already hold a basic certificate and want practical experience or a job.'],
+                ['code' => 'junior', 'label' => 'Practical-check track (already certified)', 'desc' => 'You already hold a certificate, so you sit the practical and certification check instead of the full course. You are still a student.'],
             ]);
 
         $this->put('membership', 'fundi_tiers', 'E-Fundi tiers', 'repeater',
@@ -183,7 +183,7 @@ class ContentSeeder extends Seeder
             [
                 ['code' => 'fundi_intern', 'label' => 'Intern', 'desc' => 'Graduated, no experience, seeking an internship'],
                 ['code' => 'attachment', 'label' => 'Attachment applicant', 'desc' => 'Still in school, not yet graduated'],
-                ['code' => 'junior_fundi', 'label' => 'Junior Fundi', 'desc' => 'Recent graduate with internship experience'],
+                ['code' => 'junior_fundi', 'label' => 'Junior Fundi', 'desc' => 'Has done internship and attachment'],
                 ['code' => 'senior_fundi', 'label' => 'Senior Fundi', 'desc' => 'Long industry experience'],
                 ['code' => 'trainer', 'label' => 'Trainer', 'desc' => 'Teaches one of the programme’s training fields and takes CTPs at a site'],
             ]);

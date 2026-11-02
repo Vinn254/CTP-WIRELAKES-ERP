@@ -91,7 +91,8 @@
 <p class="hint">
     A CTP comes to this list when the cohort marks the end of their track, and stays on it whether or not an
     executive has signed the certificate yet. Moving one into a fundi pool <b>is</b> the transition: the record stays
-    this same row, the grade written on it reads Junior or Senior Fundi from then on, and that is the grade they show
+    this same row, the grade written on it reads Junior Fundi (internship and attachment done) or Senior Fundi from
+    then on, and that is the grade they show
     as on their own portal, on their profile and on every office screen. Nothing is re-registered and nobody is
     added twice.
 </p>

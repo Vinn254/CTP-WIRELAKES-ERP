@@ -3,12 +3,17 @@
 
 @php
     use App\Models\Enrollment;
+    use App\Models\UnitGrading;
     use App\Models\UnitMarkSheet;
+    use App\Support\Grading;
 
     $self = $url('marks', ['cohort' => $cohort->id]);
     $openUnit = (int) request('training_module_id', $sheet?->training_module_id ?? 0);
     $openDay = request('covered_on', $sheet?->covered_on?->toDateString() ?? '');
-    $weights = UnitMarkSheet::weightNotes();
+    // The weights are the Registrar's own for this unit, not a fixed table — the grade a sheet produces is their
+    // arithmetic. A unit they have not set yet is graded on the default weights.
+    $weights = $grading?->weights() ?? UnitGrading::firstOrNew([])->fill(Grading::DEFAULTS)->weights();
+    $passMark = $grading?->pass_pct ?? Grading::DEFAULTS['pass_pct'];
     $byCell = [];
 
     foreach ($sheet?->marks ?? [] as $mark) {
@@ -62,23 +67,29 @@
 
         <div class="weight-row">
             @foreach ($kinds as $key => $label)
-                @php $part = $weights[$key]['part']; @endphp
-                <div class="weight-card">
+                <div class="weight-card {{ $weights[$key] > 0 ? '' : 'gray' }}">
                     <small>{{ $label }} weight</small>
-                    <b>{{ Enrollment::TRACK_WEIGHTS[$part] }}%</b>
-                    <span>{{ $weights[$key]['note'] }}</span>
+                    <b>{{ $weights[$key] }}%</b>
+                    <span>{{ $weights[$key] > 0 ? 'Counts on this unit’s grade.' : 'Not used on this unit.' }}</span>
                     <em>average on this sheet: {{ $kindAverage($key) ?? '—' }}</em>
                 </div>
             @endforeach
             <div class="weight-card gray">
                 <small>Attendance weight</small>
-                <b>{{ Enrollment::TRACK_WEIGHTS['attendance'] }}%</b>
+                <b>{{ $weights['attendance'] }}%</b>
                 <span>Ticked on the day's register, not on this sheet.</span>
                 <em>{{ Enrollment::ATTENDANCE_MINIMUM }}% of the days marked is needed</em>
             </div>
+            <div class="weight-card gray">
+                <small>Pass mark</small>
+                <b>{{ $passMark }}</b>
+                <span>The grade a student has to reach on this unit.</span>
+                <em><a href="{{ route('admin.cohorts.results', ['cohort' => $cohort->id]) }}">
+                    Set by the Registrar on the cohort’s results</a></em>
+            </div>
         </div>
 
-        @if ($sheet->isEditable())
+        @if ($sheet->isEditable() || $canCorrect)
             <form method="POST" action="{{ $url('sheet.save', ['cohort' => $cohort->id]) }}" class="fee-form" data-ask>
                 @csrf
                 <input type="hidden" name="training_module_id" value="{{ $sheet->training_module_id ?: $openUnit }}">
@@ -89,19 +100,20 @@
                             <tr>
                                 <th>Reg. no.</th><th>CTP</th>
                                 @foreach ($kinds as $key => $label)
-                                    <th class="num">{{ $label }} / {{ $outOf }}</th>
+                                    <th class="num">{{ $label }} / {{ $outOf }} <small>({{ $weights[$key] }}%)</small></th>
                                 @endforeach
-                                <th class="num">On this sheet</th><th class="num">Attendance</th>
-                                <th class="num">Track</th><th></th>
+                                <th class="num">Weighed on this sheet</th><th class="num">Attendance</th>
+                                <th class="num">Unit grade</th><th class="num">Track</th><th></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($roll as $seat)
                                 @php
                                     $row = $byCell[$seat->id] ?? [];
-                                    $typed = collect($kinds)->keys()->map(fn ($k) => $row[$k]?->score)->filter();
+                                    $typed = collect($kinds)->mapWithKeys(fn ($l, $k) => [$k => ($row[$k] ?? null)?->score])->filter();
                                     $attendance = $seat->attendancePct();
                                     $track = $seat->trackPct();
+                                    $grade = $sheet->module ? Grading::compile($seat, $sheet->module) : null;
                                 @endphp
                                 <tr>
                                     <td class="nowrap">{{ $seat->ctp->ctp_code }}</td>
@@ -110,14 +122,26 @@
                                         @php $mark = $row[$key] ?? null; @endphp
                                         <td class="cell">
                                             <input type="number" step="0.5" min="0" max="{{ $outOf }}" class="num"
+                                                   data-weight="{{ $weights[$key] }}"
                                                    name="marks[{{ $seat->id }}][{{ $key }}]" placeholder="—"
                                                    value="{{ old('marks.'.$seat->id.'.'.$key, $mark?->score) }}">
                                             @if ($mark?->note)<span class="hint">{{ $mark->note }}</span>@endif
                                         </td>
                                     @endforeach
-                                    <td class="num" data-continuous>{{ $typed->isEmpty() ? '—' : round($typed->avg(), 1).'%' }}</td>
+                                    <td class="num" data-continuous data-attendance="{{ $attendance }}"
+                                        data-attweight="{{ $weights['attendance'] }}">
+                                        {{ $typed->isEmpty() ? '—' : round(collect($typed)->map(fn ($s, $k) => $s * $weights[$k] / 100)->sum(), 1).'%' }}
+                                    </td>
                                     <td class="num {{ $attendance !== null && $attendance < Enrollment::ATTENDANCE_MINIMUM ? 'flag-bad' : '' }}">
                                         {{ $attendance === null ? 'not marked' : $attendance.'%' }}
+                                    </td>
+                                    <td class="num {{ $grade === null ? '' : ($grade['passed'] ? 'flag-good' : 'flag-bad') }}">
+                                        @if ($grade && $grade['marked'])
+                                            <b>{{ $grade['pct'] }}</b> {{ $grade['letter'] }}
+                                            <div class="hint">{{ $grade['remark'] }}</div>
+                                        @else
+                                            —
+                                        @endif
                                     </td>
                                     <td class="num {{ $track >= 100 ? 'flag-good' : 'flag-partial' }}"><b>{{ $track }}%</b></td>
                                     <td class="actions">
@@ -137,12 +161,13 @@
                 </div>
 
                 <p class="hint" data-locked-note @if ($sheet->exists) hidden @endif>
-                    The attendance and track columns are counted from what the Registrar has already approved — they
-                    move when this sheet is approved, not while it is being filled in.</p>
+                    The attendance, unit grade and track columns are counted from what the Registrar has already
+                    approved — they move when this sheet is approved, not while it is being filled in.</p>
 
                 <div class="module-foot">
-                    <button class="btn btn-lime btn-sm" type="submit" data-save>Save the marks</button>
-                    @if ($sheet->exists)
+                    <button class="btn btn-lime btn-sm" type="submit" data-save>
+                        {{ $sheet->status === 'approved' ? 'Save the correction' : 'Save the marks' }}</button>
+                    @if ($sheet->exists && $sheet->isEditable())
                         <button class="btn btn-primary btn-sm" type="submit" name="forward" value="1" data-save
                                 data-confirm="Send these marks to the Registrar? They reach each CTP's record when the Registrar approves them.">
                             Save and submit to the Registrar</button>
@@ -177,7 +202,7 @@
                     <td class="actions">
                         <a class="btn btn-sm btn-outline"
                            href="{{ $self }}?training_module_id={{ $paper->training_module_id }}&covered_on={{ $paper->covered_on?->toDateString() }}">
-                            {{ $paper->isEditable() ? 'Open and correct' : 'Open the sheet' }}</a>
+                            {{ $paper->isEditable() || $canCorrect ? 'Open and correct' : 'Open the sheet' }}</a>
                     </td>
                 </tr>
             @empty
@@ -190,18 +215,33 @@
 </div>
 
 <script>
-    // The sheet's own average is live as the marks are typed; the track columns stay on what is already approved.
+    // The weighed figure is live as the marks are typed: each box carries the weight the Registrar set for it, and
+    // attendance comes in at its own weight from the register. The unit grade and track columns stay on what the
+    // Registrar has already approved.
     document.addEventListener('input', function (e) {
         const cell = e.target.closest('.mark-sheet input[type=number]');
         if (! cell) return;
 
         const row = cell.closest('tr');
         const out = row.querySelector('[data-continuous]');
-        const scores = Array.from(row.querySelectorAll('.cell input'))
-            .map(function (i) { return i.value === '' ? null : Number(i.value); })
-            .filter(function (v) { return v !== null && ! Number.isNaN(v); });
+        let total = 0, any = false;
 
-        out.textContent = scores.length ? (scores.reduce(function (a, b) { return a + b; }, 0) / scores.length).toFixed(1) + '%' : '—';
+        row.querySelectorAll('.cell input').forEach(function (i) {
+            const weight = Number(i.dataset.weight) || 0;
+            if (i.value === '' || weight === 0) return;
+            any = true;
+            total += Number(i.value) * weight / 100;
+        });
+
+        const att = out.dataset.attendance === '' ? null : Number(out.dataset.attendance);
+        const attWeight = Number(out.dataset.attweight) || 0;
+
+        if (att !== null && attWeight > 0) {
+            any = true;
+            total += att * attWeight / 100;
+        }
+
+        out.textContent = any ? total.toFixed(1) + '%' : '—';
     });
 </script>
 @endsection
