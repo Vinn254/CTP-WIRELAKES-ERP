@@ -63,7 +63,7 @@
         <input type="text" name="nssf_number" maxlength="40" value="{{ $val('nssf_number') }}">
     </div>
     <div class="field">
-        <label>NHIF number</label>
+        <label>NHIF / SHA number</label>
         <input type="text" name="nhif_number" maxlength="40" value="{{ $val('nhif_number') }}">
     </div>
     <div class="field">

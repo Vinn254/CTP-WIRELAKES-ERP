@@ -71,14 +71,15 @@ class Profile
         'efundi' => ['national_id', 'business'],
     ];
 
-    /** What a person may read and ask to change: field, the words on the form, and how it is typed. */
+    /** What a person may read and ask to change: field, the words on the form, and how it is typed. A field marked
+     *  'ro' is shown on the file but never typed by the person — the office keeps the pen on it. */
     private const ASK = [
         'staff' => [
-            'name' => ['Name', 'text'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'],
-            'job_title' => ['Title in the company', 'text'], 'started_on' => ['First day', 'date'],
+            'name' => ['Name', 'names'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'],
+            'job_title' => ['Title in the company', 'text'], 'started_on' => ['First day', 'date', 'ro'],
             'address' => ['Address', 'text'], 'id_number' => ['ID number', 'text'],
             'kra_pin' => ['KRA PIN', 'text'], 'nssf_number' => ['NSSF number', 'text'],
-            'nhif_number' => ['NHIF number', 'text'], 'bank_name' => ['Bank', 'text'],
+            'nhif_number' => ['NHIF / SHA number', 'text'], 'bank_name' => ['Bank', 'text'],
             'bank_branch' => ['Bank branch', 'text'], 'bank_account' => ['Account number', 'text'],
             'next_of_kin_name' => ['First next of kin — name', 'text'],
             'next_of_kin_phone' => ['First next of kin — contact', 'text'],
@@ -88,14 +89,14 @@ class Profile
             'next_of_kin_2_relation' => ['Second next of kin — relationship', 'text'],
         ],
         'ctp' => [
-            'full_name' => ['Name', 'text'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'],
+            'full_name' => ['Name', 'names'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'],
             'dob' => ['Date of birth', 'date'], 'gender' => ['Gender', 'choice'],
             'county' => ['County', 'text'], 'sub_county' => ['Sub-county', 'text'],
             'ward' => ['Ward', 'text'], 'village' => ['Village', 'text'],
             'education_level' => ['Highest education', 'choice'],
         ],
         'efundi' => [
-            'full_name' => ['Name', 'text'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'],
+            'full_name' => ['Name', 'names'], 'phone' => ['Phone', 'text'], 'email' => ['Email', 'text'],
             'dob' => ['Date of birth', 'date'], 'gender' => ['Gender', 'choice'],
             'business_name' => ['Business name', 'text'], 'business_reg_no' => ['Business registration number', 'text'],
             'years_in_business' => ['Years in the trade', 'number'],
@@ -221,9 +222,16 @@ class Profile
         return array_values(array_diff(self::NEEDED[$type] ?? [], $held));
     }
 
-    public static function askable(string $type): array
+    /** Every detail the person reads on their own file, including the ones only the office may type. */
+    public static function fields(string $type): array
     {
         return self::ASK[$type] ?? [];
+    }
+
+    /** The details the person may type themselves. A field marked 'ro' stays out of the form. */
+    public static function askable(string $type): array
+    {
+        return array_filter(static::fields($type), fn (array $ask) => ($ask[2] ?? null) !== 'ro');
     }
 
     /** Every field the person may read, with the value on file formatted for the screen. */
@@ -233,24 +241,39 @@ class Profile
             'field' => $field,
             'label' => $ask[0],
             'kind' => $ask[1],
+            'ro' => ($ask[2] ?? null) === 'ro',
             'raw' => $ask[1] === 'date' && $record?->{$field}
                 ? Carbon::parse((string) $record->{$field})->toDateString() : $record?->{$field},
+            'parts' => $ask[1] === 'names' ? static::nameParts($record?->{$field}) : [],
             'choices' => $ask[1] === 'choice' ? (self::CHOICES[$field] ?? []) : [],
             'value' => static::value($record, $field, $ask[1]),
-        ], array_keys(self::askable($type)), self::askable($type));
+        ], array_keys(self::fields($type)), self::fields($type));
+    }
+
+    /** The one name the file holds, read back as the first, middle and last a person types. */
+    private static function nameParts($full): array
+    {
+        $words = array_values(array_filter(preg_split('/\s+/', trim((string) $full)) ?: [],
+            fn (string $word) => $word !== ''));
+
+        return [
+            'first' => $words[0] ?? '',
+            'middle' => count($words) > 2 ? implode(' ', array_slice($words, 1, -1)) : '',
+            'last' => count($words) > 1 ? $words[count($words) - 1] : '',
+        ];
     }
 
     /** What is on file beside what is being asked for — the whole ask reads from this. */
     public static function compare(string $type, ?Model $record, array $changes): array
     {
-        $askable = self::askable($type);
+        $fields = self::fields($type);
 
         return collect($changes)->map(fn ($wanted, string $field) => [
             'field' => $field,
-            'label' => $askable[$field][0] ?? Str::headline($field),
-            'kind' => $askable[$field][1] ?? 'text',
-            'from' => static::value($record, $field, $askable[$field][1] ?? 'text'),
-            'to' => static::shown($wanted, $askable[$field][1] ?? 'text', $field),
+            'label' => $fields[$field][0] ?? Str::headline($field),
+            'kind' => $fields[$field][1] ?? 'text',
+            'from' => static::value($record, $field, $fields[$field][1] ?? 'text'),
+            'to' => static::shown($wanted, $fields[$field][1] ?? 'text', $field),
         ])->values()->all();
     }
 
@@ -477,13 +500,15 @@ class Profile
         );
 
         $changes = collect($askable)->keys()
-            ->mapWithKeys(fn (string $field) => [$field => $data[$field] ?? null])
+            ->mapWithKeys(fn (string $field) => [$field => $askable[$field][1] === 'names'
+                ? static::named($request, $record, $field) : ($data[$field] ?? null)])
             ->filter(fn ($wanted, string $field) => static::differs($record, $field, $wanted))
             ->all();
 
         if ($changes === []) {
             throw ValidationException::withMessages([
-                collect($askable)->keys()->first() => 'Nothing on the form has changed.',
+                collect($askable)->keys()->first() => 'Fill at least one detail — nothing you sent differs from what '
+                    .self::office($type).' already holds.',
             ]);
         }
 
@@ -501,6 +526,17 @@ class Profile
         return $change;
     }
 
+    /** The first, middle and last a person types, joined back into the single name the file holds. Typing none of
+     *  them asks for no change at all — an empty set of boxes cannot wipe a name off the record. */
+    private static function named(Request $request, Model $record, string $field): string
+    {
+        $typed = collect(['name_first', 'name_middle', 'name_last'])
+            ->map(fn (string $part) => trim((string) $request->input($part, '')))
+            ->filter()->implode(' ');
+
+        return $typed === '' ? (string) ($record->{$field} ?? '') : $typed;
+    }
+
     private static function differs(Model $record, string $field, $wanted): bool
     {
         $now = $record->{$field};
@@ -515,7 +551,7 @@ class Profile
             return $now !== null && $now !== '';
         }
 
-        if (self::askable(static::type($record))[$field][1] === 'date') {
+        if ((self::fields(static::type($record))[$field][1] ?? 'text') === 'date') {
             return \Illuminate\Support\Carbon::parse($wanted)->toDateString()
                 !== ($now ? \Illuminate\Support\Carbon::parse((string) $now)->toDateString() : null);
         }

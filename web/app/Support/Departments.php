@@ -620,9 +620,9 @@ class Departments
 
         $items[] = ['label' => 'My time log', 'icon' => 'clock', 'route' => ['admin.mytime.index']];
 
-        // A person's own file goes with them to every desk they hold: what the office holds on them, the papers they
-        // send in to be checked, and the edits they ask for. Nothing on that page is written by their own hand.
-        $items[] = ['label' => 'My profile', 'icon' => 'image', 'route' => ['admin.profile.index']];
+        // A person's own file leads the sidebar at every desk they hold: what the office holds on them, the papers
+        // they send in to be checked, and the edits they ask for. Nothing on that page is written by their own hand.
+        array_unshift($items, ['label' => 'My profile', 'icon' => 'image', 'route' => ['admin.profile.index']]);
 
         return $items;
     }

@@ -61,7 +61,7 @@
         <dt>ID number</dt><dd>{{ $shown($record->id_number) }}</dd>
         <dt>KRA PIN</dt><dd>{{ $shown($record->kra_pin) }}</dd>
         <dt>NSSF</dt><dd>{{ $shown($record->nssf_number) }}</dd>
-        <dt>NHIF</dt><dd>{{ $shown($record->nhif_number) }}</dd>
+        <dt>NHIF / SHA</dt><dd>{{ $shown($record->nhif_number) }}</dd>
         <dt>Address</dt><dd>{{ $shown($record->address) }}</dd>
         <dt>First day</dt><dd>{{ $record->started_on?->format('d M Y') ?: '—' }}</dd>
     </dl>

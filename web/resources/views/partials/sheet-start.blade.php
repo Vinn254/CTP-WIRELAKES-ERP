@@ -1,6 +1,7 @@
 @php
-    // A form that came back with errors reopens its own card, so nothing typed is lost off screen.
-    $reopen = $errors->any() && old('_sheet') === $name;
+    // A form that came back with errors reopens its own card, so nothing typed is lost off screen. A card may also
+    // be put up on its own — the reminder that a profile is still short of what the office needs.
+    $reopen = ($errors->any() && old('_sheet') === $name) || ($openOnLoad ?? false);
 @endphp
 <div class="sheet {{ $reopen ? 'open' : '' }}" id="sheet-{{ $name }}" role="dialog" aria-modal="true" aria-label="{{ $title }}">
     <div class="sheet-back" data-close-sheet></div>

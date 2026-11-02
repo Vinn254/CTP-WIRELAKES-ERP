@@ -251,10 +251,11 @@
 (function () {
     function card(name) { return document.getElementById('sheet-' + name); }
 
-    function show(el) {
+    function show(el, focusName) {
         el.classList.add('open');
         document.body.classList.add('sheet-lock');
-        var first = el.querySelector('input:not([type=hidden]),select,textarea');
+        var first = (focusName && el.querySelector('[data-field="' + focusName + '"]')) ||
+            el.querySelector('input:not([type=hidden]),select,textarea');
         if (first) first.focus();
     }
 
@@ -297,7 +298,7 @@
                         });
                     });
                 }
-                show(el);
+                show(el, opener.getAttribute('data-sheet-focus'));
             }
 
             return;

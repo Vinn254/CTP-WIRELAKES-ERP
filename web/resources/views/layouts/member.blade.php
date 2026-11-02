@@ -18,9 +18,9 @@
 
     // Every item the member's own role is entitled to — this sidebar is the whole interface.
     $nav = [
-        ['label' => 'Overview', 'icon' => 'grid', 'route' => 'portal.dashboard', 'active' => ['portal.dashboard']],
-        // Their own file: what the programme holds, the papers to send in, and the edits to ask for.
+        // Their own file leads the portal: what the programme holds, the papers to send in, and the edits to ask for.
         ['label' => 'My profile', 'icon' => 'image', 'route' => 'portal.profile.index', 'active' => ['portal.profile.*']],
+        ['label' => 'Overview', 'icon' => 'grid', 'route' => 'portal.dashboard', 'active' => ['portal.dashboard']],
     ];
     if ($isCtp) {
         $nav[] = ['label' => 'My training', 'icon' => 'check', 'route' => 'portal.training', 'active' => ['portal.training']];

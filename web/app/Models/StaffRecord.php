@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Accounts;
+use App\Support\Roles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -39,31 +40,40 @@ class StaffRecord extends Model
     }
 
     /**
-     * Every staff account has a directory record. What the account already holds is fetched into it once, so a
-     * person appears in the directory with their name and the day they joined filled in before HR types anything.
+     * Every staff account has a directory record. What the account already holds is fetched into it, so a person
+     * appears in the directory with their name, their title and the day they joined filled in before HR types
+     * anything. The title comes from the role on the login — a person is not asked to retype what the account knows.
      *
      * The link is written outside fill() on purpose: a posted form must never be able to point a file at an
      * account it chooses.
      */
     public static function ensure(User $user): self
     {
-        $record = static::where('user_id', $user->id)->first();
-
-        if ($record) {
-            return $record;
-        }
-
-        $record = new self([
+        $record = static::where('user_id', $user->id)->first() ?: new static([
             'name' => $user->name,
             'email' => $user->email,
             'started_on' => $user->created_at?->toDateString(),
-            'job_title' => $user->isSuperAdmin() ? 'Super admin' : null,
         ]);
 
         $record->user_id = $user->id;
-        $record->save();
+
+        foreach (['name' => $user->name, 'job_title' => static::titleFor($user)] as $column => $value) {
+            if (filled($value) && blank($record->{$column})) {
+                $record->{$column} = $value;
+            }
+        }
+
+        if ($record->isDirty()) {
+            $record->save();
+        }
 
         return $record;
+    }
+
+    /** The title a login carries through its roles, which is what the office writes as a person's job title. */
+    public static function titleFor(User $user): ?string
+    {
+        return Roles::labelsFor($user) ?: ($user->isSuperAdmin() ? 'Super admin' : null);
     }
 
     /** An account opened for a record already on file — the directory row stops waiting and becomes the person. */

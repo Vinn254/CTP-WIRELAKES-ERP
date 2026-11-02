@@ -235,6 +235,8 @@ legend { font-weight: 800; color: var(--green); padding: 0 8px; }
 .form-grid > *, .form-grid-2 > *, .form-grid-3 > * { min-width: 0; }
 .form-grid > .full, .form-grid-2 > .full, .form-grid-3 > .full { grid-column: 1 / -1; }
 .help { font-size: .82rem; color: var(--muted); margin-top: 4px; }
+/* A name typed as first, middle and last — three boxes on one line, one value on the record. */
+.name-parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 /* The Show / Hide switch inside a password box — added by js/password.js to any input[type=password]. */
 .pw-wrap { position: relative; display: block; }
 .pw-wrap > input { padding-inline-end: 64px; }
@@ -737,6 +739,7 @@ html.dark .leave-type .nums i { color: var(--lime); }
 }
 @media (max-width: 600px) {
   .grid-3, .grid-4, .form-grid, .form-grid-2, .form-grid-3, .counters, .grid-2 { grid-template-columns: 1fr; }
+  .name-parts { grid-template-columns: 1fr; }
 }
 
 /* Dark mode — every page responds */

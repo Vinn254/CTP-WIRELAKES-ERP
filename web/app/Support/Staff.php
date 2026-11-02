@@ -168,7 +168,7 @@ class Staff
         ], [
             'name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'job_title' => 'Job title',
             'started_on' => 'First day', 'salary' => 'Monthly pay', 'id_number' => 'ID number',
-            'kra_pin' => 'KRA PIN', 'nssf_number' => 'NSSF number', 'nhif_number' => 'NHIF number',
+            'kra_pin' => 'KRA PIN', 'nssf_number' => 'NSSF number', 'nhif_number' => 'NHIF / SHA number',
             'bank_name' => 'Bank', 'bank_branch' => 'Branch', 'bank_account' => 'Account number',
             'address' => 'Address',
             'next_of_kin_name' => 'first next of kin — name',
