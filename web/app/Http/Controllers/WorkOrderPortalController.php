@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderDispute;
@@ -10,7 +9,6 @@ use App\Models\WorkOrderUpdate;
 use App\Support\Execution;
 use App\Support\MemberPortal;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
@@ -20,11 +18,17 @@ use Illuminate\Support\Carbon;
  */
 class WorkOrderPortalController extends Controller
 {
-    private function member(): Model
+    /**
+     * The paid side of Module 7 belongs to an E-Fundi. A CTP placed for attachment keeps a week log at My
+     * attachment instead — they are never shown an order to accept, a stage to sign off or a payout.
+     */
+    private function member(): FundiRegistration
     {
         $member = MemberPortal::resolve(auth()->user());
 
         abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        abort_unless($member instanceof FundiRegistration, 403,
+            'A work order is paid work the programme gives an E-Fundi. A CTP on attachment keeps their week log at My attachment.');
 
         return $member;
     }
@@ -103,11 +107,7 @@ class WorkOrderPortalController extends Controller
         $this->theirOrder($order);
         abort_unless((int) $dispute->work_order_id === (int) $order->id, 403, 'That issue is not on '.$order->reference.'.');
 
-        $member = $this->member();
-        abort_unless($member instanceof FundiRegistration, 403,
-            'An attachment order has no dispute answer box — the office settles it with the hirer and notes it on the trainee\'s record.');
-
-        Execution::answerDispute($dispute, $request, $member);
+        Execution::answerDispute($dispute, $request, $this->member());
 
         return back()->with('status', 'Your answer is on the dispute. The Programme Manager mediates and a Director decides.');
     }

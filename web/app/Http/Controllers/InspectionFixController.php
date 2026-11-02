@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CtpRegistration;
+use App\Models\FundiRegistration;
 use App\Models\SiteInspection;
 use App\Models\SiteInspectionItem;
 use App\Models\WorkOrder;
 use App\Support\Construction;
 use App\Support\MemberPortal;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
@@ -18,11 +17,14 @@ use Illuminate\Http\Request;
  */
 class InspectionFixController extends Controller
 {
-    private function member(): Model
+    /** Only the worker who works a site answers an inspector's item. A CTP on attachment keeps a week log instead. */
+    private function member(): FundiRegistration
     {
         $member = MemberPortal::resolve(auth()->user());
 
         abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
+        abort_unless($member instanceof FundiRegistration, 403,
+            'An inspection item sits on the site an E-Fundi works. A CTP on attachment keeps their week log at My attachment.');
 
         return $member;
     }
@@ -68,15 +70,13 @@ class InspectionFixController extends Controller
         return Construction::serve($item->proof_path, (string) $item->proof_name, 'fix-'.$item->id);
     }
 
-    private function inspectionIds(Model $member)
+    private function inspectionIds(FundiRegistration $member)
     {
         return SiteInspection::whereIn('work_order_id', $this->orderIds($member))->pluck('id');
     }
 
-    private function orderIds(Model $member)
+    private function orderIds(FundiRegistration $member)
     {
-        return WorkOrder::where('assignee_type', $member instanceof CtpRegistration ? 'ctp' : 'fundi')
-            ->where('assignee_id', $member->id)
-            ->pluck('id');
+        return WorkOrder::where('assignee_type', 'fundi')->where('assignee_id', $member->id)->pluck('id');
     }
 }

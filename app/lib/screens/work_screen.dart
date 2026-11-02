@@ -57,14 +57,13 @@ class _WorkScreenState extends State<WorkScreen> {
     }
 
     final data = _data!;
-    final isFundi = widget.board.member.isFundi;
 
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
         children: [
-          Text(isFundi ? 'My work orders' : 'My attachment work',
+          Text('My work orders',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: ink)),
           const SizedBox(height: 8),
           const Text(

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\CtpRegistration;
 use App\Models\FundiRegistration;
 use App\Models\SiteInspection;
 use App\Models\SiteInspectionItem;
@@ -22,10 +21,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * The worker's own screens over the API — My work orders (Module 7 /), Items to put right
- * (Module 8 ), My repair jobs (Module 9 ) and the profile photo. Every row is resolved from
- * the signed-in member's record, exactly as the portal controllers do, and each write calls the same support
- * method the website calls.
+ * The worker's own paid screens over the API — My work orders, Items to put right, My repair jobs and the profile
+ * photo. Every row is resolved from the signed-in member's record, exactly as the portal controllers do, and each
+ * write calls the same support method the website calls. An order is E-Fundi work, so a CTP is refused here and
+ * keeps their attachment week log at My attachment instead.
  */
 class MemberWorkApiController extends Controller
 {
@@ -39,16 +38,28 @@ class MemberWorkApiController extends Controller
         return $member;
     }
 
-    // ---- My work orders ---------------------------------------------------
-
-    /** GET /api/work — the orders in this member's name, with what each is waiting on. */
-    public function work(): JsonResponse
+    /**
+     * The paid side of the portal belongs to an E-Fundi. A CTP placed for attachment keeps their week log at My
+     * attachment, so no order, stage or payout is handed to them here either.
+     */
+    private function fundi(): FundiRegistration
     {
         $member = $this->member();
+        abort_unless($member instanceof FundiRegistration, 403,
+            'A work order is paid work the programme gives an E-Fundi. A CTP on attachment keeps their week log at My attachment.');
+
+        return $member;
+    }
+
+    // ---- My work orders ---------------------------------------------------
+
+    /** GET /api/work — the orders in this fundi's name, with what each is waiting on. */
+    public function work(): JsonResponse
+    {
+        $member = $this->fundi();
         $orders = Execution::for($member);
 
         return response()->json([
-            'is_ctp' => $member instanceof CtpRegistration,
             'statuses' => WorkOrder::STATUSES,
             'orders' => $orders->map(fn (WorkOrder $o) => $this->order($o))->values(),
             'waiting' => $orders->where('status', 'issued')->count(),
@@ -65,12 +76,10 @@ class MemberWorkApiController extends Controller
         $order->load(['project.hirer', 'project.providedMaterials.item', 'milestones.signer',
             'updates.recorder', 'updates.fundi', 'disputes.mediator', 'disputes.decider']);
 
-        $member = $this->member();
         $dispute = Execution::activeDispute($order);
 
         return response()->json([
             'order' => $this->order($order, true),
-            'is_ctp' => $member instanceof CtpRegistration,
             'window' => WorkOrderDispute::WINDOW_HOURS,
             'next' => Execution::nextState($order),
             'percent' => Execution::rollUp($order),
@@ -202,10 +211,10 @@ class MemberWorkApiController extends Controller
 
     // ---- Items to put right ---------------------------------------------
 
-    /** GET /api/fixes — the failed inspection items on this worker's own sites still waiting on proof. */
+    /** GET /api/fixes — the failed inspection items on this fundi's own sites still waiting on proof. */
     public function fixes(): JsonResponse
     {
-        $member = $this->member();
+        $member = $this->fundi();
 
         return response()->json([
             'fixes' => Construction::fixesFor($member)->map(fn (SiteInspectionItem $i) => $this->fix($i))->values(),
@@ -222,7 +231,7 @@ class MemberWorkApiController extends Controller
     /** POST /api/fixes/{item}/proof — what was done, with the photograph the inspector re-checks. */
     public function proveFix(Request $request, SiteInspectionItem $item): JsonResponse
     {
-        $member = $this->member();
+        $member = $this->fundi();
         abort_unless(Construction::fixesFor($member)->firstWhere('id', $item->id) !== null, 404,
             'That item is not a failure waiting on you. It may already be re-checked, or it sits on somebody else\'s site.');
 
@@ -237,7 +246,7 @@ class MemberWorkApiController extends Controller
     /** GET /api/fixes/{item}/photo */
     public function fixPhoto(SiteInspectionItem $item): JsonResponse
     {
-        $member = $this->member();
+        $member = $this->fundi();
         abort_unless(
             SiteInspectionItem::where('id', $item->id)->whereIn('inspection_id', $this->inspectionIds($member))->exists(),
             404,
@@ -310,14 +319,14 @@ class MemberWorkApiController extends Controller
 
     private function theirOrder(WorkOrder $order): void
     {
-        abort_unless($order->isHeldBy($this->member()), 404,
+        abort_unless($order->isHeldBy($this->fundi()), 404,
             'That work order is not in your name. The delivery desk keeps every order on the project it was awarded for.');
     }
 
-    private function inspectionIds($member)
+    private function inspectionIds(FundiRegistration $member)
     {
         return SiteInspection::whereIn('work_order_id', WorkOrder::where(
-            'assignee_type', $member instanceof CtpRegistration ? 'ctp' : 'fundi')
+            'assignee_type', 'fundi')
             ->where('assignee_id', $member->id)
             ->pluck('id'))->pluck('id');
     }

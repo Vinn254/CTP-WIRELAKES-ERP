@@ -411,7 +411,7 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
   }
 
   Widget _disputeCard(OrderSheet sheet, Dispute dispute) {
-    final canAnswer = dispute.awaitingWorker && !sheet.isCtp;
+    final canAnswer = dispute.awaitingWorker;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -470,10 +470,7 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
             _hint('The Programme Manager mediates and a Director decides. The outcome — rework, partial or '
                 'full payment, refund, or a deduction — is written on this order and carried onto your '
                 'payout (§10.6).'),
-          ] else if (sheet.isCtp)
-            const Text('An attachment order has no answer box for a trainee; the office settles it with the '
-                'hirer and notes the outcome on your record.',
-                style: TextStyle(color: muted, fontSize: 13)),
+          ],
         ],
       ),
     );

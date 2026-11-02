@@ -63,14 +63,19 @@ List<MemberPage> memberPages(Member member, Counts counts,
 
   pages.add(const MemberPage('ewaste', 'E-Waste collection', Icons.recycling_outlined,
       hint: 'Register what you picked up; the office weighs it in and pays for it.'));
-  pages.add(MemberPage(
-      'work',
-      isCtp ? 'My attachment work' : 'My work orders',
-      Icons.assignment_outlined,
-      badge: counts.workOrders,
-      hint: 'Accept the order, log the days, ask for completion sign-off.'));
-  pages.add(MemberPage('fixes', 'Items to put right', Icons.build_outlined,
-      badge: counts.fixes, hint: 'Work an inspector failed. Prove the fix with a photo.'));
+  // The web sidebar gives a CTP their attachment week log and an E-Fundi the paid order — the two are
+  // never offered to the same person, so the app cannot show a page the website hides.
+  if (isCtp) {
+    pages.add(MemberPage('attachment', 'My attachment', Icons.badge_outlined,
+        badge: counts.attachmentWeeks,
+        hint: 'The site the office placed you at, and the week you sat there. Training, so not paid.'));
+  } else {
+    pages.add(MemberPage('work', 'My work orders', Icons.assignment_outlined,
+        badge: counts.workOrders,
+        hint: 'Accept the order, log the days, ask for completion sign-off.'));
+    pages.add(MemberPage('fixes', 'Items to put right', Icons.build_outlined,
+        badge: counts.fixes, hint: 'Work an inspector failed. Prove the fix with a photo.'));
+  }
 
   if (!isCtp) {
     pages.add(MemberPage('tech', 'My repair jobs', Icons.handyman_outlined,

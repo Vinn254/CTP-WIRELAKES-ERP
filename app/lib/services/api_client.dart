@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/account_models.dart';
+import '../models/attachment_models.dart';
 import '../models/field_models.dart';
 import '../models/member_models.dart';
 import '../models/portal_models.dart';
@@ -470,6 +471,26 @@ class ApiClient {
 
   Future<String> storeTraineeDocument(int enrollmentId, Map<String, dynamic> document) async {
     final data = await post('/trainer/$enrollmentId/documents', document);
+    return (data as Map)['message'].toString();
+  }
+
+  // ---- My attachment ----------------------------------------------------
+
+  /// The placed trainee's own week. [month] is `YYYY-MM` and [week] its week of the month — the
+  /// same two parameters the web page's picker sends.
+  Future<AttachmentSheet> attachment({String? month, int? week}) async {
+    final query = <String>[
+      if (month != null) 'month=$month',
+      if (week != null) 'week=$week',
+    ].join('&');
+    final path = query.isEmpty ? '/attachment' : '/attachment?$query';
+    return AttachmentSheet.fromJson(await get(path) as Map<String, dynamic>);
+  }
+
+  /// Write one day, or send the whole week. [days] is keyed by date exactly as the web form names
+  /// its inputs, and a day left out is left alone by the backend.
+  Future<String> saveAttachment(Map<String, dynamic> body) async {
+    final data = await post('/attachment', body);
     return (data as Map)['message'].toString();
   }
 

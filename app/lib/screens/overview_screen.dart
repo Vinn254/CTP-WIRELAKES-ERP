@@ -29,8 +29,9 @@ class OverviewScreen extends StatelessWidget {
 
     final waiting = <(String, int)>[
       if (m.isFundi) ('invitations', c.invites),
-      ('work', c.workOrders),
-      ('fixes', c.fixes),
+      if (m.isFundi) ('work', c.workOrders),
+      if (m.isFundi) ('fixes', c.fixes),
+      if (!m.isFundi) ('attachment', c.attachmentWeeks),
       if (m.isFundi) ('tech', c.repairJobs),
       ('applications', c.applications),
     ].where((x) => x.$2 > 0).toList();
@@ -70,9 +71,12 @@ class OverviewScreen extends StatelessWidget {
                   children: [
                     _boardPill('${c.projects}', 'projects', 'projects'),
                     const SizedBox(width: 8),
-                    _boardPill('${c.workOrders}', 'work orders', 'work'),
-                    const SizedBox(width: 8),
-                    _boardPill('${c.fixes}', 'to put right', 'fixes'),
+                    if (m.isFundi) ...[
+                      _boardPill('${c.workOrders}', 'work orders', 'work'),
+                      const SizedBox(width: 8),
+                      _boardPill('${c.fixes}', 'to put right', 'fixes'),
+                    ] else
+                      _boardPill('${c.attachmentWeeks}', 'weeks to hand in', 'attachment'),
                   ],
                 ),
               ],
@@ -95,7 +99,7 @@ class OverviewScreen extends StatelessWidget {
                         backgroundColor: warn,
                         child: const Icon(Icons.notifications_outlined, color: green),
                       ),
-                      title: Text(_waitingLabel(item.$1, m.isFundi)),
+                      title: Text(_waitingLabel(item.$1)),
                       trailing: const Icon(Icons.chevron_right, color: muted),
                       onTap: () => onOpen(item.$1),
                     ),
@@ -208,14 +212,16 @@ class OverviewScreen extends StatelessWidget {
         ),
       );
 
-  String _waitingLabel(String key, bool isFundi) {
+  String _waitingLabel(String key) {
     switch (key) {
       case 'invitations':
         return 'Projects the desk put to you — answer within 48 hours';
       case 'work':
-        return isFundi ? 'Work orders to accept, log or finish' : 'Attachment work to keep moving';
+        return 'Work orders to accept, log or finish';
       case 'fixes':
         return 'Items an inspector failed that still need your proof';
+      case 'attachment':
+        return 'Attachment weeks you have not sent to the Registrar';
       case 'tech':
         return 'Repair jobs assigned to you';
       case 'applications':

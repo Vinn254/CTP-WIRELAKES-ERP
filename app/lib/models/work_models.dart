@@ -57,7 +57,6 @@ class OrderSummary {
 }
 
 class WorkBoard {
-  final bool isCtp;
   final Map<String, String> statuses;
   final List<OrderSummary> orders;
   final int waiting;
@@ -66,7 +65,6 @@ class WorkBoard {
   final int done;
 
   WorkBoard({
-    required this.isCtp,
     required this.statuses,
     required this.orders,
     required this.waiting,
@@ -76,7 +74,6 @@ class WorkBoard {
   });
 
   factory WorkBoard.fromJson(Map<String, dynamic> j) => WorkBoard(
-        isCtp: j['is_ctp'] == true,
         statuses: _options(j['statuses']),
         orders: _parse(j['orders'], OrderSummary.fromJson),
         waiting: _i(j['waiting']),
@@ -251,7 +248,6 @@ class PayoutPeek {
 /// GET /api/work/{order} — the worker's own sheet for one order.
 class OrderSheet {
   final OrderSummary order;
-  final bool isCtp;
   final int window;
   final String? next;
   final int percent;
@@ -276,7 +272,6 @@ class OrderSheet {
 
   OrderSheet({
     required this.order,
-    required this.isCtp,
     required this.window,
     required this.next,
     required this.percent,
@@ -306,7 +301,6 @@ class OrderSheet {
 
     return OrderSheet(
       order: OrderSummary.fromJson(raw),
-      isCtp: j['is_ctp'] == true,
       window: _i(j['window']),
       next: j['next'] as String?,
       percent: _i(j['percent']),

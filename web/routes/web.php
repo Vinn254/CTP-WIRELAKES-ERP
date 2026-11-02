@@ -64,6 +64,7 @@ use App\Http\Controllers\CareersController;
 use App\Http\Controllers\InspectionFixController;
 use App\Http\Controllers\TechnologyJobController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PortalAttachmentController;
 use App\Http\Controllers\PortalClassController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalLeaveController;
@@ -457,8 +458,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // The Academic Registrar's queue. A trainer's paper only reaches a trainee's record once it is approved here.
     Route::get('/registers', [RegistrarPaperController::class, 'index'])->name('registers.index');
-    Route::get('/registers/{kind}/{id}', [RegistrarPaperController::class, 'show'])->where('kind', 'register|marks|timetable|lesson')->whereNumber('id')->name('registers.show');
-    Route::post('/registers/{kind}/{id}/decide', [RegistrarPaperController::class, 'decide'])->where('kind', 'register|marks|timetable|lesson')->whereNumber('id')->name('registers.decide');
+    Route::get('/registers/{kind}/{id}', [RegistrarPaperController::class, 'show'])->where('kind', 'register|marks|timetable|lesson|attachment')->whereNumber('id')->name('registers.show');
+    Route::post('/registers/{kind}/{id}/decide', [RegistrarPaperController::class, 'decide'])->where('kind', 'register|marks|timetable|lesson|attachment')->whereNumber('id')->name('registers.decide');
 
     // The Registrar's library. Reading is filed against a course, so every trainee taking that training opens the
     // same copy under My library; a title is taken off the shelf rather than deleted.
@@ -826,7 +827,10 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::post('/projects/{project}/apply', [PortalController::class, 'apply'])->name('apply');
     Route::post('/applications/{application}/withdraw', [PortalController::class, 'withdraw'])->name('withdraw');
 
-    // Module 7 — the worker's own side of the order.
+    // Module 7 — the worker's own side of the order. An attachment is not a job, so a CTP never opens these two:
+    // their own page is My attachment, where the week they sat at the site is logged and sent to the Registrar.
+    Route::get('/attachment', [PortalAttachmentController::class, 'index'])->name('attachment');
+    Route::post('/attachment', [PortalAttachmentController::class, 'save'])->name('attachment.save');
     Route::get('/work', [WorkOrderPortalController::class, 'index'])->name('work');
     Route::get('/work/{order}', [WorkOrderPortalController::class, 'show'])->whereNumber('order')->name('work.show');
     Route::post('/work/{order}/accept', [WorkOrderPortalController::class, 'accept'])->whereNumber('order')->name('work.accept');

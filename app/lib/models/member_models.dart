@@ -69,6 +69,9 @@ class Counts {
   final int repairJobs;
   final int invoices;
 
+  /// Attachment weeks the trainee still owes the Registrar — the badge on My attachment.
+  final int attachmentWeeks;
+
   Counts({
     required this.projects,
     required this.applications,
@@ -78,6 +81,7 @@ class Counts {
     required this.fixes,
     required this.repairJobs,
     this.invoices = 0,
+    this.attachmentWeeks = 0,
   });
 
   factory Counts.fromJson(Map<String, dynamic> j) => Counts(
@@ -89,6 +93,7 @@ class Counts {
         fixes: _i(j['fixes']),
         repairJobs: _i(j['repair_jobs']),
         invoices: _i(j['invoices']),
+        attachmentWeeks: _i(j['attachment_weeks']),
       );
 }
 

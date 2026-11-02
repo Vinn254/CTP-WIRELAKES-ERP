@@ -5,6 +5,7 @@ import '../models/member_models.dart';
 import '../services/api_client.dart';
 import '../widgets/ui.dart';
 import 'applications_screen.dart';
+import 'attachment_screen.dart';
 import 'class_screen.dart';
 import 'communities_screen.dart';
 import 'earnings_screen.dart';
@@ -186,6 +187,8 @@ class _DashboardShellState extends State<DashboardShell> with WidgetsBindingObse
         return TrainerScreen(api: api, board: board);
       case 'ewaste':
         return EwasteScreen(api: api, board: board);
+      case 'attachment':
+        return AttachmentScreen(api: api, board: board);
       case 'work':
         return WorkScreen(api: api, board: board);
       case 'fixes':

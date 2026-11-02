@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MemberAccountApiController;
 use App\Http\Controllers\Api\MemberApiController;
+use App\Http\Controllers\Api\MemberAttachmentApiController;
 use App\Http\Controllers\Api\MemberClassApiController;
 use App\Http\Controllers\Api\MemberFieldApiController;
 use App\Http\Controllers\Api\MemberPortalApiController;
@@ -102,6 +103,13 @@ Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::post('/trainer/{enrollment}/modules/{module}', [MemberFieldApiController::class, 'markModule'])->whereNumber('enrollment')->whereNumber('module')->name('api.trainer.module.mark');
     Route::delete('/trainer/{enrollment}/modules/{module}', [MemberFieldApiController::class, 'unmarkModule'])->whereNumber('enrollment')->whereNumber('module')->name('api.trainer.module.unmark');
     Route::post('/trainer/{enrollment}/documents', [MemberFieldApiController::class, 'storeDocument'])->whereNumber('enrollment')->name('api.trainer.document.store');
+});
+
+// An attachee's own week. A CTP placed at a site logs the days they sat there and sends the week to the Registrar —
+// it is training and is never paid, so it stands apart from the order endpoints, which belong to an E-Fundi.
+Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
+    Route::get('/attachment', [MemberAttachmentApiController::class, 'index'])->name('api.attachment');
+    Route::post('/attachment', [MemberAttachmentApiController::class, 'save'])->name('api.attachment.save');
 });
 
 // The worker's own side of a job: the order, what the inspector flagged, and the repair tickets.

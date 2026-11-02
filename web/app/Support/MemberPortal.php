@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\AttachmentLog;
 use App\Models\Cohort;
 use App\Models\CtpRegistration;
 use App\Models\Community;
@@ -59,10 +60,14 @@ class MemberPortal
             'inviteCount' => $member instanceof FundiRegistration
                 ? ProjectMatch::for($member)->awaiting()->count()
                 : 0,
-            //  — the orders waiting on the worker's own signature, whichever member they are.
-            'workOrderCount' => Execution::awaitingWorker($member),
-            //  — the inspection items the worker still owes a photograph of the fix for.
-            'fixCount' => Construction::fixesFor($member)->count(),
+            //  — the orders waiting on the worker's own signature. A CTP holds no paid order, so none is counted.
+            'workOrderCount' => $member instanceof FundiRegistration ? Execution::awaitingWorker($member) : 0,
+            //  — the inspection items the worker still owes a photograph of the fix for; only an E-Fundi works a site.
+            'fixCount' => $member instanceof FundiRegistration ? Construction::fixesFor($member)->count() : 0,
+            //  — the attachment weeks the trainee still owes the Registrar: kept as a draft or sent back for a fix.
+            'attachmentCount' => $member instanceof CtpRegistration
+                ? AttachmentLog::where('ctp_registration_id', $member->id)->whereIn('status', ['draft', 'returned'])->count()
+                : 0,
             //  — the repair jobs on technology assets assigned to this fundi to fix.
             'techJobCount' => Technology::jobCount($member),
         ];

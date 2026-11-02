@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\AttachmentLog;
 use App\Models\Cohort;
 use App\Models\CohortSession;
 use App\Models\LessonPlan;
@@ -28,12 +29,14 @@ use Illuminate\Support\Collection as BaseCollection;
  */
 class TeachingDesk
 {
-    /** The four papers that are forwarded, in the order a desk lists them. */
+    /** The papers that are forwarded, in the order a desk lists them. */
     public const PAPERS = [
         'register' => CohortSession::class,
         'marks' => UnitMarkSheet::class,
         'timetable' => Timetable::class,
         'lesson' => LessonPlan::class,
+        // An attachee's week travels the same queue; it is training, so approving it writes no trainee record.
+        'attachment' => AttachmentLog::class,
     ];
 
     /** @return BaseCollection<int, Trainer> */
@@ -113,6 +116,7 @@ class TeachingDesk
             $paper instanceof CohortSession => 'Attendance register for '.$paper->dateLabel().' is with the Registrar.',
             $paper instanceof UnitMarkSheet => 'The marks for '.$paper->unitLabel().' are with the Registrar.',
             $paper instanceof Timetable => 'The timetable is with the Registrar.',
+            $paper instanceof AttachmentLog => 'The week of '.$paper->weekLabel().' is with the Registrar.',
             default => 'The lesson plan is with the Registrar.',
         };
     }
@@ -135,7 +139,8 @@ class TeachingDesk
                 'review_note' => $note,
             ]);
 
-            return 'Sent back to the trainer'.($note ? ': '.$note : '.')
+            return 'Sent back to the '.($paper instanceof AttachmentLog ? 'attachee' : 'trainer')
+                .($note ? ': '.$note : '.')
                 .($off > 0 ? ' The '.$off.' '.str('line')->plural($off).' it had written are off the trainees’ records until it comes back.' : '');
         }
 
@@ -148,6 +153,7 @@ class TeachingDesk
         return match (true) {
             $written > 0 => 'Approved — '.$written.' '.str('record')->plural($written).' written onto the trainees’ records.',
             $paper instanceof Timetable => 'Approved — the trainees can now see this timetable.',
+            $paper instanceof AttachmentLog => 'Approved — the week stands on the attachee’s record.',
             default => 'Approved.',
         };
     }
@@ -246,6 +252,10 @@ class TeachingDesk
 
         if ($paper instanceof Timetable) {
             abort_unless($paper->slots()->exists(), 422, 'Put at least one class on the timetable before forwarding it.');
+        }
+
+        if ($paper instanceof AttachmentLog) {
+            abort_unless($paper->lines()->exists(), 422, 'Write at least one day before sending the week.');
         }
     }
 

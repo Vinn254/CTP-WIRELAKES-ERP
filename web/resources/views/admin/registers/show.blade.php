@@ -2,6 +2,7 @@
 @section('title', 'Teaching paper')
 
 @php
+    use App\Models\AttachmentLog;
     use App\Models\CohortSession;
     use App\Models\LessonPlan;
     use App\Models\Timetable;
@@ -9,10 +10,16 @@
 
     $cohort = $paper->cohort;
 
+    // An attachee writes their own week, so the desk reads this paper as coming from the trainee, not a trainer.
+    $isAtt = $paper instanceof AttachmentLog;
+    $author = $isAtt ? 'the attachee' : 'the trainer';
+    $order = $isAtt ? $paper->workOrder : null;
+
     $heading = match (true) {
         $paper instanceof CohortSession => 'Attendance register — ' . $paper->dateLabel(),
         $paper instanceof UnitMarkSheet => 'Mark sheet — ' . $paper->unitLabel(),
         $paper instanceof Timetable => 'Timetable — ' . ($cohort?->reference ?? 'a cohort'),
+        $isAtt => 'Attachment log — ' . e($paper->weekLabel()),
         default => 'Lesson plan — ' . ($cohort?->reference ?? 'a cohort'),
     };
 
@@ -29,17 +36,26 @@
     <div>
         <h1>{{ $heading }}</h1>
         <p class="ah-meta">
-            <span>{{ $cohort?->reference }} — {{ $cohort?->courseLabel() }}</span>
-            <span>{{ $cohort?->venue?->name ?: 'No venue set' }}</span>
-            <span>{{ $cohort?->periodLabel() }}</span>
+            @if ($isAtt)
+                <span><b>{{ $paper->ctp?->full_name }}</b> · {{ $paper->ctp?->ctp_code }}</span>
+                <span>{{ $order?->project?->title ?: 'No site on the order' }}</span>
+                <span>{{ collect([$order?->project?->county, $order?->project?->ward])->filter()->join(' · ') ?: 'Site not named' }}</span>
+                <span>{{ $cohort?->courseLabel() ?: 'Attachment' }}</span>
+            @else
+                <span>{{ $cohort?->reference }} — {{ $cohort?->courseLabel() }}</span>
+                <span>{{ $cohort?->venue?->name ?: 'No venue set' }}</span>
+                <span>{{ $cohort?->periodLabel() }}</span>
+            @endif
             <span>handed in {{ $paper->submitted_at?->format('d M Y') ?? 'not yet' }}</span>
-            <span>{{ $cohort?->trainer?->personName() ?: 'the office' }}</span>
+            <span>{{ $isAtt ? ($order?->assignee_name ?: 'the attachee') : ($cohort?->trainer?->personName() ?: 'the office') }}</span>
         </p>
     </div>
     <div class="head-acts">
         <span class="status {{ $paper->statusClass() }}">{{ $paper->statusLabel() }}</span>
     </div>
 </div>
+
+<a class="back" href="{{ $back }}">Back to the queue</a>
 
 <a class="back" href="{{ $back }}">Back to the queue</a>
 
@@ -170,6 +186,49 @@
     </div>
 @endif
 
+@if ($isAtt)
+    @php $written = collect($days)->filter(fn (array $d) => $d['row'])->values(); @endphp
+    <div class="card">
+        <div class="section-head">
+            <h3>The week as handed in</h3>
+            <span class="tag">{{ $written->count() }} {{ Str::plural('day', $written->count()) }} written</span>
+        </div>
+        <p class="hint">{{ $paper->note ?: 'No note with the week.' }}</p>
+        @if ($written->isEmpty())
+            <p class="help">No day is written on this week. Send it back and ask the attachee to fill the days they
+                sat at the site.</p>
+        @else
+            <div class="table-scroll">
+                <table class="data">
+                    <thead>
+                        <tr><th>Day</th><th>Time in</th><th>Time out</th><th>What they did</th>
+                            <th>Supervisor’s initials</th><th class="num">Hours</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($written as $day)
+                            <tr>
+                                <td class="nowrap"><b>{{ $day['day'] }}</b>
+                                    <small>{{ \Illuminate\Support\Carbon::parse($day['date'])->format('d/m/Y') }}</small></td>
+                                <td>{{ $day['row']->clockIn() }}</td>
+                                <td>{{ $day['row']->clockOut() }}</td>
+                                <td>{{ $day['row']->task }}</td>
+                                <td>{{ $day['row']->initials ?: '—' }}</td>
+                                <td class="num">{{ $day['row']->hours !== null ? number_format((float) $day['row']->hours, 2) : '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr><th colspan="5">Hours on the week</th>
+                            <th class="num">{{ number_format($paper->hoursTotal(), 2) }}</th></tr>
+                    </tfoot>
+                </table>
+            </div>
+            <p class="hint">An attachment is training, not a job — this week is never paid. Approving it keeps the
+                days on the trainee’s record; it writes nothing onto a payout.</p>
+        @endif
+    </div>
+@endif
+
 @if ($paper instanceof LessonPlan)
     <div class="card">
         <div class="section-head">
@@ -204,37 +263,37 @@
             by {{ $paper->reviewer?->name ?? 'this desk' }}
             @if ($paper->review_note) · “{{ $paper->review_note }}” @endif</p>
         <p class="help">
-            {{ $paper instanceof Timetable || $paper instanceof LessonPlan
-                ? 'The trainees see this paper on their own screens now.'
-                : 'These lines are written onto the trainees’ records.' }}
-            A corrected paper is handed in again by the trainer on their own desk and answered here again.</p>
+            {{ $isAtt ? 'The week stands on the attachee’s record.'
+                : ($paper instanceof Timetable || $paper instanceof LessonPlan
+                    ? 'The trainees see this paper on their own screens now.'
+                    : 'These lines are written onto the trainees’ records.') }}
+            A corrected paper is handed in again by {{ $author }} on their own desk and answered here again.</p>
         <form method="POST" action="{{ route('admin.registers.decide', ['kind' => $kind, 'id' => $paper->id]) }}"
               class="fee-form"
-              data-confirm="Send this approved paper back to the trainer? What it wrote comes off the trainees’ records.">
+              data-confirm="Send this approved paper back to {{ $author }}? What it wrote comes off the records.">
             @csrf
             <input type="hidden" name="decision" value="return">
             <div class="field">
                 <label>Why it is going back <span class="req">*</span></label>
                 <textarea name="note" rows="3" maxlength="500" required
-                          placeholder="The Wednesday ticks were wrong. Correct them and forward the day again."></textarea>
+                          placeholder="{{ $isAtt ? 'Thursday has no supervisor’s initials. Fill it in and send the week again.' : 'The Wednesday ticks were wrong. Correct them and forward the day again.' }}"></textarea>
             </div>
             <div class="sheet-actions">
-                <button class="btn btn-outline" type="submit">Send back to the trainer</button>
+                <button class="btn btn-outline" type="submit">Send back to {{ $author }}</button>
             </div>
         </form>
     @elseif ($paper->status === 'returned')
         <p class="hint">{{ $paper->statusLabel() }} {{ $paper->reviewed_at?->format('d M Y') ?? 'on record' }}
             by {{ $paper->reviewer?->name ?? 'this desk' }}
             @if ($paper->review_note) · “{{ $paper->review_note }}” @endif</p>
-        <p class="help">The trainer fixes it on their own desk and forwards it again. Nothing of theirs reached the
-            trainees’ records while it was back.</p>
+        <p class="help">{{ ucfirst($author) }} fixes it on their own desk and forwards it again. Nothing of theirs
+            reached the records while it was back.</p>
     @elseif ($paper->status === 'draft')
-        <p class="help">Not handed in yet — this paper is still with the trainer. Nothing to answer here.</p>
+        <p class="help">Not handed in yet — this paper is still with {{ $author }}. Nothing to answer here.</p>
     @else
-        <p class="hint">Approving writes this paper onto every trainee it names. Sending it back writes nothing and
-            returns it to the trainer with what to fix.</p>
+        <p class="hint">{{ $isAtt ? 'Approving keeps this week on the attachee’s record — it is never paid. Sending it back returns it with what to fix.' : 'Approving writes this paper onto every trainee it names. Sending it back writes nothing and returns it to the trainer with what to fix.' }}</p>
         <form method="POST" action="{{ route('admin.registers.decide', ['kind' => $kind, 'id' => $paper->id]) }}"
-              class="fee-form" data-confirm="Approve this paper onto the trainees’ records?">
+              class="fee-form" data-confirm="Approve this paper onto the records?">
             @csrf
             <input type="hidden" name="decision" value="approve">
             <div class="field">
@@ -246,13 +305,13 @@
             </div>
         </form>
         <form method="POST" action="{{ route('admin.registers.decide', ['kind' => $kind, 'id' => $paper->id]) }}"
-              class="fee-form" data-confirm="Send this paper back to the trainer?">
+              class="fee-form" data-confirm="Send this paper back to {{ $author }}?">
             @csrf
             <input type="hidden" name="decision" value="return">
             <div class="field">
                 <label>What to fix <span class="req">*</span></label>
                 <textarea name="note" rows="3" maxlength="500" required
-                          placeholder="Tick the two CTPs missing from Wednesday, then forward it again."></textarea>
+                          placeholder="{{ $isAtt ? 'Write Friday and add the supervisor’s initials, then send the week again.' : 'Tick the two CTPs missing from Wednesday, then forward it again.' }}"></textarea>
             </div>
             <div class="sheet-actions">
                 <button class="btn btn-outline" type="submit">Send back</button>

@@ -45,10 +45,16 @@
         $nav[] = ['label' => 'My invoices', 'icon' => 'mail', 'route' => 'portal.invoices', 'active' => ['portal.invoices'], 'count' => ($invoiceCount ?? 0)];
     }
     $nav[] = ['label' => 'E-Waste collection', 'icon' => 'globe', 'route' => 'portal.ewaste', 'active' => ['portal.ewaste']];
-    //  — the worker's own side of a job they were awarded. A CTP only ever sees an attachment order here.
-    $nav[] = ['label' => $isCtp ? 'My attachment work' : 'My work orders', 'icon' => 'briefcase', 'route' => 'portal.work', 'active' => ['portal.work', 'portal.work.show'], 'count' => ($workOrderCount ?? 0)];
-    //  — what the inspector flagged on their site and the worker still owes proof of.
-    $nav[] = ['label' => 'Items to put right', 'icon' => 'check', 'route' => 'portal.fixes', 'active' => ['portal.fixes'], 'count' => ($fixCount ?? 0)];
+    //  — a CTP on attachment logs the week they sat at the site and sends it to the Registrar. It is training, not a
+    // job, so it is never mixed with the orders an E-Fundi is paid for.
+    if ($isCtp) {
+        $nav[] = ['label' => 'My attachment', 'icon' => 'cap', 'route' => 'portal.attachment', 'active' => ['portal.attachment', 'portal.attachment.save'], 'count' => ($attachmentCount ?? 0)];
+    } else {
+        //  — the worker's own side of a job they were awarded.
+        $nav[] = ['label' => 'My work orders', 'icon' => 'briefcase', 'route' => 'portal.work', 'active' => ['portal.work', 'portal.work.show'], 'count' => ($workOrderCount ?? 0)];
+        //  — what the inspector flagged on their site and the worker still owes proof of.
+        $nav[] = ['label' => 'Items to put right', 'icon' => 'check', 'route' => 'portal.fixes', 'active' => ['portal.fixes'], 'count' => ($fixCount ?? 0)];
+    }
     if (! $isCtp) {
         //  — repair jobs on technology assets assigned to this fundi to fix.
         $nav[] = ['label' => 'My repair jobs', 'icon' => 'grid', 'route' => 'portal.tech.jobs', 'active' => ['portal.tech.jobs'], 'count' => ($techJobCount ?? 0)];

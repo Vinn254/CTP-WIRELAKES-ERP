@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttachmentLog;
 use App\Models\Cohort;
 use App\Models\CohortSession;
 use App\Models\LessonLine;
@@ -47,6 +48,7 @@ class RegistrarPaperController extends Controller
             'back' => route('admin.registers.index', ['kind' => $kind]),
             'url' => fn (string $name, array $params = []) => route($name, $params),
             'week' => $paper instanceof Timetable ? $paper->load('slots.module:id,title')->week() : [],
+            'days' => $paper instanceof AttachmentLog ? $paper->days() : [],
             'lines' => $paper instanceof LessonPlan
                 ? LessonLine::where('lesson_plan_id', $paper->id)->with('module:id,title')->orderBy('position')->get()
                 : collect(),
@@ -78,6 +80,7 @@ class RegistrarPaperController extends Controller
                     'register' => 'Attendance registers',
                     'marks' => 'Mark sheets',
                     'timetable' => 'Timetables',
+                    'attachment' => 'Attachment logs',
                     default => 'Lesson plans',
                 },
                 'count' => $class::where('status', 'submitted')->count(),
@@ -91,12 +94,17 @@ class RegistrarPaperController extends Controller
         $class = TeachingDesk::PAPERS[$kind] ?? null;
         abort_unless($class !== null, 404);
 
-        $paper = $class::with([
+        // An attachee's week is written by the trainee, not handed by a trainer, so that paper carries no trainer row.
+        $with = [
             'cohort:id,reference,training_id,venue_id,trainer_id,starts_on,ends_on,academic_year,term,status',
             'cohort.training:id,name',
             'cohort.venue:id,name,type,county',
-            'trainer:id,holder_type,fundi_id,user_id',
-        ])->findOrFail($id);
+        ];
+        if ($kind !== 'attachment') {
+            $with[] = 'trainer:id,holder_type,fundi_id,user_id';
+        }
+
+        $paper = $class::with($with)->findOrFail($id);
 
         // The lines a paper is answered on come with it, so the desk reads the whole sheet before deciding.
         return match (true) {
@@ -104,6 +112,7 @@ class RegistrarPaperController extends Controller
             $paper instanceof UnitMarkSheet => $paper->load(
                 'module:id,title', 'marks.enrollment.ctp:id,full_name,ctp_code'),
             $paper instanceof Timetable => $paper->load('slots.module:id,title'),
+            $paper instanceof AttachmentLog => $paper->load('lines', 'ctp:id,full_name,ctp_code'),
             default => $paper,
         };
     }

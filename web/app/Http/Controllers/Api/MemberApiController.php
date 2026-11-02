@@ -46,6 +46,7 @@ class MemberApiController extends Controller
                 'invites' => $board['inviteCount'],
                 'work_orders' => $board['workOrderCount'],
                 'fixes' => $board['fixCount'],
+                'attachment_weeks' => $board['attachmentCount'],
                 'repair_jobs' => $board['techJobCount'],
                 'invoices' => $board['invoiceCount'],
             ],
