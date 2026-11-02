@@ -112,6 +112,7 @@ class Departments
             ['label' => 'Training venues', 'icon' => 'building', 'route' => ['admin.venues.index']],
             ['label' => 'Trainers', 'icon' => 'check', 'route' => ['admin.trainers.index'], 'badge' => 'trainers'],
             ['label' => 'Papers & library', 'icon' => 'book', 'route' => ['admin.registers.index'], 'badge' => 'papers'],
+            ['label' => 'Programme timetable', 'icon' => 'clock', 'route' => ['admin.programme_timetables.index']],
             ['label' => 'Certification', 'icon' => 'award', 'route' => ['admin.certification.index'], 'badge' => 'certificates'],
             ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.host.registrations.index', ['type' => 'ctp', 'department' => 'training']]],
             // Papers & requests is a tab on the Papers & library desk, not a sign of its own here.
@@ -292,6 +293,8 @@ class Departments
         'admin.registers.index' => 'What the trainers handed in — registers, marks, timetables and lesson plans waiting to be answered',
         'admin.registers.show' => 'One paper read whole, then approved onto the trainees’ records or sent back with what to fix',
         'admin.library.index' => 'Books, notes, slides and PDFs the students read for each course',
+        'admin.programme_timetables.index' => 'The week each programme is meant to run on, set here and read by every trainer teaching it',
+        'admin.programme_timetables.edit' => 'The programme’s own week — the classes the trainers on this programme are expected to keep to',
         'admin.timelogs.index' => 'Every week anyone on staff has filled — the days worked, what was done, and Human Resources\' approval for pay',
         'admin.timelogs.week' => 'The signed week as the paper reads: day, clock times, work, initials, hours and units',
         'admin.timelogs.sheet' => 'The week on the ruled sheet itself — printed or downloaded with the programme’s logo',

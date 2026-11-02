@@ -336,7 +336,7 @@ table.data .status { white-space: nowrap; }
 .status.graduated { background: #d9f0ff; color: #0d5c86; }
 .status.deployed { background: #dcf5e4; color: #0a5a2c; }
 .status.suspended { background: #f7e0d6; color: #8a3b12; }
-.status.rejected { background: #fdecea; color: var(--danger); }
+.status.rejected, .status.owed { background: #fdecea; color: var(--danger); }
 /* Module 3 — need and community states */
 .status.proposed { background: #fff3d6; color: var(--warn); }
 .status.prioritised { background: #d9f0ff; color: #0d5c86; }

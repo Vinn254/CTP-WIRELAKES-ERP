@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\StaffPayController;
 use App\Http\Controllers\Admin\StatementController;
 use App\Http\Controllers\Admin\ProgrammeController;
+use App\Http\Controllers\Admin\ProgrammeTimetableController;
 use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\RequisitionController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -473,6 +474,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // The Registrar's grading. The weights a unit is graded on are set on the cohort's own results page, where the
     // marks they weigh are read; this is the post that keeps one unit's weights.
     Route::post('/grading/{module}', [GradingController::class, 'update'])->whereNumber('module')->name('grading.update');
+
+    // The Registrar's week for a programme. Trainers read it on their own timetable and still forward their cohort's.
+    Route::get('/programme-timetables', [ProgrammeTimetableController::class, 'index'])->name('programme_timetables.index');
+    Route::get('/programme-timetables/{training}', [ProgrammeTimetableController::class, 'edit'])->whereNumber('training')->name('programme_timetables.edit');
+    Route::post('/programme-timetables/{training}', [ProgrammeTimetableController::class, 'update'])->whereNumber('training')->name('programme_timetables.update');
 
     Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
     Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');

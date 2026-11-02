@@ -10,6 +10,7 @@
 
     $marked = collect($classes)->filter(fn (array $row) => $row['session'] !== null);
     $toForward = collect($classes)->filter(fn (array $row) => $row['session'] && $row['session']->isEditable());
+    $owed = collect($classes)->filter(fn (array $row) => ! empty($row['owed']));
 @endphp
 
 @section('content')
@@ -37,9 +38,16 @@
 <div class="stat-row">
     <div class="stat"><small>Classes this week</small><b>{{ count($classes) }}</b></div>
     <div class="stat"><small>Registers written</small><b>{{ $marked->count() }}</b></div>
+    <div class="stat"><small>Registers owed</small><b>{{ $owed->count() }}</b></div>
     <div class="stat"><small>Still with the trainer</small><b>{{ $toForward->count() }}</b></div>
     <div class="stat"><small>On the roll</small><b>{{ $roll->count() }}</b></div>
 </div>
+
+@if ($owed->isNotEmpty())
+    <p class="flash-error" style="margin:0 0 14px"><b>{{ $owed->count() }}
+        {{ Str::plural('register', $owed->count()) }} owed on this week.</b>
+        A day the class sat is marked the same day — open each row below and tick who was there.</p>
+@endif
 
 <div class="table-scroll">
     <table class="data result-table">
@@ -106,6 +114,8 @@
                                 <div class="hint"><a href="{{ $sheetUrl }}">signed sheet</a>
                                     · <a href="{{ download_href($sheetUrl) }}">Download</a></div>
                             @endif
+                        @elseif ($row['owed'] ?? false)
+                            <span class="status owed">Register owed</span>
                         @else
                             <span class="hint">nothing written</span>
                         @endif

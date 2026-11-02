@@ -64,6 +64,8 @@ abstract class TeachingPapers extends Controller
             'url' => fn (string $name, array $params = []) => $this->url($name, $params),
             'mine' => $this->cohorts()->keyBy('id'),
             'roll' => $cohort->enrollments()->where('state', 'approved')->with('ctp')->orderBy('id')->get(),
+            // The Registrar's week for this programme, read beside the week the trainer writes for their own cohort.
+            'programmeWeek' => Timetable::forProgramme($cohort->training_id),
         ]);
     }
 
@@ -205,6 +207,8 @@ abstract class TeachingPapers extends Controller
                     'unit' => $slot->module?->title,
                     'room' => $slot->room,
                     'session' => $session,
+                    // A class the calendar has already passed with no register is owed, not merely not yet written.
+                    'owed' => $session === null && $date <= today()->toDateString(),
                 ]);
             }
         }
@@ -233,8 +237,15 @@ abstract class TeachingPapers extends Controller
 
     private function slots(Cohort $cohort): Collection
     {
-        return Timetable::where('cohort_id', $cohort->id)->with('slots.module:id,title')->get()
+        $own = Timetable::where('cohort_id', $cohort->id)->with('slots.module:id,title')->get()
             ->flatMap(fn (Timetable $paper) => $paper->slots);
+
+        if ($own->isNotEmpty()) {
+            return $own;
+        }
+
+        // A cohort that has not written its own week yet keeps to the week the Registrar laid out for the programme.
+        return Timetable::forProgramme($cohort->training_id)?->slots ?? collect();
     }
 
     /** How long the timetable says this class sits — null when the day holds no such class, so a free day is typed. */

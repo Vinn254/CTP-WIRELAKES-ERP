@@ -8,10 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * The week a cohort runs on — one timetable per cohort, edited until it is forwarded and approved.
- *
- * A trainee reads the approved one; the office and the trainer read the same rows. Slots are replaced whole on
- * every save so an edit never leaves a stale class sitting in the week.
+ * A class week. Two authors read the one table: a trainer writes the week of their own cohort and forwards it to the
+ * Registrar, and the Registrar writes the week a programme is meant to run on, which every trainer on that programme
+ * sees. A row hangs on a cohort or on a training, never on both.
  */
 class Timetable extends Model
 {
@@ -27,8 +26,8 @@ class Timetable extends Model
     ];
 
     protected $fillable = [
-        'cohort_id', 'trainer_id', 'status', 'submitted_at', 'reviewed_by', 'reviewed_at', 'review_note', 'note',
-        'taken_by_user', 'taken_by_fundi',
+        'cohort_id', 'training_id', 'trainer_id', 'status', 'submitted_at', 'reviewed_by', 'reviewed_at',
+        'review_note', 'note', 'taken_by_user', 'taken_by_fundi',
     ];
 
     protected $casts = [
@@ -39,6 +38,19 @@ class Timetable extends Model
     public function cohort(): BelongsTo
     {
         return $this->belongsTo(Cohort::class);
+    }
+
+    /** The programme this week is laid out for — set on the Registrar's own week. */
+    public function training(): BelongsTo
+    {
+        return $this->belongsTo(Training::class, 'training_id');
+    }
+
+    /** The Registrar's week for a programme; a trainer's cohort row is never read here. */
+    public static function forProgramme(int $trainingId): ?self
+    {
+        return static::where('training_id', $trainingId)->whereNull('cohort_id')
+            ->with('slots.module:id,title')->latest('id')->first();
     }
 
     public function trainer(): BelongsTo
