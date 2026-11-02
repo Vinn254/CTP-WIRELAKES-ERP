@@ -30,6 +30,9 @@ class LibraryItem extends Model
 
     public const SHELF = ['on' => 'On the shelf', 'off' => 'Off the shelf'];
 
+    /** A whole book is not a few pages of notes: the shelf takes files up to 300 MB. */
+    public const MAX_KB = 307200;
+
     protected $fillable = [
         'title', 'kind', 'training_id', 'note', 'file_path', 'file_name', 'file_size', 'status',
         'posted_by_user', 'posted_at',
@@ -63,13 +66,13 @@ class LibraryItem extends Model
             'kind' => 'required|in:'.implode(',', array_keys(self::KINDS)),
             'training_id' => 'nullable|exists:trainings,id',
             'note' => 'nullable|string|max:1000',
-            'file' => ($fileRequired ? 'required' : 'nullable').'|file|mimes:pdf,epub,jpg,jpeg,png,doc,docx,ppt,pptx,xls,xlsx,txt|max:30720',
+            'file' => ($fileRequired ? 'required' : 'nullable').'|file|mimes:pdf,epub,jpg,jpeg,png,doc,docx,ppt,pptx,xls,xlsx,txt|max:'.self::MAX_KB,
         ], [
             'title.required' => 'Give the title as the students will read it.',
             'kind.required' => 'Say what kind of reading it is.',
             'file.required' => 'Attach the file the students open.',
             'file.mimes' => 'A book, note or slide deck goes in as a PDF, Word, PowerPoint, Excel, text file or a picture.',
-            'file.max' => 'The library takes a file up to 30 MB — a bigger book goes to the office as a link.',
+            'file.max' => 'The library takes a file up to '.self::uploadLabel().' — a bigger book goes to the office as a link.',
         ], [
             'title' => 'Title', 'kind' => 'Type', 'training_id' => 'Course', 'note' => 'What it covers', 'file' => 'The file',
         ]);
@@ -78,6 +81,12 @@ class LibraryItem extends Model
     public function kindLabel(): string
     {
         return self::KINDS[$this->kind] ?? Str::headline((string) $this->kind);
+    }
+
+    /** The words the upload field shows for its own ceiling. */
+    public static function uploadLabel(): string
+    {
+        return (int) round(self::MAX_KB / 1024).' MB';
     }
 
     public function courseLabel(): string

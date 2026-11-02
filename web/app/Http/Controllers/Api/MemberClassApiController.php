@@ -10,6 +10,8 @@ use App\Models\LibraryItem;
 use App\Models\Timetable;
 use App\Models\TrainingMaterial;
 use App\Models\UnitMarkSheet;
+use App\Support\Finance;
+use App\Support\Library;
 use App\Support\MemberPortal;
 use App\Support\UploadsFromJson;
 use Illuminate\Http\JsonResponse;
@@ -121,6 +123,10 @@ class MemberClassApiController extends Controller
             ->when($kind, fn ($q) => $q->where('kind', $kind))
             ->latest('id')->get();
 
+        // Reading is free on the phone too; only saving the file is charged, and the website's own gate decides it.
+        $kept = Library::kept($ctp);
+        $charges = Library::charges($request->user());
+
         return response()->json([
             'items' => $items->map(fn (LibraryItem $i) => [
                 'id' => $i->id,
@@ -132,23 +138,52 @@ class MemberClassApiController extends Controller
                 'posted_on' => $i->dateLabel(),
                 'size' => $i->sizeLabel(),
                 'has_file' => (bool) $i->file_path,
+                'price' => Library::priceLabel(Library::price($i)),
+                'status' => $kept->get($i->id)?->status,
+                'paid' => (bool) $kept->get($i->id)?->isPaid(),
             ])->values(),
             'courses' => $courses->map(fn ($t) => ['id' => $t->id, 'name' => $t->name])->values(),
             'course' => $course,
             'kind' => $kind,
             'kinds' => LibraryItem::KINDS,
+            'charges' => $charges,
+            'paybill' => Finance::paybill(),
         ]);
     }
 
-    /** GET /api/me/library/{item} — one title, handed to any signed-in trainee the way the website hands it. */
-    public function libraryFile(LibraryItem $item): JsonResponse
+    /**
+     * GET /api/me/library/{item} — one title, handed to any signed-in trainee the way the website hands it.
+     * Reading it on the phone is free; ?save=1 is the app asking to keep the file, which is the paid part.
+     */
+    public function libraryFile(Request $request, LibraryItem $item): JsonResponse
     {
-        $this->ctp();
+        $ctp = $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
         abort_unless($item->file_path, 404, 'That title has no file on record.');
 
+        if ($request->boolean('save') && ! Library::entitled($ctp, $item, $request->user())) {
+            abort(402, Library::priceLabel(Library::price($item)).' — the office confirms the payment before you keep this.');
+        }
+
         return response()->json($this->inline($item->file_path, $item->file_name ?: $item->title));
+    }
+
+    /** POST /api/me/library/{item}/pay — the trainee says the money went in; the Registrar confirms it on the website. */
+    public function libraryPay(Request $request, LibraryItem $item): JsonResponse
+    {
+        $ctp = $this->ctp();
+
+        abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        abort_unless(Library::charges($request->user()), 422, 'You are not charged for library reading.');
+
+        $purchase = Library::request($request->user(), $ctp, $item);
+
+        return response()->json([
+            'status' => $purchase->status,
+            'message' => 'Noted — the Academic Registrar will confirm the '
+                .Library::priceLabel($purchase->amount).' for '.$item->title.'. Your download opens as soon as they do.',
+        ]);
     }
 
     // ---- the portal's own queries ---------------------------------------

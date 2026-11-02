@@ -412,6 +412,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // A staff account that also trains CTPs works its own roll here, from the same sign-in as its department desks.
     Route::get('/teaching', [TeachingController::class, 'index'])->name('teaching.index');
+    // The Registrar's shelf, read by a trainer. A trainer is never charged for keeping a book for their class.
+    Route::get('/teaching/library', [TeachingController::class, 'library'])->name('teaching.library');
+    Route::get('/teaching/library/{item}/open', [TeachingController::class, 'libraryFile'])->whereNumber('item')->name('teaching.library.open');
     // The desk's own week sheet is the one every office account fills — My time log.
     Route::get('/teaching/{enrollment}', [TeachingController::class, 'trainee'])->whereNumber('enrollment')->name('teaching.trainee');
     Route::post('/teaching/{enrollment}/progress', [TeachingController::class, 'progress'])->whereNumber('enrollment')->name('teaching.progress');
@@ -462,6 +465,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::patch('/library/{item}', [LibraryController::class, 'update'])->whereNumber('item')->name('library.update');
     Route::post('/library/{item}/shelf/{status}', [LibraryController::class, 'shelf'])->whereNumber('item')->name('library.shelf');
     Route::get('/library/{item}/open', [LibraryController::class, 'open'])->whereNumber('item')->name('library.open');
+    // A student keeps a title for KSh 50 (a past paper) or KSh 100 (a book or notes). The Registrar counts the money
+    // in and confirms it here — that confirmation, not the student's claim, is what opens the download.
+    Route::post('/library/purchase/{purchase}/decide', [LibraryController::class, 'decide'])->whereNumber('purchase')->name('library.decide');
 
     Route::get('/certification', [CertificationController::class, 'index'])->name('certification.index');
     Route::post('/certification/{enrollment}/recommend', [CertificationController::class, 'recommend'])->whereNumber('enrollment')->name('certification.recommend');
@@ -718,6 +724,8 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     // The Registrar's library, on the trainee's side: what to read for their course, in the browser or saved to them.
     Route::get('/library', [PortalLibraryController::class, 'index'])->name('library');
     Route::get('/library/{item}/open', [PortalLibraryController::class, 'open'])->whereNumber('item')->name('library.open');
+    // Saving a title to the phone is the paid part. This only says the money went in; the Registrar opens the file.
+    Route::post('/library/{item}/pay', [PortalLibraryController::class, 'pay'])->whereNumber('item')->name('library.pay');
     Route::get('/trainer', [PortalController::class, 'trainer'])->name('trainer');
     // An E-Fundi trainer fills the same week sheet the Training desk approves — kept as a draft, then sent.
     Route::get('/trainer/week', [PortalController::class, 'trainerWeek'])->name('trainer.week');

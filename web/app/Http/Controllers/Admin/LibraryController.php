@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\LibraryItem;
+use App\Models\LibraryPurchase;
 use App\Models\Training;
 use App\Support\Documents;
+use App\Support\Finance;
+use App\Support\Library;
 use App\Support\TeachingDesk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -55,6 +58,7 @@ class LibraryController extends Controller
             ->values();
 
         $all = LibraryItem::all();
+        $desk = Library::desk();
 
         return view('admin.library.index', [
             'groups' => $groups,
@@ -76,6 +80,9 @@ class LibraryController extends Controller
                 ['For every course', $all->whereNull('training_id')->count()],
                 ['Courses covered', $all->whereNotNull('training_id')->pluck('training_id')->unique()->count()],
             ],
+            'waiting' => $desk['waiting'],
+            'answered' => $desk['answered'],
+            'paybill' => Finance::paybill(),
         ]);
     }
 
@@ -149,6 +156,27 @@ class LibraryController extends Controller
         $this->guard();
 
         return Documents::file($request, $item->file_path, $item->file_name ?: $item->title);
+    }
+
+    /**
+     * The desk counted the money on the Paybill. Paid opens the download for that one student and that one title;
+     * declined writes down why, and the student can send it and ask again. An answered claim is not re-decided.
+     */
+    public function decide(Request $request, LibraryPurchase $purchase)
+    {
+        $this->guard();
+        abort_unless($purchase->isWaiting(), 403, 'This payment has already been answered.');
+
+        $data = $request->validate([
+            'decision' => 'required|in:paid,declined',
+            'note' => 'nullable|string|max:500',
+        ], ['decision.required' => 'Say whether the money arrived.']);
+
+        $message = $data['decision'] === 'paid'
+            ? Library::confirm($purchase, $data['note'] ?? null, $request->user())
+            : Library::decline($purchase, $data['note'] ?? null, $request->user());
+
+        return back()->with('status', $message);
     }
 
     /** The reading files are filed under the title's own folder on the private disk. */

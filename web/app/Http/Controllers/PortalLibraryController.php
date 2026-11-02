@@ -5,14 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\CtpRegistration;
 use App\Models\LibraryItem;
 use App\Support\Documents;
+use App\Support\Finance;
+use App\Support\Library;
 use App\Support\MemberPortal;
 use Illuminate\Http\Request;
 
 /**
  * My library — the reading the Academic Registrar has put up. Everything on the shelf is open to a student: the
  * course a title is filed under says who it was written for, it is not a lock, so a trainee not yet on a class roll
- * still reads what the Registrar posted for their programme. Titles are read on the screen or saved to the phone;
- * the file itself sits on the private disk and only ever opens through a signed-in trainee.
+ * still reads what the Registrar posted for their programme.
+ *
+ * Reading happens on the platform and costs nothing. Saving a title to the phone is what costs — KSh 50 for a past
+ * paper, KSh 100 for a book or notes, sent to the programme's Paybill — and the download stays shut until the
+ * Registrar confirms the money. The gate is applied here as well as on the page, so a student cannot reach the file
+ * by typing the save url.
  */
 class PortalLibraryController extends Controller
 {
@@ -44,17 +50,42 @@ class PortalLibraryController extends Controller
             'course' => $course,
             'kind' => $kind,
             'kinds' => LibraryItem::KINDS,
+            'charges' => Library::charges($request->user()),
+            'kept' => Library::kept($ctp),
+            'paybill' => Finance::paybill(),
         ]);
     }
 
     /** A single title, opened by any trainee — the shelf itself is what decides what students may read. */
     public function open(Request $request, LibraryItem $item)
     {
-        $this->ctp();
+        $ctp = $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
 
+        if ($request->boolean('download') && ! Library::entitled($ctp, $item, $request->user())) {
+            return redirect()->route('portal.library')
+                ->with('error', Library::priceLabel(Library::price($item)).' — '.$item->title
+                    .' is saved to your phone only after the Academic Registrar confirms the payment.');
+        }
+
         return Documents::file($request, $item->file_path, $item->file_name ?: $item->title);
+    }
+
+    /** The student says the money has gone in. The Registrar confirms it, and the download opens then. */
+    public function pay(Request $request, LibraryItem $item)
+    {
+        $ctp = $this->ctp();
+
+        abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        abort_unless(Library::charges($request->user()), 422,
+            'You are not charged for library reading.');
+
+        $purchase = Library::request($request->user(), $ctp, $item);
+
+        return redirect()->route('portal.library')->with('status',
+            'Noted — the Academic Registrar will confirm the '.Library::priceLabel($purchase->amount)
+            .' for '.$item->title.'. Your download opens as soon as they do.');
     }
 
     /** The trainings this CTP is actually sitting in class for — an application is not a class. */

@@ -356,8 +356,15 @@ class ApiClient {
     return LibraryBoard.fromJson(data);
   }
 
-  Future<InlineFile> libraryFile(int itemId) async =>
-      InlineFile.fromJson(await get('/me/library/$itemId') as Map<String, dynamic>);
+  /// Reading a title on the phone is free; [save] is the app asking to keep the file, which is the paid part.
+  Future<InlineFile> libraryFile(int itemId, {bool save = false}) async => InlineFile.fromJson(await get(
+      '/me/library/$itemId${save ? '?save=1' : ''}') as Map<String, dynamic>);
+
+  /// The trainee says the money went in on the Paybill; the Registrar confirms it and the download opens then.
+  Future<String> libraryPay(int itemId) async {
+    final j = await post('/me/library/$itemId/pay', {}) as Map<String, dynamic>;
+    return '${j['message'] ?? 'Noted.'}';
+  }
 
   // ---- My invoices ----------------------------------------------------------
 

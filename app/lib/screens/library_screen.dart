@@ -21,6 +21,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   String? _kind;
   bool _loading = false;
   String? _error;
+  String? _note;
 
   @override
   void initState() {
@@ -53,6 +54,47 @@ class _LibraryScreenState extends State<LibraryScreen> {
     try {
       final file = await widget.api.libraryFile(item.id);
       if (mounted) await openDocument(context, file);
+    } catch (e) {
+      if (mounted) showError(context, e);
+    }
+  }
+
+  /// Keeping a title is the paid part. A trainee is only handed the file once the Registrar has confirmed the money,
+  /// and the API refuses the save until then, so the app never has to trust its own screen.
+  Future<void> _keep(LibraryRow item) async {
+    final b = _data!;
+
+    if (!b.charges || item.paid) {
+      try {
+        final file = await widget.api.libraryFile(item.id, save: true);
+        if (mounted) await openDocument(context, file);
+      } catch (e) {
+        if (mounted) showError(context, e);
+      }
+      return;
+    }
+
+    final sent = await showFormSheet(
+      context,
+      title: 'Save this title to your phone',
+      subtitle: '${item.title} — ${item.price}. Reading it here costs nothing; keeping the file is what costs. '
+          'Pay on Paybill ${b.paybillNumber}, account number ${b.paybillAccount}, then tell the office. '
+          'The Academic Registrar confirms the money and your download opens then.',
+      fields: const [],
+      cta: item.status == 'requested'
+          ? 'Already told the office — waiting'
+          : 'I have paid — tell the office',
+    );
+
+    if (sent == null || !mounted) return;
+    if (item.status == 'requested') return;
+
+    try {
+      final message = await widget.api.libraryPay(item.id);
+      if (mounted) {
+        setState(() => _note = message);
+        _load();
+      }
     } catch (e) {
       if (mounted) showError(context, e);
     }
@@ -99,6 +141,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ],
             ),
           ),
+          if (b.charges)
+            SectionCard(
+              title: 'Keeping a title',
+              subtitle: 'Read anything here for nothing. Saving a book or notes to your phone is KSh 100 and a past '
+                  'paper is KSh 50, sent to Paybill ${b.paybillNumber}, account number ${b.paybillAccount}. '
+                  'The Academic Registrar confirms it, then your download opens.',
+              child: const SizedBox.shrink(),
+            ),
+          if (_note != null) _notice(_note!, color: onLime),
           if (b.items.isEmpty)
             const Card(
               child: EmptyHint(
@@ -116,7 +167,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final item in entry.value) _row(item),
+                    for (final item in entry.value)
+                      _row(item, free: !b.charges || item.paid),
                   ],
                 ),
               ),
@@ -126,17 +178,31 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _row(LibraryRow item) => RecordRow(
+  Widget _row(LibraryRow item, {required bool free}) => RecordRow(
         title: item.title,
         subtitle: [item.kindLabel, item.postedOn, item.size]
             .where((x) => x != null && x.isNotEmpty)
             .join(' · '),
         meta: item.note,
         trailing: item.hasFile
-            ? TextButton.icon(
-                onPressed: () => _read(item),
-                icon: const Icon(Icons.visibility_outlined, size: 16),
-                label: const Text('Read it'),
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _read(item),
+                    icon: const Icon(Icons.visibility_outlined, size: 16),
+                    label: const Text('Read it'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _keep(item),
+                    icon: Icon(free ? Icons.download_outlined : Icons.lock_outline, size: 16),
+                    label: Text(free
+                        ? 'Download'
+                        : item.status == 'requested'
+                            ? 'Waiting for the office'
+                            : 'Keep it · ${item.price}'),
+                  ),
+                ],
               )
             : const Tag('No file', color: muted),
       );
@@ -168,8 +234,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _notice(String message) => Padding(
+  Widget _notice(String message, {Color color = danger}) => Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Text(message, style: const TextStyle(color: danger, fontSize: 12.5)),
+        child: Text(message, style: TextStyle(color: color, fontSize: 12.5)),
       );
 }

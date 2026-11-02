@@ -55,6 +55,7 @@ Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
     Route::get('/me/class/{cohort}/material/{material}', [MemberClassApiController::class, 'materialFile'])->whereNumber('cohort')->whereNumber('material')->name('api.me.class.material');
     Route::get('/me/library', [MemberClassApiController::class, 'library'])->name('api.me.library');
     Route::get('/me/library/{item}', [MemberClassApiController::class, 'libraryFile'])->whereNumber('item')->name('api.me.library.open');
+    Route::post('/me/library/{item}/pay', [MemberClassApiController::class, 'libraryPay'])->whereNumber('item')->name('api.me.library.pay');
 
     Route::get('/me/invoices', [MemberAccountApiController::class, 'invoices'])->name('api.me.invoices');
     Route::get('/me/leave', [MemberAccountApiController::class, 'leave'])->name('api.me.leave');

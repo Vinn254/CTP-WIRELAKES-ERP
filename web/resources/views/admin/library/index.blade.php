@@ -5,6 +5,9 @@
      what is filed, how heavy it is, when it went up and whether the students can open it today. --}}
 
 @section('content')
+@php
+    use App\Support\Library;
+@endphp
 <div class="head-row">
     <div>
         <h1>Library</h1>
@@ -110,6 +113,73 @@
     </div>
 @endforelse
 
+<h4 class="dl-group">Payments to confirm — {{ $waiting->count() }}
+    {{ Str::plural('claim', $waiting->count()) }}</h4>
+<p class="help">A student says the money went in; you count it on Paybill <b>{{ $paybill['number'] }}</b>, account
+    <b>{{ $paybill['account'] }}</b> and confirm here. Confirming opens that one download for that one student.
+    Trainers are never charged, so nothing of theirs appears on this list.</p>
+@forelse ($waiting as $purchase)
+    <div class="card">
+        <div class="section-head">
+            <h3>{{ $purchase->titleLabel() }}</h3>
+            <span class="tag">{{ $purchase->item?->kindLabel() }}</span>
+            <span class="tag">{{ Library::priceLabel($purchase->amount) }}</span>
+        </div>
+        <p class="ah-meta">
+            <span>{{ $purchase->personLabel() }}</span>
+            <span>said paid {{ $purchase->dateLabel() }}</span>
+        </p>
+        <form method="POST" action="{{ route('admin.library.decide', $purchase) }}" class="filter-bar inline-filter"
+              data-title="Confirm the payment">
+            @csrf
+            <label class="field grow">
+                <span>M-Pesa code or what to put right</span>
+                <input type="text" name="note" maxlength="500"
+                       placeholder="e.g. SLA12H9X4P — KSh 100 received">
+            </label>
+            <button class="btn btn-sm btn-lime" type="submit" name="decision" value="paid"
+                    data-confirm="Confirm {{ Library::priceLabel($purchase->amount) }} from {{ $purchase->personLabel() }} for {{ $purchase->titleLabel() }}? The download opens for them."
+                    data-title="Mark paid">Mark paid</button>
+            <button class="btn btn-sm btn-ghost" type="submit" name="decision" value="declined"
+                    data-confirm="Decline this claim? {{ $purchase->personLabel() }} reads your note and can pay again."
+                    data-title="Decline the payment">Decline</button>
+        </form>
+    </div>
+@empty
+    <div class="card">
+        <p class="help">No student is waiting on the library. Claims appear here the moment someone says the money
+            went in.</p>
+    </div>
+@endforelse
+
+@if ($answered->isNotEmpty())
+    <h4 class="dl-group">Answered lately — {{ $answered->count() }}</h4>
+    <div class="table-scroll">
+        <table class="data">
+            <thead>
+                <tr>
+                    <th>Student</th><th>Title</th><th>Type</th><th>Amount</th><th>Result</th><th>Note</th><th>Answered</th><th>By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($answered as $purchase)
+                    <tr>
+                        <td><b>{{ $purchase->personLabel() }}</b></td>
+                        <td class="wrap">{{ $purchase->titleLabel() }}</td>
+                        <td>{{ $purchase->item?->kindLabel() }}</td>
+                        <td class="num">{{ Library::priceLabel($purchase->amount) }}</td>
+                        <td><span class="status {{ $purchase->isPaid() ? 'active' : 'closed' }}">
+                            {{ $purchase->isPaid() ? 'Confirmed' : 'Declined' }}</span></td>
+                        <td class="wrap">{{ $purchase->decision_note ?: '—' }}</td>
+                        <td>{{ $purchase->dateLabel() }}</td>
+                        <td>{{ $purchase->decidedBy?->name ?: 'the office' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
+
 @foreach ($items as $item)
     @include('partials.sheet-start', ['name' => 'fix-'.$item->id, 'title' => 'Correct '.$item->title,
         'sub' => 'Saving overwrites the title on the shelf — students open the new file, not the old one.'])
@@ -201,8 +271,8 @@
                 <label>The file <span class="req">*</span></label>
                 <input type="file" name="file" required
                        accept=".pdf,.epub,.jpg,.jpeg,.png,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt">
-                <div class="help">PDF, Word, PowerPoint, Excel, text or a picture — up to 30 MB. Kept private and
-                    only opened from this shelf.</div>
+                <div class="help">PDF, Word, PowerPoint, Excel, text or a picture — a whole book up to
+                    {{ \App\Models\LibraryItem::uploadLabel() }}. Kept private and only opened from this shelf.</div>
             </div>
         </div>
         <div class="field" style="margin-top:10px;">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\FundiRegistration;
+use App\Models\LibraryItem;
 use App\Models\ModuleCompletion;
 use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
@@ -88,6 +89,53 @@ class TeachingController extends Controller
         abort_unless($document->enrollment_id === $their->id, 404);
 
         return Documents::file($request, $document->file_path, $document->file_name ?: $document->title);
+    }
+
+    /**
+     * The Registrar's shelf, opened for a trainer to prepare from. A trainer is handed the same books, notes and
+     * past papers the students pay to keep and is never charged for one of them — reading and saving are both open
+     * here. The Registrar still owns the shelf; this desk only reads it.
+     */
+    public function library(Request $request)
+    {
+        abort_unless(Workspace::trainerDesk($request->user()), 403,
+            'The library is the Registrar\'s shelf for the students. A trainer opens it to prepare what they teach.');
+
+        $kind = $request->input('kind');
+        $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
+
+        $courses = LibraryItem::onShelf()->whereNotNull('training_id')->with('course:id,name')->get()
+            ->pluck('course')->filter()->unique('id')->values();
+
+        $course = $request->input('training_id');
+        $course = $course === 'general' ? 'general'
+            : (ctype_digit((string) $course) && $courses->contains('id', (int) $course) ? (int) $course : null);
+
+        $items = LibraryItem::onShelf()->with(['course:id,name', 'poster:id,name'])
+            ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
+            ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
+            ->when($kind, fn ($q) => $q->where('kind', $kind))
+            ->latest('id')->get();
+
+        return view('admin.teaching.library', [
+            'fundi' => $this->fundi(),
+            'blocks' => $items->groupBy(fn (LibraryItem $i) => $i->courseLabel())->sortKeys(),
+            'items' => $items,
+            'courses' => $courses,
+            'course' => $course,
+            'kind' => $kind,
+            'kinds' => LibraryItem::KINDS,
+        ]);
+    }
+
+    /** A trainer saves a book to their own machine for the class. Nothing on the shelf is charged to them. */
+    public function libraryFile(Request $request, LibraryItem $item)
+    {
+        abort_unless(Workspace::trainerDesk($request->user()), 403,
+            'The library is the Registrar\'s shelf for the students. A trainer opens it to prepare what they teach.');
+        abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+
+        return Documents::file($request, $item->file_path, $item->file_name ?: $item->title);
     }
 
     /**

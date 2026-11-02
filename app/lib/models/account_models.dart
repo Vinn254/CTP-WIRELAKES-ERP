@@ -250,6 +250,12 @@ class LibraryRow {
   final String? size;
   final bool hasFile;
 
+  /// Reading is free; keeping the file is what costs. [price] is the words on the button, [paid] says the office
+  /// has confirmed the money and [status] is 'requested' when a claim is still waiting on them.
+  final String price;
+  final bool paid;
+  final String? status;
+
   LibraryRow({
     required this.id,
     required this.title,
@@ -260,6 +266,9 @@ class LibraryRow {
     required this.postedOn,
     required this.size,
     required this.hasFile,
+    this.price = '',
+    this.paid = false,
+    this.status,
   });
 
   factory LibraryRow.fromJson(Map<String, dynamic> j) => LibraryRow(
@@ -272,6 +281,9 @@ class LibraryRow {
         postedOn: (j['posted_on'] ?? '') as String,
         size: j['size'] as String?,
         hasFile: j['has_file'] == true,
+        price: (j['price'] ?? '') as String,
+        paid: j['paid'] == true,
+        status: j['status'] == null ? null : '${j['status']}',
       );
 }
 
@@ -281,6 +293,9 @@ class LibraryBoard {
   final String? course;
   final String? kind;
   final Map<String, String> kinds;
+  final bool charges;
+  final String paybillNumber;
+  final String paybillAccount;
 
   LibraryBoard({
     required this.items,
@@ -288,6 +303,9 @@ class LibraryBoard {
     required this.course,
     required this.kind,
     required this.kinds,
+    this.charges = false,
+    this.paybillNumber = '',
+    this.paybillAccount = '',
   });
 
   factory LibraryBoard.fromJson(Map<String, dynamic> j) {
@@ -302,6 +320,9 @@ class LibraryBoard {
       course: j['course'] == null ? null : '${j['course']}',
       kind: j['kind'] as String?,
       kinds: (j['kinds'] as Map? ?? {}).map((k, v) => MapEntry('$k', '$v')),
+      charges: j['charges'] == true,
+      paybillNumber: '${(j['paybill'] as Map?)?['number'] ?? ''}',
+      paybillAccount: '${(j['paybill'] as Map?)?['account'] ?? ''}',
     );
   }
 

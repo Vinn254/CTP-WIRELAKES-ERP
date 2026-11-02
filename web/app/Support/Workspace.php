@@ -38,6 +38,9 @@ class Workspace
                     [
                         ['label' => 'My teaching', 'icon' => 'award', 'route' => ['admin.teaching.index'], 'same' => true,
                             'note' => 'The cohorts you take and the marks you record for them', 'department' => 'training'],
+                        ['label' => 'Library', 'icon' => 'book', 'route' => ['admin.teaching.library'], 'same' => true,
+                            'note' => 'The Registrar\'s books, notes and past papers — a trainer keeps them for nothing',
+                            'department' => 'training'],
                     ],
                     static::paperLinks($user),
                 ),
