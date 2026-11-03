@@ -13,6 +13,15 @@
     </div>
     <p class="back"><a href="{{ route('apply') }}">&larr; Not what you came for? Choose another application</a></p>
     @include('partials.errors')
+    @php $fee = \App\Models\FundiRegistration::feeAmount(); $paybill = \App\Support\Finance::paybill(); @endphp
+    <div class="card callout" style="margin-bottom:18px;">
+        <h3 style="margin-top:0;">Registration fee: {{ \App\Support\Finance::ksh($fee) }}</h3>
+        <p style="margin:0 0 8px;">An <b>E-Fundi</b> or <b>attachee</b> application pays this one-time fee.
+            <b>A Trainer does not pay.</b></p>
+        <p style="margin:0;">Pay it after you submit on <b>Paybill {{ $paybill['number'] }}</b>,
+            account number <b>{{ $paybill['account'] }}</b>, and put your reference as the reason for payment. Once the
+            payment is in, the <b>System Administrator</b> checks it and approves your application.</p>
+    </div>
     <div class="card">
         <form method="POST" action="{{ route('register.fundi.store') }}" enctype="multipart/form-data">
             @csrf
@@ -173,14 +182,6 @@
                     </div>
                 </div>
             </fieldset>
-
-            @php $fee = \App\Models\FundiRegistration::feeAmount(); $paybill = \App\Support\Finance::paybill(); @endphp
-            <p class="help" style="margin:0 0 16px;"><b>E-Fundi registration fee:
-                {{ \App\Support\Finance::ksh($fee) }}</b> — one time, paid after you submit on the Paybill
-                <b>{{ $paybill['number'] }}</b>, account number <b>{{ $paybill['account'] }}</b>. Once the payment is
-                in, the System Administrator checks it and approves your application.
-                <b>A Trainer does not pay this fee</b> — the programme does not charge the people who teach its
-                CTPs.</p>
 
             <button class="btn btn-primary btn-lg btn-block" type="submit">Submit application</button>
         </form>

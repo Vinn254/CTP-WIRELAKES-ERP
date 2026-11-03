@@ -152,7 +152,7 @@ class FundiRegistration extends Model
         }
 
         if ($this->isTrainer()) {
-            return 'You are applying as a Trainer, so the programme does not charge you a registration fee.';
+            return 'You are applying as a Trainer, so there is no registration fee for you to pay.';
         }
 
         // Only the name the sponsor is known by — sponsorSummary() carries office notes a stranger should not read.
