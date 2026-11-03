@@ -74,6 +74,8 @@ class TrainingController extends Controller
     /** As many modules as the office typed in one go, put under the training in that order. */
     public function storeModule(Request $request, Training $training)
     {
+        $this->keepsUnits($request);
+
         $rows = TrainingModule::rowsFrom($request);
 
         if ($rows->isEmpty()) {
@@ -103,6 +105,8 @@ class TrainingController extends Controller
 
     public function updateModule(Request $request, Training $training, TrainingModule $module)
     {
+        $this->keepsUnits($request);
+
         abort_unless($module->training_id === $training->id, 404);
 
         $module->update(TrainingModule::dataFrom($request));
@@ -111,8 +115,10 @@ class TrainingController extends Controller
     }
 
     /** A module nobody has been marked against can come off; one that is on a trainee's record stays. */
-    public function destroyModule(Training $training, TrainingModule $module)
+    public function destroyModule(Request $request, Training $training, TrainingModule $module)
     {
+        $this->keepsUnits($request);
+
         abort_unless($module->training_id === $training->id, 404);
 
         abort_if($module->completions()->exists(), 422,
@@ -122,6 +128,17 @@ class TrainingController extends Controller
         $module->delete();
 
         return back()->with('status', $module->title.' removed from '.$training->name.'.');
+    }
+
+    /**
+     * Which units a programme teaches, and the term each falls in, is the Registrar's call. The office that stands
+     * in to look at this list — including the System Administrator, who may put a new field of training on it —
+     * does not add, rewrite or remove a unit.
+     */
+    private function keepsUnits(Request $request): void
+    {
+        abort_unless(Departments::canSee($request->user(), 'training'), 403,
+            'Training & Certification decides the units under a programme. Reading them here changes nothing.');
     }
 
     /** The trainings a cohort or trainer form may offer: active ones, plus any already chosen. */

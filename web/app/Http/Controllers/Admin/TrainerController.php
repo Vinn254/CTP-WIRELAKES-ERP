@@ -12,6 +12,7 @@ use App\Models\TrainingVenue;
 use App\Models\User;
 use App\Support\Departments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * The training register. A trainer is whoever the programme licenses to deliver a training, and that is
@@ -64,9 +65,47 @@ class TrainerController extends Controller
             // A staff account already on the payroll, and an applicant the careers desk is still talking to.
             'staff' => User::query()->where('active', true)->whereIn('role', ['admin', 'superadmin'])
                 ->orderBy('name')->get(['id', 'name', 'email', 'role']),
-            'applicants' => JobApplication::whereIn('status', ['reviewing', 'shortlisted', 'contacted'])
+            'applicants' => JobApplication::whereIn('status', ['reviewing', 'shortlisted', 'contacted', 'picked', 'onboarded'])
                 ->orderBy('name')->get(['id', 'name', 'email', 'phone', 'job_opening_id']),
+            // The people this programme has already accepted as trainers — graded one at the E-Fundi register, given
+            // the job at Careers — who hold no site record yet, so they are not lost between the two desks.
+            'awaiting' => $guest ? collect() : $this->waitingToBePosted(),
         ]);
+    }
+
+    /**
+     * People this programme has already accepted as trainers — graded at the E-Fundi register or titled on their
+     * staff account — who hold no site record yet. A teaching record is always for one named site, so nobody can be
+     * posted on their behalf here; the list is the reminder that the person is waiting on that site.
+     */
+    private function waitingToBePosted(): Collection
+    {
+        $fundis = FundiRegistration::where('status', 'active')->whereIn('tier', Trainer::TEACHING_TIERS)
+            ->whereDoesntHave('trainers')->orderBy('full_name')
+            ->get(['id', 'full_name', 'ef_code', 'tier', 'county', 'training_field_ids'])
+            ->map(fn (FundiRegistration $f) => [
+                'holder' => 'fundi:'.$f->id,
+                'name' => $f->full_name,
+                'code' => $f->ef_code,
+                'as' => FundiRegistration::tierLabel($f->tier),
+                'where' => $f->county,
+            ]);
+
+        $posted = Trainer::whereNotNull('user_id')->pluck('user_id')->all();
+        $staff = User::query()->where('active', true)->whereIn('role', ['admin', 'superadmin'])
+            ->whereNotIn('id', $posted)->orderBy('name')->get(['id', 'name', 'email', 'roles', 'trainer_training_id'])
+            ->filter(fn (User $u) => in_array('trainer', $u->roleSlugs(), true) || $u->trainer_training_id)
+            ->map(fn (User $u) => [
+                'holder' => 'staff:'.$u->id,
+                'name' => $u->name,
+                'code' => $u->email,
+                'as' => 'Staff trainer',
+                'where' => $u->trainerFieldLabel(),
+            ])->values();
+
+        return $fundis->concat($staff);
+
+        return $fundis->concat($staff);
     }
 
     public function store(Request $request)

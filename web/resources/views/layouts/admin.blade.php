@@ -200,25 +200,6 @@
         </header>
         <main class="admin-content">
             @include('partials.flash')
-            @if ($owningRoute)
-                <div class="card callout" style="margin-bottom:16px;">
-                    <b>{{ $dept['name'] ?? '' }} copy</b> — this record belongs to
-                    {{ $ownerName }}.
-                    @if (Departments::canSee($me, $ownerSlug))
-                        Reading it here changes nothing.
-                        <a href="{{ route($owningRoute, collect($route?->parameters())->except('department')->all()) }}">
-                            Open it in {{ $ownerName }}
-                        </a>
-                    @elseif ($owningRoute === 'admin.trainings.index' && Departments::mayExtendCatalogue($me))
-                        You can put another field of training on this list here; {{ $ownerName }} decides the rest of it.
-                    @elseif (Departments::mayEditMembers($me) && in_array($ownerSlug, ['promoters', 'efundi'], true))
-                        You can put right what this person typed about themselves — where they live, what they studied,
-                        their skills and their picture. {{ $ownerName }} keeps the fee, the approval and the standing.
-                    @else
-                        Reading it here changes nothing — only the staff who run {{ $ownerName }} can change it.
-                    @endif
-                </div>
-            @endif
             @yield('content')
         </main>
     </div>

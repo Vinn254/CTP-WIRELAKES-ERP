@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 
 /**
  * One unit under a training. The office adds as many as the trade needs — a training with no modules still
@@ -16,7 +17,15 @@ use Illuminate\Support\Collection;
  */
 class TrainingModule extends Model
 {
-    protected $fillable = ['training_id', 'title', 'outcome', 'hours', 'position'];
+    /** Which term the unit is taught in. General covers every term, so an intake at any point of the year runs it. */
+    public const TERMS = [
+        'term_1' => 'Term 1',
+        'term_2' => 'Term 2',
+        'term_3' => 'Term 3',
+        'general' => 'Every term',
+    ];
+
+    protected $fillable = ['training_id', 'title', 'outcome', 'hours', 'term', 'position'];
 
     protected $casts = ['hours' => 'integer', 'position' => 'integer'];
 
@@ -43,8 +52,21 @@ class TrainingModule extends Model
             'title' => ['required', 'string', 'max:150'],
             'outcome' => 'nullable|string|max:500',
             'hours' => 'nullable|integer|min:0|max:2000',
+            'term' => ['nullable', Rule::in(array_keys(self::TERMS))],
             'position' => 'nullable|integer|min:0|max:999',
-        ], [], ['title' => 'Module', 'outcome' => 'What the trainee must be able to do', 'hours' => 'Hours']);
+        ], [], ['title' => 'Module', 'outcome' => 'What the trainee must be able to do', 'hours' => 'Hours',
+            'term' => 'Term']);
+    }
+
+    public static function termChoices(): array
+    {
+        return self::TERMS;
+    }
+
+    /** The term as the office reads it. A unit with no term recorded is one the programme runs all year. */
+    public function termLabel(): string
+    {
+        return self::TERMS[$this->term] ?? self::TERMS['general'];
     }
 
     public static function nextPosition(int $trainingId): int
@@ -60,10 +82,12 @@ class TrainingModule extends Model
             'modules.*.title' => 'nullable|string|max:150',
             'modules.*.outcome' => 'nullable|string|max:500',
             'modules.*.hours' => 'nullable|integer|min:0|max:2000',
+            'modules.*.term' => 'nullable|in:'.implode(',', array_keys(self::TERMS)),
         ], [
             'modules.*.title' => 'A module name is too long — 150 characters at most.',
             'modules.*.outcome' => 'One of the “what the trainee must be able to do” lines is too long — 500 characters at most.',
             'modules.*.hours' => 'Hours are whole numbers between 0 and 2000.',
+            'modules.*.term' => 'A module term must be one of the terms the programme runs.',
         ]);
 
         return collect($data['modules'] ?? [])
@@ -73,6 +97,7 @@ class TrainingModule extends Model
                 'title' => trim($row['title']),
                 'outcome' => trim((string) ($row['outcome'] ?? '')) ?: null,
                 'hours' => (int) ($row['hours'] ?? 0),
+                'term' => isset(self::TERMS[$row['term'] ?? null]) ? $row['term'] : 'general',
             ])
             ->values();
     }

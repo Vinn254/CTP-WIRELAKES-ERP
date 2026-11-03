@@ -150,6 +150,24 @@
         </form>
     @endif
 @include('partials.sheet-end')
+
+    @if ($awaiting->isNotEmpty())
+        <div class="card" style="margin-top:18px;">
+            <h3>Approved to train, waiting on a site</h3>
+            <p class="hint">A teaching record is always for one named site, so these people only join the list once a
+                site is put under them. Pick the person and the site, and they appear on the register as “Applied”.</p>
+            <div class="ov-grid">
+                @foreach ($awaiting as $w)
+                    <div class="card link-card">
+                        <b>{{ $w['name'] }}</b>
+                        <div class="hint">{{ $w['code'] }} · {{ $w['as'] }}@if ($w['where']) · {{ $w['where'] }}@endif</div>
+                        <button class="btn btn-sm btn-lime" type="button" style="margin-top:10px;"
+                                data-sheet="add-trainer" data-trainer-pick="{{ $w['holder'] }}">Add a site</button>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 @endunless
 
 <table class="data">
@@ -257,4 +275,14 @@
     the office still decides. Approved trainers are the only ones the cohort form will accept, and the only ones who
     get a time log to sign.
 </p>
+
+<script>
+    // "Add a site" on a waiting trainer opens the same popup the Add button uses, with that person already chosen.
+    document.addEventListener('click', function (e) {
+        const pick = e.target.closest('[data-trainer-pick]');
+        if (! pick) return;
+        const holder = document.querySelector('select[name="holder"]');
+        if (holder) holder.value = pick.dataset.trainerPick;
+    });
+</script>
 @endsection

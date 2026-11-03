@@ -165,6 +165,7 @@
                     @foreach ($t->modules as $m)
                         <div class="row-line">
                             <b>{{ $m->position }}. {{ $m->title }}</b>
+                            <span class="tag">{{ $m->termLabel() }}</span>
                             <span class="hint">{{ $m->hoursLabel() }}</span>
                             @if ($m->outcome)<span class="hint">Expected: {{ $m->outcome }}</span>@endif
                             <span class="tag gray">{{ $m->completions()->count() }} marked</span>
@@ -179,6 +180,12 @@
                                             <input type="text" name="title" value="{{ $m->title }}" required maxlength="150"></div>
                                         <div class="field"><label>Hours</label>
                                             <input type="number" name="hours" min="0" max="2000" value="{{ $m->hours }}"></div>
+                                        <div class="field"><label>Term</label>
+                                            <select name="term">
+                                                @foreach (\App\Models\TrainingModule::termChoices() as $key => $label)
+                                                    <option value="{{ $key }}" @selected($m->term === $key)>{{ $label }}</option>
+                                                @endforeach
+                                            </select></div>
                                         <div class="field"><label>Order</label>
                                             <input type="number" name="position" min="0" max="999" value="{{ $m->position }}"></div>
                                         <div class="field"><label>What the trainee must be able to do</label>
@@ -223,6 +230,14 @@
                                                value="{{ $row['hours'] ?? '' }}" placeholder="e.g. 20">
                                     </div>
                                     <div class="field">
+                                        <label>Term</label>
+                                        <select name="modules[{{ $i }}][term]">
+                                            @foreach (\App\Models\TrainingModule::termChoices() as $key => $label)
+                                                <option value="{{ $key }}" @selected(($row['term'] ?? 'general') === $key)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="field full">
                                         <label>What the trainee must be able to do</label>
                                         <input type="text" name="modules[{{ $i }}][outcome]" maxlength="500"
                                                value="{{ $row['outcome'] ?? '' }}"
@@ -280,7 +295,8 @@
             row.dataset.index = next;
             row.querySelectorAll('[name]').forEach(function (input) {
                 input.name = input.name.replace(/modules\[\d+\]/, 'modules[' + next + ']');
-                input.value = '';
+                // A cloned select holds whatever the row it was copied from held; a new unit starts as every term.
+                input.value = input.tagName === 'SELECT' ? 'general' : '';
             });
             row.querySelector('[data-module-remove]').hidden = false;
 
