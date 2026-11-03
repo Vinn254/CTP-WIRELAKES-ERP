@@ -168,7 +168,7 @@ class Departments
             ['label' => 'CTP members', 'icon' => 'users', 'route' => ['admin.host.promoters.index', 'hr']],
             ['label' => 'E-Fundis', 'icon' => 'hardhat', 'route' => ['admin.host.fundis.index', 'hr']],
             ['label' => 'Trainers', 'icon' => 'award', 'route' => ['admin.host.trainers.index', 'hr'], 'badge' => 'trainers'],
-            ['label' => 'Time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
+            ['label' => 'Staff time logs', 'icon' => 'clock', 'route' => ['admin.timelogs.index'], 'badge' => 'timelogs'],
             ['label' => 'Payroll', 'icon' => 'clipboard', 'route' => ['admin.payroll.index'], 'badge' => 'payroll'],
             ['label' => 'Deduction rates', 'icon' => 'sliders', 'route' => ['admin.payroll.rates']],
             ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.leave.index'], 'badge' => 'leave',
@@ -617,7 +617,7 @@ class Departments
         // Human Resources alone answers a week; Finance is the desk that pays it out, so it reads the signed sheets.
         // Every other desk works its own week from "My time log" and is not given the office register.
         if (in_array($slug, ['finance'], true)) {
-            $items[] = ['label' => 'Time logs', 'icon' => 'clock',
+            $items[] = ['label' => 'Staff time logs', 'icon' => 'clock',
                 'route' => ['admin.host.timelogs.index', $slug], 'badge' => 'timelogs'];
         }
 

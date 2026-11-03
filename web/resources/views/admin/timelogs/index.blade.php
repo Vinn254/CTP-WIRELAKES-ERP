@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Time logs')
+@section('title', 'Staff time logs')
 
 @php
     use App\Models\TimeLog;
@@ -11,7 +11,7 @@
 @endphp
 
 @section('content')
-<h1>Time logs</h1>
+<h1>Staff time logs</h1>
 <p class="page-lede">{{ $read ? 'The signed weeks, read here as proof of the work.' : 'Every week staff have filled, and the approval pay is built on.' }}</p>
 
 <div class="stat-row">
