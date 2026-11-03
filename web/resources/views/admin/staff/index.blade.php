@@ -120,7 +120,7 @@
                             {{ $deptLabels->only($u->departmentSlugs())->values()->implode(', ') ?: 'nothing yet' }}</div>
                     @endif
                 </td>
-                <td><span class="status {{ $u->active ? 'active' : 'rejected' }}">{{ $u->active ? 'Active' : 'Deactivated' }}</span></td>
+                <td><span class="status {{ $u->active ? 'active' : 'rejected' }}">{{ $u->active ? 'Active' : 'Suspended' }}</span></td>
                 <td>{{ $u->created_at->format('d M Y') }}</td>
                 @if ($canTicks)
                     <td class="actions">
@@ -128,12 +128,13 @@
                             <span class="hint">{{ $u->id === auth()->id() ? 'your account' : 'not edited here' }}</span>
                         @else
                             <button class="btn btn-sm btn-outline" type="button" data-sheet="edit-{{ $u->id }}">Edit</button>
-                            <form method="POST" action="{{ route('admin.staff.users.active', $u->id) }}"
-                                  data-confirm="{{ $u->active ? 'Deactivate '.$u->name.'? Their sign-in closes at once; what they hold is kept.' : 'Let '.$u->name.' sign in again? The roles they held come back as they were.' }}"
-                                  data-title="{{ $u->active ? 'Deactivate account' : 'Reinstate account' }}">
+                            <form method="POST" action="{{ dept_link('admin.staff.users.active', ['user' => $u->id]) }}"
+                                  @if ($copy) data-host-write @endif
+                                  data-confirm="{{ $u->active ? 'Suspend '.$u->name.'? Their sign-in closes at once on the office and in the app; what they hold is kept.' : 'Reinstate '.$u->name.'? They sign in again with the roles they held.' }}"
+                                  data-title="{{ $u->active ? 'Suspend account' : 'Reinstate account' }}">
                                 @csrf
                                 <button class="btn btn-sm {{ $u->active ? 'btn-danger' : 'btn-lime' }}" type="submit">
-                                    {{ $u->active ? 'Deactivate' : 'Reinstate' }}
+                                    {{ $u->active ? 'Suspend' : 'Reinstate' }}
                                 </button>
                             </form>
                         @endunless
@@ -149,7 +150,8 @@
             @include('partials.sheet-start', ['name' => 'edit-'.$u->id,
                 'title' => 'Edit account — '.$u->name,
                 'sub' => 'Their name, the email they sign in with, the job titles they hold and the modules those open.'])
-            <form method="POST" action="{{ route('admin.staff.users.update', $u->id) }}" class="fee-form"
+            <form method="POST" action="{{ dept_link('admin.staff.users.update', ['user' => $u->id]) }}"
+                  class="fee-form" @if ($copy) data-host-write @endif
                   data-confirm="Save the account of {{ $u->name }}?" data-title="Save account">
                 @csrf
                 <input type="hidden" name="_sheet" value="edit-{{ $u->id }}">
@@ -198,7 +200,7 @@
                     </div>
                 </details>
 
-                <div class="hint">This account is <b>{{ $u->active ? 'live' : 'deactivated' }}</b> — Deactivate and
+                <div class="hint">This account is <b>{{ $u->active ? 'live' : 'suspended' }}</b> — Suspend and
                     Reinstate on their row close or open the sign-in without touching anything set here.</div>
 
                 <div class="sheet-actions">

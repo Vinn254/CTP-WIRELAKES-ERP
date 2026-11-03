@@ -712,12 +712,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
             ->name('registrations.file');
         Route::get('/promoters/in/{department}', [CtpProfileController::class, 'index'])->name('promoters.index');
         Route::get('/fundis/in/{department}', [FundiController::class, 'index'])->name('fundis.index');
-        // The accounts list, read by Human Resources — the desk that sets what each account may open. It invites
-        // from the same copy, which is why that POST is registered here too.
+        // The accounts list, read by the desk that invites a person in. That office also re-assigns the job titles an
+        // account holds and closes its sign-in, so those two POSTs are registered here as well; the rest of the
+        // screen stays with Human Resources, which owns the register.
         Route::get('/staff/in/{department}', [StaffController::class, 'index'])->name('staff.index');
         Route::post('/staff/invite/in/{department}', [StaffController::class, 'invite'])->name('staff.invite');
         Route::post('/staff/invites/{invite}/revoke/in/{department}', [StaffController::class, 'revoke'])
             ->name('staff.invite.revoke');
+        Route::post('/staff/users/{user}/in/{department}', [StaffController::class, 'updateRole'])
+            ->whereNumber('user')->name('staff.users.update');
+        Route::post('/staff/users/{user}/active/in/{department}', [StaffController::class, 'setActive'])
+            ->whereNumber('user')->name('staff.users.active');
     });
 });
 

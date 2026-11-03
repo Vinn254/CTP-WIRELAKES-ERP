@@ -115,7 +115,7 @@ class StaffController extends Controller
 
     public function updateRole(Request $request, User $user)
     {
-        $this->gate();
+        $this->gateAccount();
         $this->guardTarget($user);
 
         // The account type is not part of this form. What this desk sets is who the person is, the job titles
@@ -165,21 +165,26 @@ class StaffController extends Controller
 
     /**
      * Turn an account off without rewriting what it holds. Someone who steps down or is suspended keeps their job
-     * titles and their history for when they come back; only the sign-in stops.
+     * titles and their history for when they come back; only the sign-in stops — on the office desk and in the app.
      */
     public function setActive(User $user)
     {
-        $this->gate();
+        $this->gateAccount();
         $this->guardTarget($user);
 
         $to = ! $user->active;
         $user->forceFill(['active' => $to])->save();
 
-        Audit::auth('updated', $user->name.' '.($to ? 'reinstated' : 'deactivated').' by '.auth()->user()->name.'.', $user);
+        if (! $to) {
+            // A token issued before the suspension would outlive it, so it goes with the sign-in.
+            $user->tokens()->delete();
+        }
+
+        Audit::auth('updated', $user->name.' '.($to ? 'reinstated' : 'suspended').' by '.auth()->user()->name.'.', $user);
 
         return back()->with('status', $to
             ? $user->name.' can sign in again — the roles they held are untouched.'
-            : $user->name.' is deactivated — the sign-in is closed and what they held is kept for when they return.');
+            : $user->name.' is suspended — the sign-in is closed on the office and in the app, and what they held is kept for when they return.');
     }
 
     /**
@@ -222,16 +227,27 @@ class StaffController extends Controller
     }
 
     /**
+     * Rewriting an account that already exists is held by either desk: the office that sent the invitation, which
+     * must be able to re-assign the roles it granted and close the sign-in, and Human Resources, which keeps the
+     * person's file. Sending a new link stays with the inviter alone.
+     */
+    private function gateAccount(): void
+    {
+        abort_unless(Departments::mayInvite(auth()->user()) || Departments::maySetRoles(auth()->user()), 403,
+            'Only the desk that invited this person in, or Human Resources which keeps their file, can rewrite the '
+            .'account.');
+    }
+
+    /**
      * This desk never touches the super admin account, and no one rewrites their own access. A second super admin
      * is not something an invitation can make, so the only way in is through the account the programme already has.
-     * Rewriting what an account opens is Human Resources and the executive only — a System Administrator raises
-     * the invitation, they do not decide what a person can reach.
+     * Rewriting what an account opens is Human Resources, the System Administrator and the executive only.
      */
     private function guardTarget(User $user): void
     {
         abort_unless(Departments::maySetRoles(auth()->user()), 403,
-            'Invitations are raised here by every desk that may invite, but the job titles and modules an account '
-            .'opens are set by Human Resources.');
+            'The job titles an account holds, and whether it may sign in, are set by Human Resources and the '
+            .'System Administrator.');
 
         abort_if($user->id === auth()->id(), 403, 'You cannot change your own account — someone else holds this desk.');
 

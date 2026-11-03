@@ -26,7 +26,7 @@
     <div class="ah-main">
         <h1>{{ $record->name }}
             <span class="status {{ $account ? ($account->active ? 'active' : 'rejected') : 'pending_review' }}">
-                {{ $account ? ($account->active ? 'Working here' : 'Account deactivated') : 'Waiting for the login' }}
+                {{ $account ? ($account->active ? 'Working here' : 'Suspended') : 'Waiting for the login' }}
             </span></h1>
         <p class="ah-meta">
             <span>{{ $record->job_title ?: 'No job title yet' }}</span>

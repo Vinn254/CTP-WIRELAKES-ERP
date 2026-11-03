@@ -17,10 +17,10 @@ class EnsureUserIsStaff
             abort(403, 'Programme staff access only.');
         }
 
-        // A super admin who switches an account off closes it on the next request, not only at the next sign-in —
-        // an open browser tab must not keep releasing payouts after the person has left the office.
+        // The desk that holds an account can close it, and the cut is immediate: an open browser tab must not keep
+        // releasing payouts after the person has been suspended.
         if (! $user->active) {
-            abort(403, 'This account has been deactivated. Contact a super admin.');
+            abort(403, 'This account is suspended. Contact the System Administrator.');
         }
 
         // Each admin opens only the departments assigned to them; a super admin opens every live one. A screen with

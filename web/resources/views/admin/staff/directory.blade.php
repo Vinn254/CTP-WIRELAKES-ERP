@@ -61,7 +61,7 @@
                                         alt="{{ $r->name }} — profile photo"></a></span>@endif
                             <b>{{ $r->name }}</b>
                             <small>{{ $r->user ? ($r->user->isSuperAdmin() ? 'Super admin' : ($r->user->active
-                                ? 'Office staff' : 'Deactivated')) : 'Onboarded — link not opened yet' }}</small></td>
+                                ? 'Office staff' : 'Suspended')) : 'Onboarded — link not opened yet' }}</small></td>
                         <td>{{ $r->job_title ?: '—' }}
                             @if ($r->user && $r->user->roleSlugs())
                                 <small>{{ implode(', ', \App\Support\Roles::namesFor($r->user->roleSlugs())) }}</small>

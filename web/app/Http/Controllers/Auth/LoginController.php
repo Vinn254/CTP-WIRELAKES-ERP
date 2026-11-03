@@ -58,9 +58,9 @@ class LoginController extends Controller
                 }
             }
 
-            Audit::auth('failed_sign_in', $email.' tried to open a deactivated account.', $user);
+            Audit::auth('failed_sign_in', $email.' tried to open a suspended account.', $user);
 
-            return back()->withErrors(['email' => 'This account has been deactivated. Contact a super admin.'])->onlyInput('email');
+            return back()->withErrors(['email' => 'This account is suspended. Contact the System Administrator.'])->onlyInput('email');
         }
 
         // Management is the part of the system that moves money and closes records, so every one of those sign-ins

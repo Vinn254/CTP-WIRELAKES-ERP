@@ -391,10 +391,13 @@ class Departments
         'admin.host.promoters.index' => ['admin.promoters.index', ['hr', 'finance']],
         'admin.host.fundis.index' => ['admin.fundis.index', ['hr', 'finance']],
         // The accounts list, copied into Website & Membership for the System Administrator, who invites a person in.
-        // Setting what that account may open stays with Human Resources, so the copy carries the invitation form only.
+        // That office also re-assigns what an account opens and closes a sign-in, so its copy carries those two
+        // writes as its own; every other part of the screen stays read-only there.
         'admin.host.staff.index' => ['admin.staff.index', ['membership']],
         'admin.host.staff.invite' => ['admin.staff.invite', ['membership']],
         'admin.host.staff.invite.revoke' => ['admin.staff.invite.revoke', ['membership']],
+        'admin.host.staff.users.update' => ['admin.staff.users.update', ['membership']],
+        'admin.host.staff.users.active' => ['admin.staff.users.active', ['membership']],
         // Website & Membership keeps the public intake register; the desk running an area reads the lines that
         // came in on its own page here, and answers them from the record it is pointed to by email.
         'admin.host.applications.index' => ['admin.applications.index', ['training', 'marketplace', 'execution',
@@ -533,13 +536,17 @@ class Departments
     }
 
     /**
-     * Who rewrites the job titles and module ticks on an existing account. Inviting someone is not the same as
-     * deciding what they can open: the founder's line — "hr will see the invited users and add their details" —
-     * keeps that with Human Resources and the executive alone.
+     * Who rewrites the job titles and module ticks on an existing account, and who closes its sign-in. Inviting
+     * someone is not the same as deciding what they can open: the founder's line — "hr will see the invited users
+     * and add their details" — keeps that with Human Resources, and the desk that sent the invitation keeps the
+     * power to take it back: "add edit button on staff role where i can edit staff role re assign them role and
+     * also suspend button which i can suspend a staff not to login into the system".
      */
     public static function maySetRoles(?User $user): bool
     {
-        return $user !== null && ($user->isSuperAdmin() || in_array('hr', $user->departmentSlugs(), true));
+        return $user !== null && ($user->isSuperAdmin()
+            || in_array('hr', $user->departmentSlugs(), true)
+            || in_array('system_administrator', $user->roleSlugs(), true));
     }
 
     /**
