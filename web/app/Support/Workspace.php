@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Cohort;
 use App\Models\FundiRegistration;
 use App\Models\Trainer;
 use App\Models\User;
@@ -148,23 +149,21 @@ class Workspace
     }
 
     /**
-     * The five papers of the one class a trainer holds, straight on the sidebar.
+     * The five papers of the trainer's class, straight on the sidebar.
      *
-     * With two or more cohorts the papers are opened from My teaching, where the class is picked first; listing them
-     * here would point at a class the trainer did not choose.
+     * A trainer holding several cohorts works them from the same five links: the page they open carries a chooser, so
+     * the sidebar simply follows the class they last opened, and until they open one it points at the run that is
+     * live now. Listing them was never conditional on the count — hiding them read to the office as a broken desk.
      *
      * @return array<int, array<string, mixed>>
      */
     public static function paperLinks(?User $user): array
     {
-        $taught = TeachingDesk::postings($user)->flatMap(fn (Trainer $t) => $t->cohorts)
-            ->where('status', '!=', 'draft')->unique('id')->values();
+        $cohort = static::paperCohort($user);
 
-        if ($taught->count() !== 1) {
+        if (! $cohort) {
             return [];
         }
-
-        $cohort = $taught->first()->id;
 
         $papers = [
             ['Attendance', 'clipboard', 'register', 'Tick the class roll for a day you taught, and hand the day in'],
@@ -175,9 +174,34 @@ class Workspace
         ];
 
         return array_map(fn (array $p) => [
-            'label' => $p[0], 'icon' => $p[1], 'route' => ['admin.teaching.'.$p[2], ['cohort' => $cohort]],
+            'label' => $p[0], 'icon' => $p[1], 'route' => ['admin.teaching.'.$p[2], ['cohort' => $cohort->id]],
             'note' => $p[3], 'department' => 'training', 'same' => true,
         ], $papers);
+    }
+
+    /**
+     * The class the five sidebar papers point at, or null when no cohort is handed to this account yet.
+     *
+     * The last class they actually worked wins; failing that the run in progress, then one still open for
+     * applications, then the newest. A completed run is never chosen over a live one — a trainer landing on the
+     * register of a closed class would find nothing to fill.
+     */
+    public static function paperCohort(?User $user): ?Cohort
+    {
+        $taught = TeachingDesk::postings($user)->flatMap(fn (Trainer $t) => $t->cohorts)
+            ->where('status', '!=', 'draft')->where('status', '!=', 'cancelled')->unique('id')
+            ->sortByDesc('starts_on')->values();
+
+        if ($taught->isEmpty()) {
+            return null;
+        }
+
+        $picked = session('teaching_cohort');
+
+        return $taught->firstWhere('id', (int) $picked)
+            ?? $taught->firstWhere('status', 'in_progress')
+            ?? $taught->firstWhere('status', 'open')
+            ?? $taught->first();
     }
 
     /**

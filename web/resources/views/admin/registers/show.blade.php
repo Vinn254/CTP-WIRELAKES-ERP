@@ -165,8 +165,10 @@
             <p class="help">This timetable holds no classes. Send it back to the trainer.</p>
         @else
             <div class="table-scroll">
+                @php $named = collect($week)->pluck('slots')->flatten()->contains(fn ($s) => $s->trainer_id); @endphp
                 <table class="data">
-                    <thead><tr><th>Day</th><th>Time</th><th>Class</th><th>Unit</th><th>Room</th></tr></thead>
+                    <thead><tr><th>Day</th><th>Time</th><th>Class</th><th>Unit</th>
+                        @if ($named)<th>Lecturer</th>@endif<th>Room</th></tr></thead>
                     <tbody>
                         @foreach ($week as $dayRow)
                             @foreach ($dayRow['slots'] as $slot)
@@ -175,6 +177,7 @@
                                     <td>{{ $slot->timeLabel() }}</td>
                                     <td>{{ $slot->kindLabel() }}</td>
                                     <td>{{ $slot->module?->title ?: '—' }}</td>
+                                    @if ($named)<td>{{ $slot->lecturerLabel() }}</td>@endif
                                     <td>{{ $slot->room ?: '—' }}</td>
                                 </tr>
                             @endforeach

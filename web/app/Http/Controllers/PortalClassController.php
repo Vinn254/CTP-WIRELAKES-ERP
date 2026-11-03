@@ -41,9 +41,11 @@ class PortalClassController extends Controller
     {
         $seat = $this->seat($cohort);
 
-        // Only a paper the Registrar has answered reaches the trainee's own screen.
+        // Only a paper the Registrar has answered reaches the trainee's own screen. A cohort that has not had its own
+        // week approved yet runs on the programme's week, which the Registrar lays out for the whole course.
         $timetable = Timetable::where('cohort_id', $cohort->id)->where('status', 'approved')
-            ->with('slots.module:id,title')->latest('id')->first();
+            ->with(Timetable::WEEK_WITH)->latest('id')->first()
+            ?? Timetable::forProgramme($cohort->training_id);
 
         $marked = UnitMarkSheet::where('cohort_id', $cohort->id)->where('status', 'approved')->with('marks')->get();
 

@@ -31,6 +31,7 @@ use App\Models\TrainingVenue;
 use App\Support\Documents;
 use App\Support\MemberPortal;
 use App\Support\Marketplace;
+use App\Support\TeachingDesk;
 use App\Support\TimeSheet;
 use App\Support\TrainingTrack;
 use Illuminate\Http\Request;
@@ -260,6 +261,7 @@ class PortalController extends Controller
             'documentKinds' => TrainingDocument::KINDS,
             // The cohort the trainer chose to read results for; nothing chosen means every cohort they teach.
             'chosenCohort' => (int) $request->input('cohort'),
+            'handed' => TeachingDesk::handedWeeks($request->user()),
         ]);
     }
 

@@ -73,6 +73,8 @@
     </div>
 @endif
 
+@include('partials.handed-weeks')
+
 @if ($canTeach)
     <div class="head-acts" style="margin-bottom:18px;">
         <button class="btn btn-sm btn-lime" type="button" data-sheet="apply-train">+ Apply to train at a site</button>

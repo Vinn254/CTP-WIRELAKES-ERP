@@ -2,6 +2,9 @@
     /** A class week written as a table: a trainer's own cohort week and the Registrar's programme week share this. */
     $weekHours = collect($grid)->sum(fn (array $r) => \App\Models\TimetableSlot::between(
         $r['starts_at'] ?? null, $r['ends_at'] ?? null));
+    // Only the Registrar's week names a lecturer: a trainer writes their own cohort's week, not who teaches it.
+    $lecturers ??= collect();
+    $span = 5 + ($lecturers->isNotEmpty() ? 1 : 0);
 @endphp
 <div class="table-scroll">
     <table class="data timetable">
@@ -12,11 +15,13 @@
             <th>Length</th>
             <th>Class</th>
             <th>Unit</th>
+            @if ($lecturers->isNotEmpty())<th>Lecturer</th>@endif
             <th>Room</th>
             <th></th>
         </tr></thead>
         <tbody id="slot-rows">
             @foreach ($grid as $i => $row)
+                @php $made = \App\Models\TimetableSlot::between($row['starts_at'] ?? null, $row['ends_at'] ?? null); @endphp
                 <tr class="module-row" data-index="{{ $i }}">
                     <td>
                         <select name="slots[{{ $i }}][day]" aria-label="Day">
@@ -29,9 +34,7 @@
                                aria-label="Starts"></td>
                     <td><input type="time" name="slots[{{ $i }}][ends_at]" value="{{ $row['ends_at'] ?? '' }}"
                                aria-label="Ends"></td>
-                    <td class="length" data-length>@php $clocked = \App\Models\TimetableSlot::clocked(
-                        \App\Models\TimetableSlot::between($row['starts_at'] ?? null, $row['ends_at'] ?? null));
-                        @endphp{{ $clocked ? $clocked.' h' : '—' }}</td>
+                    <td class="length" data-length>{{ $made ? \App\Models\TimetableSlot::clocked($made).' h' : '—' }}</td>
                     <td>
                         <select name="slots[{{ $i }}][kind]" aria-label="Class">
                             @foreach ($kinds as $value => $label)
@@ -48,6 +51,18 @@
                             @endforeach
                         </select>
                     </td>
+                    @if ($lecturers->isNotEmpty())
+                        <td>
+                            <select name="slots[{{ $i }}][trainer_id]" aria-label="Lecturer">
+                                <option value="">Not assigned</option>
+                                @foreach ($lecturers as $lecturer)
+                                    <option value="{{ $lecturer->id }}"
+                                            @selected((int) ($row['trainer_id'] ?? 0) === $lecturer->id)>
+                                        {{ $lecturer->personName() }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                    @endif
                     <td><input type="text" name="slots[{{ $i }}][room]" maxlength="120" placeholder="Workshop, lab…"
                                aria-label="Room" value="{{ $row['room'] ?? '' }}"></td>
                     <td class="actions">
@@ -58,7 +73,7 @@
         </tbody>
         <tfoot><tr>
             <td colspan="3"><b>{{ count($grid) }} {{ Str::plural('class', count($grid)) }} on the week</b></td>
-            <td colspan="5"><span class="length" data-total>{{ \App\Models\TimetableSlot::clocked($weekHours) ?: '0' }} h</span>
+            <td colspan="{{ $span }}"><span class="length" data-total>{{ \App\Models\TimetableSlot::clocked($weekHours) ?: '0' }} h</span>
                 <span class="hint">{{ $footHint }}</span></td>
         </tr></tfoot>
     </table>
@@ -135,8 +150,12 @@
             }
         });
 
-        box.addEventListener('change', function (e) {
-            if (e.target.matches('input[type="time"]')) recount();
+        // A typed clock fires its change only when the control is left, so the length is counted on both beats —
+        // the row says its own hours the moment the second time is complete.
+        ['change', 'input', 'keyup'].forEach(function (event) {
+            box.addEventListener(event, function (e) {
+                if (e.target.matches('input[type="time"]')) recount();
+            });
         });
     });
 </script>

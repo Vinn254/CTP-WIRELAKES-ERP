@@ -53,6 +53,9 @@ abstract class TeachingPapers extends Controller
 
     protected function view(string $screen, Cohort $cohort, array $data = [])
     {
+        // The sidebar's five paper links follow whichever class is being worked.
+        session(['teaching_cohort' => $cohort->id]);
+
         $cohort->loadMissing(['units', 'venue:id,name,type,county', 'trainer']);
 
         return view('teaching.'.$screen, $data + [

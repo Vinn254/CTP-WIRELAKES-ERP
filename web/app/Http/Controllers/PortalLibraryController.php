@@ -16,9 +16,9 @@ use Illuminate\Http\Request;
  * still reads what the Registrar posted for their programme.
  *
  * Reading happens on the platform and costs nothing. Saving a title to the phone is what costs — KSh 50 for a past
- * paper, KSh 100 for a book or notes, sent to the programme's Paybill — and the download stays shut until the
- * Registrar confirms the money. The gate is applied here as well as on the page, so a student cannot reach the file
- * by typing the save url.
+ * paper, KSh 100 for a book or notes, KSh 500 for a syllabus, sent to the programme's Paybill — and the download
+ * stays shut until the Registrar confirms the money. The gate is applied here as well as on the page, so a student
+ * cannot reach the file by typing the save url.
  */
 class PortalLibraryController extends Controller
 {

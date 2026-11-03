@@ -53,7 +53,8 @@ class MemberClassApiController extends Controller
         $seat = $this->seat($cohort);
 
         $timetable = Timetable::where('cohort_id', $cohort->id)->where('status', 'approved')
-            ->with('slots.module:id,title')->latest('id')->first();
+            ->with(Timetable::WEEK_WITH)->latest('id')->first()
+            ?? Timetable::forProgramme($cohort->training_id);
 
         $marksByUnit = $this->marksByUnit($cohort, $seat);
 
@@ -77,12 +78,14 @@ class MemberClassApiController extends Controller
                 'grade_letter' => $overall === null ? null : Grading::letter($overall),
             ],
             'timetable_on' => $timetable?->reviewed_at?->format('d M Y'),
+            'timetable_from' => $timetable ? ($timetable->cohort_id ? 'cohort' : 'programme') : null,
             'week' => collect($timetable?->week() ?? [])->map(fn (array $day) => [
                 'label' => $day['label'],
                 'slots' => collect($day['slots'])->map(fn ($slot) => [
                     'time' => $slot->timeLabel(),
                     'class' => $slot->kindLabel(),
                     'unit' => $slot->module?->title,
+                    'lecturer' => $slot->lecturer?->personName(),
                     'room' => $slot->room,
                 ])->values(),
             ])->values(),

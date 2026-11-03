@@ -32,6 +32,8 @@
     </div>
 @endif
 
+@include('partials.handed-weeks')
+
 @foreach ($trainers as $t)
     <div class="card">
         <div class="section-head">

@@ -41,7 +41,8 @@
         </div>
 
         @include('partials.week-table', ['grid' => $grid, 'days' => $days, 'kinds' => $kinds,
-            'units' => $units, 'footHint' => 'of class a week for this programme'])
+            'units' => $units, 'lecturers' => $lecturers,
+            'footHint' => 'of class a week for this programme'])
 
         <div class="field">
             <label>Note on the week</label>
@@ -53,6 +54,16 @@
             <button class="btn btn-outline btn-sm" type="button" data-slot-add>+ Create a class</button>
             <button class="btn btn-lime btn-sm" type="submit">Save the week</button>
         </div>
+
+        @unless ($lecturers->isEmpty())
+            <p class="hint">Put the lecturer a class belongs to beside it. The week reaches that person's own
+                Timetable page and every student on an intake of this programme, whether or not a cohort has been
+                booked under them yet.</p>
+        @else
+            <p class="hint">No trainer is registered for this programme yet, so the Lecturer column is empty. Approve
+                one under <a href="{{ route('admin.trainers.index') }}">Trainers</a> for this programme and they are
+                offered here.</p>
+        @endunless
 
         <p class="hint">Saving publishes the week to every trainer on this programme at once, and replaces it whole —
             a class you take off here does not stay behind the rest. Only the units of {{ $training->name }} are

@@ -193,7 +193,9 @@ class _ClassScreenState extends State<ClassScreen> {
         title: 'The week',
         subtitle: b.timetableOn == null
             ? 'No timetable for this class has been approved yet, so the week is not on record.'
-            : 'Approved on ${b.timetableOn}.',
+            : b.timetableFrom == 'programme'
+                ? 'Set by the Registrar for the whole programme, approved on ${b.timetableOn}.'
+                : 'Approved on ${b.timetableOn}.',
         child: b.timetableOn == null
             ? const SizedBox.shrink()
             : Column(
@@ -215,7 +217,7 @@ class _ClassScreenState extends State<ClassScreen> {
                         RecordRow(
                           title: '${slot.time} — ${slot.classLabel}',
                           subtitle: slot.unit,
-                          meta: slot.room,
+                          meta: slot.where.isEmpty ? null : slot.where,
                         ),
                   ],
                 ],

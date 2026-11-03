@@ -9,6 +9,7 @@ use App\Models\LessonPlan;
 use App\Models\ProgressEntry;
 use App\Models\TimeLog;
 use App\Models\Timetable;
+use App\Models\TimetableSlot;
 use App\Models\Trainer;
 use App\Models\UnitMarkSheet;
 use App\Models\User;
@@ -53,8 +54,46 @@ class TeachingDesk
         return static::postings($user)->pluck('id')->all();
     }
 
-    /** Does this desk record on cohorts it is not personally handed — i.e. the Training office itself. */
-    public static function office(?User $user): bool
+    /**
+     * The class hours the Registrar has put this account's name on, read from the programme week.
+     *
+     * A programme is timetabled before an intake is booked, so a lecturer can hold class hours with no cohort under
+     * them yet. Those hours are theirs to read here; the five papers still need a class to be written on.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function handedWeeks(?User $user): array
+    {
+        $ids = static::trainerIds($user);
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $order = array_flip(array_keys(Timetable::DAYS));
+
+        return Timetable::whereNull('cohort_id')->where('status', 'approved')
+            ->with(array_merge(Timetable::WEEK_WITH, ['training:id,name']))
+            ->whereHas('slots', fn ($query) => $query->whereIn('trainer_id', $ids))
+            ->orderBy('id')->get()
+            ->map(function (Timetable $week) use ($ids, $order) {
+                $mine = $week->slots->whereIn('trainer_id', $ids)
+                    ->sortBy(fn (TimetableSlot $slot) => sprintf('%02d|%s',
+                        $order[$slot->day] ?? 90, (string) $slot->starts_at))->values();
+
+                return [
+                    'week' => $week,
+                    'training' => $week->training?->name ?? 'the programme',
+                    'classes' => $mine->count(),
+                    'hours' => TimetableSlot::clocked($mine->sum(fn (TimetableSlot $slot) => $slot->hours())),
+                    'slots' => $mine,
+                ];
+            })
+            ->filter(fn (array $row) => $row['classes'] > 0)
+            ->values()->all();
+    }
+
+    /** Does this desk record on cohorts it is not personally handed — i.e. the Training office itself. */    public static function office(?User $user): bool
     {
         return $user !== null && ($user->isSuperAdmin() || Departments::canSee($user, 'training'));
     }

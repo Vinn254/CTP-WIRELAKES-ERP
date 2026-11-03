@@ -21,6 +21,7 @@ class LibraryItem extends Model
     public const KINDS = [
         'book' => 'Book',
         'notes' => 'Notes',
+        'syllabus' => 'Syllabus',
         'slides' => 'Slides',
         'pdf' => 'PDF reading',
         'worksheet' => 'Worksheet',

@@ -46,11 +46,19 @@ class Timetable extends Model
         return $this->belongsTo(Training::class, 'training_id');
     }
 
+    /** A week is always read as classes with their unit and the hand the Registrar put on them. */
+    public const WEEK_WITH = [
+        'slots.module:id,title',
+        'slots.lecturer.fundi:id,full_name',
+        'slots.lecturer.staff:id,name',
+        'slots.lecturer.applicant:id,name',
+    ];
+
     /** The Registrar's week for a programme; a trainer's cohort row is never read here. */
     public static function forProgramme(int $trainingId): ?self
     {
         return static::where('training_id', $trainingId)->whereNull('cohort_id')
-            ->with('slots.module:id,title')->latest('id')->first();
+            ->with(self::WEEK_WITH)->latest('id')->first();
     }
 
     public function trainer(): BelongsTo

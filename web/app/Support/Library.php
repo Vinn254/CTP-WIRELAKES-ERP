@@ -13,8 +13,8 @@ use Illuminate\Support\Collection;
  *
  * Everything on the shelf is read on the platform for nothing — a trainee opens a book, a note or a past paper in
  * the browser as often as they like. Saving it to the phone is what costs: KSh 50 for a past paper, KSh 100 for a
- * book or notes. The money goes to the programme's own Paybill and the Academic Registrar, who keeps the shelf,
- * confirms it arrived; only then does the download open.
+ * book or notes, KSh 500 for a syllabus. The money goes to the programme's own Paybill and the Academic Registrar,
+ * who keeps the shelf, confirms it arrived; only then does the download open.
  *
  * A trainer is handed the same shelf to teach from and never pays for it, so the charge falls on a CTP student's
  * account alone.
@@ -25,6 +25,9 @@ class Library
 
     public const READING = 100;
 
+    /** A programme's syllabus is the whole course map, so it carries its own line on the Paybill. */
+    public const SYLLABUS = 500;
+
     public const PURCHASES = [
         'requested' => 'Waiting for the office to confirm',
         'paid' => 'Paid — the download is open',
@@ -34,7 +37,11 @@ class Library
     /** What one title costs a student to keep. */
     public static function price(LibraryItem $item): int
     {
-        return $item->kind === 'past_paper' ? self::PAST_PAPER : self::READING;
+        return match ($item->kind) {
+            'past_paper' => self::PAST_PAPER,
+            'syllabus' => self::SYLLABUS,
+            default => self::READING,
+        };
     }
 
     public static function priceLabel(int $amount): string

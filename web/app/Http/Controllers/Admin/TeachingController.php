@@ -11,6 +11,7 @@ use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\Trainer;
 use App\Support\Documents;
+use App\Support\TeachingDesk;
 use App\Support\TrainingTrack;
 use App\Support\Workspace;
 use Illuminate\Http\Request;
@@ -36,6 +37,7 @@ class TeachingController extends Controller
             'fundi' => $this->fundi(),
             'trainers' => $trainers,
             'cohorts' => $trainers->flatMap(fn ($t) => $t->cohorts),
+            'handed' => TeachingDesk::handedWeeks(auth()->user()),
         ]);
     }
 

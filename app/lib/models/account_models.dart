@@ -64,12 +64,14 @@ class SlotRow {
   final String time;
   final String classLabel;
   final String? unit;
+  final String? lecturer;
   final String? room;
 
   SlotRow({
     required this.time,
     required this.classLabel,
     required this.unit,
+    required this.lecturer,
     required this.room,
   });
 
@@ -77,8 +79,13 @@ class SlotRow {
         time: (j['time'] ?? '') as String,
         classLabel: (j['class'] ?? '') as String,
         unit: j['unit'] as String?,
+        lecturer: j['lecturer'] as String?,
         room: j['room'] as String?,
       );
+
+  /// Who teaches the hour and where — the Registrar only names a lecturer on the programme's week.
+  String get where =>
+      [lecturer, room].where((x) => x != null && x.isNotEmpty).join(' · ');
 }
 
 class WeekDay {
@@ -249,6 +256,7 @@ class ClassDetail {
 class ClassBoard {
   final ClassDetail info;
   final String? timetableOn;
+  final String? timetableFrom;
   final List<WeekDay> week;
   final List<UnitRow> units;
   final List<MaterialRow> materials;
@@ -257,6 +265,7 @@ class ClassBoard {
   ClassBoard({
     required this.info,
     required this.timetableOn,
+    required this.timetableFrom,
     required this.week,
     required this.units,
     required this.materials,
@@ -266,6 +275,7 @@ class ClassBoard {
   factory ClassBoard.fromJson(Map<String, dynamic> j) => ClassBoard(
         info: ClassDetail.fromJson(j['class'] as Map<String, dynamic>),
         timetableOn: j['timetable_on'] as String?,
+        timetableFrom: j['timetable_from'] as String?,
         week: _list(j['week'], WeekDay.fromJson),
         units: _list(j['units'], UnitRow.fromJson),
         materials: _list(j['materials'], MaterialRow.fromJson),

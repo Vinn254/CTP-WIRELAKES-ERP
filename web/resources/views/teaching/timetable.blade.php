@@ -31,8 +31,10 @@
         </div>
 
         <div class="table-scroll">
+            @php $named = $programmeWeek->slots->contains(fn ($s) => $s->trainer_id); @endphp
             <table class="data timetable">
-                <thead><tr><th>Day</th><th>Time</th><th>Length</th><th>Class</th><th>Unit</th><th>Room</th></tr></thead>
+                <thead><tr><th>Day</th><th>Time</th><th>Length</th><th>Class</th><th>Unit</th>
+                    @if ($named)<th>Lecturer</th>@endif<th>Room</th></tr></thead>
                 <tbody>
                     @foreach ($programmeWeek->week() as $dayRow)
                         @foreach ($dayRow['slots'] as $slot)
@@ -42,6 +44,7 @@
                                 <td class="length">{{ $slot->hoursLabel() }}</td>
                                 <td>{{ $slot->kindLabel() }}</td>
                                 <td>{{ $slot->module?->title ?? '—' }}</td>
+                                @if ($named)<td>{{ $slot->lecturerLabel() }}</td>@endif
                                 <td>{{ $slot->room ?: '—' }}</td>
                             </tr>
                         @endforeach

@@ -38,17 +38,20 @@
     <div class="section-head">
         <h3>The week of classes</h3>
         @if ($timetable)
+            <span class="tag">{{ $timetable->cohort_id ? 'your cohort' : 'set for the whole programme' }}</span>
             <span class="tag">approved {{ $timetable->reviewed_at?->format('d M Y') }}</span>
         @endif
     </div>
 
     @if ($week === [])
-        <p class="help">No timetable is up for this class yet. The trainer writes the week and the Academic
-            Registrar approves it; it shows here as soon as they do.</p>
+        <p class="help">No timetable is up for this class yet. The Registrar lays the week out for the programme and
+            the trainer writes their own cohort's week; it shows here as soon as either is approved.</p>
     @else
         <div class="table-scroll">
+            @php $named = collect($week)->pluck('slots')->flatten()->contains(fn ($s) => $s->trainer_id); @endphp
             <table class="data">
-                <thead><tr><th>Day</th><th>Time</th><th>Class</th><th>Unit</th><th>Room</th></tr></thead>
+                <thead><tr><th>Day</th><th>Time</th><th>Class</th><th>Unit</th>
+                    @if ($named)<th>Lecturer</th>@endif<th>Room</th></tr></thead>
                 <tbody>
                     @foreach ($week as $dayRow)
                         @foreach ($dayRow['slots'] as $slot)
@@ -57,6 +60,7 @@
                                 <td>{{ $slot->timeLabel() }}</td>
                                 <td>{{ $slot->kindLabel() }}</td>
                                 <td>{{ $slot->module?->title ?: '—' }}</td>
+                                @if ($named)<td>{{ $slot->lecturerLabel() }}</td>@endif
                                 <td>{{ $slot->room ?: '—' }}</td>
                             </tr>
                         @endforeach

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * One class sitting inside an approved week: a day, a time, a unit.
+ * One class sitting inside an approved week: a day, a time, a unit, and the lecturer the Registrar handed it to.
  */
 class TimetableSlot extends Model
 {
@@ -19,7 +19,7 @@ class TimetableSlot extends Model
     ];
 
     protected $fillable = [
-        'timetable_id', 'day', 'starts_at', 'ends_at', 'training_module_id', 'kind', 'room',
+        'timetable_id', 'day', 'starts_at', 'ends_at', 'training_module_id', 'trainer_id', 'kind', 'room',
     ];
 
     public function timetable(): BelongsTo
@@ -32,6 +32,18 @@ class TimetableSlot extends Model
         return $this->belongsTo(TrainingModule::class, 'training_module_id');
     }
 
+    /** The trainer the Registrar put on this class hour. */
+    public function lecturer(): BelongsTo
+    {
+        return $this->belongsTo(Trainer::class, 'trainer_id');
+    }
+
+    /** Who stands in front of the class, or a plain note that the office has not said yet. */
+    public function lecturerLabel(): string
+    {
+        return $this->lecturer?->personName() ?: 'Not assigned';
+    }
+
     /** The week as posted: rows keyed day/time/unit, blank rows dropped, an incomplete row refused by name. */
     public static function rowsFrom(Request $request): array
     {
@@ -41,6 +53,7 @@ class TimetableSlot extends Model
             'slots.*.starts_at' => 'nullable|date_format:H:i',
             'slots.*.ends_at' => 'nullable|date_format:H:i',
             'slots.*.training_module_id' => 'nullable|exists:training_modules,id',
+            'slots.*.trainer_id' => 'nullable|exists:trainers,id',
             'slots.*.kind' => 'nullable|in:'.implode(',', array_keys(self::KINDS)),
             'slots.*.room' => 'nullable|string|max:120',
         ], [
@@ -49,7 +62,8 @@ class TimetableSlot extends Model
             'slots.*.ends_at' => 'Give the class an end time, 24-hour.',
         ], [
             'slots.*.day' => 'Day', 'slots.*.starts_at' => 'Starts', 'slots.*.ends_at' => 'Ends',
-            'slots.*.training_module_id' => 'Unit', 'slots.*.kind' => 'Class', 'slots.*.room' => 'Room',
+            'slots.*.training_module_id' => 'Unit', 'slots.*.trainer_id' => 'Lecturer',
+            'slots.*.kind' => 'Class', 'slots.*.room' => 'Room',
         ]);
 
         $rows = collect($request->input('slots'))
@@ -75,6 +89,7 @@ class TimetableSlot extends Model
             'starts_at' => $row['starts_at'],
             'ends_at' => $row['ends_at'],
             'training_module_id' => $row['training_module_id'] ?: null,
+            'trainer_id' => $row['trainer_id'] ?? null,
             'kind' => $row['kind'] ?? 'theory',
             'room' => $row['room'] ?? null,
         ])->all();

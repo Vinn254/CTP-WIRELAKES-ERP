@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Cohort;
 use App\Models\Timetable;
 use App\Models\TimetableSlot;
+use App\Models\Trainer;
 use App\Models\Training;
 use App\Models\TrainingModule;
 use App\Support\TeachingDesk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * The Academic Registrar's week for a programme.
@@ -79,7 +82,7 @@ class ProgrammeTimetableController extends Controller
                 .'. Every trainer on this programme reads it on their timetable.');
     }
 
-    /** The programme, its own units and the week on file. */
+    /** The programme, its own units, the lecturers it can be taught by, and the week on file. */
     private function formData(Training $training): array
     {
         $week = Timetable::where('training_id', $training->id)->whereNull('cohort_id')->first();
@@ -90,18 +93,19 @@ class ProgrammeTimetableController extends Controller
                 'starts_at' => substr((string) $slot->starts_at, 0, 5),
                 'ends_at' => substr((string) $slot->ends_at, 0, 5),
                 'training_module_id' => $slot->training_module_id,
+                'trainer_id' => $slot->trainer_id,
                 'kind' => $slot->kind,
                 'room' => $slot->room,
             ])->values()->all());
 
         $grid = collect($grid)
             ->map(fn (array $row) => array_intersect_key($row, array_flip(
-                ['day', 'starts_at', 'ends_at', 'training_module_id', 'kind', 'room'])))
+                ['day', 'starts_at', 'ends_at', 'training_module_id', 'trainer_id', 'kind', 'room'])))
             ->values()->all();
 
         if ($grid === []) {
             $grid = [['day' => 'monday', 'starts_at' => '', 'ends_at' => '', 'training_module_id' => null,
-                'kind' => 'theory', 'room' => '']];
+                'trainer_id' => null, 'kind' => 'theory', 'room' => '']];
         }
 
         return [
@@ -109,10 +113,28 @@ class ProgrammeTimetableController extends Controller
             'week' => $week,
             'grid' => $grid,
             'units' => TrainingModule::where('training_id', $training->id)->ordered()->get(),
+            'lecturers' => $this->lecturers($training),
             'days' => Timetable::DAYS,
             'kinds' => TimetableSlot::KINDS,
             'cohorts' => Cohort::where('training_id', $training->id)->orderBy('reference')->get(['id', 'reference', 'status']),
         ];
+    }
+
+    /**
+     * Who the Registrar may hand a class hour to: anyone the office has approved to teach this programme, at any of
+     * its sites. Whoever is already named on the week stays on the list, so a saved class never loses its lecturer.
+     */
+    private function lecturers(Training $training): Collection
+    {
+        $named = TimetableSlot::whereIn('timetable_id',
+            Timetable::where('training_id', $training->id)->whereNull('cohort_id')->pluck('id'))
+            ->whereNotNull('trainer_id')->pluck('trainer_id')->all();
+
+        return Trainer::with(['trainings:id,name', 'fundi:id,full_name', 'staff:id,name', 'applicant:id,name'])
+            ->approved()->get()
+            ->filter(fn (Trainer $t) => $t->canTeach($training->id) || in_array($t->id, $named, true))
+            ->sortBy(fn (Trainer $t) => Str::lower($t->personName()))
+            ->values();
     }
 
     /** A class on the programme's week is a class of this programme — a unit of another course is refused. */
