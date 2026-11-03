@@ -127,24 +127,20 @@ class MemberClassApiController extends Controller
         return response()->json($this->inline($material->file_path, $material->file_name ?: 'Handout'));
     }
 
-    /** GET /api/me/library — the reading filed for this trainee's courses, plus what is for every student. */
+    /** GET /api/me/library — the reading filed for this trainee's own programmes, plus what is for every course. */
     public function library(Request $request): JsonResponse
     {
         $ctp = $this->ctp();
-        $mine = $this->courses($ctp);
+        $mine = MemberPortal::readings($ctp);
 
         $kind = $request->input('kind');
         $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
 
-        // The same shelf the website shows: the student's own programmes first, then any programme with reading on it.
-        $courses = $mine->concat(LibraryItem::onShelf()->whereNotNull('training_id')
-            ->with('course:id,name')->get()->pluck('course')->filter()->unique('id')->values())->unique('id')->values();
-
         $course = $request->input('training_id');
         $course = $course === 'general' ? 'general'
-            : (ctype_digit((string) $course) && $courses->contains('id', (int) $course) ? (int) $course : null);
+            : (ctype_digit((string) $course) && $mine->contains('id', (int) $course) ? (int) $course : null);
 
-        $items = LibraryItem::onShelf()->with('course:id,name')
+        $items = Library::shelf($mine->pluck('id')->all())->with('course:id,name')
             ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
             ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
             ->when($kind, fn ($q) => $q->where('kind', $kind))
@@ -169,7 +165,7 @@ class MemberClassApiController extends Controller
                 'status' => $kept->get($i->id)?->status,
                 'paid' => (bool) $kept->get($i->id)?->isPaid(),
             ])->values(),
-            'courses' => $courses->map(fn ($t) => ['id' => $t->id, 'name' => $t->name])->values(),
+            'courses' => $mine->map(fn ($t) => ['id' => $t->id, 'name' => $t->name])->values(),
             'course' => $course,
             'kind' => $kind,
             'kinds' => LibraryItem::KINDS,
@@ -179,14 +175,15 @@ class MemberClassApiController extends Controller
     }
 
     /**
-     * GET /api/me/library/{item} — one title, handed to any signed-in trainee the way the website hands it.
-     * Reading it on the phone is free; ?save=1 is the app asking to keep the file, which is the paid part.
+     * GET /api/me/library/{item} — one title, handed to the trainees it was filed for, exactly as the website hands
+     * it. Reading it on the phone is free; ?save=1 is the app asking to keep the file, which is the paid part.
      */
     public function libraryFile(Request $request, LibraryItem $item): JsonResponse
     {
         $ctp = $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        $this->reads($item, $ctp);
         abort_unless($item->file_path, 404, 'That title has no file on record.');
 
         if ($request->boolean('save') && ! Library::entitled($ctp, $item, $request->user())) {
@@ -202,6 +199,7 @@ class MemberClassApiController extends Controller
         $ctp = $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        $this->reads($item, $ctp);
         abort_unless(Library::charges($request->user()), 422, 'You are not charged for library reading.');
 
         $purchase = Library::request($request->user(), $ctp, $item);
@@ -273,12 +271,12 @@ class MemberClassApiController extends Controller
         return $byUnit;
     }
 
-    /** The trainings this CTP is actually sitting in class for — an application is not a class. */
-    private function courses(CtpRegistration $ctp)
+    /** The shelf rule shared with the website: a title filed under another programme is not this trainee's reading. */
+    private function reads(LibraryItem $item, CtpRegistration $ctp): void
     {
-        return $ctp->enrollments()->where('state', 'approved')
-            ->with('cohort.training:id,name')->get()
-            ->pluck('cohort.training')->filter()->unique('id')->values();
+        abort_unless(Library::reads($item, MemberPortal::readings($ctp)->pluck('id')->all()), 403,
+            $item->title.' is filed under '.$item->courseLabel().', a programme you are not on. '
+            .'Reading filed for every course is open to you already.');
     }
 
     private function material(TrainingMaterial $m): array

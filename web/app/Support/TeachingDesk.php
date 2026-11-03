@@ -55,6 +55,23 @@ class TeachingDesk
     }
 
     /**
+     * The programmes this account teaches, which is what their library shelf is filed under.
+     *
+     * A posting lists the fields a trainer is licensed for, and the cohorts under them say the same from the other
+     * side. Reading of another programme stays off their shelf, so an ICT lecturer sees ICT — intake booked or not.
+     *
+     * @return array<int>
+     */
+    public static function courses(?User $user): array
+    {
+        $postings = static::postings($user)->load('trainings', 'cohorts');
+
+        return $postings->pluck('trainings')->flatten()->pluck('id')
+            ->merge($postings->pluck('cohorts')->flatten()->pluck('training_id'))
+            ->filter()->unique()->values()->all();
+    }
+
+    /**
      * The class hours the Registrar has put this account's name on, read from the programme week.
      *
      * A programme is timetabled before an intake is booked, so a lecturer can hold class hours with no cohort under

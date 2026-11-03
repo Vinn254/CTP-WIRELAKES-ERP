@@ -6,6 +6,7 @@ use App\Models\CtpRegistration;
 use App\Models\LibraryItem;
 use App\Models\LibraryPurchase;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -47,6 +48,28 @@ class Library
     public static function priceLabel(int $amount): string
     {
         return 'KSh '.number_format($amount);
+    }
+
+    /**
+     * The shelf one reader is written for: the titles filed under the programmes they teach or study, and the titles
+     * the Registrar filed for every course. Reading of another programme is not on their shelf at all.
+     *
+     * @param  array<int>  $trainingIds
+     */
+    public static function shelf(array $trainingIds): Builder
+    {
+        return LibraryItem::onShelf()
+            ->where(fn ($q) => $q->whereIn('training_id', $trainingIds)->orWhereNull('training_id'));
+    }
+
+    /**
+     * The same rule on a single title, so a file cannot be reached by typing its url any more than the list can.
+     *
+     * @param  array<int>  $trainingIds
+     */
+    public static function reads(LibraryItem $item, array $trainingIds): bool
+    {
+        return ! $item->training_id || in_array((int) $item->training_id, $trainingIds, true);
     }
 
     /** Does this account pay for reading? A trainer — an E-Fundi or an office trainer — reads and keeps for nothing. */

@@ -9,9 +9,10 @@
 <div class="head-row">
     <div>
         <h1>Library</h1>
-        <p class="page-lede">Books, notes, slides and past papers the Registrar put up for the classes.</p>
+        <p class="page-lede">Books, notes, slides and past papers the Registrar put up for the classes you teach.</p>
         <p class="ah-meta">
-            <span>{{ $items->count() }} {{ Str::plural('title', $items->count()) }} on the shelf</span>
+            <span>{{ $items->count() }} {{ Str::plural('title', $items->count()) }} on your shelf</span>
+            @if ($teaching)<span>{{ $teaching }}</span>@endif
             <span>free for a trainer — read and save</span>
         </p>
     </div>
@@ -21,7 +22,7 @@
     <label class="field">
         <span>Programme</span>
         <select name="training_id" onchange="this.form.submit()">
-            <option value="">Every programme</option>
+            <option value="">Everything on my shelf</option>
             <option value="general" @selected($course === 'general')>Reading for every course</option>
             @foreach ($courses as $c)
                 <option value="{{ $c->id }}" @selected($course === $c->id)>{{ $c->name }}</option>
@@ -64,9 +65,11 @@
     @endforeach
 @empty
     <div class="card">
-        <h3>Nothing on the shelf yet</h3>
-        <p class="help">The Academic Registrar posts books, notes, slides and past papers here. A trainer keeps any of
-            them for their class without paying — the charge falls on a student's own account alone.</p>
+        <h3>Nothing on your shelf yet</h3>
+        <p class="help">This page carries the reading the Academic Registrar filed under the programmes you are licensed
+            to teach, plus anything filed for every course. A trainer keeps any of them without paying — the charge
+            falls on a student's own account alone. If a title you need is missing, the office files it under your
+            programme on the Library desk.</p>
     </div>
 @endforelse
 @endsection

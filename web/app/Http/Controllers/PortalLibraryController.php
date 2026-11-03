@@ -11,9 +11,10 @@ use App\Support\MemberPortal;
 use Illuminate\Http\Request;
 
 /**
- * My library — the reading the Academic Registrar has put up. Everything on the shelf is open to a student: the
- * course a title is filed under says who it was written for, it is not a lock, so a trainee not yet on a class roll
- * still reads what the Registrar posted for their programme.
+ * My library — the reading the Academic Registrar has put up for this student's own programme. A title says who it was
+ * written for by the course it is filed under, and that course is the lock: an ICT trainee opens ICT titles and the
+ * reading filed for every course, nothing else. The office places a student on a course; a title of another programme
+ * is not borrowed by typing its url.
  *
  * Reading happens on the platform and costs nothing. Saving a title to the phone is what costs — KSh 50 for a past
  * paper, KSh 100 for a book or notes, KSh 500 for a syllabus, sent to the programme's Paybill — and the download
@@ -25,20 +26,19 @@ class PortalLibraryController extends Controller
     public function index(Request $request)
     {
         $ctp = $this->ctp();
-        $mine = $this->courses($ctp);
 
         $kind = $request->input('kind');
         $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
 
-        // The filter offers the student's own programmes first, then any other programme that has reading on the shelf.
-        $courses = $mine->concat(LibraryItem::onShelf()->whereNotNull('training_id')
-            ->with('course:id,name')->get()->pluck('course')->filter()->unique('id')->values())->unique('id')->values();
+        // The shelf a student is written for: the classes they sit in, and the reading the Registrar filed for every
+        // course. Another programme's titles are not listed and not openable — an ICT student reads ICT.
+        $courses = MemberPortal::readings($ctp);
 
         $course = $request->input('training_id');
         $course = $course === 'general' ? 'general'
             : (ctype_digit((string) $course) && $courses->contains('id', (int) $course) ? (int) $course : null);
 
-        $items = LibraryItem::onShelf()->with('course:id,name')
+        $items = Library::shelf($courses->pluck('id')->all())->with('course:id,name')
             ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
             ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
             ->when($kind, fn ($q) => $q->where('kind', $kind))
@@ -56,12 +56,13 @@ class PortalLibraryController extends Controller
         ]);
     }
 
-    /** A single title, opened by any trainee — the shelf itself is what decides what students may read. */
+    /** A single title, opened by the trainees it was filed for. Another programme's reading is not theirs. */
     public function open(Request $request, LibraryItem $item)
     {
         $ctp = $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        $this->reads($item, $ctp);
 
         if ($request->boolean('download') && ! Library::entitled($ctp, $item, $request->user())) {
             return redirect()->route('portal.library')
@@ -78,6 +79,7 @@ class PortalLibraryController extends Controller
         $ctp = $this->ctp();
 
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        $this->reads($item, $ctp);
         abort_unless(Library::charges($request->user()), 422,
             'You are not charged for library reading.');
 
@@ -88,12 +90,12 @@ class PortalLibraryController extends Controller
             .' for '.$item->title.'. Your download opens as soon as they do.');
     }
 
-    /** The trainings this CTP is actually sitting in class for — an application is not a class. */
-    private function courses(CtpRegistration $ctp)
+    /** A title filed for another programme cannot be reached by typing its url either. */
+    private function reads(LibraryItem $item, CtpRegistration $ctp): void
     {
-        return $ctp->enrollments()->where('state', 'approved')
-            ->with('cohort.training:id,name')->get()
-            ->pluck('cohort.training')->filter()->unique('id')->values();
+        abort_unless(Library::reads($item, MemberPortal::readings($ctp)->pluck('id')->all()), 403,
+            $item->title.' is filed under '.$item->courseLabel().', a programme you are not on. '
+            .'Ask the programme office to place you on it — reading filed for every course is open to you already.');
     }
 
     private function ctp(): CtpRegistration

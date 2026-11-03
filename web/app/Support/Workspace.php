@@ -149,21 +149,18 @@ class Workspace
     }
 
     /**
-     * The five papers of the trainer's class, straight on the sidebar.
+     * The five papers of the trainer's class, straight on the sidebar — always five.
      *
      * A trainer holding several cohorts works them from the same five links: the page they open carries a chooser, so
-     * the sidebar simply follows the class they last opened, and until they open one it points at the run that is
-     * live now. Listing them was never conditional on the count — hiding them read to the office as a broken desk.
+     * the sidebar follows the class they last opened and, until they open one, the run that is live now. With no class
+     * under their name yet the links open My teaching, which says which office step is still owed — hiding them read
+     * to a trainer as a broken desk, and to the office as a missing page.
      *
      * @return array<int, array<string, mixed>>
      */
     public static function paperLinks(?User $user): array
     {
         $cohort = static::paperCohort($user);
-
-        if (! $cohort) {
-            return [];
-        }
 
         $papers = [
             ['Attendance', 'clipboard', 'register', 'Tick the class roll for a day you taught, and hand the day in'],
@@ -174,7 +171,8 @@ class Workspace
         ];
 
         return array_map(fn (array $p) => [
-            'label' => $p[0], 'icon' => $p[1], 'route' => ['admin.teaching.'.$p[2], ['cohort' => $cohort->id]],
+            'label' => $p[0], 'icon' => $p[1],
+            'route' => $cohort ? ['admin.teaching.'.$p[2], ['cohort' => $cohort->id]] : ['admin.teaching.index'],
             'note' => $p[3], 'department' => 'training', 'same' => true,
         ], $papers);
     }

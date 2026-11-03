@@ -13,6 +13,7 @@ use App\Models\ProjectApplication;
 use App\Models\ProjectMatch;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 /** The project board a member sees — resolved from the signed-in account, never from a url. */
 class MemberPortal
@@ -84,6 +85,21 @@ class MemberPortal
             ])
             ->orderBy('county')->orderBy('ward')->orderBy('name')
             ->get();
+    }
+
+    /**
+     * The programmes whose library reading a trainee opens: the classes they hold an approved seat in, and the
+     * programme the office has them on. An application to a course they were never placed on is not a class.
+     *
+     * @return Collection<int, \App\Models\Training>
+     */
+    public static function readings(CtpRegistration $ctp): Collection
+    {
+        return $ctp->enrollments()->where('state', 'approved')
+            ->with('cohort.training:id,name')->get()
+            ->pluck('cohort.training')->filter()
+            ->concat($ctp->programme ? collect([$ctp->programme]) : collect())
+            ->unique('id')->values();
     }
 
     /** Trainings a CTP can put themselves forward for — posted, still in date and with room. */

@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CtpRegistration;
 use App\Models\Enrollment;
-use App\Models\LibraryItem;
 use App\Models\TrainingDocument;
 use App\Models\UnitMarkSheet;
 use App\Support\Documents;
 use App\Support\Grading;
+use App\Support\Library;
+use App\Support\MemberPortal;
 use App\Support\TeachingDesk;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,7 @@ class StudentController extends Controller
             'papers' => TrainingDocument::whereIn('enrollment_id', $seats->pluck('id'))
                 ->with(['enrollment:id,cohort_id', 'module:id,title'])
                 ->orderByDesc('dated_on')->get(),
-            'reading' => $this->reading($seats),
+            'reading' => $this->reading($ctp),
             'canGrade' => TeachingDesk::approves($request->user()),
             'back' => $request->input('back') ?: route('admin.track.index'),
         ]);
@@ -131,13 +132,10 @@ class StudentController extends Controller
         return $out;
     }
 
-    /** The library titles on the courses this trainee has taken — what they were told to read. */
-    private function reading($seats)
+    /** The library titles on the courses this trainee has taken — the same shelf the student opens. */
+    private function reading(CtpRegistration $ctp)
     {
-        $courses = $seats->pluck('cohort.training_id')->filter()->unique();
-
-        return LibraryItem::onShelf()
-            ->where(fn ($q) => $q->whereIn('training_id', $courses)->orWhereNull('training_id'))
+        return Library::shelf(MemberPortal::readings($ctp)->pluck('id')->all())
             ->orderBy('title')->get(['id', 'title', 'kind', 'training_id', 'status']);
     }
 }

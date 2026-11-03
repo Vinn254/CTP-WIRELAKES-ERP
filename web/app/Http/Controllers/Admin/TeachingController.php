@@ -11,6 +11,7 @@ use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\Trainer;
 use App\Support\Documents;
+use App\Support\Library;
 use App\Support\TeachingDesk;
 use App\Support\TrainingTrack;
 use App\Support\Workspace;
@@ -106,14 +107,17 @@ class TeachingController extends Controller
         $kind = $request->input('kind');
         $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
 
-        $courses = LibraryItem::onShelf()->whereNotNull('training_id')->with('course:id,name')->get()
+        // A lecturer teaching ICT reads ICT: only the programmes on their own postings are on their shelf.
+        $mine = TeachingDesk::courses($request->user());
+
+        $courses = Library::shelf($mine)->whereNotNull('training_id')->with('course:id,name')->get()
             ->pluck('course')->filter()->unique('id')->values();
 
         $course = $request->input('training_id');
         $course = $course === 'general' ? 'general'
             : (ctype_digit((string) $course) && $courses->contains('id', (int) $course) ? (int) $course : null);
 
-        $items = LibraryItem::onShelf()->with(['course:id,name', 'poster:id,name'])
+        $items = Library::shelf($mine)->with(['course:id,name', 'poster:id,name'])
             ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
             ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
             ->when($kind, fn ($q) => $q->where('kind', $kind))
@@ -127,6 +131,7 @@ class TeachingController extends Controller
             'course' => $course,
             'kind' => $kind,
             'kinds' => LibraryItem::KINDS,
+            'teaching' => $courses->pluck('name')->join(', '),
         ]);
     }
 
@@ -136,6 +141,9 @@ class TeachingController extends Controller
         abort_unless(Workspace::trainerDesk($request->user()), 403,
             'The library is the Registrar\'s shelf for the students. A trainer opens it to prepare what they teach.');
         abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        abort_unless(Library::reads($item, TeachingDesk::courses($request->user())), 403,
+            $item->title.' is filed under '.$item->courseLabel().', a programme you do not teach. '
+            .'The office lists the programmes you are licensed for on the Trainers register.');
 
         return Documents::file($request, $item->file_path, $item->file_name ?: $item->title);
     }

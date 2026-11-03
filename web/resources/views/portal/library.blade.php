@@ -24,7 +24,7 @@
     <label class="field">
         <span>Programme</span>
         <select name="training_id" onchange="this.form.submit()">
-            <option value="">Every programme</option>
+            <option value="">Everything on my shelf</option>
             <option value="general" @selected($course === 'general')>Reading for every course</option>
             @foreach ($courses as $c)
                 <option value="{{ $c->id }}" @selected($course === $c->id)>{{ $c->name }}</option>
@@ -90,14 +90,16 @@
     @endforeach
 @empty
     <div class="card">
-        <h3>Nothing on the shelf yet</h3>
-        <p class="help">The Academic Registrar puts books, notes, slides and PDFs here for the students. Anything they
-            leave on the shelf appears on this page — read it in the browser or save it to your phone. If you were told
-            to read something and it is not here, tell the Training office.</p>
+        <h3>Nothing on your shelf yet</h3>
+        <p class="help">This page carries the reading the Academic Registrar filed under your own programme, plus
+            anything filed for every course. Nothing they file for another programme appears here. If you were told to
+            read something and it is not on the shelf, tell the Training office — they either file it for your course or
+            place you on the course it was filed under.</p>
     </div>
 @endforelse
 
-<p class="hint">The library opens only from your signed-in account — a link to a title will not show it to anyone else.</p>
+<p class="hint">You read your own programme's filing and the reading filed for every course. The library opens only from
+    your signed-in account — a link to a title will not show it to anyone else.</p>
 
 @if ($charges)
     @foreach ($items as $item)
