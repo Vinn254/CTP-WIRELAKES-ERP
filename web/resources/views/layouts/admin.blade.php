@@ -13,6 +13,9 @@
     $ownerName = $ownerSlug ? (Departments::find($ownerSlug)['name'] ?? $ownerSlug) : null;
     $deptPage = request()->route('page');
     $isActive = function (array $item) use ($deptPage) {
+        if (($item['lit'] ?? true) === false) {
+            return false;
+        }
         $target = $item['route'][0];
         if ($target === 'admin.content.index') {
             return request()->routeIs('admin.content.index') || (request()->routeIs('admin.content.edit') && $deptPage !== 'membership');

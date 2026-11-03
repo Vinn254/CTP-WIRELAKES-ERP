@@ -28,7 +28,9 @@ class TeachingPaperController extends TeachingPapers
                 ->orderByDesc('starts_on')->get();
         }
 
-        return $mine->where('status', '!=', 'draft')->unique('id')->sortByDesc('starts_on')->values();
+        // A class the office has only drafted is still the trainer's own class: they timetable and plan ahead of it,
+        // and the five sidebar links have to open something. The office never lists a draft run here.
+        return $mine->unique('id')->sortByDesc('starts_on')->values();
     }
 
     protected function gate(Cohort $cohort): void

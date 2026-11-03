@@ -152,9 +152,10 @@ class Workspace
      * The five papers of the trainer's class, straight on the sidebar — always five.
      *
      * A trainer holding several cohorts works them from the same five links: the page they open carries a chooser, so
-     * the sidebar follows the class they last opened and, until they open one, the run that is live now. With no class
-     * under their name yet the links open My teaching, which says which office step is still owed — hiding them read
-     * to a trainer as a broken desk, and to the office as a missing page.
+     * the sidebar follows the class they last opened and, until they open one, the run that is live now — a drafted
+     * class counts, since the week and the plan are written before it starts. Only an account with no class at all
+     * falls back to My teaching, which says which office step is still owed; hiding the links read to a trainer as a
+     * broken desk, and to the office as a missing page.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -173,33 +174,37 @@ class Workspace
         return array_map(fn (array $p) => [
             'label' => $p[0], 'icon' => $p[1],
             'route' => $cohort ? ['admin.teaching.'.$p[2], ['cohort' => $cohort->id]] : ['admin.teaching.index'],
-            'note' => $p[3], 'department' => 'training', 'same' => true,
+            // With no class yet all five lead to the same screen, so none of them is "the page you are on" — the
+            // entry My teaching carries that mark alone, and five lit links read to a trainer as one broken control.
+            'note' => $p[3], 'department' => 'training', 'same' => (bool) $cohort, 'lit' => (bool) $cohort,
         ], $papers);
     }
 
     /**
-     * The class the five sidebar papers point at, or null when no cohort is handed to this account yet.
+     * The class the five sidebar papers point at, or null only when no cohort has ever been put under this name.
      *
      * The last class they actually worked wins; failing that the run in progress, then one still open for
      * applications, then the newest. A completed run is never chosen over a live one — a trainer landing on the
-     * register of a closed class would find nothing to fill.
+     * register of a closed class would find nothing to fill. A draft or cancelled class is still a class: it beats
+     * no class at all, because the five links then all open My teaching, the page the trainer is already on.
      */
     public static function paperCohort(?User $user): ?Cohort
     {
-        $taught = TeachingDesk::postings($user)->flatMap(fn (Trainer $t) => $t->cohorts)
-            ->where('status', '!=', 'draft')->where('status', '!=', 'cancelled')->unique('id')
-            ->sortByDesc('starts_on')->values();
+        $all = TeachingDesk::postings($user)->flatMap(fn (Trainer $t) => $t->cohorts)
+            ->unique('id')->sortByDesc('starts_on')->values();
 
-        if ($taught->isEmpty()) {
-            return null;
+        $live = $all->where('status', '!=', 'draft')->where('status', '!=', 'cancelled')->values();
+
+        if ($live->isEmpty()) {
+            return $all->first();
         }
 
         $picked = session('teaching_cohort');
 
-        return $taught->firstWhere('id', (int) $picked)
-            ?? $taught->firstWhere('status', 'in_progress')
-            ?? $taught->firstWhere('status', 'open')
-            ?? $taught->first();
+        return $live->firstWhere('id', (int) $picked)
+            ?? $live->firstWhere('status', 'in_progress')
+            ?? $live->firstWhere('status', 'open')
+            ?? $live->first();
     }
 
     /**
