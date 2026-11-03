@@ -527,6 +527,8 @@ abstract class TeachingPapers extends Controller
             'lines' => $paper?->lines ?? collect(),
             'units' => $cohort->unitList(),
             'materialKinds' => TrainingMaterial::KINDS,
+            // The Registrar writes on the plan at any state, the way they correct a mark sheet already approved.
+            'canCorrect' => TeachingDesk::approves($request->user()),
         ]);
     }
 
@@ -543,7 +545,9 @@ abstract class TeachingPapers extends Controller
 
         $plan = LessonPlan::firstOrNew(['cohort_id' => $cohort->id], $this->actor($cohort));
 
-        abort_unless(! $plan->exists || $plan->isEditable(), 422,
+        // A plan the Registrar has already approved is still theirs to write on — they answer the paper, so a lesson
+        // they add lands on the same plan rather than a second one beside it.
+        abort_unless(! $plan->exists || $plan->isEditable() || TeachingDesk::approves($request->user()), 422,
             $plan->statusLabel().' — a plan already with the Registrar is answered by them.');
 
         $plan->save();
@@ -561,12 +565,14 @@ abstract class TeachingPapers extends Controller
     }
 
     /** A lesson struck off is followed up by the ones behind it, so the plan still runs 1, 2, 3 to the last lesson. */
-    public function removeLesson(Cohort $cohort, LessonLine $line)
+    public function removeLesson(Request $request, Cohort $cohort, LessonLine $line)
     {
         $this->gate($cohort);
 
-        $plan = $line->plan()->findOrFail();
-        abort_unless($plan->isEditable(), 422, 'The Registrar answers a plan already forwarded.');
+        $plan = $line->plan;
+        abort_unless($plan, 404);
+        abort_unless($plan->isEditable() || TeachingDesk::approves($request->user()), 422,
+            'The Registrar answers a plan already forwarded.');
         abort_unless($line->lesson_plan_id === $plan->id, 404);
 
         $line->delete();

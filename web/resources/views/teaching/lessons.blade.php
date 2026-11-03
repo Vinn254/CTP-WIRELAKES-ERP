@@ -2,7 +2,9 @@
 @section('title', 'Lesson plan — '.$cohort->reference)
 
 @php
-    $editing = ! $plan || $plan->isEditable();
+    // The writer edits their own plan; the Registrar writes on it at any state, as they do on an approved mark sheet.
+    $writing = ! $plan || $plan->isEditable();
+    $editing = $writing || ($canCorrect ?? false);
     $next = $lines->count() + 1;
     $planHours = $lines->sum(fn ($l) => \App\Models\TimetableSlot::between($l->starts_at, $l->ends_at));
 @endphp
@@ -29,6 +31,10 @@
             <button class="btn btn-primary btn-sm" type="button" data-sheet="line" data-line="">
                 + Write lesson {{ $next }}</button>
         </div>
+        @if (! $writing)
+            <p class="hint">This plan is {{ Str::lower($plan->statusLabel()) }} and is yours to answer. A lesson written
+                here goes onto the same plan — the trainer is not asked to hand it in again.</p>
+        @endif
     @endif
 
     <div class="table-scroll">
@@ -112,11 +118,13 @@
     @if ($editing && $plan?->exists && $lines->isNotEmpty())
         <div class="module-foot">
             <button class="btn btn-outline btn-sm" type="button" data-sheet="line" data-line="">+ Write another lesson</button>
-            <form method="POST" action="{{ $url('lesson.forward', ['cohort' => $cohort->id, 'plan' => $plan->id]) }}"
-                  data-confirm="Send the whole lesson plan to the Registrar?">
-                @csrf
-                <button class="btn btn-primary btn-sm" type="submit">Forward the plan ({{ $lines->count() }} lessons)</button>
-            </form>
+            @if ($writing)
+                <form method="POST" action="{{ $url('lesson.forward', ['cohort' => $cohort->id, 'plan' => $plan->id]) }}"
+                      data-confirm="Send the whole lesson plan to the Registrar?">
+                    @csrf
+                    <button class="btn btn-primary btn-sm" type="submit">Forward the plan ({{ $lines->count() }} lessons)</button>
+                </form>
+            @endif
         </div>
         <p class="hint">Correcting a lesson overwrites it on the plan — the old wording does not stay beside it.</p>
     @endif
