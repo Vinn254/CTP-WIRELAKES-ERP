@@ -621,6 +621,13 @@ class Departments
                 'route' => ['admin.host.timelogs.index', $slug], 'badge' => 'timelogs'];
         }
 
+        // One time log per person: on their own week sheet the office register is not listed beside it. The register
+        // stays where it belongs — the Human Resources desk that answers it and the Finance desk that pays from it.
+        if (request()->routeIs('admin.mytime.*')) {
+            $items = array_values(array_filter($items,
+                fn (array $i) => ! in_array($i['route'][0] ?? '', ['admin.timelogs.index', 'admin.host.timelogs.index'], true)));
+        }
+
         // Leave is one desk: the register the office answers and the worker's own booking sit behind the same entry.
         if ($slug !== 'hr') {
             $items[] = ['label' => 'Leave', 'icon' => 'clock', 'route' => ['admin.host.leave.index', $slug],
