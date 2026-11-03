@@ -50,7 +50,7 @@
 @endif
 
 <div class="table-scroll">
-    <table class="data result-table">
+    <table class="data result-table wide-scroll">
         <thead>
             <tr>
                 <th>Day</th><th>Time</th><th>Length</th><th>Class</th><th>Unit</th><th>Room</th>

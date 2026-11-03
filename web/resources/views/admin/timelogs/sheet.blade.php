@@ -4,7 +4,7 @@
     $editing = $editing ?? false;
 @endphp
 <div class="table-scroll">
-    <table class="data week-sheet">
+    <table class="data week-sheet wide-scroll">
         <caption>{{ $worker->name }} — week of {{ $sheet['label'] }}</caption>
         <thead>
             <tr>
@@ -54,8 +54,8 @@
                             -
                         @endif
                     </td>
-                    <td class="num nowrap">{{ $row && $row->hours !== null ? number_format($row->hours, 2) : '-' }}</td>
-                    <td class="num nowrap">{{ $row ? (int) $row->units : '-' }}</td>
+                    <td class="num nowrap">{{ $row && $row->workedHours() !== null ? number_format($row->workedHours(), 2) : '-' }}</td>
+                    <td class="num nowrap">{{ $row && $row->workedHours() !== null ? $row->workedUnits() : '-' }}</td>
                     @if ($editing)
                         <td class="actions">
                             <button class="btn btn-sm btn-outline" type="button"

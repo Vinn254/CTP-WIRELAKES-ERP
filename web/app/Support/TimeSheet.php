@@ -160,7 +160,8 @@ class TimeSheet
     public static function sheet(User $worker, Carbon|string $weekStart): array
     {
         $weekStart = TimeLog::weekStartOf($weekStart);
-        $rows = TimeLog::forWeek($worker->id, $weekStart);
+        // Keyed by the day itself, so a written day lands on its own ruled line instead of drifting off the sheet.
+        $rows = TimeLog::forWeek($worker->id, $weekStart)->keyBy(fn (TimeLog $r) => $r->log_date->toDateString());
         $month = TimeLog::monthOf($weekStart);
 
         $days = collect(range(0, 4))->map(function ($i) use ($weekStart, $rows) {
@@ -182,8 +183,8 @@ class TimeSheet
             'label' => TimeLog::weekLabel($weekStart),
             'days' => $days->concat($extra->map(fn ($r) => ['day' => $r->dayLabel(), 'date' => $r->log_date->toDateString(), 'row' => $r]))->values()->all(),
             'logs' => $rows->values(),
-            'hours' => round($rows->sum(fn ($r) => (float) $r->hours), 2),
-            'units' => (int) $rows->sum('units'),
+            'hours' => round($rows->sum(fn (TimeLog $r) => (float) $r->workedHours()), 2),
+            'units' => (int) $rows->sum(fn (TimeLog $r) => $r->workedUnits()),
             'status' => static::weekStatus($rows),
         ];
     }
@@ -384,7 +385,8 @@ class TimeSheet
             : ['status' => 'returned', 'approval_note' => $note, 'approved_by_user' => null, 'approved_at' => null]));
 
         return $approve
-            ? 'Week of '.TimeLog::weekLabel($weekStart).' approved — '.round($rows->sum('hours'), 2).' hours signed off for pay.'
+            ? 'Week of '.TimeLog::weekLabel($weekStart).' approved — '
+                .round($rows->sum(fn (TimeLog $row) => (float) $row->workedHours()), 2).' hours signed off for pay.'
             : 'Week of '.TimeLog::weekLabel($weekStart).' returned: '.$note;
     }
 
@@ -407,7 +409,6 @@ class TimeSheet
             'trainings' => $postings->flatMap(fn (Trainer $t) => $t->trainings)->unique('id')->values(),
             'cohorts' => $postings->flatMap(fn (Trainer $t) => $t->cohorts)->unique('id')->values(),
             'defaults' => static::defaults($worker),
-            'history' => static::weeksFor($worker),
             'canEdit' => in_array($sheet['status'], ['draft', 'returned'], true),
         ];
     }
@@ -456,8 +457,8 @@ class TimeSheet
                     'week_no' => TimeLog::weekNumberOf($first->week_start),
                     'label' => TimeLog::weekLabel($first->week_start),
                     'days' => $rows->count(),
-                    'hours' => round($rows->sum('hours'), 2),
-                    'units' => (int) $rows->sum('units'),
+                    'hours' => round($rows->sum(fn (TimeLog $r) => (float) $r->workedHours()), 2),
+                    'units' => (int) $rows->sum(fn (TimeLog $r) => $r->workedUnits()),
                     'department' => $rows->pluck('department')->filter()->first(),
                     'status' => static::weekStatus($rows),
                     'note' => $rows->pluck('approval_note')->filter()->first(),

@@ -104,6 +104,23 @@ class TimeLog extends Model
         return $worked > 0 ? round(min($worked, 480) / 60, 2) : null;
     }
 
+    /**
+     * The day's hours read straight off its own two clock times, never off what was keyed once and left behind: an
+     * hour off for lunch, eight working hours at most.
+     */
+    public function workedHours(): ?float
+    {
+        return $this->time_in && $this->time_out
+            ? (static::hoursBetween($this->time_in, $this->time_out) ?? 0.0)
+            : null;
+    }
+
+    /** The day's units: two for every hour on the two clocks. */
+    public function workedUnits(): int
+    {
+        return (int) round((float) $this->workedHours() * 2);
+    }
+
     public static function weekStartOf(string|Carbon $date): Carbon
     {
         return Carbon::parse($date)->startOfWeek(Carbon::MONDAY);

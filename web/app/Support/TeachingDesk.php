@@ -163,7 +163,12 @@ class TeachingDesk
     /** Send a filled paper to the Registrar. Ticks and marks stay where they are until it is answered. */
     public static function forward(object $paper): string
     {
-        abort_unless($paper->isEditable(), 422, $paper->statusLabel().' — only a draft or a paper sent back can be forwarded.');
+        // A lesson plan is written lesson by lesson, so one already answered goes back to the Registrar carrying the
+        // lessons added since. The other papers are filled in one sitting and only a draft or a sent-back one goes.
+        $again = $paper instanceof LessonPlan && $paper->status === 'approved';
+
+        abort_unless($paper->isEditable() || $again, 422,
+            $paper->statusLabel().' — only a draft or a paper sent back can be forwarded.');
         static::guardFull($paper);
 
         $paper->update(['status' => 'submitted', 'submitted_at' => now()]);
@@ -173,7 +178,7 @@ class TeachingDesk
             $paper instanceof UnitMarkSheet => 'The marks for '.$paper->unitLabel().' are with the Registrar.',
             $paper instanceof Timetable => 'The timetable is with the Registrar.',
             $paper instanceof AttachmentLog => 'The week of '.$paper->weekLabel().' is with the Registrar.',
-            default => 'The lesson plan is with the Registrar.',
+            default => $again ? 'The lessons added since your answer are with the Registrar.' : 'The lesson plan is with the Registrar.',
         };
     }
 

@@ -15,6 +15,7 @@ use App\Models\TrainingMaterial;
 use App\Models\TrainingModule;
 use App\Models\UnitMark;
 use App\Models\UnitMarkSheet;
+use App\Models\User;
 use App\Support\Documents;
 use App\Support\Grading;
 use App\Support\MemberPortal;
@@ -515,6 +516,16 @@ abstract class TeachingPapers extends Controller
 
     // ------------------------------------------------------------ lesson plan
 
+    /**
+     * The lesson plan is the trainer's own paper and stays theirs to write on: a term is planned lesson by lesson,
+     * so a plan already answered by the Registrar still takes the next lesson. Only while it is sitting with the
+     * Registrar is it locked, and the desk that answers a plan never writes on it.
+     */
+    protected function writesPlan(User $user, ?LessonPlan $plan): bool
+    {
+        return ! TeachingDesk::approves($user) && ($plan === null || $plan->status !== 'submitted');
+    }
+
     public function lessons(Request $request, Cohort $cohort)
     {
         $this->gate($cohort);
@@ -522,13 +533,19 @@ abstract class TeachingPapers extends Controller
         $paper = LessonPlan::where('cohort_id', $cohort->id)
             ->with(['lines.module:id,title', 'lines.materials'])->first();
 
+        $writing = $this->writesPlan($request->user(), $paper);
+
         return $this->view('lessons', $cohort, [
             'plan' => $paper,
             'lines' => $paper?->lines ?? collect(),
             'units' => $cohort->unitList(),
             'materialKinds' => TrainingMaterial::KINDS,
-            // The Registrar writes on the plan at any state, the way they correct a mark sheet already approved.
-            'canCorrect' => TeachingDesk::approves($request->user()),
+            'canWrite' => $writing,
+            'planNote' => $writing ? null : match (true) {
+                $paper === null => 'No lesson plan yet. The trainer writes it and sends it here to be answered.',
+                $paper->status === 'submitted' => 'The plan is with the Registrar. It opens for the next lesson once it is answered.',
+                default => 'The lesson plan is the trainer’s own paper. Answer it from your queue; a plan sent back opens for them again.',
+            },
         ]);
     }
 
@@ -545,9 +562,7 @@ abstract class TeachingPapers extends Controller
 
         $plan = LessonPlan::firstOrNew(['cohort_id' => $cohort->id], $this->actor($cohort));
 
-        // A plan the Registrar has already approved is still theirs to write on — they answer the paper, so a lesson
-        // they add lands on the same plan rather than a second one beside it.
-        abort_unless(! $plan->exists || $plan->isEditable() || TeachingDesk::approves($request->user()), 422,
+        abort_unless($this->writesPlan($request->user(), $plan->exists ? $plan : null), 422,
             $plan->statusLabel().' — a plan already with the Registrar is answered by them.');
 
         $plan->save();
@@ -571,7 +586,7 @@ abstract class TeachingPapers extends Controller
 
         $plan = $line->plan;
         abort_unless($plan, 404);
-        abort_unless($plan->isEditable() || TeachingDesk::approves($request->user()), 422,
+        abort_unless($this->writesPlan($request->user(), $plan), 422,
             'The Registrar answers a plan already forwarded.');
         abort_unless($line->lesson_plan_id === $plan->id, 404);
 

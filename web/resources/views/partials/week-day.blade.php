@@ -49,7 +49,7 @@
         <div class="field">
             <label>Total hours</label>
             <input type="text" data-clock-hours readonly
-                   value="{{ $row && $row->hours ? number_format((float) $row->hours, 2, '.', '') : '' }}">
+                   value="{{ $row && $row->workedHours() !== null ? number_format((float) $row->workedHours(), 2, '.', '') : '' }}">
             <div class="help">Counts itself — time out minus time in, less one hour for lunch. Caps at 8.</div>
         </div>
     </div>
@@ -81,7 +81,7 @@
         <div class="field">
             <label>Units</label>
             <input type="number" name="units" min="0" max="99" readonly
-                   value="{{ old('units', $row?->units) }}">
+                   value="{{ old('units', $row && $row->workedHours() !== null ? $row->workedUnits() : '') }}">
             <div class="help">Counts itself — two units for every hour on the day.</div>
         </div>
     </div>

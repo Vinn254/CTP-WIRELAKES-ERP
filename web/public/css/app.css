@@ -998,8 +998,12 @@ details.add-record form { border: 1px dashed var(--line); border-radius: var(--r
 /* Teaching papers — a register, a marks sheet and a week are all worked inside a table, so the table has to hold
    its own scroll, mark a value the trainer cannot type, and keep a wide grid of inputs readable. */
 .roll-scroll { max-height: 320px; overflow-y: auto; overflow-x: auto; margin: 0 0 14px; box-shadow: var(--shadow); }
-.roll-scroll table.data { box-shadow: none; margin: 0; }
+.roll-scroll table.data { box-shadow: none; margin: 0; min-width: 660px; }
 .roll-scroll table.data thead th { position: sticky; top: 0; z-index: 4; }
+
+/* A wide grid of inputs never squeezes into the popup: it keeps its own width and the frame carries the scroll bar. */
+.table-scroll > table.data.wide-scroll { min-width: 1080px; }
+@media print { .table-scroll > table.data.wide-scroll { min-width: 0; } }
 input.locked { background: var(--lime-soft); color: var(--green-dark); font-weight: 800; border-color: var(--lime); cursor: default; }
 html.dark input.locked { background: #1d3122; color: var(--lime); }
 .weight-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
