@@ -19,8 +19,7 @@ class PortalTrainerPaperController extends TeachingPapers
 
     protected function cohorts(): Collection
     {
-        return TeachingDesk::postings(auth()->user())
-            ->flatMap(fn ($t) => $t->cohorts)
+        return TeachingDesk::cohortsFor(auth()->user())
             ->where('status', '!=', 'draft')
             ->unique('id')
             ->sortByDesc('starts_on')

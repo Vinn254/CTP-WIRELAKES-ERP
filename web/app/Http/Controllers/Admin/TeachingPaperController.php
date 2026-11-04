@@ -20,7 +20,7 @@ class TeachingPaperController extends TeachingPapers
     /** A trainer sees the cohorts handed to them; the Training office sees every run it can record on. */
     protected function cohorts(): Collection
     {
-        $mine = TeachingDesk::postings(auth()->user())->flatMap(fn ($t) => $t->cohorts);
+        $mine = TeachingDesk::cohortsFor(auth()->user());
 
         if (Departments::canSee(auth()->user(), 'training') || auth()->user()->isSuperAdmin()) {
             return Cohort::where('status', '!=', 'draft')

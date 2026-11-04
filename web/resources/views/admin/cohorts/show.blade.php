@@ -20,7 +20,7 @@
             <span><b>{{ $cohort->reference }}</b></span>
             <span>{{ $cohort->training?->name }}</span>
             <span><b>{{ $cohort->periodLabel() }}</b></span>
-            <span>{{ $cohort->dateLabel() }}</span>
+            <span>Runs <b>{{ $cohort->runLabel() }}</b> — {{ $cohort->stageLabel() }}</span>
             <span>{{ $cohort->placeLabel() }}</span>
             <span>{{ $seated->count() }} of {{ $cohort->seats }} seats held</span>
         </p>
@@ -49,15 +49,32 @@
                 @if ($modules->isEmpty())
                     <span class="hint">This training lists no units yet, so the intake runs the whole course.</span>
                 @else
-                    {{ $modules->count() }} {{ Str::plural('unit', $modules->count()) }}
-                    <div class="hint">{{ $modules->pluck('title')->join(' · ') }}</div>
+                    <div class="table-scroll">
+                        <table class="data compact">
+                            <thead><tr><th>Unit</th><th>Trainer on the unit</th></tr></thead>
+                            <tbody>
+                                @foreach ($modules as $u)
+                                    <tr>
+                                        <td>{{ $u->position }}. {{ $u->title }}</td>
+                                        <td>{{ $unitTrainers[$u->id]?->personName() ?? 'Not assigned' }}
+                                            @if ($unitTrainers[$u->id] && $cohort->trainer && (int) $unitTrainers[$u->id]->id === (int) $cohort->trainer_id)
+                                                <span class="hint">the intake's trainer</span>
+                                            @endif</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="help">What the {{ $seated->count() }} student{{ $seated->count() === 1 ? '' : 's' }} in
-                        this intake see on their units page, and all their trainer can register, mark and plan on.
-                        Change the ticks under <a href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>.</div>
+                        this intake see on their units page. A trainer can only register, mark and plan on the units
+                        named to them. Change the ticks and the names under
+                        <a href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>.</div>
                 @endif
             </dd>
             <dt>Fee per trainee</dt><dd>KSh {{ number_format((float) $cohort->fee_ksh) }}</dd>
             <dt>Applications close</dt><dd>{{ $cohort->enrol_closes_on?->format('d M Y') ?? 'until you close them' }}</dd>
+            <dt>Seats still given</dt><dd>{{ $cohort->canHoldSeats() ? 'Yes — the intake is inside its running period'
+                    : 'No — '.$cohort->seatRefusalReason() }}</dd>
             <dt>Seats taken</dt><dd>{{ $cohort->seatsUsed() }} of {{ $cohort->seats }}@if ($cohort->isFull())<span class="tag gold">full</span>@endif</dd>
         </dl>
 
@@ -79,10 +96,26 @@
             </div>
             <p class="hint">Opening it is what puts it in front of CTPs in <b>/portal → My training</b>.</p>
         </form>
+
+        @if ($cohort->impliedStatus())
+            <form method="POST" action="{{ route('admin.cohorts.status', $cohort) }}" class="fee-form"
+                  data-confirm="Move {{ $cohort->reference }} to {{ \App\Models\Cohort::STATUSES[$cohort->impliedStatus()] }}?"
+                  data-title="Follow the dates">
+                @csrf
+                <input type="hidden" name="status" value="{{ $cohort->impliedStatus() }}">
+                <p class="help" style="margin:12px 0 8px;">Its dates say this intake is <b>{{ strtolower($cohort->stageLabel()) }}</b>
+                    ({{ $cohort->runLabel() }}), while the box above still says {{ strtolower($cohort->statusLabel()) }}.</p>
+                <button class="btn btn-sm btn-lime" type="submit">Set it to {{ \App\Models\Cohort::STATUSES[$cohort->impliedStatus()] }}</button>
+            </form>
+        @endif
     </div>
 
     <div class="card">
         <h3>Put a CTP straight into a seat</h3>
+        @unless ($cohort->canHoldSeats())
+            <p class="flash-error" style="margin-bottom:12px;">No seat can be given on this intake — it can take no
+                seat: {{ $cohort->seatRefusalReason() }}.</p>
+        @endunless
         <p class="help">A CTP can also apply themselves — this is for the one you send, the transfer you agreed, or the
             intake a community needs filled.</p>
         <form method="POST" action="{{ route('admin.cohorts.enrol', $cohort) }}" class="fee-form"

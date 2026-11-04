@@ -8,6 +8,7 @@
     $openCount = $counts['open'] ?? 0;
     // Who may fill a cohort's class papers from here: its own trainer, or this office recording for a partner site.
     $mySites = TeachingDesk::trainerIds(auth()->user());
+    $myUnits = TeachingDesk::unitCohorts(auth()->user());
     $recordsAny = TeachingDesk::office(auth()->user());
 @endphp
 
@@ -74,7 +75,10 @@
                     <div class="hint">{{ collect([$c->ward, $c->sub_county, $c->county])->filter()->join(', ') }}</div></td>
                 <td>{{ $c->trainer?->personName() ?: '—' }}
                     @if ($c->venue)<div class="hint">{{ $c->venue->typeLabel() }}</div>@endif</td>
-                <td>{{ $c->dateLabel() }}<div class="hint">KSh {{ number_format((float) $c->fee_ksh) }}</div></td>
+                <td>{{ $c->runLabel() }}<div class="hint">{{ $c->stageLabel() }}
+                    @if ($c->impliedStatus())<br>box says {{ strtolower($c->statusLabel()) }}
+                        — <a href="{{ route('admin.cohorts.show', $c) }}">set it right</a>@endif</div>
+                    <div class="hint">KSh {{ number_format((float) $c->fee_ksh) }}</div></td>
                 <td>{{ $approved + $pending }} / {{ $c->seats }}</td>
                 <td>
                     {{ $approved }} training
@@ -84,7 +88,8 @@
                     @if ($c->status === 'open' && $c->isFull())<div class="hint">full</div>@endif</td>
                 <td class="actions"><a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.show', $c) }}">Open</a>
                     <a class="btn btn-sm btn-ghost" href="{{ route('admin.cohorts.edit', $c) }}">Edit</a>
-                    @if ($c->status !== 'draft' && ($recordsAny || in_array((int) $c->trainer_id, $mySites, true)))
+                    @if ($c->status !== 'draft' && ($recordsAny || in_array((int) $c->trainer_id, $mySites, true)
+                        || in_array((int) $c->id, $myUnits, true)))
                         <a class="btn btn-sm btn-lime" href="{{ route('admin.teaching.register', ['cohort' => $c->id]) }}">
                             Class papers</a>
                     @endif</td>

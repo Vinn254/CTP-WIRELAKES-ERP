@@ -251,6 +251,14 @@ html.dark .pw-toggle:hover { background: #1d3122; }
 .checkbox-row label { margin: 0; }
 .chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
 .chip-grid label { display: flex; gap: 8px; align-items: center; font-weight: 600; background: var(--lime-soft); border-radius: 8px; padding: 8px 12px; margin: 0; }
+/* A unit ticked for an intake carries its own trainer beside it, so the tick and the name sit on one ruled row. */
+.unit-rows { display: grid; gap: 8px; }
+.unit-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 260px); gap: 10px; align-items: center; }
+.unit-row .unit-pick { display: flex; gap: 8px; align-items: center; font-weight: 600; background: var(--lime-soft); border-radius: 8px; padding: 8px 12px; margin: 0; }
+.unit-row select { width: 100%; }
+.unit-head { grid-template-columns: minmax(0, 1fr) minmax(200px, 260px); color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.unit-head span { padding-left: 2px; }
+@media (max-width: 700px) { .unit-row, .unit-head { grid-template-columns: 1fr; } }
 .tier-option { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 13px 15px; margin-bottom: 10px; cursor: pointer; }
 .tier-option:hover { border-color: var(--lime); }
 .tier-option input { margin-top: 4px; accent-color: var(--green); }

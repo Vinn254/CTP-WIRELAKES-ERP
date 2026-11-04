@@ -116,14 +116,66 @@ class TeachingDesk
     }
 
     /**
-     * A cohort a trainer hands papers in for: their own, or any cohort the Training office records on a partner
-     * institution's behalf. Anything else 404s, so no roster is reached by id.
+     * A cohort a trainer hands papers in for: their own, one where a single unit was named to them, or any cohort the
+     * Training office records on a partner institution's behalf. Anything else 404s, so no roster is reached by id.
      */
     public static function theirCohort(Cohort $cohort, ?User $user): Cohort
     {
-        abort_unless(in_array((int) $cohort->trainer_id, static::trainerIds($user), true) || static::office($user), 404);
+        abort_unless(in_array((int) $cohort->trainer_id, static::trainerIds($user), true)
+            || in_array((int) $cohort->id, static::unitCohorts($user), true)
+            || static::office($user), 404);
 
         return $cohort;
+    }
+
+    /**
+     * Cohorts where a unit is named to this account. A trainer handed one unit of a course keeps that course in front
+     * of them for that unit alone — the papers themselves narrow the units down to theirs (see unitIds).
+     *
+     * @return array<int>
+     */
+    public static function unitCohorts(?User $user): array
+    {
+        $ids = static::trainerIds($user);
+
+        if ($ids === []) {
+            return [];
+        }
+
+        return Cohort::whereHas('units', fn ($q) => $q->whereIn('cohort_module.trainer_id', $ids))->pluck('id')
+            ->map(fn ($id) => (int) $id)->unique()->values()->all();
+    }
+
+    /**
+     * Every cohort this account's name sits on: the intakes handed to them whole, and those where the office named
+     * them against a single unit. A desk lists both so a unit lecturer finds their course in the class picker.
+     *
+     * @return BaseCollection<int, Cohort>
+     */
+    public static function cohortsFor(?User $user): BaseCollection
+    {
+        $mine = static::postings($user)->flatMap(fn (Trainer $posting) => $posting->cohorts);
+
+        return $mine->concat(Cohort::whereIn('id', static::unitCohorts($user))->get())->unique('id');
+    }
+
+    /**
+     * The units this account may write papers on for a cohort: the whole intake for the Training office and for the
+     * trainer the intake itself is handed to, and only the units named to them for everyone else.
+     *
+     * @return array<int>
+     */
+    public static function unitIds(Cohort $cohort, ?User $user): array
+    {
+        if (static::office($user) || in_array((int) $cohort->trainer_id, static::trainerIds($user), true)) {
+            return $cohort->unitList()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        }
+
+        $mine = static::trainerIds($user);
+
+        return $cohort->unitList()
+            ->filter(fn ($unit) => in_array((int) ($unit->pivot?->trainer_id ?? 0), $mine, true))
+            ->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 
     /** Who may answer a paper — the Academic Registrar's own desk, which is the Training office. */

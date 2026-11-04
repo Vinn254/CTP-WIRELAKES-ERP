@@ -94,9 +94,29 @@ class Cohort extends Model
     /** The units the office ticked onto this intake — always units of the training the cohort runs. */
     public function units(): BelongsToMany
     {
-        return $this->belongsToMany(TrainingModule::class, 'cohort_module')->withTimestamps()
+        return $this->belongsToMany(TrainingModule::class, 'cohort_module')->withPivot('trainer_id')->withTimestamps()
             ->orderBy('training_modules.position')->orderBy('training_modules.id');
     }
+
+    /**
+     * The trainer the Registrar named for each unit this intake teaches, keyed by unit id. A unit with no name of its
+     * own falls back to the cohort's single trainer, so an intake handed to one person reads the same as it always did.
+     *
+     * @return array<int, Trainer>
+     */
+    public function unitTrainers(): array
+    {
+        $units = $this->unitList();
+        $ids = $units->pluck('pivot.trainer_id')->filter()->unique()->all();
+        $byId = $ids === [] ? collect() : Trainer::with(self::TRAINER_WITH)->whereIn('id', $ids)->get()->keyBy('id');
+
+        return $units->mapWithKeys(fn (TrainingModule $unit) => [
+            $unit->id => ($unit->pivot?->trainer_id ? $byId[$unit->pivot->trainer_id] ?? null : null) ?? $this->trainer,
+        ])->filter()->all();
+    }
+
+    /** How a trainer is named on a screen: whichever of the three records the account stands behind. */
+    public const TRAINER_WITH = ['fundi:id,full_name', 'staff:id,name', 'applicant:id,name'];
 
     /**
      * What this run teaches. The ticked units, or the whole programme while nothing has been ticked — a cohort
@@ -138,11 +158,64 @@ class Cohort extends Model
         return $this->seats > 0 && $this->seatsUsed() >= $this->seats;
     }
 
+    /** The window this intake runs in, in the words the office uses on a page. */
+    public function runLabel(): string
+    {
+        if (! $this->starts_on || ! $this->ends_on) {
+            return 'dates not set';
+        }
+
+        return $this->starts_on->equalTo($this->ends_on)
+            ? $this->starts_on->format('d M Y')
+            : $this->starts_on->format('d M').' – '.$this->ends_on->format('d M Y');
+    }
+
+    /** The day teaching begins. */
+    public function hasStarted(): bool
+    {
+        return $this->starts_on !== null && $this->starts_on->lte(today());
+    }
+
+    /** The day the run was due to finish. */
+    public function hasEnded(): bool
+    {
+        return $this->ends_on !== null && $this->ends_on->lt(today());
+    }
+
+    /** What the dates say the intake is doing, whatever the office last picked in the status box. */
+    public function stageLabel(): string
+    {
+        return match (true) {
+            $this->hasEnded() => 'Finished',
+            $this->hasStarted() => 'Running',
+            default => 'Yet to start',
+        };
+    }
+
+    /**
+     * The status the run's own dates call for, or null when the box already agrees. A posted intake whose start day
+     * has come is running, and one whose end day has gone is finished — this is what the page offers to correct it to.
+     * A draft stays the office's decision: dates never post an intake by themselves.
+     */
+    public function impliedStatus(): ?string
+    {
+        if ($this->status === 'draft' || $this->status === 'cancelled') {
+            return null;
+        }
+
+        return match (true) {
+            $this->hasEnded() && $this->status !== 'completed' => 'completed',
+            $this->hasStarted() && $this->status === 'open' => 'in_progress',
+            default => null,
+        };
+    }
+
     /** The window a CTP can put themselves forward in — posted, in date and with room. */
     public function isOpenForEnrol(): bool
     {
         return $this->status === 'open'
             && (! $this->enrol_closes_on || $this->enrol_closes_on->gte(today()))
+            && ! $this->hasEnded()
             && ! $this->isFull();
     }
 
@@ -152,15 +225,40 @@ class Cohort extends Model
             return 'all '.$this->seats.' seats are taken';
         }
 
-        return $this->enrol_closes_on && $this->enrol_closes_on->lt(today())
-            ? 'applications closed on '.$this->enrol_closes_on->format('d M Y')
-            : 'it is not posted yet';
+        if ($this->enrol_closes_on && $this->enrol_closes_on->lt(today())) {
+            return 'applications closed on '.$this->enrol_closes_on->format('d M Y');
+        }
+
+        if ($this->hasEnded()) {
+            return 'it ran out on '.$this->ends_on->format('d M Y');
+        }
+
+        return 'it is not posted yet';
+    }
+
+    /**
+     * Whether a seat can still be given at all — the office's own guard, and it is wider than the CTP's: the
+     * Registrar seats a late trainee by hand while the run is still going, but never into a draft or a finished one.
+     */
+    public function canHoldSeats(): bool
+    {
+        return ! in_array($this->status, ['draft', 'completed', 'cancelled'], true) && ! $this->hasEnded();
+    }
+
+    public function seatRefusalReason(): string
+    {
+        return match (true) {
+            $this->status === 'draft' => 'it is still a draft — post the intake before giving anyone a seat',
+            $this->hasEnded() => 'it ran out on '.$this->ends_on->format('d M Y').', and a finished run takes no seats',
+            default => 'it is '.$this->statusLabel(),
+        };
     }
 
     public function scopeOpenForEnrol(Builder $query): Builder
     {
         return $query->where('status', 'open')
             ->where(fn ($q) => $q->whereNull('enrol_closes_on')->orWhereDate('enrol_closes_on', '>=', today()))
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', today()))
             ->where(fn ($q) => $q->where('seats', 0)->orWhereRaw('seats > (select count(*) from enrollments e where e.cohort_id = cohorts.id and e.state in (?, ?))', ['pending', 'approved']));
     }
 
@@ -193,7 +291,7 @@ class Cohort extends Model
 
     public function dateLabel(): string
     {
-        return $this->starts_on->format('d M Y').' – '.$this->ends_on->format('d M Y');
+        return $this->runLabel();
     }
 
     /** Where the training happens — the venue if there is one, otherwise the trainer's own site. */

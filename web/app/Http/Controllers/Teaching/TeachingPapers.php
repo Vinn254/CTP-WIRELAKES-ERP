@@ -122,12 +122,33 @@ abstract class TeachingPapers extends Controller
         abort_unless($cohort->unitList()->contains('id', $moduleId), 422,
             (TrainingModule::find($moduleId)?->title ?: 'That unit').' is not taught on '.$cohort->reference
                 .'. The office ticks the units an intake teaches on its cohort page.');
+
+        // The office may hold a unit to a named trainer; a trainer then writes only on their own units.
+        $mine = TeachingDesk::unitIds($cohort, auth()->user());
+
+        abort_unless(in_array($moduleId, $mine, true), 422,
+            (TrainingModule::find($moduleId)?->title ?: 'That unit').' is handed to '
+                .($cohort->unitTrainers()[$moduleId]?->personName() ?? 'another trainer').
+                ' on this intake. A trainer fills the papers of the units the office named to them.');
+    }
+
+    /** The units this account may write on for the cohort — the whole intake, or only those named to them. */
+    protected function unitsOn(Cohort $cohort): Collection
+    {
+        $mine = TeachingDesk::unitIds($cohort, auth()->user());
+
+        return $cohort->unitList()->whereIn('id', $mine)->values();
     }
 
     /** Whose hand filled the paper: the posting that holds the cohort, or this office account when none does. */
-    protected function actor(Cohort $cohort): array
+    protected function actor(Cohort $cohort, ?int $moduleId = null): array
     {
         $trainer = $cohort->trainer_id ? Trainer::find($cohort->trainer_id) : null;
+
+        // A unit the office named to somebody else on the intake is that person's paper.
+        if ($moduleId) {
+            $trainer = $cohort->unitTrainers()[$moduleId] ?? $trainer;
+        }
 
         return [
             'trainer_id' => $trainer?->id,
@@ -172,7 +193,7 @@ abstract class TeachingPapers extends Controller
             'week' => $week,
             'classes' => $this->weekClasses($cohort, $week, $held),
             'kinds' => CohortSession::KINDS,
-            'units' => $cohort->unitList(),
+            'units' => $this->unitsOn($cohort),
             'years' => TimeSheet::years(),
             'onTheWeek' => $this->slots($cohort)->isNotEmpty(),
         ]);
@@ -288,7 +309,8 @@ abstract class TeachingPapers extends Controller
 
         $day = Carbon::parse($data['held_on']);
         $this->guardDay($cohort, $day->toDateString());
-        $this->guardUnit($cohort, empty($data['training_module_id']) ? null : (int) $data['training_module_id']);
+        $unitId = empty($data['training_module_id']) ? null : (int) $data['training_module_id'];
+        $this->guardUnit($cohort, $unitId);
 
         // A class the timetable carries is taught for exactly the length the timetable set it.
         $hours = $this->timetabledHours($cohort, $day, $data['kind'], $data['training_module_id'] ?? null)
@@ -297,7 +319,7 @@ abstract class TeachingPapers extends Controller
         $session = CohortSession::firstOrNew([
             'cohort_id' => $cohort->id, 'held_on' => $day->toDateString(), 'kind' => $data['kind'],
             'training_module_id' => $data['training_module_id'] ?? null,
-        ], $this->actor($cohort));
+        ], $this->actor($cohort, $unitId));
 
         abort_unless(! $session->exists || $session->isEditable(), 422,
             $session->statusLabel().' — a register the Registrar has already answered is corrected by them, not here.');
@@ -381,7 +403,7 @@ abstract class TeachingPapers extends Controller
         return $this->view('marks', $cohort, [
             'sheets' => $sheets,
             'sheet' => $sheet,
-            'units' => $cohort->unitList(),
+            'units' => $this->unitsOn($cohort),
             'kinds' => UnitMarkSheet::KINDS,
             'outOf' => UnitMarkSheet::OUT_OF,
             // The Registrar's weights for the unit the grid is open on, and the desk that may correct a sheet
@@ -403,13 +425,14 @@ abstract class TeachingPapers extends Controller
             'mark_note.*.*' => 'nullable|string|max:190',
         ], [], ['training_module_id' => 'Unit']);
 
-        $this->guardUnit($cohort, $request->integer('training_module_id'));
+        $unitId = $request->integer('training_module_id');
+        $this->guardUnit($cohort, $unitId);
         $this->guardDay($cohort, $data['covered_on']);
 
         $sheet = UnitMarkSheet::firstOrNew([
             'cohort_id' => $cohort->id, 'training_module_id' => $request->integer('training_module_id'),
             'covered_on' => $data['covered_on'],
-        ], $this->actor($cohort));
+        ], $this->actor($cohort, $unitId));
 
         abort_unless(! $sheet->exists || $sheet->isEditable() || TeachingDesk::approves($request->user()), 422,
             $sheet->statusLabel().' — marks already with the Registrar are corrected by them, not here.');
@@ -473,7 +496,7 @@ abstract class TeachingPapers extends Controller
 
         return $this->view('timetable', $cohort, [
             'paper' => $paper?->load('slots.module:id,title', 'slots'),
-            'units' => $cohort->unitList(),
+            'units' => $this->unitsOn($cohort),
             'days' => Timetable::DAYS,
             'kinds' => TimetableSlot::KINDS,
         ]);
@@ -538,7 +561,7 @@ abstract class TeachingPapers extends Controller
         return $this->view('lessons', $cohort, [
             'plan' => $paper,
             'lines' => $paper?->lines ?? collect(),
-            'units' => $cohort->unitList(),
+            'units' => $this->unitsOn($cohort),
             'materialKinds' => TrainingMaterial::KINDS,
             'canWrite' => $writing,
             'planNote' => $writing ? null : match (true) {
@@ -615,7 +638,7 @@ abstract class TeachingPapers extends Controller
         return $this->view('materials', $cohort, [
             'papers' => TrainingMaterial::where('cohort_id', $cohort->id)
                 ->with(['module:id,title', 'lesson'])->orderByDesc('given_on')->orderByDesc('id')->get(),
-            'units' => $cohort->unitList(),
+            'units' => $this->unitsOn($cohort),
             'lessons' => LessonLine::whereHas('plan', fn ($q) => $q->where('cohort_id', $cohort->id))
                 ->orderBy('position')->get(['id', 'position', 'topic', 'planned_on']),
             'kinds' => TrainingMaterial::KINDS,

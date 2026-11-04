@@ -5,6 +5,8 @@
     $chosenUnits = collect(old('module_ids', $cohort->exists ? $cohort->units->pluck('id')->all() : []))
         ->map(fn ($id) => (int) $id)->all();
     $chosenTrainingId = (int) old('training_id', $cohort->training_id ?? 0);
+    $unitTrainers = old('unit_trainers', $cohort->exists
+        ? $cohort->units->mapWithKeys(fn ($u) => [$u->id => $u->pivot->trainer_id])->all() : []);
 @endphp
 
 <h3>Training &amp; seats</h3>
@@ -41,9 +43,10 @@
 </div>
 
 <h3 style="margin-top:20px;">Units this intake teaches</h3>
-<p class="help">Tick the units of the training you chose. The students in this cohort see exactly these on their
-    units page, and their trainer can only register, mark and plan on these. Nothing is typed here — a unit is added
-    under <a href="{{ route('admin.trainings.index') }}">Training</a> first.</p>
+<p class="help">Tick the units of the training you chose and name the trainer for each. The students in this cohort see
+    exactly these on their units page, and a trainer can only register, mark and plan on the units handed to them —
+    leave a trainer blank to keep the intake's own trainer on it. Nothing is typed here — a unit is added under
+    <a href="{{ route('admin.trainings.index') }}">Training</a> first.</p>
 @foreach ($trainings as $t)
     @php $units = $programmeUnits[$t->id] ?? collect(); @endphp
     <div class="field" data-for-choice="{{ $t->id }}" @if ($t->id !== $chosenTrainingId) hidden @endif>
@@ -52,11 +55,24 @@
             <div class="help">This training has no units yet, so the intake runs the whole course. Add units under
                 <a href="{{ route('admin.trainings.index') }}">Training</a> and tick them here.</div>
         @else
-            <div class="chip-grid">
+            <div class="unit-rows">
+                <div class="unit-row unit-head">
+                    <span>Unit taught on this intake</span><span>Trainer on the unit</span>
+                </div>
                 @foreach ($units as $u)
-                    <label><input type="checkbox" name="module_ids[]" value="{{ $u->id }}"
-                                  @checked(in_array($u->id, $chosenUnits, true))>
-                        {{ $u->position }}. {{ $u->title }}</label>
+                    <div class="unit-row">
+                        <label class="unit-pick"><input type="checkbox" name="module_ids[]" value="{{ $u->id }}"
+                              @checked(in_array($u->id, $chosenUnits, true))>
+                            {{ $u->position }}. {{ $u->title }}</label>
+                        <select name="unit_trainers[{{ $u->id }}]" aria-label="Trainer on {{ $u->title }}">
+                            <option value="">The intake's trainer</option>
+                            @foreach ($trainers as $tr)
+                                <option value="{{ $tr->id }}"
+                                        @selected((int) ($unitTrainers[$u->id] ?? 0) === $tr->id)>
+                                    {{ $tr->personName() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 @endforeach
             </div>
         @endif
@@ -114,14 +130,17 @@
     </div>
 </div>
 
-<h3 style="margin-top:20px;">Dates</h3>
+<h3 style="margin-top:20px;">Running period</h3>
+<p class="help">The dates the intake runs from and to. CTPs can put themselves forward from the day you post it until
+    the end date passes, and you can hand out seats over the same window — a run whose end date has gone by takes no
+    more seats.</p>
 <div class="form-grid">
     <div class="field">
-        <label>Starts <span class="req">*</span></label>
+        <label>Runs from <span class="req">*</span></label>
         <input type="date" name="starts_on" required value="{{ old('starts_on', $cohort->starts_on?->toDateString()) }}">
     </div>
     <div class="field">
-        <label>Ends <span class="req">*</span></label>
+        <label>Runs to <span class="req">*</span></label>
         <input type="date" name="ends_on" required value="{{ old('ends_on', $cohort->ends_on?->toDateString()) }}">
     </div>
     <div class="field">

@@ -71,7 +71,7 @@ class CohortController extends Controller
 
         $cohort = Cohort::create([...$this->withoutUnits($data), 'reference' => Cohort::nextReference(), 'status' => 'draft']);
 
-        $this->syncUnits($cohort, $data['module_ids'] ?? []);
+        $this->syncUnits($cohort, $data['module_ids'] ?? [], $data['unit_trainers'] ?? []);
 
         return redirect()->route('admin.cohorts.show', $cohort)
             ->with('status', $cohort->reference.' — '.$cohort->courseLabel().' created as a draft. Post it when you are ready for CTPs to apply.');
@@ -84,7 +84,7 @@ class CohortController extends Controller
 
         $cohort->update($this->withoutUnits($data));
 
-        $this->syncUnits($cohort, $data['module_ids'] ?? []);
+        $this->syncUnits($cohort, $data['module_ids'] ?? [], $data['unit_trainers'] ?? []);
 
         return back()->with('status', $cohort->reference.' updated.');
     }
@@ -153,6 +153,7 @@ class CohortController extends Controller
                 ->orderByRaw("case state when 'pending' then 0 when 'approved' then 1 else 2 end")
                 ->orderBy('id')->get(),
             'modules' => $cohort->unitList(),
+            'unitTrainers' => $cohort->unitTrainers(),
             'documentKinds' => TrainingDocument::KINDS,
             'candidates' => CtpRegistration::whereIn('status', CtpRegistration::WORKING)
                 ->whereNotIn('id', $cohort->enrollments()->pluck('ctp_id'))
@@ -355,6 +356,10 @@ class CohortController extends Controller
                 'array',
             ],
             'module_ids.*' => 'integer|exists:training_modules,id',
+            // The trainer named against each ticked unit, keyed by unit id. Anything typed for a unit that is not
+            // ticked is dropped with the tick list.
+            'unit_trainers' => 'nullable|array',
+            'unit_trainers.*' => 'nullable|integer|exists:trainers,id',
             'venue_id' => 'nullable|integer|exists:training_venues,id',
             'trainer_id' => 'nullable|integer|exists:trainers,id',
             'community_id' => 'nullable|integer|exists:communities,id',
@@ -373,8 +378,10 @@ class CohortController extends Controller
             'summary' => 'nullable|string|max:2000',
         ], [
             'module_ids.required' => 'Tick at least one unit — the units of this training that the intake will teach.',
+            'unit_trainers.*.exists' => 'A trainer named on a unit must be on the approved trainers list.',
         ], [], [
             'training_id' => 'Training', 'module_ids' => 'Units this intake teaches', 'module_ids.*' => 'Unit',
+            'unit_trainers' => 'Trainer on a unit', 'unit_trainers.*' => 'Trainer on a unit',
             'venue_id' => 'Venue', 'trainer_id' => 'Trainer',
             'community_id' => 'Community', 'county' => 'County', 'sub_county' => 'Sub-county', 'seats' => 'Seats',
             'starts_on' => 'Start date', 'ends_on' => 'End date', 'enrol_closes_on' => 'Applications close',
@@ -421,8 +428,10 @@ class CohortController extends Controller
         abort_unless(in_array($ctp->status, CtpRegistration::WORKING, true), 422,
             $ctp->full_name.' is '.$ctp->statusLabel().'. Training seats go to a CTP once they are active.');
 
-        abort_if(in_array($cohort->status, ['completed', 'cancelled'], true), 422,
-            $cohort->reference.' is '.$cohort->statusLabel().'.');
+        // The dates decide too: a draft takes no seats, and a run whose end date has passed is finished whatever the
+        // status box still says.
+        abort_unless($cohort->canHoldSeats(), 422,
+            $cohort->reference.' can take no seat — '.$cohort->seatRefusalReason().'.');
 
         abort_if($cohort->isFull(), 422, $cohort->reference.' is full — all '.$cohort->seats.' seats are taken.');
 
@@ -446,13 +455,15 @@ class CohortController extends Controller
     }
 
     /**
-     * Save the office's ticks. A unit belongs to this cohort's own programme — and a unit a student has already been
-     * marked on cannot be taken off the intake, so no mark is ever orphaned by a retick.
+     * Save the office's ticks and the trainer named on each. A unit belongs to this cohort's own programme — and a
+     * unit a student has already been marked on cannot be taken off the intake, so no mark is ever orphaned by a retick.
      */
-    private function syncUnits(Cohort $cohort, array $ids): void
+    private function syncUnits(Cohort $cohort, array $ids, array $trainers = []): void
     {
         $allowed = TrainingModule::where('training_id', $cohort->training_id)->pluck('id')->all();
-        $ids = array_values(array_intersect($ids, $allowed));
+        // Cast to ints: the posted ticks arrive as strings, and a trainer named on a unit is looked up by its id.
+        $ids = array_values(array_map('intval', array_intersect($ids, $allowed)));
+        $trainers = collect($trainers)->map(fn ($id) => $id ? (int) $id : null)->all();
 
         $held = $cohort->units()->pluck('training_module_id')->all();
         $dropping = array_diff(array_map('intval', $held), $ids);
@@ -471,7 +482,43 @@ class CohortController extends Controller
             }
         }
 
-        $cohort->units()->sync($ids);
+        foreach ($trainers as $moduleId => $trainerId) {
+            if (! $trainerId || ! in_array((int) $moduleId, $ids, true)) {
+                continue;
+            }
+
+            $this->guardUnitTrainer($cohort, (int) $trainerId, (int) $moduleId);
+        }
+
+        $cohort->units()->sync(collect($ids)->mapWithKeys(
+            fn ($id) => [$id => ['trainer_id' => $trainers[$id] ?? null]]
+        )->all());
+    }
+
+    /**
+     * A unit handed to a person is a unit that person must be approved to teach here — the same three checks the
+     * cohort's own trainer passes, so a per-unit name can never smuggle in an unapproved hand.
+     */
+    private function guardUnitTrainer(Cohort $cohort, int $trainerId, int $moduleId): void
+    {
+        $trainer = Trainer::with(['fundi:id,full_name,status', 'staff:id,name', 'applicant:id,name'])->find($trainerId);
+        $unit = TrainingModule::find($moduleId);
+        abort_if(! $trainer || ! $unit, 422, 'The trainer named on a unit is not on the approved list.');
+
+        $who = $trainer->personName();
+        $what = $this->trainingName(['training_id' => $cohort->training_id]);
+
+        abort_unless($trainer->status === 'approved', 422,
+            $who.' is not an approved trainer — approve them under Trainers before handing them “'.$unit->title.'”.');
+
+        if ($cohort->venue_id) {
+            abort_unless((int) $trainer->venue_id === (int) $cohort->venue_id, 422,
+                $who.' is approved at '.$trainer->placeLabel().', not at '.$this->siteName(['venue_id' => $cohort->venue_id])
+                    .' — “'.$unit->title.'” can only go to a trainer the office has approved for this site.');
+        }
+
+        abort_unless($trainer->canTeach((int) $cohort->training_id), 422,
+            $who.' is not registered to teach '.$what.'. Add that training to their record before handing them a unit.');
     }
 
     private function formData(?int $trainingId = null): array
