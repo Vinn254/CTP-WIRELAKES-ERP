@@ -236,7 +236,7 @@ class _ClassScreenState extends State<ClassScreen> {
                   for (final u in b.units)
                     RecordRow(
                       title: '${u.position}. ${u.title}',
-                      subtitle: u.coveredOn ?? 'Not covered yet',
+                      subtitle: u.taught,
                       trailing: u.pct == null
                           ? const Tag('Not marked yet', color: muted)
                           : Text(u.grade,

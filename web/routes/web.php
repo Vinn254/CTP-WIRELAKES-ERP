@@ -388,6 +388,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/cohorts', [CohortController::class, 'store'])->name('cohorts.store');
     Route::get('/cohorts/{cohort}', [CohortController::class, 'show'])->whereNumber('cohort')->name('cohorts.show');
     Route::get('/cohorts/{cohort}/edit', [CohortController::class, 'edit'])->whereNumber('cohort')->name('cohorts.edit');
+    Route::get('/cohorts/{cohort}/units', [CohortController::class, 'units'])->whereNumber('cohort')->name('cohorts.units');
+    Route::post('/cohorts/{cohort}/units', [CohortController::class, 'saveUnits'])->whereNumber('cohort')->name('cohorts.units.save');
     Route::patch('/cohorts/{cohort}', [CohortController::class, 'update'])->whereNumber('cohort')->name('cohorts.update');
     Route::post('/cohorts/{cohort}/status', [CohortController::class, 'setStatus'])->whereNumber('cohort')->name('cohorts.status');
     Route::post('/cohorts/{cohort}/enrol', [CohortController::class, 'enrol'])->whereNumber('cohort')->name('cohorts.enrol');

@@ -1,83 +1,24 @@
-@php $editing = $editing ?? $cohort->exists; @endphp
 @php
-    // What the office ticked last time, or what was just posted back. A new intake starts with nothing ticked —
-    // the training is chosen first, then its own units are ticked from the list under that training.
-    $chosenUnits = collect(old('module_ids', $cohort->exists ? $cohort->units->pluck('id')->all() : []))
+    // Step one of an intake: which programmes it teaches, where it happens and when it runs. No trainer is named
+    // here and no unit is ticked here — the units are registered on the intake once it exists, and the hands go
+    // onto those units. The lead programme (the first ticked) is what the papers are filed under.
+    $chosenProgrammes = collect(old('training_ids', $cohort->exists ? $cohort->programmeIds() : []))
         ->map(fn ($id) => (int) $id)->all();
-    $chosenTrainingId = (int) old('training_id', $cohort->training_id ?? 0);
-    $unitTrainers = old('unit_trainers', $cohort->exists
-        ? $cohort->units->mapWithKeys(fn ($u) => [$u->id => $u->pivot->trainer_id])->all() : []);
 @endphp
 
-<h3>Training &amp; seats</h3>
-<div class="form-grid">
-    <div class="field">
-        <label>Training <span class="req">*</span></label>
-        <select name="training_id" data-choices required>
-            <option value="">Choose a training the programme runs</option>
-            @foreach ($trainings as $t)
-                <option value="{{ $t->id }}" @selected((int) old('training_id', $cohort->training_id) === $t->id)>{{ $t->name }}</option>
-            @endforeach
-        </select>
-        <div class="help">Running something new? Add it under
-            <a href="{{ route('admin.trainings.index') }}">Training</a> first — it is not typed here.</div>
-    </div>
-    <div class="field">
-        <label>Theory hours</label>
-        <input type="number" name="theory_hours" min="0" max="2000" value="{{ old('theory_hours', $cohort->theory_hours) }}">
-    </div>
-    <div class="field">
-        <label>Practical hours</label>
-        <input type="number" name="practical_hours" min="0" max="2000" value="{{ old('practical_hours', $cohort->practical_hours) }}">
-    </div>
-    <div class="field">
-        <label>Seats <span class="req">*</span></label>
-        <input type="number" name="seats" min="1" max="500" required value="{{ old('seats', $cohort->seats) }}">
-        <div class="help">A seat is held once the office confirms a CTP — applications alone do not fill it.</div>
-    </div>
-    <div class="field">
-        <label>Training fee (KSh)</label>
-        <input type="number" name="fee_ksh" min="0" step="0.01" value="{{ old('fee_ksh', $cohort->fee_ksh) }}">
-        <div class="help">What a trainee owes for this intake. The 15/30 mobilisation credit is not applied yet.</div>
-    </div>
+<h3>Programmes taught on this intake</h3>
+<p class="help">Tick every programme this group of trainees will be taught. Each one brings its own units, and a unit
+    is later handed to the trainer who teaches it. A student registered under one of these programmes is fetched onto
+    this intake and sees that programme's units on their own side.</p>
+<div class="chip-grid">
+    @foreach ($trainings as $t)
+        <label><input type="checkbox" name="training_ids[]" value="{{ $t->id }}"
+                       @checked(in_array($t->id, $chosenProgrammes, true))>
+            {{ $t->name }}@if ($t->code) <span class="hint">{{ $t->code }}</span>@endif</label>
+    @endforeach
 </div>
-
-<h3 style="margin-top:20px;">Units this intake teaches</h3>
-<p class="help">Tick the units of the training you chose and name the trainer for each. The students in this cohort see
-    exactly these on their units page, and a trainer can only register, mark and plan on the units handed to them —
-    leave a trainer blank to keep the intake's own trainer on it. Nothing is typed here — a unit is added under
-    <a href="{{ route('admin.trainings.index') }}">Training</a> first.</p>
-@foreach ($trainings as $t)
-    @php $units = $programmeUnits[$t->id] ?? collect(); @endphp
-    <div class="field" data-for-choice="{{ $t->id }}" @if ($t->id !== $chosenTrainingId) hidden @endif>
-        <label>{{ $t->name }} — {{ $units->count() }} {{ Str::plural('unit', $units->count()) }} listed</label>
-        @if ($units->isEmpty())
-            <div class="help">This training has no units yet, so the intake runs the whole course. Add units under
-                <a href="{{ route('admin.trainings.index') }}">Training</a> and tick them here.</div>
-        @else
-            <div class="unit-rows">
-                <div class="unit-row unit-head">
-                    <span>Unit taught on this intake</span><span>Trainer on the unit</span>
-                </div>
-                @foreach ($units as $u)
-                    <div class="unit-row">
-                        <label class="unit-pick"><input type="checkbox" name="module_ids[]" value="{{ $u->id }}"
-                              @checked(in_array($u->id, $chosenUnits, true))>
-                            {{ $u->position }}. {{ $u->title }}</label>
-                        <select name="unit_trainers[{{ $u->id }}]" aria-label="Trainer on {{ $u->title }}">
-                            <option value="">The intake's trainer</option>
-                            @foreach ($trainers as $tr)
-                                <option value="{{ $tr->id }}"
-                                        @selected((int) ($unitTrainers[$u->id] ?? 0) === $tr->id)>
-                                    {{ $tr->personName() }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
-@endforeach
+<div class="help">Running something new? Add it under
+    <a href="{{ route('admin.trainings.index') }}">Training</a> first — a programme is not typed here.</div>
 
 <h3 style="margin-top:20px;">Where this intake happens</h3>
 <div class="form-grid">
@@ -93,18 +34,6 @@
         </select>
     </div>
     <div class="field">
-        <label>Trainer (an approved posting)</label>
-        <select name="trainer_id">
-            <option value="">No trainer assigned</option>
-            @foreach ($trainers as $t)
-                <option value="{{ $t->id }}" @selected(old('trainer_id', $cohort->trainer_id) == $t->id)>
-                    {{ $t->personName() }} — {{ $t->teachingLabel() ?: 'no trainings set' }}
-                </option>
-            @endforeach
-        </select>
-        <div class="help">Only a trainer registered for the training you picked can be handed this cohort.</div>
-    </div>
-    <div class="field">
         <label>Community it serves</label>
         <select name="community_id">
             <option value="">Not tied to a community</option>
@@ -114,7 +43,7 @@
                 </option>
             @endforeach
         </select>
-        <div class="help">Linking it puts the cohort on that community's timeline.</div>
+        <div class="help">Linking it puts the intake on that community's timeline.</div>
     </div>
     <div class="field">
         <label>County <span class="req">*</span></label>
@@ -127,6 +56,28 @@
     <div class="field">
         <label>Ward</label>
         <input type="text" name="ward" value="{{ old('ward', $cohort->ward) }}">
+    </div>
+</div>
+
+<h3 style="margin-top:20px;">Seats</h3>
+<div class="form-grid">
+    <div class="field">
+        <label>Seats <span class="req">*</span></label>
+        <input type="number" name="seats" min="1" max="500" required value="{{ old('seats', $cohort->seats) }}">
+        <div class="help">A seat is held once the office confirms a CTP — applications alone do not fill it.</div>
+    </div>
+    <div class="field">
+        <label>Training fee (KSh)</label>
+        <input type="number" name="fee_ksh" min="0" step="0.01" value="{{ old('fee_ksh', $cohort->fee_ksh) }}">
+        <div class="help">What a trainee owes for this intake. The 15/30 mobilisation credit is not applied yet.</div>
+    </div>
+    <div class="field">
+        <label>Theory hours</label>
+        <input type="number" name="theory_hours" min="0" max="2000" value="{{ old('theory_hours', $cohort->theory_hours) }}">
+    </div>
+    <div class="field">
+        <label>Practical hours</label>
+        <input type="number" name="practical_hours" min="0" max="2000" value="{{ old('practical_hours', $cohort->practical_hours) }}">
     </div>
 </div>
 

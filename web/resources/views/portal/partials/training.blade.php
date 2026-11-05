@@ -180,7 +180,7 @@
                 executive signs the certificate.</p>
             @include('partials.track', ['enrollment' => $e])
 
-            @include('partials.modules', ['enrollment' => $e])
+            @include('partials.modules', ['enrollment' => $e, 'mode' => 'trainee'])
             @include('partials.documents', ['enrollment' => $e, 'modules' => $c?->unitList() ?? collect()])
 
             @include('partials.progress', ['enrollment' => $e])

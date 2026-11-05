@@ -127,6 +127,7 @@ class UnitMark {
 class UnitRow {
   final int position;
   final String title;
+  final String? lecturer;
   final String? coveredOn;
   final List<UnitMark> marks;
   final String? pct;
@@ -138,6 +139,7 @@ class UnitRow {
   UnitRow({
     required this.position,
     required this.title,
+    required this.lecturer,
     required this.coveredOn,
     required this.marks,
     required this.pct,
@@ -150,6 +152,7 @@ class UnitRow {
   factory UnitRow.fromJson(Map<String, dynamic> j) => UnitRow(
         position: _i(j['position']),
         title: (j['title'] ?? '') as String,
+        lecturer: j['lecturer'] as String?,
         coveredOn: j['covered_on'] as String?,
         marks: _list(j['marks'], UnitMark.fromJson),
         pct: j['pct'] == null ? null : '${j['pct']}',
@@ -163,6 +166,12 @@ class UnitRow {
   String get grade => pct == null
       ? remark
       : '$pct ${letter ?? ''} · pass $passPct — $remark'.replaceAll('  ', ' ');
+
+  /// Who teaches the unit, and the day it was covered.
+  String get taught => [
+        lecturer == null || lecturer!.isEmpty ? 'Lecturer not named yet' : 'Lecturer: $lecturer',
+        coveredOn ?? 'Not covered yet',
+      ].join(' · ');
 }
 
 class MaterialRow {

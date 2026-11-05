@@ -5,17 +5,23 @@
     use App\Models\TrainingMaterial;
 
     $many = $mine->count() > 1;
+    $myLecturers = $units->map(fn ($u) => $unitTrainers[$u->id] ?? null)->filter()
+        ->unique(fn ($t) => $t->id)->values();
 @endphp
 
 @section('content')
 <div class="head-row">
     <div>
-        <h1>{{ $cohort->reference }} — {{ $cohort->courseLabel() }}</h1>
+        <h1>{{ $cohort->reference }} — {{ $programmeName ?: $cohort->courseLabel() }}</h1>
         <p class="ah-meta">
             <span>{{ $cohort->venue?->name ?: 'No venue set' }}</span>
             <span>{{ $cohort->periodLabel() }}</span>
             <span>{{ $cohort->dateLabel() }}</span>
-            <span>{{ $cohort->trainer?->personName() ?: 'the office' }}</span>
+            <span>{{ match (true) {
+                $myLecturers->count() === 1 => $myLecturers->first()->personName(),
+                $myLecturers->count() > 1 => $myLecturers->count().' lecturers on your units',
+                default => $cohort->trainer?->personName() ?: 'the office',
+            } }}</span>
         </p>
     </div>
     @if ($many)
@@ -75,6 +81,7 @@
     <div class="section-head">
         <h3>The units you do</h3>
         <span class="tag">{{ $units->count() }} {{ Str::plural('unit', $units->count()) }}</span>
+        @if ($programmeName)<span class="tag">{{ $programmeName }}</span>@endif
         <span class="tag">{{ round($seat->trackPct(), 1) }}% of the record</span>
         @if ($overall !== null)
             <span class="tag gold">overall {{ $overall }} · {{ \App\Support\Grading::letter($overall) }}</span>
@@ -82,14 +89,20 @@
     </div>
 
     @if ($units->isEmpty())
-        <p class="help">The office has not put units under {{ $cohort->courseLabel() }} yet, so there is nothing to
-            follow for this class.</p>
+        <p class="help">The office has not put units under {{ $programmeName ?: $cohort->courseLabel() }} on this
+            intake yet, so there is nothing to follow for this class.</p>
     @else
+        @if ($offProgramme)
+            <p class="hint" style="margin:0 0 10px;">No units are registered for
+                {{ $programmeName ?: 'your programme' }} on this intake yet, so these are the units it teaches. Tell the
+                academic office if your course should have its own list.</p>
+        @endif
         <div class="table-scroll">
             <table class="data">
                 <thead>
                     <tr>
                         <th>Unit</th>
+                        <th>Lecturer on the unit</th>
                         @foreach (\App\Models\UnitGrading::PARTS as $label)
                             <th class="num">{{ $label }}</th>
                         @endforeach
@@ -101,10 +114,13 @@
                 <tbody>
                     @foreach ($units as $unit)
                         @php $row = $marksByUnit[$unit->id] ?? ['on' => null, 'marks' => []];
-                               $grade = $grades[$unit->id] ?? null; @endphp
+                               $grade = $grades[$unit->id] ?? null;
+                               $lecturer = $unitTrainers[$unit->id] ?? null; @endphp
                         <tr>
                             <td><b>{{ $unit->position }}. {{ $unit->title }}</b>
                                 @if ($row['on'])<div class="hint">Marked on {{ $row['on'] }}.</div>@endif</td>
+                            <td>{{ $lecturer?->personName() ?: 'Not named yet' }}
+                                @if ($lecturer && $lecturer->placeLabel())<div class="hint">{{ $lecturer->placeLabel() }}</div>@endif</td>
                             @foreach ($grade['parts'] ?? [] as $part)
                                 <td class="num">
                                     {{ $part['score'] === null ? '—' : $part['score'] }}

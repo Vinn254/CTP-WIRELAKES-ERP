@@ -259,6 +259,14 @@ html.dark .pw-toggle:hover { background: #1d3122; }
 .unit-head { grid-template-columns: minmax(0, 1fr) minmax(200px, 260px); color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .unit-head span { padding-left: 2px; }
 @media (max-width: 700px) { .unit-row, .unit-head { grid-template-columns: 1fr; } }
+/* The steps an intake is registered in: programmes, then units and their trainers, then the students. */
+.step-list { display: grid; gap: 8px; margin: 0; padding-left: 22px; list-style: none; counter-reset: step; }
+.step-list li { display: flex; gap: 8px; align-items: center; color: var(--muted); counter-increment: step; }
+.step-list li::before { content: counter(step); width: 22px; height: 22px; border-radius: 50%; background: var(--lime-soft); color: var(--green-dark); font-weight: 700; font-size: 12px; display: grid; place-items: center; }
+.step-list li b { color: var(--ink); }
+.step-list li.current { color: var(--green-dark); font-weight: 600; }
+.step-list li.current b { color: var(--green-dark); }
+.step-list li.current::before { background: var(--lime); color: #fff; }
 .tier-option { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 13px 15px; margin-bottom: 10px; cursor: pointer; }
 .tier-option:hover { border-color: var(--lime); }
 .tier-option input { margin-top: 4px; accent-color: var(--green); }

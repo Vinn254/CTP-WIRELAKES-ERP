@@ -1,6 +1,7 @@
 @php
     $board = $board ?? $enrollment->moduleBoard();
-    $canMark = isset($mode) && in_array($mode, ['admin', 'trainer', 'teaching'], true);
+    $mode ??= 'trainee';
+    $canMark = in_array($mode, ['admin', 'trainer', 'teaching'], true);
     // 'teaching' is a trainer's own desk inside the office: same marks, routes a department tick does not grant.
     $markRoute = match ($mode) {
         'admin' => 'admin.enrollments.module.mark',

@@ -47,32 +47,53 @@ class MemberClassApiController extends Controller
         ]);
     }
 
-    /** GET /api/me/class/{cohort} — one class: the approved week, the units with their marks, the handouts. */
+    /** GET /api/me/class/{cohort} — one class: the approved week, the units with their lecturer and marks, the handouts. */
     public function show(Cohort $cohort): JsonResponse
     {
+        $ctp = $this->ctp();
         $seat = $this->seat($cohort);
 
+        // A trainee follows their own programme, the same as on the website.
+        $programme = (int) ($ctp->training_id ?: $cohort->training_id);
+
         $timetable = Timetable::where('cohort_id', $cohort->id)->where('status', 'approved')
+            ->when($programme, fn ($q) => $q->where(fn ($w) => $w->whereNull('training_id')->orWhere('training_id', $programme)))
             ->with(Timetable::WEEK_WITH)->latest('id')->first()
-            ?? Timetable::forProgramme($cohort->training_id);
+            ?? ($programme ? Timetable::forProgramme($programme) : null)
+            ?? Timetable::where('cohort_id', $cohort->id)->where('status', 'approved')
+                ->with(Timetable::WEEK_WITH)->latest('id')->first();
 
         $marksByUnit = $this->marksByUnit($cohort, $seat);
 
-        $units = $cohort->unitList()->map(function ($unit) use ($seat) {
+        $units = $cohort->unitsFor($programme ?: null);
+
+        // Nothing registered for their own course yet: the phone still shows what the intake teaches, as on the website.
+        if ($units->isEmpty() && $cohort->unitList()->isNotEmpty()) {
+            $units = $cohort->unitList();
+        }
+
+        $trainers = $cohort->unitTrainers();
+        $tutored = $units->map(fn ($unit) => $trainers[$unit->id] ?? null)->filter()->unique(fn ($t) => $t->id);
+
+        $marked = $units->map(function ($unit) use ($seat) {
             return ['unit' => $unit, 'grade' => Grading::compile($seat, $unit)];
         });
 
-        $overall = Grading::overall($units->pluck('grade')->filter(fn (array $g) => $g['marked'])->values()->all());
+        $overall = Grading::overall($marked->pluck('grade')->filter(fn (array $g) => $g['marked'])->values()->all());
 
         return response()->json([
             'class' => [
                 'id' => $cohort->id,
                 'reference' => $cohort->reference,
-                'course' => $cohort->courseLabel(),
+                'course' => $ctp->programme?->name ?: $cohort->courseLabel(),
                 'place' => $cohort->venue?->name ?: 'No venue set',
                 'period' => $cohort->periodLabel(),
                 'dates' => $cohort->dateLabel(),
-                'trainer' => $cohort->trainer?->personName() ?: 'the office',
+                'trainer' => match (true) {
+                    $tutored->count() === 1 => $tutored->first()->personName(),
+                    $tutored->count() > 1 => $tutored->count().' lecturers on your units',
+                    default => $cohort->trainer?->personName() ?: 'the office',
+                },
                 'track_pct' => round($seat->trackPct(), 1),
                 'grade_pct' => $overall,
                 'grade_letter' => $overall === null ? null : Grading::letter($overall),
@@ -89,13 +110,14 @@ class MemberClassApiController extends Controller
                     'room' => $slot->room,
                 ])->values(),
             ])->values(),
-            'units' => $units->map(function (array $row) use ($marksByUnit) {
+            'units' => $marked->map(function (array $row) use ($marksByUnit, $trainers) {
                 $unit = $row['unit'];
                 $grade = $row['grade'];
 
                 return [
                     'position' => $unit->position,
                     'title' => $unit->title,
+                    'lecturer' => $trainers[$unit->id]?->personName(),
                     'covered_on' => $marksByUnit[$unit->id]['on'] ?? null,
                     'marks' => collect(UnitGrading::PARTS)->map(fn (string $label, string $part) => [
                         'kind' => $part,
@@ -110,8 +132,8 @@ class MemberClassApiController extends Controller
                     'remark' => $grade['remark'],
                 ];
             })->values(),
-            'materials' => $this->materials($cohort)->map(fn (TrainingMaterial $m) => $this->material($m))->values(),
-            'seats' => $this->seats($this->ctp())->get()
+            'materials' => $this->materials($cohort, $units)->map(fn (TrainingMaterial $m) => $this->material($m))->values(),
+            'seats' => $this->seats($ctp)->get()
                 ->map(fn (Enrollment $e) => ['cohort_id' => $e->cohort_id, 'label' => $e->cohort?->reference.' — '.$e->cohort?->courseLabel()])
                 ->values(),
         ]);
@@ -242,9 +264,13 @@ class MemberClassApiController extends Controller
         return $seat;
     }
 
-    private function materials(Cohort $cohort)
+    private function materials(Cohort $cohort, $units = null)
     {
         return TrainingMaterial::where('cohort_id', $cohort->id)
+            // An intake that teaches more than one course hands out handouts for both; a trainee reads their own units'.
+            ->when($units !== null && count($cohort->programmeIds()) > 1, fn ($q) => $q->where(fn ($w) => $w
+                ->whereNull('training_module_id')
+                ->orWhereIn('training_module_id', $units->pluck('id'))))
             ->with(['module:id,title', 'lesson:id,topic', 'uploaderFundi:id,full_name'])
             ->orderByDesc('given_on')->orderBy('id')->get();
     }

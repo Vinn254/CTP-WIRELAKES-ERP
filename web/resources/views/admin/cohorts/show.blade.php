@@ -18,7 +18,7 @@
         <h1>{{ $cohort->courseLabel() }} <span class="status {{ $cohort->status }}">{{ $cohort->statusLabel() }}</span></h1>
         <p class="ah-meta">
             <span><b>{{ $cohort->reference }}</b></span>
-            <span>{{ $cohort->training?->name }}</span>
+            <span>{{ $cohort->programmeLabel() }}</span>
             <span><b>{{ $cohort->periodLabel() }}</b></span>
             <span>Runs <b>{{ $cohort->runLabel() }}</b> — {{ $cohort->stageLabel() }}</span>
             <span>{{ $cohort->placeLabel() }}</span>
@@ -26,9 +26,22 @@
         </p>
     </div>
     <div class="ah-contact">
+        <a class="btn btn-sm btn-primary" href="{{ route('admin.cohorts.units', $cohort) }}">Units and trainers</a>
         <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.results', ['cohort' => $cohort->id]) }}">Results table</a>
         <a class="btn btn-sm btn-outline" href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>
     </div>
+</div>
+
+<div class="card">
+    <ol class="step-list">
+        <li><b>Programmes</b> — {{ count($cohort->programmeIds()) }}
+            <a href="{{ route('admin.cohorts.edit', $cohort) }}">change</a></li>
+        <li><b>Units and trainers</b> — {{ $cohort->units->count() }} registered,
+            {{ $cohort->units->filter(fn ($u) => $u->pivot->trainer_id)->count() }} with a trainer named
+            <a href="{{ route('admin.cohorts.units', $cohort) }}">register them</a></li>
+        <li><b>Students</b> — {{ $seated->count() }} seated, {{ $pending->count() }} waiting
+            <a href="#seat-form">give a seat</a></li>
+    </ol>
 </div>
 
 <div class="grid-2">
@@ -38,26 +51,41 @@
             <dt>Where</dt><dd>{{ $cohort->venue?->name ?? 'No fixed venue' }}
                 @if ($cohort->venue)<span class="hint">({{ $cohort->venue->typeLabel() }})</span>@endif
                 <div class="hint">{{ collect([$cohort->ward, $cohort->sub_county, $cohort->county])->filter()->join(', ') }}</div></dd>
-            <dt>Trainer</dt><dd>{{ $cohort->trainer?->personName() ?? 'Not assigned' }}
+            <dt>Lecturers on the units</dt><dd>
+                @if ($unitTrainers)
+                    {{ count($unitTrainers) }} of {{ $modules->count() }} unit{{ $modules->count() === 1 ? '' : 's' }} named
+                @else
+                    <span class="hint">None named yet.</span>
+                @endif
+                <div class="hint">Named on
+                    <a href="{{ route('admin.cohorts.units', $cohort) }}">Units and trainers</a> — a trainer holds no
+                    paper on this intake until a unit is handed to them.</div>
                 @if ($cohort->trainer)
-                    <span class="chip">{{ $cohort->trainer->statusLabel() }}</span>
-                    @if ($cohort->trainer->rate_ksh > 0)<div class="hint">KSh {{ number_format((float) $cohort->trainer->rate_ksh) }} — Finance invoices this</div>@endif
-                @endif</dd>
+                    <div class="hint">This intake also carries {{ $cohort->trainer->personName() }} as a whole
+                        <span class="chip">{{ $cohort->trainer->statusLabel() }}</span>
+                        @if ($cohort->trainer->rate_ksh > 0) — KSh {{ number_format((float) $cohort->trainer->rate_ksh) }},
+                        Finance invoices this @endif
+                    </div>
+                @endif
+            </dd>
             <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ dept_link('admin.communities.show', ['community' => $cohort->community]) }}">{{ $cohort->community->name }}</a>@else<span class="hint">not tied to one</span>@endif</dd>
             <dt>Sessions</dt><dd>{{ $cohort->hoursLabel() }}</dd>
             <dt>Units taught</dt><dd>
-                @if ($modules->isEmpty())
-                    <span class="hint">This training lists no units yet, so the intake runs the whole course.</span>
+                @if ($cohort->units->isEmpty())
+                    <span class="hint">Nothing registered on this intake yet — tick the units under
+                        <a href="{{ route('admin.cohorts.units', $cohort) }}">Units and trainers</a>.</span>
                 @else
                     <div class="table-scroll">
                         <table class="data compact">
-                            <thead><tr><th>Unit</th><th>Trainer on the unit</th></tr></thead>
+                            <thead><tr><th>Unit</th><th>Programme</th><th>Trainer on the unit</th></tr></thead>
                             <tbody>
                                 @foreach ($modules as $u)
+                                    @php $on = $unitTrainers[$u->id] ?? null; @endphp
                                     <tr>
                                         <td>{{ $u->position }}. {{ $u->title }}</td>
-                                        <td>{{ $unitTrainers[$u->id]?->personName() ?? 'Not assigned' }}
-                                            @if ($unitTrainers[$u->id] && $cohort->trainer && (int) $unitTrainers[$u->id]->id === (int) $cohort->trainer_id)
+                                        <td>{{ $programmeNames[$u->training_id] ?? '—' }}</td>
+                                        <td>{{ $on?->personName() ?: 'Not assigned' }}
+                                            @if ($on && $cohort->trainer && (int) $on->id === (int) $cohort->trainer_id)
                                                 <span class="hint">the intake's trainer</span>
                                             @endif</td>
                                     </tr>
@@ -65,10 +93,10 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="help">What the {{ $seated->count() }} student{{ $seated->count() === 1 ? '' : 's' }} in
-                        this intake see on their units page. A trainer can only register, mark and plan on the units
-                        named to them. Change the ticks and the names under
-                        <a href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>.</div>
+                    <div class="help">What a student sees on their own units page — only the units of the programme they
+                        are registered under. A trainer can only register, mark and plan on the units named to them.
+                        Change the ticks and the names under
+                        <a href="{{ route('admin.cohorts.units', $cohort) }}">Units and trainers</a>.</div>
                 @endif
             </dd>
             <dt>Fee per trainee</dt><dd>KSh {{ number_format((float) $cohort->fee_ksh) }}</dd>
@@ -118,6 +146,14 @@
         @endunless
         <p class="help">A CTP can also apply themselves — this is for the one you send, the transfer you agreed, or the
             intake a community needs filled.</p>
+        @php $seatable = $candidates->flatten(); @endphp
+        @if ($seatable->isEmpty())
+            <p class="flash-error" style="margin-bottom:12px;">No CTP registered under
+                {{ strtolower($cohort->programmeLabel()) }} is waiting for a seat. A trainee must be registered under
+                one of the programmes this intake teaches — check under
+                <a href="{{ route('admin.cohorts.edit', $cohort) }}">Edit cohort</a>, or seat them from
+                <a href="{{ dept_link('admin.promoters.index', []) }}">Training CTPs</a>.</p>
+        @endif
         <form method="POST" action="{{ route('admin.cohorts.enrol', $cohort) }}" class="fee-form"
               data-confirm="Give this CTP a seat in {{ $cohort->reference }}?" data-title="Enrol CTP">
             @csrf
@@ -125,12 +161,21 @@
                 <label>CTP <span class="req">*</span></label>
                 <select name="ctp_id" required>
                     <option value="">Choose a CTP</option>
-                    @foreach ($candidates as $c)
-                        <option value="{{ $c->id }}">{{ $c->full_name }} — {{ $c->ctp_code }}
-                            ({{ collect([$c->ward, $c->county])->filter()->join(', ') ?: 'no area set' }})</option>
+                    @foreach ($candidates as $programmeId => $group)
+                        <optgroup label="{{ $programmeId
+                            ? ($candidateTitles[$programmeId] ?? 'Programme '.$programmeId).' ('.$group->count().')'
+                            : 'No programme chosen yet ('.$group->count().')' }}">
+                            @foreach ($group as $c)
+                                <option value="{{ $c->id }}">{{ $c->full_name }} — {{ $c->ctp_code }}
+                                    ({{ collect([$c->ward, $c->county])->filter()->join(', ') ?: 'no area set' }})</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
-                <div class="hint">Only an active, graduated or deployed CTP can hold a seat. {{ $candidates->count() }} available.</div>
+                <div class="hint">{{ $seatable->count() }} student{{ $seatable->count() === 1 ? '' : 's' }} registered
+                    under the programmes this intake teaches{{ $elsewhere > 0 ? ', '.$elsewhere.' under another programme and not listed here' : '' }}.
+                    A CTP seated off the last group needs their programme set on their file, or they will have no units
+                    to follow. Only an active, graduated or deployed CTP can hold a seat.</div>
             </div>
             <div class="field" style="margin-top:10px;">
                 <label>Why you are placing them</label>
@@ -147,6 +192,7 @@
         <div class="row-line">
             <a href="{{ dept_link('admin.promoters.show', ['ctp' => $e->ctp_id]) }}"><b>{{ $e->ctp->full_name }}</b></a>
             <span class="tag">{{ $e->ctp->ctp_code }}</span>
+            <span class="tag">{{ $e->ctp->programme?->name ?: 'no programme chosen' }}</span>
             <span class="hint">{{ collect([$e->ctp->ward, $e->ctp->county])->filter()->join(', ') }}</span>
             <span class="status {{ $e->ctp->status }}">{{ $e->ctp->statusLabel() }}</span>
             <span class="hint">{{ $e->source === 'self' ? 'applied themselves' : 'put forward by staff' }}</span>
@@ -205,6 +251,7 @@
     <div class="card" style="margin-bottom:14px;">
         <h3>{{ $e->ctp->full_name }}
             <span class="tag">{{ $e->ctp->ctp_code }}</span>
+            @if ($e->ctp->programme)<span class="tag">{{ $e->ctp->programme->name }}</span>@endif
             <span class="status {{ $e->stage }}">{{ $e->stageLabel() }}</span>
             <span class="fee-tag {{ $pct >= 100 ? 'paid' : 'waived' }}">track {{ $pct }}%</span>
             <span class="fee-tag {{ ['paid' => 'paid', 'waived' => 'waived', 'awaiting_payment' => 'unpaid'][$e->fee_status] ?? 'unpaid' }}">{{ $e->feeLabel() }}</span>

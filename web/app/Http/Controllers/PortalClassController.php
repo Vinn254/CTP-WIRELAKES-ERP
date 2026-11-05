@@ -39,13 +39,21 @@ class PortalClassController extends Controller
 
     public function show(Cohort $cohort)
     {
+        $ctp = $this->ctp();
         $seat = $this->seat($cohort);
+
+        // A trainee follows their own programme: the units of the course they registered under, the week the Registrar
+        // laid out for that course, and the marks on those units.
+        $programme = (int) ($ctp->training_id ?: $cohort->training_id);
 
         // Only a paper the Registrar has answered reaches the trainee's own screen. A cohort that has not had its own
         // week approved yet runs on the programme's week, which the Registrar lays out for the whole course.
         $timetable = Timetable::where('cohort_id', $cohort->id)->where('status', 'approved')
+            ->when($programme, fn ($q) => $q->where(fn ($w) => $w->whereNull('training_id')->orWhere('training_id', $programme)))
             ->with(Timetable::WEEK_WITH)->latest('id')->first()
-            ?? Timetable::forProgramme($cohort->training_id);
+            ?? ($programme ? Timetable::forProgramme($programme) : null)
+            ?? Timetable::where('cohort_id', $cohort->id)->where('status', 'approved')
+                ->with(Timetable::WEEK_WITH)->latest('id')->first();
 
         $marked = UnitMarkSheet::where('cohort_id', $cohort->id)->where('status', 'approved')->with('marks')->get();
 
@@ -64,27 +72,44 @@ class PortalClassController extends Controller
             $marksByUnit[$sheet->training_module_id] = $row;
         }
 
-        $cohort->load(['units', 'venue', 'trainer']);
+        $cohort->load(['units', 'venue', 'trainer', 'trainings']);
 
-        $units = $cohort->unitList();
+        $units = $cohort->unitsFor($programme ?: null);
+
+        // Nothing registered for their own course yet: the trainee still reads what the intake teaches, with the gap
+        // named, rather than an empty page.
+        $offProgramme = $units->isEmpty() && $cohort->unitList()->isNotEmpty();
+
+        if ($offProgramme) {
+            $units = $cohort->unitList();
+        }
 
         // Each unit weighed the way the Registrar set it — the grade a trainee reads on their own page.
         $grades = $units->mapWithKeys(fn ($unit) => [$unit->id => Grading::compile($seat, $unit)])->all();
 
-        return view('portal.class', MemberPortal::board($this->ctp()) + [
+        // An intake that teaches more than one course hands out handouts for both; a trainee reads their own units'.
+        $manyProgrammes = count($cohort->programmeIds()) > 1 && ! $offProgramme;
+
+        return view('portal.class', MemberPortal::board($ctp) + [
             'seat' => $seat,
             'cohort' => $cohort,
             'timetable' => $timetable,
             'week' => $timetable?->week() ?? [],
             'units' => $units,
+            'offProgramme' => $offProgramme,
+            'unitTrainers' => $cohort->unitTrainers(),
+            'programmeName' => $ctp->programme?->name,
             'marksByUnit' => $marksByUnit,
             'grades' => $grades,
             'overall' => Grading::overall(
                 collect($grades)->filter(fn (array $g) => $g['marked'])->values()->all()),
             'materials' => TrainingMaterial::where('cohort_id', $cohort->id)
+                ->when($manyProgrammes, fn ($q) => $q->where(fn ($w) => $w
+                    ->whereNull('training_module_id')
+                    ->orWhereIn('training_module_id', $units->pluck('id'))))
                 ->with(['module:id,title', 'lesson:id,topic', 'uploaderFundi:id,full_name'])
                 ->orderByDesc('given_on')->orderBy('id')->get(),
-            'mine' => $this->seats($this->ctp())->get(),
+            'mine' => $this->seats($ctp)->get(),
         ]);
     }
 

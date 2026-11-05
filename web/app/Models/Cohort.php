@@ -76,6 +76,12 @@ class Cohort extends Model
         return $this->belongsTo(Training::class);
     }
 
+    /** Every programme this intake teaches. The id on the cohort row stays the lead one. */
+    public function trainings(): BelongsToMany
+    {
+        return $this->belongsToMany(Training::class, 'cohort_training')->withTimestamps()->orderBy('trainings.name');
+    }
+
     public function venue(): BelongsTo
     {
         return $this->belongsTo(TrainingVenue::class, 'venue_id');
@@ -119,6 +125,33 @@ class Cohort extends Model
     public const TRAINER_WITH = ['fundi:id,full_name', 'staff:id,name', 'applicant:id,name'];
 
     /**
+     * The programme ids this intake runs — the list on the pivot plus the lead id on the row, so an intake saved
+     * before the pivot existed is still read whole.
+     *
+     * @return array<int, int>
+     */
+    public function programmeIds(): array
+    {
+        $ids = $this->relationLoaded('trainings')
+            ? $this->trainings->pluck('id')->all()
+            : $this->trainings()->pluck('trainings.id')->all();
+
+        return collect($ids)->push($this->training_id)->filter()->map(fn ($id) => (int) $id)->unique()->values()->all();
+    }
+
+    /** Only the units of one of the intake's programmes — a trainee is read on their own course's units. */
+    public function unitsFor(?int $trainingId): Collection
+    {
+        if (! $trainingId) {
+            return $this->unitList();
+        }
+
+        $mine = $this->unitList()->filter(fn (TrainingModule $unit) => (int) $unit->training_id === $trainingId);
+
+        return $mine->isNotEmpty() ? $mine : collect();
+    }
+
+    /**
      * What this run teaches. The ticked units, or the whole programme while nothing has been ticked — a cohort
      * posted before the office started choosing units keeps every unit its students were already marked on.
      */
@@ -130,9 +163,11 @@ class Cohort extends Model
             return $units;
         }
 
-        return $this->relationLoaded('training')
-            ? ($this->training?->modules ?? collect())
-            : TrainingModule::where('training_id', $this->training_id)->ordered()->get();
+        if ($this->relationLoaded('trainings') && $this->trainings->isNotEmpty()) {
+            return $this->trainings->flatMap->modules->sortBy(['training_id', 'position', 'id'])->values();
+        }
+
+        return TrainingModule::whereIn('training_id', $this->programmeIds())->ordered()->get();
     }
 
     public function enrollments(): HasMany
@@ -271,6 +306,26 @@ class Cohort extends Model
     public function courseLabel(): string
     {
         return $this->training?->name ?? 'Training';
+    }
+
+    /** The intake's own programme first, then how many others it also runs. */
+    public function programmeLabel(): string
+    {
+        $extra = max(0, count($this->programmeIds()) - 1);
+
+        return $extra ? $this->courseLabel().' + '.$extra.' '.Str::plural('programme', $extra) : $this->courseLabel();
+    }
+
+    /** The programmes taught here, with the intake's own named first whatever order the list is in. */
+    public function programmeList(): Collection
+    {
+        $ids = $this->programmeIds();
+        $byId = Training::whereIn('id', $ids)->orderBy('name')->get()->keyBy('id');
+
+        $ordered = collect([$this->training_id])->concat($ids)->filter()->unique()
+            ->map(fn ($id) => $byId[(int) $id] ?? null)->filter()->values();
+
+        return $ordered->isEmpty() ? collect([$this->training])->filter()->values() : $ordered;
     }
 
     public function termLabel(): ?string
