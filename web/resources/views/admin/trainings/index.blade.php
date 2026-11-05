@@ -178,8 +178,12 @@
                                     <div class="form-grid-2">
                                         <div class="field"><label>Module <span class="req">*</span></label>
                                             <input type="text" name="title" value="{{ $m->title }}" required maxlength="150"></div>
-                                        <div class="field"><label>Hours</label>
-                                            <input type="number" name="hours" min="0" max="2000" value="{{ $m->hours }}"></div>
+                                        <div class="field"><label>Theory hours</label>
+                                            <input type="number" name="theory_hours" min="0" max="2000"
+                                                   value="{{ $m->theory_hours }}" placeholder="e.g. 20"></div>
+                                        <div class="field"><label>Practical hours</label>
+                                            <input type="number" name="practical_hours" min="0" max="2000"
+                                                   value="{{ $m->practical_hours }}" placeholder="e.g. 40"></div>
                                         <div class="field"><label>Term</label>
                                             <select name="term">
                                                 @foreach (\App\Models\TrainingModule::termChoices() as $key => $label)
@@ -225,9 +229,14 @@
                                                placeholder="e.g. Diagnosing and replacing a failed power supply">
                                     </div>
                                     <div class="field">
-                                        <label>Hours</label>
-                                        <input type="number" name="modules[{{ $i }}][hours]" min="0" max="2000"
-                                               value="{{ $row['hours'] ?? '' }}" placeholder="e.g. 20">
+                                        <label>Theory hours</label>
+                                        <input type="number" name="modules[{{ $i }}][theory_hours]" min="0" max="2000"
+                                               value="{{ $row['theory_hours'] ?? '' }}" placeholder="e.g. 20">
+                                    </div>
+                                    <div class="field">
+                                        <label>Practical hours</label>
+                                        <input type="number" name="modules[{{ $i }}][practical_hours]" min="0" max="2000"
+                                               value="{{ $row['practical_hours'] ?? '' }}" placeholder="e.g. 40">
                                     </div>
                                     <div class="field">
                                         <label>Term</label>
@@ -253,7 +262,9 @@
                             <button class="btn btn-lime btn-sm" type="submit">Save modules</button>
                         </div>
                         <p class="hint">Use <b>+ Add another module</b> to put several in at once — they are numbered
-                            in the order you type them. Leave a row blank and it is not added.</p>
+                            in the order you type them. Leave a row blank and it is not added. The theory and practical
+                            hours belong to the unit, because a different course needs a different balance — an intake
+                            adds up the hours of the units registered on it.</p>
                     </form>
                     @endunless
                 </td>

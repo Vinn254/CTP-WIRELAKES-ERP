@@ -274,7 +274,7 @@ class MemberPortalApiController extends Controller
             'reference' => $c->reference,
             'course' => $c->courseLabel(),
             'place' => $c->placeLabel(),
-            'county' => $c->county,
+            'county' => $c->coverageLabel(),
             'period' => $c->periodLabel(),
             'dates' => $c->dateLabel(),
             'seats_left' => $c->seatsLeft(),

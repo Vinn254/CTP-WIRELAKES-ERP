@@ -4,6 +4,14 @@
     // onto those units. The lead programme (the first ticked) is what the papers are filed under.
     $chosenProgrammes = collect(old('training_ids', $cohort->exists ? $cohort->programmeIds() : []))
         ->map(fn ($id) => (int) $id)->all();
+
+    // Counties the intake reaches: every county, or the list ticked below. On a row that was saved before the list
+    // existed, the county printed on it is the one ticked.
+    $countyScope = old('county_scope', $cohort->exists ? ($cohort->coversAllCounties() ? 'all' : 'listed') : 'listed');
+    $chosenCounties = collect(old('county_ids', $cohort->exists
+        ? $cohort->coversAllCounties() ? [] : $cohort->countyNames()->map(
+            fn ($name) => $counties->firstWhere('name', $name)?->id)->filter()->values()->all() : []))
+        ->map(fn ($id) => (int) $id)->all();
 @endphp
 
 <h3>Programmes taught on this intake</h3>
@@ -34,30 +42,46 @@
         </select>
     </div>
     <div class="field">
-        <label>Community it serves</label>
+        <label>Community it serves <span class="hint">(optional)</span></label>
         <select name="community_id">
-            <option value="">Not tied to a community</option>
+            <option value="">All communities — not tied to one</option>
             @foreach ($communities as $c)
                 <option value="{{ $c->id }}" @selected(old('community_id', $cohort->community_id) == $c->id)>
                     {{ $c->name }} — {{ $c->county }}
                 </option>
             @endforeach
         </select>
-        <div class="help">Linking it puts the intake on that community's timeline.</div>
+        <div class="help">Not a condition for the intake. Leave it on "All communities" to take trainees from anywhere,
+            or pick one so the intake shows on that community's own page. Students are fetched by the
+            <b>programme</b> they are registered under, never by their community.</div>
     </div>
     <div class="field">
-        <label>County <span class="req">*</span></label>
-        <input type="text" name="county" list="cohort-counties" required value="{{ old('county', $cohort->county) }}">
+        <label>Sub-county <span class="hint">(optional)</span></label>
+        <input type="text" name="sub_county" value="{{ old('sub_county', $cohort->sub_county) }}"
+               placeholder="Leave empty if the run is not tied to one">
     </div>
     <div class="field">
-        <label>Sub-county</label>
-        <input type="text" name="sub_county" value="{{ old('sub_county', $cohort->sub_county) }}">
-    </div>
-    <div class="field">
-        <label>Ward</label>
-        <input type="text" name="ward" value="{{ old('ward', $cohort->ward) }}">
+        <label>Ward <span class="hint">(optional)</span></label>
+        <input type="text" name="ward" value="{{ old('ward', $cohort->ward) }}"
+               placeholder="Leave empty if the run is not tied to one">
     </div>
 </div>
+
+<h3 style="margin-top:20px;">Counties it is offered in</h3>
+<p class="help">An intake can be open in every county, in a few of them, or in one. CTPs see the intake on their own
+    side when it is open in their county, or when it is open in all of them.</p>
+<div class="chip-grid">
+    <label><input type="radio" name="county_scope" value="all" @checked($countyScope === 'all')> All counties</label>
+    <label><input type="radio" name="county_scope" value="listed" @checked($countyScope === 'listed')>
+        Only these counties</label>
+</div>
+<div class="chip-grid" style="margin-top:12px;max-height:190px;overflow:auto;">
+    @foreach ($counties as $cty)
+        <label><input type="checkbox" name="county_ids[]" value="{{ $cty->id }}"
+                       @checked(in_array($cty->id, $chosenCounties, true))> {{ $cty->name }}</label>
+    @endforeach
+</div>
+<div class="help">Tick one county to run in that county only, or several to run the same intake across them.</div>
 
 <h3 style="margin-top:20px;">Seats</h3>
 <div class="form-grid">
@@ -72,12 +96,10 @@
         <div class="help">What a trainee owes for this intake. The 15/30 mobilisation credit is not applied yet.</div>
     </div>
     <div class="field">
-        <label>Theory hours</label>
-        <input type="number" name="theory_hours" min="0" max="2000" value="{{ old('theory_hours', $cohort->theory_hours) }}">
-    </div>
-    <div class="field">
-        <label>Practical hours</label>
-        <input type="number" name="practical_hours" min="0" max="2000" value="{{ old('practical_hours', $cohort->practical_hours) }}">
+        <label>Sessions</label>
+        <div class="help" style="margin-top:6px;">{{ $cohort->exists ? $cohort->hoursLabel()
+            : 'The theory and practical hours are typed on each unit you register — a welder\'s unit and a solar unit '
+              .'do not run over the same hours. This intake adds them up.' }}</div>
     </div>
 </div>
 
@@ -121,5 +143,3 @@
     <textarea name="summary" rows="4" maxlength="2000"
               placeholder="Tools provided, where they meet, what they leave with.">{{ old('summary', $cohort->summary) }}</textarea>
 </div>
-
-<datalist id="cohort-counties">@foreach ($counties as $name)<option value="{{ $name }}"></option>@endforeach</datalist>

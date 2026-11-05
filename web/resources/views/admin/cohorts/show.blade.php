@@ -50,7 +50,7 @@
         <dl class="kv">
             <dt>Where</dt><dd>{{ $cohort->venue?->name ?? 'No fixed venue' }}
                 @if ($cohort->venue)<span class="hint">({{ $cohort->venue->typeLabel() }})</span>@endif
-                <div class="hint">{{ collect([$cohort->ward, $cohort->sub_county, $cohort->county])->filter()->join(', ') }}</div></dd>
+                <div class="hint">{{ collect([$cohort->ward, $cohort->sub_county])->filter()->join(', ') ?: 'Ward and sub-county not set' }}</div></dd>
             <dt>Lecturers on the units</dt><dd>
                 @if ($unitTrainers)
                     {{ count($unitTrainers) }} of {{ $modules->count() }} unit{{ $modules->count() === 1 ? '' : 's' }} named
@@ -68,7 +68,8 @@
                     </div>
                 @endif
             </dd>
-            <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ dept_link('admin.communities.show', ['community' => $cohort->community]) }}">{{ $cohort->community->name }}</a>@else<span class="hint">not tied to one</span>@endif</dd>
+            <dt>Community</dt><dd>@if ($cohort->community)<a href="{{ dept_link('admin.communities.show', ['community' => $cohort->community]) }}">{{ $cohort->community->name }}</a>@else<span class="hint">All communities — not tied to one</span>@endif</dd>
+            <dt>Counties it is offered in</dt><dd>{{ $cohort->coverageLabel() }}</dd>
             <dt>Sessions</dt><dd>{{ $cohort->hoursLabel() }}</dd>
             <dt>Units taught</dt><dd>
                 @if ($cohort->units->isEmpty())

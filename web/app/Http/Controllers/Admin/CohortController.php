@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Cohort;
 use App\Models\CohortSession;
+use App\Models\County;
 use App\Models\CtpRegistration;
 use App\Models\Enrollment;
 use App\Models\FinanceEntry;
@@ -36,7 +37,7 @@ class CohortController extends Controller
         $status = $request->input('status', 'all');
         $year = (int) $request->input('year');
 
-        return view('admin.cohorts.index', $this->formData() + [            'cohorts' => Cohort::with(['training:id,name,code', 'trainings:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
+        return view('admin.cohorts.index', $this->formData() + [            'cohorts' => Cohort::with(['training:id,name,code', 'trainings:id,name,code', 'venue:id,name,type,county,sub_county,ward', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'counties:id,name', 'units', 'enrollments'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->when($year, fn ($q) => $q->where('academic_year', $year))
                 ->orderByDesc('starts_on')->orderBy('id')->get(),
@@ -51,7 +52,7 @@ class CohortController extends Controller
     public function create()
     {
         return view('admin.cohorts.form', $this->formData() + [
-            'cohort' => new Cohort(['theory_hours' => 40, 'practical_hours' => 60, 'seats' => 25]),
+            'cohort' => new Cohort(['seats' => 25]),
             'title' => 'Post a training',
         ]);
     }
@@ -67,13 +68,13 @@ class CohortController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request);
-        $this->guard($data);
 
         // Step one is the intake and its programmes only. The units are registered on the intake once it exists, and
         // the trainers go onto those units — so nothing here asks for a hand to teach.
         $cohort = Cohort::create([...$this->withoutLists($data), 'reference' => Cohort::nextReference(), 'status' => 'draft']);
 
         $this->syncTrainings($cohort, $data['training_ids']);
+        $this->syncCounties($cohort, $data['county_scope'], $data['county_ids'] ?? []);
 
         return redirect()->route('admin.cohorts.units', $cohort)
             ->with('status', $cohort->reference.' created as a draft — now register the units it teaches, then name a '
@@ -83,11 +84,11 @@ class CohortController extends Controller
     public function update(Request $request, Cohort $cohort)
     {
         $data = $this->validated($request);
-        $this->guard($data);
 
         $cohort->update($this->withoutLists($data));
 
         $this->syncTrainings($cohort, $data['training_ids']);
+        $this->syncCounties($cohort, $data['county_scope'], $data['county_ids'] ?? []);
 
         return back()->with('status', $cohort->reference.' updated.');
     }
@@ -141,17 +142,19 @@ class CohortController extends Controller
             'status' => 'required|in:'.implode(',', array_keys(Cohort::STATUSES)),
         ]);
 
-        if ($data['status'] !== 'draft') {
-            $this->guard($cohort->only(['venue_id', 'community_id']));
-        }
-
+        // A community is never a condition for posting: an intake can serve every community or none. What an intake
+        // does need before CTPs can apply is its units, so the flash names the step still owed.
         if ($data['status'] === 'open' && $cohort->enrollments()->where('state', 'approved')->exists()) {
             $data['status'] = 'in_progress';
         }
 
         $cohort->update($data);
 
-        return back()->with('status', $cohort->reference.' is now '.strtolower(Cohort::STATUSES[$data['status']]).'.');
+        return back()->with('status', $cohort->reference.' is now '.strtolower(Cohort::STATUSES[$data['status']]).'.'
+            .($data['status'] === 'open' && $cohort->unitList()->isEmpty()
+                ? ' It has no units registered yet — CTPs can apply, but they will see nothing to learn until you '
+                  .'tick them under Units and trainers.'
+                : ''));
     }
 
     /** Every cohort's results on one table — the office picks a cohort and reads the trainees in it. */
@@ -188,7 +191,7 @@ class CohortController extends Controller
     /** The cohort page: the roster, the seat queue and every trainee's progress. */
     public function show(Cohort $cohort)
     {
-        $cohort->load(['training', 'trainings', 'units', 'venue', 'trainer.fundi', 'trainer.staff', 'trainer.applicant', 'trainer.trainings', 'community']);
+        $cohort->load(['training', 'trainings', 'units', 'venue', 'trainer.fundi', 'trainer.staff', 'trainer.applicant', 'trainer.trainings', 'community', 'counties']);
 
         $candidates = $this->candidates($cohort);
 
@@ -433,7 +436,10 @@ class CohortController extends Controller
             'training_ids.*' => 'integer|exists:trainings,id',
             'venue_id' => 'nullable|integer|exists:training_venues,id',
             'community_id' => 'nullable|integer|exists:communities,id',
-            'county' => 'required|string|max:100',
+            // Where it physically happens is optional detail; who it is offered to is the reach the office states here.
+            'county_scope' => 'required|in:all,listed',
+            'county_ids' => 'required_if:county_scope,listed|array|min:1',
+            'county_ids.*' => 'integer|exists:counties,id',
             'sub_county' => 'nullable|string|max:100',
             'ward' => 'nullable|string|max:120',
             'starts_on' => 'required|date',
@@ -442,30 +448,22 @@ class CohortController extends Controller
             'term' => 'nullable|in:'.implode(',', array_keys(Cohort::TERMS)),
             'enrol_closes_on' => 'nullable|date|before_or_equal:starts_on',
             'seats' => 'required|integer|min:1|max:500',
-            'theory_hours' => 'nullable|integer|min:0|max:2000',
-            'practical_hours' => 'nullable|integer|min:0|max:2000',
             'fee_ksh' => 'nullable|numeric|min:0|max:9999999',
             'summary' => 'nullable|string|max:2000',
         ], [
             'training_ids.required' => 'Pick the programmes this intake teaches — at least one.',
             'training_ids.*.exists' => 'A programme on an intake must be one the programme runs (see Training).',
+            'county_ids.required' => 'Tick at least one county, or choose All counties.',
+            'county_ids.*.exists' => 'A county ticked on an intake must be one of the counties the programme works in.',
         ], [], [
             'training_ids' => 'Programmes taught on this intake', 'training_ids.*' => 'Programme',
-            'venue_id' => 'Venue', 'community_id' => 'Community', 'county' => 'County', 'sub_county' => 'Sub-county',
+            'venue_id' => 'Venue', 'community_id' => 'Community', 'county_scope' => 'Counties it is offered in',
+            'county_ids' => 'Counties it is offered in', 'county_ids.*' => 'County',
+            'sub_county' => 'Sub-county', 'ward' => 'Ward',
             'seats' => 'Seats', 'starts_on' => 'Start date', 'ends_on' => 'End date',
             'enrol_closes_on' => 'Applications close', 'academic_year' => 'Academic year',
             'term' => 'Term or semester', 'fee_ksh' => 'Training fee',
         ]);
-    }
-
-    /**
-     * Where an intake happens. A trainer is deliberately not part of this: a hand is named on a unit after the
-     * intake is registered, never on the intake itself.
-     */
-    private function guard(array $data): void
-    {
-        abort_if(empty($data['venue_id']) && empty($data['community_id']), 422,
-            'A training needs a venue or a community to run in — pick at least one.');
     }
 
     /** The approved postings that could be named on a unit of one of these programmes. */
@@ -523,7 +521,7 @@ class CohortController extends Controller
         $chosen = collect($data['training_ids'] ?? [])->map(fn ($id) => (int) $id)->filter()->values();
         $lead = $chosen->first();
 
-        unset($data['module_ids'], $data['unit_trainers'], $data['training_ids']);
+        unset($data['module_ids'], $data['unit_trainers'], $data['training_ids'], $data['county_ids']);
 
         // The intake keeps one lead programme, because every paper already written names one course. It is the first
         // programme the office chose, and a course already chosen stays the lead when the intake is edited.
@@ -539,6 +537,20 @@ class CohortController extends Controller
             ->push((int) $cohort->training_id)->unique()->values()->all();
 
         $cohort->trainings()->sync($ids);
+    }
+
+    /**
+     * Which counties the intake is offered in. All counties leaves the list empty; the county written on the cohort row
+     * is the first one ticked, because a printed place and the impact map read one name, not a list.
+     */
+    private function syncCounties(Cohort $cohort, string $scope, array $ids): void
+    {
+        $names = $scope === 'listed'
+            ? County::whereIn('id', collect($ids)->map(fn ($id) => (int) $id)->all())->orderBy('name')->get()
+            : collect();
+
+        $cohort->counties()->sync($names->pluck('id')->all());
+        $cohort->update(['county_scope' => $scope, 'county' => $names->first()?->name]);
     }
 
     /**
@@ -617,7 +629,7 @@ class CohortController extends Controller
             'venues' => VenueController::options(),
             'communities' => \App\Models\Community::where('status', 'active')
                 ->orderBy('county')->orderBy('name')->get(['id', 'name', 'county', 'sub_county', 'ward']),
-            'counties' => \App\Models\County::orderBy('name')->pluck('name'),
+            'counties' => County::orderBy('name')->get(['id', 'name']),
         ];
     }
 }

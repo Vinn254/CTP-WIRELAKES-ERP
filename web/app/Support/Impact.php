@@ -270,7 +270,7 @@ class Impact
             ['CTPs', static::count(CtpRegistration::query(), $county), 'admin.promoters.index', ['county' => $county]],
             ['E-Fundis', static::count(FundiRegistration::query(), $county), 'admin.fundis.index', ['county' => $county]],
             ['Training centres', static::count(TrainingVenue::query(), $county), 'admin.venues.index', ['county' => $county]],
-            ['Cohorts', (int) Cohort::where('county', $county)->count(), 'admin.cohorts.index', []],
+            ['Cohorts', (int) Cohort::reachingCounty($county)->count(), 'admin.cohorts.index', []],
             ['Seats given', static::seats($county, 'state', 'approved'), 'admin.cohorts.results', []],
             ['Certificates issued', static::certificates($county), 'admin.certification.index', []],
             ['Projects', static::count(Project::query(), $county), 'admin.projects.index', ['county' => $county]],
@@ -296,14 +296,14 @@ class Impact
     private static function seats(?string $county, string $column, string $value): int
     {
         return (int) Enrollment::where($column, $value)
-            ->when($county, fn ($q) => $q->whereHas('cohort', fn ($c) => $c->where('county', $county)))
+            ->when($county, fn ($q) => $q->whereHas('cohort', fn ($c) => $c->reachingCounty($county)))
             ->count();
     }
 
     private static function certificates(?string $county): int
     {
         return (int) Certification::where('status', 'approved')
-            ->when($county, fn ($q) => $q->whereHas('enrollment.cohort', fn ($c) => $c->where('county', $county)))
+            ->when($county, fn ($q) => $q->whereHas('enrollment.cohort', fn ($c) => $c->reachingCounty($county)))
             ->count();
     }
 
@@ -316,7 +316,7 @@ class Impact
     {
         return (int) Cohort::whereHas('training', fn ($t) => $t->whereIn('name', self::TECHNOLOGY_FAMILIES))
             ->when($status, fn ($q) => $q->where('status', $status))
-            ->when($county, fn ($q) => $q->where('county', $county))->count();
+            ->reachingCounty($county)->count();
     }
 
     private static function needs(?string $county, array $types): int

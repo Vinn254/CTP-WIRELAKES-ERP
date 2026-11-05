@@ -68,11 +68,11 @@
                 <td><b>{{ $c->reference }}</b></td>
                 <td>
                     <a href="{{ route('admin.cohorts.show', $c) }}"><b>{{ $c->courseLabel() }}</b></a>
-                    <div class="hint">{{ $c->training?->name }} · {{ $c->hoursLabel() }}</div>
+                    <div class="hint">{{ $c->programmeLabel() }} · {{ $c->hoursLabel() }}</div>
                 </td>
                 <td><span class="tag">{{ $c->periodLabel() }}</span></td>
-                <td>{{ $c->venue?->name ?: ($c->trainer ? 'Trainer site' : 'Community site') }}
-                    <div class="hint">{{ collect([$c->ward, $c->sub_county, $c->county])->filter()->join(', ') }}</div></td>
+                <td>{{ $c->placeLabel() }}
+                    <div class="hint">{{ $c->coverageLabel() }}</div></td>
                 <td>{{ $c->trainer?->personName() ?: '—' }}
                     @if ($c->venue)<div class="hint">{{ $c->venue->typeLabel() }}</div>@endif</td>
                 <td>{{ $c->runLabel() }}<div class="hint">{{ $c->stageLabel() }}
@@ -103,12 +103,12 @@
 </table>
 
 @include('partials.sheet-start', ['name' => 'post-training', 'title' => 'Post a training',
-    'sub' => 'Set the training, venue, trainer and seats for this intake.'])
+    'sub' => 'Set the programmes it teaches, where it runs and the seats. Units and trainers come next.'])
     <form method="POST" action="{{ route('admin.cohorts.store') }}">
         @csrf
         <input type="hidden" name="_sheet" value="post-training">
         @include('admin.cohorts.fields', [
-            'cohort' => new \App\Models\Cohort(['theory_hours' => 40, 'practical_hours' => 60, 'seats' => 25]),
+            'cohort' => new \App\Models\Cohort(['seats' => 25]),
             'editing' => false,
         ])
         <div class="sheet-actions">

@@ -33,8 +33,8 @@ class Cohort extends Model
 
     protected $fillable = [
         'reference', 'training_id', 'venue_id', 'trainer_id', 'community_id',
-        'county', 'sub_county', 'ward', 'starts_on', 'ends_on', 'academic_year', 'term', 'enrol_closes_on',
-        'seats', 'theory_hours', 'practical_hours', 'fee_ksh', 'summary', 'status',
+        'county', 'county_scope', 'sub_county', 'ward', 'starts_on', 'ends_on', 'academic_year', 'term',
+        'enrol_closes_on', 'seats', 'fee_ksh', 'summary', 'status',
     ];
 
     protected $casts = [
@@ -43,8 +43,6 @@ class Cohort extends Model
         'enrol_closes_on' => 'date',
         'academic_year' => 'integer',
         'seats' => 'integer',
-        'theory_hours' => 'integer',
-        'practical_hours' => 'integer',
         'fee_ksh' => 'decimal:2',
     ];
 
@@ -80,6 +78,12 @@ class Cohort extends Model
     public function trainings(): BelongsToMany
     {
         return $this->belongsToMany(Training::class, 'cohort_training')->withTimestamps()->orderBy('trainings.name');
+    }
+
+    /** The counties this intake is offered in when it is not offered in all of them. */
+    public function counties(): BelongsToMany
+    {
+        return $this->belongsToMany(County::class, 'cohort_county')->withTimestamps()->orderBy('counties.name');
     }
 
     public function venue(): BelongsTo
@@ -297,6 +301,15 @@ class Cohort extends Model
             ->where(fn ($q) => $q->where('seats', 0)->orWhereRaw('seats > (select count(*) from enrollments e where e.cohort_id = cohorts.id and e.state in (?, ?))', ['pending', 'approved']));
     }
 
+    /** Intakes that reach this county: the ones open in every county, plus those that list it. */
+    public function scopeReachingCounty(Builder $query, ?string $county): Builder
+    {
+        return $query->when($county, fn (Builder $q) => $q->where(fn (Builder $q) => $q
+            ->where('county_scope', '!=', 'listed')
+            ->orWhere('county', $county)
+            ->orWhereHas('counties', fn (Builder $c) => $c->where('name', $county))));
+    }
+
     public function statusLabel(): string
     {
         return self::STATUSES[$this->status] ?? Str::headline($this->status);
@@ -349,6 +362,43 @@ class Cohort extends Model
         return $this->runLabel();
     }
 
+    /** An intake offered in every county needs no list — and belongs to no community's or one county's reach. */
+    public function coversAllCounties(): bool
+    {
+        return $this->county_scope !== 'listed';
+    }
+
+    /** Does this intake reach a CTP in this county? A county-less intake (no list, no county named) reaches all. */
+    public function coversCounty(?string $county): bool
+    {
+        if (blank($county)) {
+            return false;
+        }
+
+        if ($this->coversAllCounties()) {
+            return true;
+        }
+
+        $names = $this->countyNames();
+
+        return $names->contains(fn (string $name) => strcasecmp($name, trim($county)) === 0);
+    }
+
+    /** The counties the office ticked, with the county written on the row kept along the way for old records. */
+    public function countyNames(): Collection
+    {
+        $names = ($this->relationLoaded('counties') ? $this->counties : $this->counties()->get())
+            ->pluck('name');
+
+        return $this->county ? $names->push($this->county)->filter()->unique() : $names;
+    }
+
+    /** Where the training physically happens. The reach is stated separately, by coverageLabel(). */
+    public function coverageLabel(): string
+    {
+        return $this->coversAllCounties() ? 'All counties' : $this->countyNames()->join(', ');
+    }
+
     /** Where the training happens — the venue if there is one, otherwise the trainer's own site. */
     public function placeLabel(): string
     {
@@ -360,12 +410,29 @@ class Cohort extends Model
             return $this->trainer->placeLabel();
         }
 
-        return collect([$this->ward, $this->sub_county, $this->county])->filter()->join(' · ');
+        return collect([$this->ward, $this->sub_county, $this->county])->filter()->join(' · ') ?: 'No fixed place';
     }
 
+    /** The teaching time is the units' own: a welder's unit and a solar unit are not run over the same hours. */
     public function hoursLabel(): string
     {
-        return $this->theory_hours.'h theory · '.$this->practical_hours.'h practical';
+        $units = $this->unitList();
+
+        $theory = (int) $units->sum(fn (TrainingModule $u) => (int) ($u->theory_hours ?? 0));
+        $practical = (int) $units->sum(fn (TrainingModule $u) => (int) ($u->practical_hours ?? 0));
+
+        // A unit the office has not split yet still teaches its hours, so they are counted on their own line.
+        $whole = (int) $units->whereNull('theory_hours')->whereNull('practical_hours')->sum('hours');
+
+        if (! $theory && ! $practical) {
+            return $whole
+                ? $whole.' hours over '.$units->count().' '.Str::plural('unit', $units->count())
+                : 'Hours are set on the units';
+        }
+
+        $label = $theory.'h theory · '.$practical.'h practical';
+
+        return $whole ? $label.' · '.$whole.'h still on one total' : $label;
     }
 
     public static function nextReference(): string

@@ -109,7 +109,8 @@ class TrainingController extends Controller
 
         abort_unless($module->training_id === $training->id, 404);
 
-        $module->update(TrainingModule::dataFrom($request));
+        // Left both hour boxes empty? The total already on the unit stands rather than being wiped by the save.
+        $module->update(TrainingModule::dataFrom($request, $module->hours));
 
         return back()->with('status', $module->title.' updated — every roll for '.$training->name.' shows the change.');
     }

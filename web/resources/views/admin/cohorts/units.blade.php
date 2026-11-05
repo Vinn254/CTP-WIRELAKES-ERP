@@ -53,7 +53,8 @@
                         <div class="unit-row">
                             <label class="unit-pick"><input type="checkbox" name="module_ids[]" value="{{ $u->id }}"
                                   @checked(in_array($u->id, $chosenUnits, true))>
-                                {{ $u->position }}. {{ $u->title }}</label>
+                                {{ $u->position }}. {{ $u->title }}
+                                <span class="hint">{{ $u->hoursLabel() }}</span></label>
                             <select name="unit_trainers[{{ $u->id }}]" aria-label="Trainer on {{ $u->title }}">
                                 <option value="">No trainer named</option>
                                 @foreach ($options as $tr)

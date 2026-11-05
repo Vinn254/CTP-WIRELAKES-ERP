@@ -107,14 +107,15 @@ class MemberPortal
     {
         return Cohort::openForEnrol()
             ->with(['training:id,name,code,summary', 'venue:id,name,type,county,sub_county,ward',
-                'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name', 'enrollments'])
+                'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name', 'community:id,name',
+                'counties:id,name', 'enrollments'])
             ->orderBy('starts_on')->orderBy('id')->get();
     }
 
-    /** An intake runs in the CTP's own area when the county matches (the training mobilises ward by ward). */
+    /** An intake reaches a CTP when it is open in all counties, or lists the county the CTP registered in. */
     public static function isInCtpArea(Cohort $cohort, CtpRegistration $ctp): bool
     {
-        return $ctp->county && $cohort->county && strcasecmp(trim($cohort->county), trim($ctp->county)) === 0;
+        return $cohort->coversCounty($ctp->county);
     }
 
     /** Everything the My training screen needs about one CTP — open intakes, seats held and the record. */
