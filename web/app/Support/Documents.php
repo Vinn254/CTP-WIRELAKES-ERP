@@ -46,6 +46,18 @@ class Documents
         return $url.(str_contains($url, '?') ? '&' : '?').'download=1';
     }
 
+    /**
+     * Real PDF bytes for a Download button: the paper the caller laid out, named after its reference so the file a
+     * member keeps on their phone reads the same as the invoice it came from.
+     */
+    public static function pdf(string $pdf, string $reference): \Illuminate\Http\Response
+    {
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.static::slug($reference).'.pdf"',
+        ]);
+    }
+
     /** A name safe to write on someone's disk — the reference, not the punctuation a filename cannot hold. */
     public static function slug(string $reference): string
     {

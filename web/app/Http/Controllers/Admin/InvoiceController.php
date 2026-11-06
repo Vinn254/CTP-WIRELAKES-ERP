@@ -13,6 +13,7 @@ use App\Models\InvoicePayment;
 use App\Models\Project;
 use App\Support\Documents;
 use App\Support\Finance;
+use App\Support\InvoicePdf;
 use App\Support\Invoices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -129,11 +130,15 @@ class InvoiceController extends Controller
         return back()->with('status', $invoice->reference.' is open again at '.$invoice->balanceLabel().' outstanding.');
     }
 
-    /** The document itself: opened in the browser to read, printed from there, or saved as a file with ?download=1. */
+    /** The document itself: opened in the browser to read or print, and saved as a real PDF with ?download=1. */
     public function document(Request $request, Invoice $invoice)
     {
         $invoice->load(['ctp:id,full_name,ctp_code', 'fundi:id,full_name,ef_code', 'project:id,title',
             'payments', 'raiser:id,name']);
+
+        if ($request->boolean('download')) {
+            return Documents::pdf(InvoicePdf::render($invoice), $invoice->reference);
+        }
 
         return Documents::page($request, view('admin.finance.invoice-document', ['invoice' => $invoice])->render(),
             $invoice->reference);

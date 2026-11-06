@@ -3,7 +3,10 @@
 namespace App\Mail;
 
 use App\Models\Invoice;
+use App\Support\Documents;
+use App\Support\InvoicePdf;
 use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Attachment;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -42,5 +45,16 @@ class InvoiceEmail extends Mailable
         return new Content(view: 'mail.invoice', with: [
             'invoice' => $this->invoice,
         ]);
+    }
+
+    /** The invoice as a PDF the payer can keep, hand in or open on any phone — the same paper the office prints. */
+    public function attachments(): array
+    {
+        $invoice = $this->invoice;
+
+        return [
+            Attachment::fromData(fn () => InvoicePdf::render($invoice), Documents::slug($invoice->reference).'.pdf')
+                ->withMime('application/pdf'),
+        ];
     }
 }

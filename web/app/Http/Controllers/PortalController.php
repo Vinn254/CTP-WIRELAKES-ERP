@@ -29,6 +29,7 @@ use App\Models\TrainingDocument;
 use App\Models\TrainingModule;
 use App\Models\TrainingVenue;
 use App\Support\Documents;
+use App\Support\InvoicePdf;
 use App\Support\MemberPortal;
 use App\Support\Marketplace;
 use App\Support\TeachingDesk;
@@ -870,6 +871,10 @@ class PortalController extends Controller
         $member = $this->member();
         abort_if(! $member, 403, 'Your member record could not be found. Contact the programme office.');
         abort_unless(Invoice::forMember($member)->whereKey($invoice->id)->exists(), 404);
+
+        if ($request->boolean('download')) {
+            return Documents::pdf(InvoicePdf::render($invoice), $invoice->reference);
+        }
 
         return Documents::page($request, view('admin.finance.invoice-document', [
             'invoice' => $invoice->load('payments'),
