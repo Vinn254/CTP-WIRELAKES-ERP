@@ -83,6 +83,7 @@ class Departments
             ['label' => 'Applicants', 'icon' => 'users', 'route' => ['admin.registrations.index', 'ctp'], 'badge' => 'applicants'],
             ['label' => 'Staff accounts & roles', 'icon' => 'key', 'route' => ['admin.host.staff.index', 'membership'], 'invite' => true],
             ['label' => 'Site content & pages', 'icon' => 'layout', 'route' => ['admin.content.index']],
+            ['label' => 'Mobile app download', 'icon' => 'image', 'route' => ['admin.mobile-app.index']],
             ['label' => 'Membership settings', 'icon' => 'sliders', 'route' => ['admin.content.edit', 'membership']],
             ['label' => 'Projects', 'icon' => 'briefcase', 'route' => ['admin.projects.index'], 'badge' => 'applications'],
             ['label' => 'Hirers', 'icon' => 'building', 'route' => ['admin.hirers.index']],
@@ -189,6 +190,7 @@ class Departments
     private const OWNERS = [
         'admin.registrations.' => 'membership',
         'admin.content.' => 'membership',
+        'admin.mobile-app.' => 'membership',
         'admin.partners.' => 'membership',
         'admin.messages.' => 'membership',
         'admin.applications.' => 'membership',
@@ -267,6 +269,7 @@ class Departments
         'admin.host.fundis.index' => 'Every E-Fundi the programme has approved, read here with the record the desk works from',
         'admin.host.staff.index' => 'Invite a person in and withdraw a link still waiting; Human Resources sets what the account opens',
         'admin.content.index' => 'Edit the text, images and sections of each public page',
+        'admin.mobile-app.index' => 'Put up the app members install on their phones',
         'admin.content.edit' => 'Fees, CTP tracks and E-Fundi tiers used by the forms',
         'admin.partners.index' => 'Requests from the public page and the partner wall',
         'admin.messages.index' => 'Messages sent from the public contact form',

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 /**
  * What a visitor hands us — a logo, a photo, a link — is stored under a name and a form we choose, never the one
@@ -41,4 +42,18 @@ class Uploads
 
     /** The three phone- or camera-friendly formats a browser will actually play back. */
     public const VIDEO_MIMES = 'mp4,webm,mov';
+
+    /** An app package is a zip container whose bytes start with PK — whatever the visitor named it. */
+    public static function isApk(UploadedFile $file): bool
+    {
+        return strtolower($file->getClientOriginalExtension()) === 'apk'
+            && in_array($file->getMimeType(), ['application/vnd.android.package-archive', 'application/zip', 'application/java-archive'], true)
+            && str_starts_with((string) @file_get_contents($file->getRealPath(), false, null, 0, 2), 'PK');
+    }
+
+    /** The stored name is ours, never theirs: a fixed stem, random bytes, and always .apk. */
+    public static function apkName(): string
+    {
+        return 'wirelakes-app-'.Str::random(10).'.apk';
+    }
 }

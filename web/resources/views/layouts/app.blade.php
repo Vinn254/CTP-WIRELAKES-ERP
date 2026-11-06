@@ -50,6 +50,7 @@
                 </div>
             </div>
             <a href="{{ route('careers') }}" class="{{ request()->routeIs('careers.*') ? 'active' : '' }}">Careers</a>
+            <a href="{{ route('get-the-app') }}" class="{{ request()->routeIs('get-the-app.*') ? 'active' : '' }}">Get the app</a>
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
@@ -130,6 +131,7 @@ document.addEventListener('click', function (e) {
             <p>
                 <a href="{{ route('apply') }}">Apply to join</a><br>
                 <a href="{{ route('login') }}">Member &amp; fundi login</a><br>
+                <a href="{{ route('get-the-app') }}">Get the app</a><br>
                 <a href="{{ route('donate') }}">Donate</a>
             </p>
         </div>

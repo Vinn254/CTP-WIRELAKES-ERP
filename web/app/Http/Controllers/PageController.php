@@ -7,6 +7,7 @@ use App\Models\Donation;
 use App\Models\Partner;
 use App\Models\WorkOrder;
 use App\Support\MemberPortal;
+use App\Support\MobileApp;
 use App\Support\ProgrammeMail;
 use App\Support\SafeUrl;
 use App\Support\Uploads;
@@ -62,6 +63,33 @@ class PageController extends Controller
     public function faq()
     {
         return view('pages.faq');
+    }
+
+    /** Get the app: what a phone installs, straight from the package the office put up. */
+    public function appDownload()
+    {
+        return view('pages.app-download', [
+            'download' => MobileApp::url(),
+            'size' => MobileApp::sizeMb(),
+            'version' => MobileApp::version(),
+            'notes' => MobileApp::notes(),
+            'publishedAt' => MobileApp::publishedAt(),
+            'playUrl' => MobileApp::playUrl(),
+        ]);
+    }
+
+    /**
+     * The Download button lands here first so the office can count what the page actually gives out, then the
+     * phone is pointed at the file itself — the host serves it, so no PHP stands between a member and the install.
+     */
+    public function appPackage()
+    {
+        $url = MobileApp::url();
+        abort_unless($url, 404);
+
+        MobileApp::countDownload();
+
+        return redirect()->to($url);
     }
 
     public function partners()

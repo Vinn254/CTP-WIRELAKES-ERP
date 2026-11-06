@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\MarketplaceController;
 use App\Http\Controllers\Admin\MyTimeLogController;
 use App\Http\Controllers\Admin\HirerController;
 use App\Http\Controllers\Admin\MeGisController;
+use App\Http\Controllers\Admin\MobileAppController;
 use App\Http\Controllers\Admin\NeedController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\PayrollController;
@@ -89,6 +90,11 @@ Route::post('/donate', [PageController::class, 'storeDonation'])->name('donate.s
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [PageController::class, 'storeContact'])->name('contact.store');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
+
+// The app a member puts on their phone. The download link is the website's own page, so the office can update the
+// package without touching a store, and every tap on Download is counted.
+Route::get('/get-the-app', [PageController::class, 'appDownload'])->name('get-the-app');
+Route::get('/get-the-app/download', [PageController::class, 'appPackage'])->name('get-the-app.download');
 
 // The six areas of work, each on its own page: what the area does, explained beside the office's own pictures, with
 // the one form a person uses to ask for that work. Joining and job applications go to the register and Careers pages.
@@ -179,6 +185,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/applications', [AdminApplicationController::class, 'index'])->name('applications.index');
     Route::get('/applications/{application}', [AdminApplicationController::class, 'show'])->whereNumber('application')->name('applications.show');
     Route::post('/applications/{application}', [AdminApplicationController::class, 'review'])->whereNumber('application')->name('applications.review');
+
+    // The app visitors download: one package on the website, its version and what is new in it.
+    Route::get('/mobile-app', [MobileAppController::class, 'index'])->name('mobile-app.index');
+    Route::post('/mobile-app', [MobileAppController::class, 'save'])->name('mobile-app.save');
+    Route::delete('/mobile-app/package', [MobileAppController::class, 'remove'])->name('mobile-app.package.delete');
 
     // Site content / CMS
     Route::get('/content', [ContentController::class, 'index'])->name('content.index');
