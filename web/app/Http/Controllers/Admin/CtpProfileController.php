@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AccountInvite;
 use App\Models\CtpRegistration;
+use App\Models\Enrollment;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Support\Departments;
 use App\Support\Documents;
 use App\Support\Execution;
+use App\Support\Grading;
 use App\Support\ReviewActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -101,7 +103,37 @@ class CtpProfileController extends Controller
             'trainings' => \App\Models\Training::active()->orderBy('name')->get(['id', 'name']),
             'invite' => AccountInvite::where('member_type', 'ctp')->where('member_id', $ctp->id)->first(),
             'desk' => \App\Support\Profile::board('ctp', $ctp),
+            'history' => $this->history($ctp),
         ]);
+    }
+
+    /**
+     * Every intake this promoter has sat, newest term first, with the result each one came to: the profile is opened
+     * to see the whole training history, so the rows carry the same weighed marks the student record and the
+     * transcript print.
+     */
+    private function history(CtpRegistration $ctp)
+    {
+        $seats = Enrollment::where('ctp_id', $ctp->id)
+            ->with(['cohort:id,reference,training_id,venue_id,starts_on,ends_on,academic_year,term,status',
+                'cohort.training:id,name,code', 'cohort.venue:id,name,type,county', 'cohort.units',
+                'entries', 'moduleMarks', 'certification'])
+            ->get()
+            ->sortByDesc(fn (Enrollment $e) => $e->cohort?->starts_on?->timestamp ?? 0)
+            ->values();
+
+        return $seats->map(function (Enrollment $e) {
+            $units = Grading::forSeat($e);
+
+            return [
+                'seat' => $e,
+                'attendance' => $e->attendancePct(),
+                'track' => $e->trackPct(),
+                'grade' => Grading::overall($units),
+                'pass' => $units ? round(collect($units)->avg('pass_pct'), 1) : null,
+                'marked' => count($units).' / '.($e->cohort?->unitList()->count() ?? 0),
+            ];
+        });
     }
 
     public function edit(Request $request, CtpRegistration $ctp)

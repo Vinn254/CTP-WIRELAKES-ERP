@@ -264,35 +264,69 @@ class CohortController extends Controller
                 : ''));
     }
 
-    /** Every cohort's results on one table — the office picks a cohort and reads the trainees in it. */
+    /** Every cohort's results on one table — the office picks a cohort, or a programme, and reads the trainees in it. */
     public function results(Request $request)
     {
         $cohorts = Cohort::where('status', '!=', 'draft')
-            ->with(['training:id,name,code', 'venue:id,name,county', 'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name',
+            ->with(['training:id,name,code', 'trainings', 'venue:id,name,county',
+                'trainer.fundi:id,full_name', 'trainer.staff:id,name', 'trainer.applicant:id,name',
                 'enrollments:id,cohort_id,state'])
             ->orderByDesc('academic_year')->orderByDesc('starts_on')->orderBy('id')->get();
 
-        $cohort = $cohorts->firstWhere('id', (int) $request->input('cohort')) ?: $cohorts->first();
+        // A programme is read across every intake that has run it: the Registrar grades a course, not only a class.
+        $programme = $request->filled('training') ? Training::find((int) $request->input('training')) : null;
+        $runs = $programme
+            ? $cohorts->filter(fn (Cohort $c) => in_array($programme->id, $c->programmeIds(), true))->values()
+            : $cohorts;
 
-        $enrollments = $cohort
-            ? $cohort->enrollments()
-                ->with(['ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'certification', 'cohort.units', 'cohort.training'])
-                ->orderByRaw("case state when 'approved' then 0 when 'pending' then 1 else 2 end")
-                ->get()
-                ->sortBy(fn ($e) => mb_strtolower($e->ctp->full_name ?? ''))
-                ->values()
-            : collect();
+        // Reading a course defaults to the newest intake that actually has trainees on it, so the sheet a Marks link
+        // opens is a live one rather than an intake that was called off before anyone sat.
+        $cohort = $runs->firstWhere('id', (int) $request->input('cohort'))
+            ?: ($runs->first(fn (Cohort $c) => $c->enrollments->where('state', 'approved')->isNotEmpty()) ?: $runs->first());
+
+        $seats = fn ($query) => $query
+            ->with(['ctp:id,full_name,ctp_code', 'entries', 'moduleMarks', 'certification',
+                'cohort:id,reference,training_id,academic_year,term,starts_on,ends_on,status', 'cohort.units', 'cohort.training'])
+            ->orderByRaw("case state when 'approved' then 0 when 'pending' then 1 else 2 end")
+            ->get()
+            ->sortBy(fn ($e) => mb_strtolower($e->ctp->full_name ?? ''))
+            ->values();
+
+        $enrollments = $programme
+            ? $seats(Enrollment::whereIn('cohort_id', $runs->pluck('id')))
+            : ($cohort ? $seats($cohort->enrollments()) : collect());
+
+        $held = $enrollments->where('state', 'approved');
 
         return view('admin.cohorts.results', [
             'cohorts' => $cohorts,
             'cohort' => $cohort,
             'enrollments' => $enrollments,
+            'programme' => $programme,
+            'programmes' => $this->programmesRun($cohorts),
             // The marks the unit sheets carry, gathered unit by unit and weighed on the Registrar's grading, so the
             // results read as one table of marks rather than as separate papers.
-            'board' => $cohort ? Grading::cohortBoard($cohort, $enrollments->where('state', 'approved')) : [],
+            'board' => $programme ? Grading::programmeBoard($programme, $held)
+                : ($cohort ? Grading::cohortBoard($cohort, $held) : []),
             'canCorrect' => TeachingDesk::approves($request->user()),
-            'runs' => $cohort ? $this->runsOf($cohort) : collect(),
+            'runs' => $programme ? $runs : ($cohort ? $this->runsOf($cohort) : collect()),
+            // The intakes the chosen programme has actually run — the cohort box lists only these while a course is picked.
+            'programmeRuns' => $programme ? $runs : collect(),
         ]);
+    }
+
+    /** The programmes a posted intake has actually run — the row the Registrar clicks a course from. */
+    private function programmesRun($cohorts)
+    {
+        $ids = $cohorts->flatMap(fn (Cohort $c) => $c->programmeIds())->unique()->values();
+
+        return Training::whereIn('id', $ids)->orderBy('name')->get(['id', 'name', 'code'])
+            ->map(fn (Training $t) => [
+                'training' => $t,
+                'runs' => $cohorts->filter(fn (Cohort $c) => in_array($t->id, $c->programmeIds(), true))->count(),
+                'seats' => $cohorts->filter(fn (Cohort $c) => in_array($t->id, $c->programmeIds(), true))
+                    ->flatMap(fn (Cohort $c) => $c->enrollments->where('state', 'approved'))->count(),
+            ]);
     }
 
     /** The cohort page: the roster, the seat queue and every trainee's progress. */

@@ -1,6 +1,8 @@
 @php
     /* The results of one cohort on one table — the office and the trainer read the same lines. */
     $seated = $enrollments->where('state', 'approved');
+    $showIntake = $intake ?? false;
+    $columns = 13 + ($showIntake ? 1 : 0) + 1;
     $rows = $seated->values()->map(function ($e) {
         $board = $e->moduleBoard();
         $grades = \App\Support\Grading::forSeat($e);
@@ -38,7 +40,9 @@
         <tr>
             <th>CTP</th><th>Seat</th><th>Stage</th><th>Attendance</th><th>Modules</th>
             <th>CAT</th><th>Assignment</th><th>Theory</th><th>Practical</th><th>Assessment</th>
-            <th>Weighed grade</th><th>Track</th><th>Certificate</th><th></th>
+            <th>Weighed grade</th><th>Track</th><th>Certificate</th>
+            @if ($showIntake)<th>Intake</th>@endif
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -77,6 +81,12 @@
                         <span class="hint">not yet</span>
                     @endif
                 </td>
+                @if ($showIntake)
+                    <td>
+                        <a href="{{ route('admin.cohorts.results', ['cohort' => $e->cohort_id]) }}">{{ $e->cohort?->reference ?: '—' }}</a>
+                        <div class="hint">{{ $e->cohort?->periodLabel() ?: '—' }}</div>
+                    </td>
+                @endif
                 <td class="actions"><a class="btn btn-sm btn-outline" href="{{ $open($e) }}">Open</a>
                     @if ($canCorrect ?? false)
                         <a class="btn btn-sm btn-outline"
@@ -88,8 +98,8 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="14" class="empty-cell">
-                Nobody holds a seat in this cohort yet, so there are no results to show. The office gives a seat, or a CTP
+            <tr><td colspan="{{ $columns }}" class="empty-cell">
+                Nobody holds a seat here yet, so there are no results to show. The office gives a seat, or a CTP
                 applies for one while the cohort is open.
             </td></tr>
         @endforelse

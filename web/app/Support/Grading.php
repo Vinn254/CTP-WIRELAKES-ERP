@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Cohort;
 use App\Models\Enrollment;
+use App\Models\Training;
 use App\Models\TrainingModule;
 use App\Models\UnitGrading;
 use App\Models\UnitMark;
@@ -176,6 +177,71 @@ class Grading
 
             $board[] = [
                 'unit' => $unit,
+                'grading' => $grading,
+                'marks' => collect($sums)->map(fn (array $v) => round(array_sum($v) / count($v), 1))->all(),
+                'attendance' => $att ? round(array_sum($att) / count($att), 1) : null,
+                'graded' => count($grades),
+                'pct' => $grades ? round(collect($grades)->avg('pct'), 1) : null,
+                'passed' => collect($grades)->filter(fn (array $g) => $g['passed'])->count(),
+            ];
+        }
+
+        return $board;
+    }
+
+    /**
+     * The same table read across a whole programme: every unit the course teaches, the marks its sheets carry on
+     * average over every intake that has run it, and what they come to on the Registrar's own weights. The Registrar
+     * grades a programme, not just one class, so this is where a course is regulated term after term.
+     *
+     * @param  Collection<int, Enrollment>  $seats  every seat held on the programme's intakes
+     * @return list<array{unit: TrainingModule, grading: UnitGrading, marks: array<string, float>,
+     *                     graded: int, pct: float|null, passed: int}>
+     */
+    public static function programmeBoard(Training $training, Collection $seats): array
+    {
+        $rows = UnitMark::query()
+            ->join('unit_mark_sheets as s', 's.id', '=', 'unit_marks.sheet_id')
+            ->whereIn('s.cohort_id', $seats->pluck('cohort_id')->filter()->unique())
+            ->whereIn('unit_marks.enrollment_id', $seats->pluck('id'))
+            ->where('s.status', 'approved')
+            ->whereNotNull('unit_marks.score')
+            ->get(['s.training_module_id', 'unit_marks.enrollment_id', 'unit_marks.kind', 'unit_marks.score']);
+
+        $byUnit = $rows->groupBy('training_module_id')
+            ->map(fn (Collection $forUnit) => $forUnit->groupBy('enrollment_id')
+                ->map(fn (Collection $forSeat) => $forSeat->groupBy('kind')
+                    ->map(fn (Collection $scores) => round($scores->avg('score'), 1))->all())->all());
+        $board = [];
+
+        foreach ($training->modules as $unit) {
+            $grading = static::for($unit);
+            $grades = [];
+            $sums = [];
+            $att = [];
+
+            foreach ($seats as $seat) {
+                $marks = $byUnit->get($unit->id, [])[$seat->id] ?? [];
+                $grade = static::weigh($grading, $marks, $seat->attendancePct());
+
+                if (! $grade['marked']) {
+                    continue;
+                }
+
+                $grades[] = $grade;
+
+                if ($seat->attendancePct() !== null) {
+                    $att[] = $seat->attendancePct();
+                }
+
+                foreach ($marks as $kind => $mark) {
+                    $sums[$kind][] = $mark;
+                }
+            }
+
+            $board[] = [
+                'unit' => $unit,
+                'term' => $unit->termLabel(),
                 'grading' => $grading,
                 'marks' => collect($sums)->map(fn (array $v) => round(array_sum($v) / count($v), 1))->all(),
                 'attendance' => $att ? round(array_sum($att) / count($att), 1) : null,

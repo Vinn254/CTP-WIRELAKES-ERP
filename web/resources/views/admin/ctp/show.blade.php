@@ -61,6 +61,70 @@
     </div>
 @endif
 
+<div class="card">
+    <div class="section-head">
+        <h3>Training history</h3>
+        <span class="hint">{{ $history->count() }} intake{{ $history->count() === 1 ? '' : 's' }} sat, newest term first</span>
+    </div>
+    <p style="margin:10px 0 0;">
+        <a class="btn btn-sm btn-primary"
+           href="{{ \App\Support\Documents::downloadUrl(route('admin.students.transcript', $ctp)) }}">Download transcript</a>
+    </p>
+    <div class="table-scroll">
+        <table class="data">
+            <thead>
+                <tr>
+                    <th>Period</th><th>Intake</th><th>Course</th><th>Where</th><th>Stage</th><th>Attendance</th>
+                    <th>Units marked</th><th>Result</th><th>Track</th><th>Certificate</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($history as $h)
+                    @php $e = $h['seat']; $cert = $e->certification; @endphp
+                    <tr>
+                        <td><b>{{ $e->cohort?->periodLabel() ?: '—' }}</b></td>
+                        <td>{{ $e->cohort?->reference ?: '—' }}</td>
+                        <td>{{ $e->cohort?->training?->name ?: '—' }}</td>
+                        <td>{{ $e->cohort?->venue?->name ?: ($e->cohort?->placeLabel() ?: '—') }}</td>
+                        <td><span class="tag">{{ $e->stageLabel() }}</span>
+                            <div class="hint">{{ $e->stateLabel() }}</div></td>
+                        <td @if ($h['attendance'] !== null && $h['attendance'] < \App\Models\Enrollment::ATTENDANCE_MINIMUM) class="flag-bad" @endif>
+                            {{ $h['attendance'] === null ? 'not marked' : $h['attendance'].'%' }}
+                        </td>
+                        <td>{{ $h['marked'] }}</td>
+                        <td class="{{ $h['grade'] === null ? '' : ($h['grade'] >= $h['pass'] ? 'flag-good' : 'flag-bad') }}">
+                            {{ $h['grade'] === null ? '—' : $h['grade'] }}
+                            @if ($h['grade'] !== null)
+                                <div class="hint">{{ \App\Support\Grading::letter($h['grade']) }} · pass {{ $h['pass'] }}</div>
+                            @endif
+                        </td>
+                        <td class="{{ $h['track'] >= 100 ? 'flag-good' : 'flag-partial' }}"><b>{{ $h['track'] }}%</b></td>
+                        <td>
+                            @if ($cert)
+                                <span class="status {{ $cert->status }}">{{ $cert->statusLabel() }}</span>
+                                @if ($cert->certificate_code)<div class="hint">{{ $cert->certificate_code }}</div>@endif
+                            @elseif ($e->canBeCertified())
+                                <span class="tag gold">ready to put forward</span>
+                            @else
+                                <span class="hint">not yet</span>
+                            @endif
+                        </td>
+                        <td class="actions">
+                            <a class="btn btn-sm btn-outline" href="{{ route('admin.track.show', $e) }}">Open</a>
+                            <a class="btn btn-sm btn-ghost" href="{{ route('admin.students.show', $ctp) }}">Student record</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="11" class="empty-cell">
+                        This promoter has never held a seat, so there is no intake history or transcript yet. The office
+                        seats them on an intake, or they apply for a seat while one is open.
+                    </td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <div class="grid-2 review-grid">
     <div class="stack">
         <div class="card">
