@@ -15,6 +15,7 @@
     <div class="stat"><small>At 100%, not queued yet</small><b>{{ $ready->count() }}</b></div>
     <div class="stat"><small>Awaiting an executive</small><b>{{ $counts['recommended'] ?? 0 }}</b></div>
     <div class="stat"><small>Issued</small><b>{{ $counts['approved'] ?? 0 }}</b></div>
+    <div class="stat"><small>Alumni certified</small><b>{{ $alumniTotal }}</b></div>
     <div class="stat"><small>Revoked</small><b>{{ $counts['revoked'] ?? 0 }}</b></div>
 </div>
 
@@ -155,4 +156,61 @@
     An approved certificate is the qualification that opens <b>E-Fundi registration</b> — the office
     confirms that separately in Membership, so a certified CTP is not made a fundi behind their back.
 </p>
+
+<div class="section-head">
+    <h3>Alumni — certified and out in the field</h3>
+    <span class="tag">{{ $alumniTotal }} {{ Str::plural('alumnus', $alumniTotal) }}</span>
+</div>
+<p class="hint">
+    A trainee joins this list on its own the moment an executive signs their certificate off — their track reached
+    100%, the office put them forward and the certificate was issued. There is nothing to tick here. Revoking a
+    certificate takes the person off this list; the certificate row stays on the queue above marked as revoked, and
+    their seat, marks and transcript stay on their file. Moving one on into a fundi pool is still the office's
+    decision, made on {!! dept_ref('admin.promoters.index', 'the CTP register') !!}.
+</p>
+
+<table class="data">
+    <thead>
+        <tr>
+            <th>CTP ID</th><th>Alumnus</th><th>Course</th><th>Intake</th><th>Certificate</th>
+            <th>Certified on</th><th>Track now</th><th>Attendance</th><th>Reads as</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($alumni as $c)
+            @php $e = $c->enrollment; $ctp = $e->ctp; @endphp
+            <tr>
+                <td><b>{{ $ctp->ctp_code ?: '—' }}</b></td>
+                <td><a href="{{ dept_link('admin.promoters.show', ['ctp' => $ctp]) }}"><b>{{ $ctp->full_name }}</b></a>
+                    <div class="hint">{{ $ctp->county ?: '—' }}@if ($ctp->ward) · {{ $ctp->ward }}@endif</div></td>
+                <td>{{ $e->cohort?->courseLabel() ?? '—' }}</td>
+                <td>@if ($e->cohort)<a href="{{ route('admin.cohorts.show', $e->cohort_id) }}">{{ $e->cohort->reference }}</a>
+                    @else — @endif
+                    <div class="hint">{{ $e->cohort?->ends_on ? 'ended '.$e->cohort->ends_on->format('d M Y') : 'no end date' }}</div></td>
+                <td><b>{{ $c->certificate_code }}</b>
+                    <div class="status active">Certified</div></td>
+                <td>{{ $c->approved_on?->format('d M Y') ?? '—' }}
+                    <div class="hint">{{ $c->approver?->name ?: 'signed by an executive' }}</div></td>
+                <td><a class="fee-tag {{ $e->trackPct() >= 100 ? 'paid' : 'waived' }}"
+                       href="{{ route('admin.track.show', $e) }}">{{ $e->trackPct() }}%</a></td>
+                <td>{{ $c->attendance_pct !== null ? $c->attendance_pct.'%' : '—' }}
+                    <div class="hint">theory {{ $c->theory_score ?? '—' }} · practical {{ $c->practical_score ?? '—' }}</div></td>
+                <td><span class="tag">{{ $ctp->gradeLabel() }}</span>
+                    <div class="hint">{{ $ctp->statusLabel() }}</div></td>
+                <td class="actions">
+                    <a class="btn btn-sm btn-outline" href="{{ dept_link('admin.promoters.show', ['ctp' => $ctp]) }}">Open profile</a>
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="10" class="empty-cell">
+                Nobody is certified yet. The list fills itself the moment an executive approves a certificate for a
+                trainee whose track reached 100%.
+            </td></tr>
+        @endforelse
+    </tbody>
+</table>
+
+@if ($alumni->hasPages())
+    <div class="pagination">{{ $alumni->links() }}</div>
+@endif
 @endsection

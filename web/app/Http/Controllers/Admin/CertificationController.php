@@ -30,6 +30,15 @@ class CertificationController extends Controller
             ])
                 ->where('state', 'approved')->whereDoesntHave('certification')->orderBy('id')->get()
                 ->filter(fn (Enrollment $e) => $e->trackPct() >= 100)->values(),
+            'alumni' => Certification::with([
+                'enrollment.ctp:id,full_name,ctp_code,county,ward,status,fundi_tier',
+                'enrollment.cohort:id,reference,training_id,ends_on',
+                'enrollment.cohort.training:id,name,code', 'approver:id,name',
+            ])
+                ->where('status', 'approved')
+                ->orderByDesc('approved_on')->orderByDesc('id')
+                ->paginate(20)->withQueryString(),
+            'alumniTotal' => Certification::where('status', 'approved')->count(),
             'status' => $status,
             'statuses' => Certification::STATUSES,
             'counts' => Certification::selectRaw('status, count(*) n')->groupBy('status')->pluck('n', 'status'),
