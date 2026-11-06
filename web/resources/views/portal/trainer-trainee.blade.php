@@ -51,20 +51,12 @@
 @endif
 
 <div class="card">
-    @include('partials.marks-sheet', [
-        'enrollment' => $enrollment,
-        'units' => $cohort?->unitList() ?? collect(),
-        'marksRoute' => 'portal.trainer.marks',
-    ])
+    @include('partials.progress', ['enrollment' => $enrollment, 'mode' => 'trainer', 'open' => true])
 </div>
 
 <div class="card">
     <div class="section-head"><h3>Their track</h3><span class="tag">{{ $pct }}%</span></div>
     @include('partials.track', ['enrollment' => $enrollment])
-</div>
-
-<div class="card">
-    @include('partials.progress', ['enrollment' => $enrollment, 'mode' => 'trainer', 'open' => true])
 </div>
 
 @if ($held)
@@ -76,7 +68,7 @@
         @include('partials.documents', [
             'enrollment' => $enrollment,
             'mode' => 'trainer',
-            'modules' => $cohort?->unitList() ?? collect(),
+            'modules' => $enrollment->unitList(),
             'documentKinds' => $documentKinds,
         ])
     </div>

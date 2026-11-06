@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /** A CTP's seat in a cohort — the seat (state) and how far through training they are (stage) are separate. */
@@ -112,6 +114,32 @@ class Enrollment extends Model
         return $this->hasMany(ModuleCompletion::class);
     }
 
+    /** The units the office handed this student on this seat. */
+    public function units(): BelongsToMany
+    {
+        return $this->belongsToMany(TrainingModule::class, 'enrollment_unit')
+            ->orderBy('training_modules.position')->orderBy('training_modules.id');
+    }
+
+    public function unitList(): Collection
+    {
+        if (! $this->cohort) {
+            return collect();
+        }
+
+        $mine = $this->units;
+
+        if ($mine->isNotEmpty()) {
+            return $mine->values();
+        }
+
+        // Nothing handed over: the units of their own programme on this intake, or the whole intake.
+        $programme = $this->ctp?->training_id ?: $this->cohort->training_id;
+        $units = $this->cohort->unitsFor($programme ?: null);
+
+        return $units->isNotEmpty() ? $units : $this->cohort->unitList();
+    }
+
     public function stateLabel(): string
     {
         return self::STATES[$this->state] ?? Str::headline($this->state);
@@ -173,8 +201,8 @@ class Enrollment extends Model
      *  Read from the training rather than a snapshot, so a module added mid-cohort shows on every roll at once. */
     public function moduleBoard(): array
     {
-        // The units this trainee's cohort teaches — the office's ticks on the intake, not the whole programme.
-        $modules = $this->cohort?->unitList() ?? collect();
+        // The units handed to this student — their own ticks, else the intake's list for their programme.
+        $modules = $this->unitList();
 
         $marked = ($this->relationLoaded('moduleMarks') ? $this->moduleMarks : $this->moduleMarks()->get())
             ->keyBy('training_module_id');

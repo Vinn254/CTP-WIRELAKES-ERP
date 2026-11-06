@@ -63,8 +63,9 @@ class StudentController extends Controller
     {
         return Enrollment::where('ctp_id', $ctp->id)
             ->with(['cohort:id,reference,training_id,venue_id,trainer_id,starts_on,ends_on,academic_year,term,status',
-                'cohort.training:id,name,code', 'cohort.venue:id,name,type,county',
+                'cohort.training:id,name,code', 'cohort.venue:id,name,type,county', 'cohort.units', 'cohort.trainings',
                 'cohort.trainer.fundi:id,full_name', 'cohort.trainer.staff:id,name', 'cohort.trainer.applicant:id,name',
+                'units', 'ctp:id,full_name,ctp_code,training_id',
                 'entries', 'moduleMarks', 'certification'])
             ->get()
             ->sortByDesc(fn (Enrollment $e) => $e->cohort?->starts_on?->timestamp ?? 0)

@@ -74,16 +74,15 @@ class PortalClassController extends Controller
         }
 
         $cohort->load(['units', 'venue', 'trainer', 'trainings']);
+        $seat->load('units');
 
-        $units = $cohort->unitsFor($programme ?: null);
-
-        // Nothing registered for their own course yet: the trainee still reads what the intake teaches, with the gap
+        // Their own course has nothing on this intake: the trainee still reads what the intake teaches, with the gap
         // named, rather than an empty page.
-        $offProgramme = $units->isEmpty() && $cohort->unitList()->isNotEmpty();
+        $offProgramme = $seat->units->isEmpty() && $cohort->unitsFor($programme ?: null)->isEmpty()
+            && $cohort->unitList()->isNotEmpty();
 
-        if ($offProgramme) {
-            $units = $cohort->unitList();
-        }
+        // What the office handed this student, or the units their programme carries on this intake.
+        $units = $seat->unitList();
 
         // Each unit weighed the way the Registrar set it — the grade a trainee reads on their own page.
         $grades = $units->mapWithKeys(fn ($unit) => [$unit->id => Grading::compile($seat, $unit)])->all();

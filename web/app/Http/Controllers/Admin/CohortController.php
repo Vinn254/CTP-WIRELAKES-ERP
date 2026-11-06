@@ -341,7 +341,7 @@ class CohortController extends Controller
             'enrollments' => $cohort->enrollments()
                 ->with(['cohort.units', 'cohort.training', 'ctp:id,full_name,ctp_code,status,county,sub_county,ward,training_id',
                     'ctp.programme:id,name', 'entries', 'certification',
-                    'moduleMarks', 'documents'])
+                    'moduleMarks', 'documents', 'units'])
                 ->orderByRaw("case state when 'pending' then 0 when 'approved' then 1 else 2 end")
                 ->orderBy('id')->get(),
             'modules' => $cohort->unitList(),
@@ -393,10 +393,13 @@ class CohortController extends Controller
         $data = $request->validate([
             'ctp_id' => 'required|integer|exists:ctp_registrations,id',
             'note' => 'nullable|string|max:1000',
+            'units' => 'nullable|array',
+            'units.*' => 'integer|exists:training_modules,id',
         ], ['ctp_id' => 'CTP']);
 
         $ctp = CtpRegistration::findOrFail($data['ctp_id']);
         $this->guardSeat($cohort, $ctp);
+        $units = $this->guardUnits($cohort, $data['units'] ?? []);
 
         // One CTP holds one record per cohort: a seat taken back or withdrawn is reopened, never duplicated.
         $enrollment = Enrollment::where('cohort_id', $cohort->id)->where('ctp_id', $ctp->id)->first();
@@ -421,7 +424,35 @@ class CohortController extends Controller
             ]);
         }
 
-        return back()->with('status', $ctp->full_name.' holds a seat in '.$cohort->reference.'. Their training starts at '.$cohort->placeLabel().'.');
+        $enrollment->units()->sync($units);
+
+        return back()->with('status', $ctp->full_name.' holds a seat in '.$cohort->reference.'. '
+            .($units ? 'They sit '.count($units).' '.Str::plural('unit', count($units)).' of this intake.'
+                : 'They follow every unit of their programme on this intake.'));
+    }
+
+    /** The units handed to one student on a seat they already hold — untick every box to give them the whole course back. */
+    public function seatUnits(Request $request, Enrollment $enrollment)
+    {
+        $data = $request->validate([
+            'units' => 'nullable|array',
+            'units.*' => 'integer|exists:training_modules,id',
+        ], ['units' => 'units']);
+
+        $units = $this->guardUnits($enrollment->cohort, $data['units'] ?? []);
+        $enrollment->units()->sync($units);
+
+        return back()->with('status', $enrollment->ctp->full_name.' is now on '
+            .($units ? count($units).' '.Str::plural('unit', count($units)).' of '.$enrollment->cohort->reference.'.'
+                : 'every unit of their programme on '.$enrollment->cohort->reference.'.'));
+    }
+
+    /** Only units this intake actually teaches can go on a seat — a tick on a foreign unit is simply dropped. */
+    private function guardUnits(Cohort $cohort, array $ids): array
+    {
+        return collect($ids)->filter()
+            ->intersect($cohort->unitList()->pluck('id'))
+            ->map(fn ($id) => (int) $id)->unique()->values()->all();
     }
 
     /** Yes or no on a CTP's application for a seat. */

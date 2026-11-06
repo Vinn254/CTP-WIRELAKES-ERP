@@ -1,4 +1,5 @@
 @php
+    use App\Models\Enrollment;
     use App\Models\ProgressEntry;
 
     $mode = $mode ?? null;
@@ -8,9 +9,16 @@
         'teaching' => route('admin.teaching.progress', $enrollment),
         default => route('portal.trainer.progress'),
     };
+    // The Marks button opens the unit's own sheet on the surface this record is being read from.
+    $marksRoute = match ($mode) {
+        'admin', 'teaching' => 'admin.teaching.marks',
+        'trainer' => 'portal.trainer.marks',
+        default => null,
+    };
     $byTrainer = in_array($mode, ['trainer', 'teaching'], true);
     $days = ($entries ?? $enrollment->entries)->sortBy([['entry_date', 'asc'], ['id', 'asc']]);
     $attendance = $days->where('kind', 'attendance');
+    $units = $units ?? $enrollment->unitList();
 
     // A record must fall inside the cohort period, so the form never opens with a date the guard will refuse.
     $starts = $enrollment->cohort?->starts_on;
@@ -32,7 +40,9 @@
 @endonce
 
 <div class="section-head record-head">
-    <h4 class="dl-group" style="margin:0;">Training record ({{ $days->count() }})</h4>
+    <h4 class="dl-group" style="margin:0;">Marks sheet ({{ $units->count() }}
+        {{ Str::plural('unit', $units->count()) }} · {{ $days->count() }}
+        {{ Str::plural('record', $days->count()) }})</h4>
     @if ($canRecord)
         <button class="btn btn-sm btn-lime" type="button" data-sheet="add-progress"
                 data-sheet-form="#progress-form-{{ $enrollment->id }}">+ Add a record</button>
@@ -100,42 +110,15 @@
     @endif
 </div>
 
-<table class="data">
-    <thead>
-        <tr>
-            <th>Date</th><th>What happened</th><th>Counts toward</th><th>Score /100</th><th>Hours</th>
-            <th>Attendance</th><th>What they did</th><th>Recorded by</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse ($days as $entry)
-            <tr>
-                <td>{{ $entry->entry_date->format('d M Y') }}</td>
-                <td><b>{{ $entry->kindLabel() }}</b></td>
-                <td><span class="tag gray">{{ $entry->countsToward() }}</span></td>
-                <td>{{ $entry->score !== null ? $entry->score : '—' }}</td>
-                <td>{{ $entry->hours ? $entry->hours.' h' : '—' }}</td>
-                <td>
-                    @if ($entry->kind === 'attendance')
-                        <span class="status {{ $entry->present ? 'active' : 'closed' }}">{{ $entry->present ? 'Present' : 'Absent' }}</span>
-                    @else
-                        <span class="hint">—</span>
-                    @endif
-                </td>
-                <td>{{ $entry->note ?: '—' }}</td>
-                <td><span class="hint">{{ $entry->recorderLabel() }}</span></td>
-            </tr>
-        @empty
-            <tr><td colspan="8" class="empty-cell">
-                Nothing has been recorded on this trainee yet.
-                {{ $canRecord ? 'Use “+ Add a record” for the first session, mark or school report.' : 'Their trainer or the office will put the first line in.' }}
-            </td></tr>
-        @endforelse
-    </tbody>
-</table>
+@include('partials.marks-sheet', [
+    'enrollment' => $enrollment,
+    'units' => $units,
+    'head' => false,
+    'marksRoute' => $marksRoute,
+])
 
 @if ($attendance->isNotEmpty())
     <p class="hint">{{ $attendance->where('present', true)->count() }} of {{ $attendance->count() }}
         days marked were attended — {{ $enrollment->attendancePct() }}% against the
-        {{ \App\Models\Enrollment::ATTENDANCE_MINIMUM }}% rule.</p>
+        {{ Enrollment::ATTENDANCE_MINIMUM }}% rule.</p>
 @endif

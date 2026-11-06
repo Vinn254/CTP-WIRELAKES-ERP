@@ -44,11 +44,13 @@ class TrainingTrack
         abort_unless($module->training_id === $enrollment->cohort->training_id, 422,
             $module->title.' is a module of '.$module->training->name.', not of the training this cohort runs.');
 
-        // A new mark only goes on a unit the office ticked onto this intake. Taking an old mark back is always
-        // allowed, so a unit that came off the intake still clears the record it was marked on.
-        abort_unless(! $mustBeTaught || $enrollment->cohort->unitList()->contains('id', $module->id), 422,
-            $module->title.' is not taught on '.$enrollment->cohort->reference.'. The office chooses the units an '
-                .'intake teaches when it posts or edits the cohort.');
+        // A new mark only goes on a unit this student actually sits — the office's ticks on their seat, or the units
+        // their programme carries on this intake. Taking an old mark back is always allowed, so a unit that came off
+        // the seat still clears the record it was marked on.
+        abort_unless(! $mustBeTaught || $enrollment->unitList()->contains('id', $module->id), 422,
+            $module->title.' is not on the seat given to '.$enrollment->ctp->full_name.' in '
+                .$enrollment->cohort->reference.'. The office hands the units out when it gives the seat, or on '
+                .'the units and trainers screen.');
     }
 
     public static function markModule(Enrollment $enrollment, TrainingModule $module, array $data, array $actor): string

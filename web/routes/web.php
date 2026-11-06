@@ -398,6 +398,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::post('/cohorts/{cohort}/enrol', [CohortController::class, 'enrol'])->whereNumber('cohort')->name('cohorts.enrol');
 
     Route::post('/enrollments/{enrollment}/decision', [CohortController::class, 'decide'])->whereNumber('enrollment')->name('enrollments.decide');
+    Route::post('/enrollments/{enrollment}/units', [CohortController::class, 'seatUnits'])->whereNumber('enrollment')->name('enrollments.units.save');
     Route::post('/enrollments/{enrollment}/fee', [CohortController::class, 'fee'])->whereNumber('enrollment')->name('enrollments.fee');
     Route::post('/enrollments/{enrollment}/stage', [CohortController::class, 'setStage'])->whereNumber('enrollment')->name('enrollments.stage');
     Route::delete('/enrollments/{enrollment}', [CohortController::class, 'drop'])->whereNumber('enrollment')->name('enrollments.delete');

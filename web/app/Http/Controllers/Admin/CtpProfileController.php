@@ -116,7 +116,8 @@ class CtpProfileController extends Controller
     {
         $seats = Enrollment::where('ctp_id', $ctp->id)
             ->with(['cohort:id,reference,training_id,venue_id,starts_on,ends_on,academic_year,term,status',
-                'cohort.training:id,name,code', 'cohort.venue:id,name,type,county', 'cohort.units',
+                'cohort.training:id,name,code', 'cohort.venue:id,name,type,county', 'cohort.units', 'cohort.trainings',
+                'units', 'ctp:id,full_name,ctp_code,training_id',
                 'entries', 'moduleMarks', 'certification'])
             ->get()
             ->sortByDesc(fn (Enrollment $e) => $e->cohort?->starts_on?->timestamp ?? 0)
@@ -131,7 +132,7 @@ class CtpProfileController extends Controller
                 'track' => $e->trackPct(),
                 'grade' => Grading::overall($units),
                 'pass' => $units ? round(collect($units)->avg('pass_pct'), 1) : null,
-                'marked' => count($units).' / '.($e->cohort?->unitList()->count() ?? 0),
+                'marked' => count($units).' / '.$e->unitList()->count(),
             ];
         });
     }

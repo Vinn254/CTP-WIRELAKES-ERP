@@ -272,7 +272,7 @@ class Grading
     /** Every unit a student sits in, weighed and graded — what a transcript and a portal page are built from. */
     public static function forSeat(Enrollment $seat): array
     {
-        $units = $seat->cohort?->unitList() ?? collect();
+        $units = $seat->unitList();
 
         return $units->map(fn (TrainingModule $unit) => ['unit' => $unit] + static::compile($seat, $unit))
             ->filter(fn (array $row) => $row['marked'])->values()->all();

@@ -163,14 +163,15 @@
             @csrf
             <div class="field">
                 <label>CTP <span class="req">*</span></label>
-                <select name="ctp_id" required>
+                <select name="ctp_id" id="seat-ctp" required>
                     <option value="">Choose a CTP</option>
                     @foreach ($candidates as $programmeId => $group)
                         <optgroup label="{{ $programmeId
                             ? ($candidateTitles[$programmeId] ?? 'Programme '.$programmeId).' ('.$group->count().')'
                             : 'No programme chosen yet ('.$group->count().')' }}">
                             @foreach ($group as $c)
-                                <option value="{{ $c->id }}">{{ $c->full_name }} — {{ $c->ctp_code }}
+                                <option value="{{ $c->id }}" data-training="{{ $programmeId ?: 0 }}">
+                                    {{ $c->full_name }} — {{ $c->ctp_code }}
                                     ({{ collect([$c->ward, $c->county])->filter()->join(', ') ?: 'no area set' }})</option>
                             @endforeach
                         </optgroup>
@@ -182,11 +183,44 @@
                     to follow. Only an active, graduated or deployed CTP can hold a seat.</div>
             </div>
             <div class="field" style="margin-top:10px;">
+                <label>Units to hand them</label>
+                <div class="unit-rows" id="seat-units">
+                    @foreach ($modules->groupBy('training_id') as $tid => $group)
+                        <div class="unit-group" data-training="{{ $tid }}">
+                            <div class="hint"><b>{{ $programmeNames[$tid] ?? $cohort->courseLabel() }}</b></div>
+                            @foreach ($group as $u)
+                                <label class="unit-pick"><input type="checkbox" name="units[]" value="{{ $u->id }}">
+                                    {{ $u->position }}. {{ $u->title }}
+                                    <span class="hint">{{ $u->termLabel() }} · {{ $u->hoursLabel() }}</span></label>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+                <div class="hint">Tick the units this student is actually sitting — that list is what reaches their
+                    units page, their marks sheet and their transcript. Tick none and they follow every unit of their
+                    own programme on this intake.</div>
+            </div>
+            <div class="field" style="margin-top:10px;">
                 <label>Why you are placing them</label>
                 <input type="text" name="note" maxlength="1000" placeholder="e.g. Referred by the Nyanda intake drive">
             </div>
             <button class="btn btn-lime btn-block" type="submit" style="margin-top:12px;">Give the seat</button>
         </form>
+        <script>
+            // The units of the course the chosen student is registered under, so the office never ticks a foreign unit.
+            (function () {
+                var pick = document.getElementById('seat-ctp');
+                if (!pick) return;
+                pick.addEventListener('change', function () {
+                    var chosen = pick.options[pick.selectedIndex];
+                    var training = chosen ? chosen.getAttribute('data-training') : null;
+                    document.querySelectorAll('#seat-units .unit-group').forEach(function (group) {
+                        group.style.display = !training || training === '0' || group.getAttribute('data-training') === training
+                            ? '' : 'none';
+                    });
+                });
+            })();
+        </script>
     </div>
 </div>
 
@@ -273,6 +307,27 @@
                 — <b>below the {{ Enrollment::ATTENDANCE_MINIMUM }}% needed to certify.</b>
             @endif
         </p>
+
+        <details class="need-form" style="margin:0 0 12px;">
+            <summary>Units on their seat ({{ $e->units->count() }})
+                — {{ $e->units->isNotEmpty() ? 'handed out by the office' : 'the whole of their programme' }}</summary>
+            <form method="POST" action="{{ route('admin.enrollments.units.save', $e) }}" class="fee-form"
+                  data-confirm="Save these units on {{ $e->ctp->full_name }}'s seat?" data-title="Units on their seat">
+                @csrf
+                <div class="unit-rows">
+                    @foreach ($modules as $u)
+                        <label class="unit-pick"><input type="checkbox" name="units[]" value="{{ $u->id }}"
+                              @checked($e->units->contains('id', $u->id))>
+                            {{ $u->position }}. {{ $u->title }}
+                            <span class="hint">{{ $programmeNames[$u->training_id] ?? $cohort->courseLabel() }}
+                                · {{ $u->termLabel() }}</span></label>
+                    @endforeach
+                </div>
+                <p class="hint">Tick nothing and they sit every unit of their own programme on this intake. What you
+                    tick here is what shows on their units page, their marks sheet and their transcript.</p>
+                <button class="btn btn-sm btn-lime" type="submit">Save the units</button>
+            </form>
+        </details>
 
         <div class="form-grid-3">
             <form method="POST" action="{{ route('admin.enrollments.stage', $e) }}" class="mini-form fee-form">
@@ -365,7 +420,7 @@
 
         @include('partials.modules', ['enrollment' => $e, 'mode' => 'admin'])
 
-        @include('partials.documents', ['enrollment' => $e, 'mode' => 'admin', 'modules' => $modules, 'documentKinds' => $documentKinds])
+        @include('partials.documents', ['enrollment' => $e, 'mode' => 'admin', 'modules' => $e->unitList(), 'documentKinds' => $documentKinds])
 
         @include('partials.progress', ['enrollment' => $e, 'mode' => 'admin'])
 

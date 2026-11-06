@@ -65,12 +65,8 @@ class MemberClassApiController extends Controller
 
         $marksByUnit = $this->marksByUnit($cohort, $seat);
 
-        $units = $cohort->unitsFor($programme ?: null);
-
-        // Nothing registered for their own course yet: the phone still shows what the intake teaches, as on the website.
-        if ($units->isEmpty() && $cohort->unitList()->isNotEmpty()) {
-            $units = $cohort->unitList();
-        }
+        // What the office handed this student, or the units their programme carries on this intake.
+        $units = $seat->unitList();
 
         $hands = $cohort->handsMap();
         $tutored = $units->flatMap(fn ($unit) => $hands[$unit->id] ?? collect())->unique(fn ($t) => $t->id);
