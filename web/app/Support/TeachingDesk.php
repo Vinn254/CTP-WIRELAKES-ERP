@@ -142,8 +142,10 @@ class TeachingDesk
             return [];
         }
 
-        return Cohort::whereHas('units', fn ($q) => $q->whereIn('cohort_module.trainer_id', $ids))->pluck('id')
-            ->map(fn ($id) => (int) $id)->unique()->values()->all();
+        return Cohort::where(fn ($q) => $q
+                ->whereHas('units', fn ($u) => $u->whereIn('cohort_module.trainer_id', $ids))
+                ->orWhereHas('hands', fn ($h) => $h->whereIn('trainer_id', $ids)))
+            ->pluck('id')->map(fn ($id) => (int) $id)->unique()->values()->all();
     }
 
     /**
@@ -172,9 +174,12 @@ class TeachingDesk
         }
 
         $mine = static::trainerIds($user);
+        $held = $cohort->handsMap();
 
+        // Any hand named on the unit may write for it — the lead name on the row and every extra trainer put on it.
         return $cohort->unitList()
-            ->filter(fn ($unit) => in_array((int) ($unit->pivot?->trainer_id ?? 0), $mine, true))
+            ->filter(fn ($unit) => ($held[$unit->id] ?? collect())
+                ->contains(fn ($trainer) => in_array((int) $trainer->id, $mine, true)))
             ->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 

@@ -109,8 +109,19 @@ class TrainingController extends Controller
 
         abort_unless($module->training_id === $training->id, 404);
 
+        $request->validate([
+            'syllabus' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,ppt,pptx,xls,xlsx,zip|max:20480',
+        ], [
+            'syllabus.max' => 'The scheme of work is too big for the site — 20 MB at most.',
+        ], ['syllabus' => 'Scheme of work']);
+
         // Left both hour boxes empty? The total already on the unit stands rather than being wiped by the save.
         $module->update(TrainingModule::dataFrom($request, $module->hours));
+
+        // A second upload replaces the paper on file rather than leaving two schemes for one unit.
+        if ($request->hasFile('syllabus')) {
+            $module->putSyllabus($request->file('syllabus'));
+        }
 
         return back()->with('status', $module->title.' updated — every roll for '.$training->name.' shows the change.');
     }
@@ -126,6 +137,9 @@ class TrainingController extends Controller
             $module->title.' has been marked on '.$module->completions()->count()
             .' trainee record(s). Take those marks off first — a mark that is on someone’s file cannot lose the module it was made against.');
 
+        // A removed unit takes its scheme of work off the disk with it, so the site holds no paper for a course
+        // nobody teaches.
+        $module->takeSyllabusOff();
         $module->delete();
 
         return back()->with('status', $module->title.' removed from '.$training->name.'.');

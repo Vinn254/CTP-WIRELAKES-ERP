@@ -248,7 +248,7 @@ class FundiRegistration extends Model
         $data = $request->validate([
             'availability' => 'required|in:'.implode(',', array_keys(self::AVAILABILITY)),
             'availability_note' => 'nullable|string|max:300',
-        ], [], ['availability' => 'Availability', 'availability_note' => 'Note']);
+        ], ['availability' => 'Availability', 'availability_note' => 'Note']);
 
         return [
             'availability' => $data['availability'],
@@ -264,7 +264,7 @@ class FundiRegistration extends Model
             'specialisations.*' => 'in:'.implode(',', self::SPECIALISATIONS),
             'service_counties' => 'nullable|array|max:47',
             'service_counties.*' => 'string|max:100',
-        ], [], [
+        ], [
             'specialisations' => 'Skills', 'service_counties' => 'Counties covered',
         ]);
 

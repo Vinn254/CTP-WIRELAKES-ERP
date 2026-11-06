@@ -52,8 +52,8 @@
                 @if ($cohort->venue)<span class="hint">({{ $cohort->venue->typeLabel() }})</span>@endif
                 <div class="hint">{{ collect([$cohort->ward, $cohort->sub_county])->filter()->join(', ') ?: 'Ward and sub-county not set' }}</div></dd>
             <dt>Lecturers on the units</dt><dd>
-                @if ($unitTrainers)
-                    {{ count($unitTrainers) }} of {{ $modules->count() }} unit{{ $modules->count() === 1 ? '' : 's' }} named
+                @if ($namedUnits = collect($unitHands)->filter(fn ($h) => $h->isNotEmpty())->count())
+                    {{ $namedUnits }} of {{ $modules->count() }} unit{{ $modules->count() === 1 ? '' : 's' }} named
                 @else
                     <span class="hint">None named yet.</span>
                 @endif
@@ -78,15 +78,18 @@
                 @else
                     <div class="table-scroll">
                         <table class="data compact">
-                            <thead><tr><th>Unit</th><th>Programme</th><th>Trainer on the unit</th></tr></thead>
+                            <thead><tr><th>Unit</th><th>Programme</th><th>Trainers on the unit</th></tr></thead>
                             <tbody>
                                 @foreach ($modules as $u)
-                                    @php $on = $unitTrainers[$u->id] ?? null; @endphp
+                                    @php $on = $unitHands[$u->id] ?? collect(); @endphp
                                     <tr>
                                         <td>{{ $u->position }}. {{ $u->title }}</td>
                                         <td>{{ $programmeNames[$u->training_id] ?? '—' }}</td>
-                                        <td>{{ $on?->personName() ?: 'Not assigned' }}
-                                            @if ($on && $cohort->trainer && (int) $on->id === (int) $cohort->trainer_id)
+                                        <td>{{ $on->map->personName()->filter()->join(', ') ?: 'Not assigned' }}
+                                            @if ($on->count() > 1)
+                                                <span class="hint">{{ $on->count() }} hands on this unit</span>
+                                            @elseif ($on->isNotEmpty() && $cohort->trainer
+                                                      && (int) $on->first()->id === (int) $cohort->trainer_id)
                                                 <span class="hint">the intake's trainer</span>
                                             @endif</td>
                                     </tr>

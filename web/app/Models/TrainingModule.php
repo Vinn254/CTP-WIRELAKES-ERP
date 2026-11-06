@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 /**
@@ -25,10 +28,11 @@ class TrainingModule extends Model
         'general' => 'Every term',
     ];
 
-    protected $fillable = ['training_id', 'title', 'outcome', 'hours', 'theory_hours', 'practical_hours', 'term', 'position'];
+    protected $fillable = ['training_id', 'title', 'outcome', 'hours', 'theory_hours', 'practical_hours', 'term',
+        'position', 'syllabus_path', 'syllabus_name', 'syllabus_uploaded_at'];
 
     protected $casts = ['hours' => 'integer', 'theory_hours' => 'integer', 'practical_hours' => 'integer',
-        'position' => 'integer'];
+        'position' => 'integer', 'syllabus_uploaded_at' => 'datetime'];
 
     public function training(): BelongsTo
     {
@@ -39,6 +43,12 @@ class TrainingModule extends Model
     public function completions(): HasMany
     {
         return $this->hasMany(ModuleCompletion::class);
+    }
+
+    /** The intakes that teach this unit — where its trainers and its trainees come from. */
+    public function cohorts(): BelongsToMany
+    {
+        return $this->belongsToMany(Cohort::class, 'cohort_module')->withPivot('trainer_id')->withTimestamps();
     }
 
     public function scopeOrdered(Builder $query): Builder
@@ -59,7 +69,7 @@ class TrainingModule extends Model
         ], [
             'theory_hours.max' => 'Theory hours are whole numbers between 0 and 2000.',
             'practical_hours.max' => 'Practical hours are whole numbers between 0 and 2000.',
-        ], [], ['title' => 'Module', 'outcome' => 'What the trainee must be able to do',
+        ], ['title' => 'Module', 'outcome' => 'What the trainee must be able to do',
             'theory_hours' => 'Theory hours', 'practical_hours' => 'Practical hours', 'term' => 'Term']);
 
         // A unit is always taught in some term: left blank, it is the programme's own, taught every term.
@@ -105,6 +115,43 @@ class TrainingModule extends Model
     public static function nextPosition(int $trainingId): int
     {
         return (int) self::where('training_id', $trainingId)->max('position') + 1;
+    }
+
+    /**
+     * The scheme of work the office files on this unit: the paper the course is actually taught from, week by week.
+     * A new upload replaces the one on record — the file a trainee opens becomes the one saved now.
+     */
+    public function putSyllabus(UploadedFile $file): self
+    {
+        $this->takeSyllabusOff();
+
+        $this->update([
+            'syllabus_path' => $file->store('training/schemes', 'local'),
+            'syllabus_name' => $file->getClientOriginalName(),
+            'syllabus_uploaded_at' => now(),
+        ]);
+
+        return $this;
+    }
+
+    public function hasSyllabus(): bool
+    {
+        return filled($this->syllabus_path);
+    }
+
+    /** The paper off the disk, so a unit that goes loses its scheme with it. */
+    public function takeSyllabusOff(): void
+    {
+        if ($this->syllabus_path) {
+            Storage::disk('local')->delete($this->syllabus_path);
+        }
+    }
+
+    /** How the scheme reads on a screen, with the day the office put it up. */
+    public function syllabusLabel(): string
+    {
+        return 'Scheme of work'.($this->syllabus_uploaded_at
+            ? ' — filed '.$this->syllabus_uploaded_at->format('d M Y') : '');
     }
 
     /** The repeater on the office screen: every module row they filled, in the order they typed them. */

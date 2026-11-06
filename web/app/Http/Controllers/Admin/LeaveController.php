@@ -50,7 +50,7 @@ class LeaveController extends Controller
         $data = $request->validate([
             'decision' => 'required|in:approved,rejected',
             'note' => 'nullable|string|max:500',
-        ], [], ['decision' => 'Decision', 'note' => 'Note']);
+        ], ['decision' => 'Decision', 'note' => 'Note']);
 
         $message = Leave::decide($leave, $data['decision'], $data['note'] ?? null, auth()->user());
 

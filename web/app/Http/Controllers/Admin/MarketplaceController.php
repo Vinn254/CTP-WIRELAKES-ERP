@@ -116,7 +116,7 @@ class MarketplaceController extends Controller
         $data = $request->validate([
             'fundi_id' => 'required|exists:fundi_registrations,id',
             'reason' => 'required|string|max:190',
-        ], [], ['fundi_id' => 'E-Fundi', 'reason' => 'Reason']);
+        ], ['fundi_id' => 'E-Fundi', 'reason' => 'Reason']);
 
         $fundi = FundiRegistration::find($data['fundi_id']);
         $round = ((int) ProjectMatch::where('project_id', $project->id)->max('round')) ?: 1;

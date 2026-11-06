@@ -66,7 +66,7 @@ class Enrollment extends Model
             'fee_method' => 'nullable|required_if:fee_status,paid|in:mpesa,bank,cash,cheque,other',
             'fee_amount' => 'nullable|numeric|min:0|max:999999',
             'fee_reference' => 'nullable|string|max:60',
-        ], [], ['fee_method' => 'payment method', 'fee_amount' => 'amount', 'fee_reference' => 'reference']);
+        ], ['fee_method' => 'payment method', 'fee_amount' => 'amount', 'fee_reference' => 'reference']);
     }
 
     /** The form every seat-taking screen uses — the CTP's application and the office's enrolment. */
@@ -74,7 +74,7 @@ class Enrollment extends Model
     {
         return $request->validate([
             'note' => 'nullable|string|max:1000',
-        ], [], ['note' => 'Reason']);
+        ], ['note' => 'Reason']);
     }
 
     public function cohort(): BelongsTo

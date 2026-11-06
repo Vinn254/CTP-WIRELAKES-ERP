@@ -565,7 +565,7 @@ class Execution
             'commission_ksh' => 'nullable|numeric|min:0|max:1000000000',
             'mobilization_ksh' => 'nullable|numeric|min:0|max:1000000000',
             'note' => 'nullable|string|max:1000',
-        ], [], [
+        ], [
             'commission_ksh' => 'Service commission',
             'mobilization_ksh' => 'Mobilization credit',
         ]);

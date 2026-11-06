@@ -93,6 +93,6 @@ class BudgetLine extends Model
             'category' => 'required|in:'.implode(',', array_keys(self::categories())),
             'amount_ksh' => 'required|numeric|min:0|max:1000000000',
             'note' => 'nullable|string|max:1000',
-        ], [], ['fiscal_year' => 'Financial year', 'category' => 'Budget category', 'amount_ksh' => 'Amount budgeted']);
+        ], ['fiscal_year' => 'Financial year', 'category' => 'Budget category', 'amount_ksh' => 'Amount budgeted']);
     }
 }

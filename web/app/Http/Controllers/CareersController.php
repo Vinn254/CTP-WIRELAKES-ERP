@@ -51,7 +51,7 @@ class CareersController extends Controller
         $data = JobApplication::dataFrom($request);
         $data += $request->validate([
             'cv' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-        ], [], ['cv' => 'your CV']);
+        ], ['cv' => 'your CV']);
 
         $existing = $opening->applications()->whereRaw('LOWER(email) = ?', [strtolower($data['email'])])->first();
 

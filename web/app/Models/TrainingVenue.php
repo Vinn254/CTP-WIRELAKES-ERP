@@ -42,7 +42,7 @@ class TrainingVenue extends Model
             'contact_phone' => 'nullable|string|max:30',
             'contact_email' => 'nullable|email|max:190',
             'summary' => 'nullable|string|max:2000',
-        ], [], [
+        ], [
             'partner_id' => 'Partner', 'community_id' => 'Community', 'county' => 'County',
             'sub_county' => 'Sub-county', 'capacity' => 'Trainee capacity',
         ]);

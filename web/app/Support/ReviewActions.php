@@ -28,7 +28,7 @@ class ReviewActions
             'fee_method' => 'nullable|required_if:fee_status,paid|in:mpesa,bank,cash,other',
             'fee_amount' => 'nullable|numeric|min:0|max:999999',
             'fee_reference' => 'nullable|string|max:60',
-        ], [], ['fee_method' => 'payment method', 'fee_amount' => 'amount', 'fee_reference' => 'reference']);
+        ], ['fee_method' => 'payment method', 'fee_amount' => 'amount', 'fee_reference' => 'reference']);
     }
 
     /** Record money an applicant paid by M-Pesa bill, bank transfer or cash — or waive it. */

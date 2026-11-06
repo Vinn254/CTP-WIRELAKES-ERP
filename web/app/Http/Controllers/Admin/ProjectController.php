@@ -151,7 +151,7 @@ class ProjectController extends Controller
         $data = $request->validate([
             'supplied_on' => 'required|date',
             'note' => 'nullable|string|max:1000',
-        ], [], ['supplied_on' => 'Date handed over']);
+        ], ['supplied_on' => 'Date handed over']);
 
         abort_if($material->isSupplied(), 422, $material->name.' was already recorded as handed over on '
             .($material->supplied_on?->format('d M Y') ?? 'a date already on the line').'.');
@@ -174,7 +174,7 @@ class ProjectController extends Controller
             'quantity' => 'required|numeric|min:0.01|max:1000000',
             'unit_cost_ksh' => 'required|numeric|min:0|max:100000000',
             'note' => 'nullable|string|max:1000',
-        ], [], ['quantity' => 'Quantity', 'unit_cost_ksh' => 'Cost each']);
+        ], ['quantity' => 'Quantity', 'unit_cost_ksh' => 'Cost each']);
 
         abort_if($material->isSupplied(), 422, $material->name.' was handed over on '
             .($material->supplied_on?->format('d M Y') ?? 'a date already on the line')

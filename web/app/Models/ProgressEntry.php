@@ -51,7 +51,7 @@ class ProgressEntry extends Model
             'score' => 'nullable|numeric|min:0|max:100',
             'hours' => 'nullable|integer|min:0|max:400',
             'note' => 'nullable|string|max:1000',
-        ], [], [
+        ], [
             'entry_date' => 'Date', 'kind' => 'What happened', 'score' => 'Score out of 100',
         ]);
 

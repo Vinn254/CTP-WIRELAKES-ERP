@@ -25,7 +25,7 @@ class PasswordResetController extends Controller
 
     public function email(Request $request)
     {
-        $data = $request->validate(['email' => 'required|email'], [], ['email' => 'email address']);
+        $data = $request->validate(['email' => 'required|email'], ['email' => 'email address']);
         $email = Accounts::email($data['email']);
         $user = User::where('email', $email)->first();
 
@@ -79,7 +79,7 @@ class PasswordResetController extends Controller
 
         $data = $request->validate([
             'password' => 'required|string|min:8|confirmed',
-        ], [], ['password' => 'new password']);
+        ], ['password' => 'new password']);
 
         $user = User::where('email', $link->email)->first();
 

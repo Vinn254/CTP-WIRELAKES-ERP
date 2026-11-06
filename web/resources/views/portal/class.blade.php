@@ -5,7 +5,7 @@
     use App\Models\TrainingMaterial;
 
     $many = $mine->count() > 1;
-    $myLecturers = $units->map(fn ($u) => $unitTrainers[$u->id] ?? null)->filter()
+    $myLecturers = $units->flatMap(fn ($u) => $unitHands[$u->id] ?? collect())
         ->unique(fn ($t) => $t->id)->values();
 @endphp
 
@@ -102,7 +102,7 @@
                 <thead>
                     <tr>
                         <th>Unit</th>
-                        <th>Lecturer on the unit</th>
+                        <th>Lecturers on the unit</th>
                         @foreach (\App\Models\UnitGrading::PARTS as $label)
                             <th class="num">{{ $label }}</th>
                         @endforeach
@@ -115,12 +115,18 @@
                     @foreach ($units as $unit)
                         @php $row = $marksByUnit[$unit->id] ?? ['on' => null, 'marks' => []];
                                $grade = $grades[$unit->id] ?? null;
-                               $lecturer = $unitTrainers[$unit->id] ?? null; @endphp
+                               $hands = $unitHands[$unit->id] ?? collect(); @endphp
                         <tr>
                             <td><b>{{ $unit->position }}. {{ $unit->title }}</b>
-                                @if ($row['on'])<div class="hint">Marked on {{ $row['on'] }}.</div>@endif</td>
-                            <td>{{ $lecturer?->personName() ?: 'Not named yet' }}
-                                @if ($lecturer && $lecturer->placeLabel())<div class="hint">{{ $lecturer->placeLabel() }}</div>@endif</td>
+                                @if ($row['on'])<div class="hint">Marked on {{ $row['on'] }}.</div>@endif
+                                @if ($unit->hasSyllabus())
+                                    <a class="hint" href="{{ route('portal.class.scheme', ['cohort' => $cohort->id,
+                                        'module' => $unit->id]) }}">{{ $unit->syllabusLabel() }}</a>
+                                @endif</td>
+                            <td>{{ $hands->map->personName()->filter()->join(', ') ?: 'Not named yet' }}
+                                @if ($first = $hands->first())
+                                    <div class="hint">{{ $first->placeLabel() }}</div>
+                                @endif</td>
                             @foreach ($grade['parts'] ?? [] as $part)
                                 <td class="num">
                                     {{ $part['score'] === null ? '—' : $part['score'] }}

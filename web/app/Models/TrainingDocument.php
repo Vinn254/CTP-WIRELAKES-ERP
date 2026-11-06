@@ -58,7 +58,7 @@ class TrainingDocument extends Model
             'dated_on' => 'required|date|before_or_equal:today',
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:8192',
             'note' => 'nullable|string|max:1000',
-        ], [], [
+        ], [
             'title' => 'What it is', 'training_module_id' => 'Module', 'dated_on' => 'Date',
             'file' => 'The document', 'kind' => 'Type',
         ]);

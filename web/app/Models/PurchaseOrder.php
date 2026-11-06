@@ -76,7 +76,7 @@ class PurchaseOrder extends Model
         return $request->validate([
             'invoice_ref' => 'required|string|max:80',
             'invoice_amount_ksh' => 'required|numeric|min:0.01|max:1000000000',
-        ], [], [
+        ], [
             'invoice_ref' => 'Invoice number',
             'invoice_amount_ksh' => 'Invoice amount',
         ]);

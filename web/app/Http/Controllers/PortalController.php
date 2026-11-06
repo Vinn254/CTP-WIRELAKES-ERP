@@ -180,7 +180,7 @@ class PortalController extends Controller
         $data = $request->validate([
             'cohort_id' => 'required|integer|exists:cohorts,id',
             'note' => 'nullable|string|max:1000',
-        ], [], ['cohort_id' => 'Training']);
+        ], ['cohort_id' => 'Training']);
 
         $cohort = Cohort::findOrFail($data['cohort_id']);
 
@@ -515,7 +515,7 @@ class PortalController extends Controller
         $data = $request->validate([
             'condition' => 'required|in:'.implode(',', array_keys(EWasteCollection::CONDITIONS)),
             'note' => 'nullable|string|max:1000',
-        ], [], ['condition' => 'Condition', 'note' => 'What you saw']);
+        ], ['condition' => 'Condition', 'note' => 'What you saw']);
 
         $collection->update([
             'status' => 'forwarded',
@@ -622,7 +622,7 @@ class PortalController extends Controller
             'gps_lat' => 'nullable|numeric|between:-90,90',
             'gps_lng' => 'nullable|numeric|between:-180,180',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:3072',
-        ], [], [
+        ], [
             'gps_lat' => 'GPS latitude', 'gps_lng' => 'GPS longitude', 'title' => 'What is needed',
         ]);
 

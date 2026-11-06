@@ -43,7 +43,7 @@ class ModuleCompletion extends Model
     {
         return $request->validate([
             'note' => 'nullable|string|max:1000',
-        ], [], ['note' => 'What they showed']);
+        ], ['note' => 'What they showed']);
     }
 
     public function recorderLabel(): string

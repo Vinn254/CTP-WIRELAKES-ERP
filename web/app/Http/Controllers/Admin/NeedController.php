@@ -90,7 +90,7 @@ class NeedController extends Controller
             'budget' => 'nullable|numeric|min:0|max:999999999',
             'duration' => 'nullable|string|max:60',
             'deadline' => 'nullable|date',
-        ], [], ['category' => 'Project type']);
+        ], ['category' => 'Project type']);
 
         $project = DB::transaction(function () use ($need, $data) {
             $project = Project::create([

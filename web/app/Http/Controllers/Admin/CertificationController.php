@@ -95,7 +95,7 @@ class CertificationController extends Controller
     {
         $data = $request->validate([
             'reason' => 'required|string|max:1000',
-        ], [], ['reason' => 'Reason']);
+        ], ['reason' => 'Reason']);
 
         abort_unless($certification->status === 'recommended', 422, 'This certificate is already '.$certification->statusLabel().'.');
 
@@ -111,7 +111,7 @@ class CertificationController extends Controller
 
         $data = $request->validate([
             'reason' => 'required|string|max:1000',
-        ], [], ['reason' => 'Reason for revoking']);
+        ], ['reason' => 'Reason for revoking']);
 
         abort_unless($certification->status === 'approved', 422, 'Only an issued certificate can be revoked.');
 

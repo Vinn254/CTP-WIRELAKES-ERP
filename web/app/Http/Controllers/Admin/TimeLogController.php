@@ -91,7 +91,7 @@ class TimeLogController extends Controller
         $data = $request->validate([
             'decision' => 'required|in:approved,returned',
             'note' => 'nullable|string|max:500|required_if:decision,returned',
-        ], [], ['note' => 'What must be corrected', 'decision' => 'Decision']);
+        ], ['note' => 'What must be corrected', 'decision' => 'Decision']);
 
         $week = TimeLog::weekStartOf($week)->toDateString();
 

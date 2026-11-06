@@ -62,7 +62,7 @@ class RegistrarPaperController extends Controller
         $data = $request->validate([
             'decision' => 'required|in:approve,return',
             'note' => 'nullable|string|max:500|required_if:decision,return',
-        ], [], ['note' => 'What to fix']);
+        ], ['note' => 'What to fix']);
 
         $paper = $this->paper($kind, $id);
         $line = TeachingDesk::decide($paper, $data['decision'] === 'approve', $data['note'] ?? null, $request->user());

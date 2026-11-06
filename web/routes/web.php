@@ -390,6 +390,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     Route::get('/cohorts/{cohort}/edit', [CohortController::class, 'edit'])->whereNumber('cohort')->name('cohorts.edit');
     Route::get('/cohorts/{cohort}/units', [CohortController::class, 'units'])->whereNumber('cohort')->name('cohorts.units');
     Route::post('/cohorts/{cohort}/units', [CohortController::class, 'saveUnits'])->whereNumber('cohort')->name('cohorts.units.save');
+    // A unit the programme does not carry yet, registered from the intake itself, with its trainers and its scheme of work.
+    Route::post('/cohorts/{cohort}/units/add', [CohortController::class, 'addUnit'])->whereNumber('cohort')->name('cohorts.units.add');
+    Route::get('/units/{module}/scheme', [CohortController::class, 'scheme'])->whereNumber('module')->name('units.scheme');
     Route::patch('/cohorts/{cohort}', [CohortController::class, 'update'])->whereNumber('cohort')->name('cohorts.update');
     Route::post('/cohorts/{cohort}/status', [CohortController::class, 'setStatus'])->whereNumber('cohort')->name('cohorts.status');
     Route::post('/cohorts/{cohort}/enrol', [CohortController::class, 'enrol'])->whereNumber('cohort')->name('cohorts.enrol');
@@ -740,6 +743,9 @@ Route::prefix('portal')->name('portal.')->middleware(['auth', 'member'])->group(
     Route::get('/class/{cohort}', [PortalClassController::class, 'show'])->whereNumber('cohort')->name('class.cohort');
     Route::get('/class/{cohort}/material/{material}/open', [PortalClassController::class, 'open'])
         ->whereNumber('cohort')->whereNumber('material')->name('class.material');
+    // The scheme of work a unit is taught from, read by the trainee seated on that unit.
+    Route::get('/class/{cohort}/units/{module}/scheme', [PortalClassController::class, 'scheme'])
+        ->whereNumber('cohort')->whereNumber('module')->name('class.scheme');
     // The Registrar's library, on the trainee's side: what to read for their course, in the browser or saved to them.
     Route::get('/library', [PortalLibraryController::class, 'index'])->name('library');
     Route::get('/library/{item}/open', [PortalLibraryController::class, 'open'])->whereNumber('item')->name('library.open');

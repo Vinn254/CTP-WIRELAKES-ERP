@@ -79,7 +79,7 @@ class Training extends Model
                 'unique:trainings,code'.($training ? ','.$training->id : '')],
             'summary' => 'nullable|string|max:500',
             'status' => 'required|in:'.implode(',', array_keys(self::STATUSES)),
-        ], [], ['name' => 'Training', 'code' => 'Short code']);
+        ], ['name' => 'Training', 'code' => 'Short code']);
     }
 
     public function label(): string

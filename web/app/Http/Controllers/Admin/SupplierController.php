@@ -70,7 +70,7 @@ class SupplierController extends Controller
         $data = $request->validate([
             'status' => 'required|in:'.implode(',', array_keys(Supplier::STATUSES)),
             'note' => 'nullable|string|max:1000',
-        ], [], ['status' => 'List status']);
+        ], ['status' => 'List status']);
 
         $supplier->update(['status' => $data['status'], 'note' => $data['note'] ?? $supplier->note]);
 

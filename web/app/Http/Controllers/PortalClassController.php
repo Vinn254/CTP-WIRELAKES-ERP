@@ -7,6 +7,7 @@ use App\Models\CtpRegistration;
 use App\Models\Enrollment;
 use App\Models\Timetable;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingModule;
 use App\Models\UnitMarkSheet;
 use App\Support\Documents;
 use App\Support\Grading;
@@ -97,7 +98,7 @@ class PortalClassController extends Controller
             'week' => $timetable?->week() ?? [],
             'units' => $units,
             'offProgramme' => $offProgramme,
-            'unitTrainers' => $cohort->unitTrainers(),
+            'unitHands' => $cohort->handsMap(),
             'programmeName' => $ctp->programme?->name,
             'marksByUnit' => $marksByUnit,
             'grades' => $grades,
@@ -120,6 +121,16 @@ class PortalClassController extends Controller
         abort_unless($material->cohort_id === $cohort->id, 404);
 
         return Documents::file($request, $material->file_path, $material->file_name ?: 'Handout');
+    }
+
+    /** The scheme of work a unit is taught from, read by a trainee seated on the class that runs it. */
+    public function scheme(Request $request, Cohort $cohort, TrainingModule $module)
+    {
+        $this->seat($cohort);
+        abort_unless($cohort->unitList()->contains('id', $module->id), 404, 'That unit is not on your class.');
+        abort_unless($module->hasSyllabus(), 404, 'No scheme of work is filed on that unit yet.');
+
+        return Documents::file($request, $module->syllabus_path, $module->syllabus_name ?: $module->title.' scheme');
     }
 
     /** The seats this CTP holds that are running — an application is not a class. */

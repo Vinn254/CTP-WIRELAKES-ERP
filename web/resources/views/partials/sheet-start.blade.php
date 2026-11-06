@@ -11,3 +11,16 @@
             <button class="sheet-x" type="button" data-close-sheet aria-label="Close">&#10005;</button>
         </div>
         @isset($sub)<p class="sheet-sub">{{ $sub }}</p>@endisset
+        @if ($errors->any() && old('_sheet') === $name)
+            {{-- A card that stays up has to say why in its own words — an error list printed behind the popup on the
+                 page reads to the office as a form that simply refuses to close. --}}
+            <div class="errors">
+                <strong>Not saved — fix {{ $errors->count() }} {{ Str::plural('thing', $errors->count()) }} named
+                    below, then submit again.</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif

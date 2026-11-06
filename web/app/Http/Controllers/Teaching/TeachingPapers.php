@@ -128,7 +128,7 @@ abstract class TeachingPapers extends Controller
 
         abort_unless(in_array($moduleId, $mine, true), 422,
             (TrainingModule::find($moduleId)?->title ?: 'That unit').' is handed to '
-                .($cohort->unitTrainers()[$moduleId]?->personName() ?? 'another trainer').
+                .($cohort->handsLine($moduleId) ?? 'another trainer').
                 ' on this intake. A trainer fills the papers of the units the office named to them.');
     }
 
@@ -145,9 +145,13 @@ abstract class TeachingPapers extends Controller
     {
         $trainer = $cohort->trainer_id ? Trainer::find($cohort->trainer_id) : null;
 
-        // A unit the office named to somebody else on the intake is that person's paper.
+        // A unit the office named to somebody else on the intake is that person's paper. Where a unit carries more than
+        // one hand, the one standing at the desk filled it.
         if ($moduleId) {
-            $trainer = $cohort->unitTrainers()[$moduleId] ?? $trainer;
+            $holding = $cohort->handsFor($moduleId);
+            $mine = TeachingDesk::trainerIds(auth()->user());
+
+            $trainer = $holding->first(fn ($t) => in_array((int) $t->id, $mine, true)) ?? $holding->first() ?? $trainer;
         }
 
         return [
@@ -302,7 +306,7 @@ abstract class TeachingPapers extends Controller
             'ticks.*' => 'boolean',
             'tick_note' => 'nullable|array',
             'tick_note.*' => 'nullable|string|max:190',
-        ], [], [
+        ], [
             'held_on' => 'Day', 'kind' => 'Class', 'training_module_id' => 'Unit',
             'topic' => 'What was covered', 'hours' => 'Hours', 'sheet' => 'Signed sheet',
         ]);
@@ -423,7 +427,7 @@ abstract class TeachingPapers extends Controller
             'training_module_id' => 'required|exists:training_modules,id',
             'mark_note' => 'nullable|array',
             'mark_note.*.*' => 'nullable|string|max:190',
-        ], [], ['training_module_id' => 'Unit']);
+        ], ['training_module_id' => 'Unit']);
 
         $unitId = $request->integer('training_module_id');
         $this->guardUnit($cohort, $unitId);

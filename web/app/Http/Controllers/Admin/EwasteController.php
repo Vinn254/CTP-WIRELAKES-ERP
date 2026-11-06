@@ -76,7 +76,7 @@ class EwasteController extends Controller
             'weighed_weight_kg' => 'required|numeric|min:0.01|max:1000000',
             'condition' => 'required|in:'.implode(',', array_keys(EWasteCollection::CONDITIONS)),
             'note' => 'nullable|string|max:1000',
-        ], [], ['weighed_weight_kg' => 'Weight on the scale', 'condition' => 'Condition']);
+        ], ['weighed_weight_kg' => 'Weight on the scale', 'condition' => 'Condition']);
 
         $collection->update([
             ...$data,

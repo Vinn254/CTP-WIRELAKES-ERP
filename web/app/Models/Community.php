@@ -127,7 +127,7 @@ class Community extends Model
             'population' => 'nullable|integer|min:1|max:5000000',
             'households' => 'nullable|integer|min:1|max:2000000',
             'summary' => 'nullable|string|max:4000',
-        ], [], [
+        ], [
             'gps_lat' => 'GPS latitude', 'gps_lng' => 'GPS longitude',
             'sub_county' => 'Sub-county', 'population' => 'Population',
         ]);

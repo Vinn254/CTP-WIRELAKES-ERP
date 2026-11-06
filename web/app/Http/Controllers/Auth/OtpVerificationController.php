@@ -39,7 +39,7 @@ class OtpVerificationController extends Controller
             return redirect()->route('login');
         }
 
-        $data = $request->validate(['code' => 'required|string|max:10'], [], ['code' => 'confirmation code']);
+        $data = $request->validate(['code' => 'required|string|max:10'], ['code' => 'confirmation code']);
 
         $otp = EmailOtp::open($pending['email'], $pending['purpose']);
 

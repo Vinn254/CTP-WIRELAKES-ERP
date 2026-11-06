@@ -42,7 +42,7 @@ class RecordsController extends Controller
             'caption' => 'nullable|string|max:180',
             'website' => SafeUrl::rule(),
             'logo' => 'required|image|mimes:'.Uploads::IMAGE_MIMES.'|max:2048',
-        ], [], ['logo' => 'partner logo']);
+        ], ['logo' => 'partner logo']);
 
         $partner = Partner::create([
             'name' => $data['name'],

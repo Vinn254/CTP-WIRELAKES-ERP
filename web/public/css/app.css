@@ -259,6 +259,16 @@ html.dark .pw-toggle:hover { background: #1d3122; }
 .unit-head { grid-template-columns: minmax(0, 1fr) minmax(200px, 260px); color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .unit-head span { padding-left: 2px; }
 @media (max-width: 700px) { .unit-row, .unit-head { grid-template-columns: 1fr; } }
+/* A unit can carry more than one hand: each name sits on its own line with the cross that takes it back off. */
+.unit-hands { display: grid; gap: 6px; }
+.hand-line { display: flex; gap: 6px; align-items: center; }
+.hand-line select { flex: 1; min-width: 0; }
+.hand-x { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line);
+  background: #fff; color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; }
+.hand-x:hover { border-color: var(--danger); color: var(--danger); }
+.hand-add { justify-self: start; background: none; border: 0; padding: 2px 0; color: var(--green);
+  font-weight: 700; font-size: .82rem; cursor: pointer; }
+.hand-add:hover { text-decoration: underline; }
 /* The steps an intake is registered in: programmes, then units and their trainers, then the students. */
 .step-list { display: grid; gap: 8px; margin: 0; padding-left: 22px; list-style: none; counter-reset: step; }
 .step-list li { display: flex; gap: 8px; align-items: center; color: var(--muted); counter-increment: step; }

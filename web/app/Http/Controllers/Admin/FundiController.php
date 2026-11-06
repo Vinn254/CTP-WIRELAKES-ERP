@@ -162,7 +162,7 @@ class FundiController extends Controller
 
         $request->validate([
             'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        ], [], ['passport_photo' => 'Profile photo']);
+        ], ['passport_photo' => 'Profile photo']);
 
         $fundi->attachPhoto($request);
 
@@ -176,7 +176,7 @@ class FundiController extends Controller
 
         $data = $request->validate([
             'tier' => 'required|in:'.implode(',', array_keys(FundiRegistration::TIERS)),
-        ], [], ['tier' => 'Grade']);
+        ], ['tier' => 'Grade']);
 
         if ($data['tier'] === $fundi->tier) {
             return back()->with('error', $fundi->full_name.' is already registered as '
@@ -221,7 +221,7 @@ class FundiController extends Controller
         $data = $request->validate([
             'status' => 'required|in:suspended,blacklisted',
             'note' => 'required|string|max:1000',
-        ], [], ['note' => 'Reason', 'status' => 'Decision']);
+        ], ['note' => 'Reason', 'status' => 'Decision']);
 
         $fundi->update(['status' => $data['status'], 'rejection_reason' => $data['note']]);
         $fundi->user?->update(['active' => false]);
@@ -273,7 +273,7 @@ class FundiController extends Controller
             'business_name' => 'nullable|string|max:160',
             'business_reg_no' => 'nullable|string|max:60',
             'years_in_business' => 'nullable|integer|min:0|max:80',
-        ], [], [
+        ], [
             'county' => 'County', 'sub_county' => 'Sub-county', 'business_name' => 'Business name',
             'business_reg_no' => 'Business registration number', 'years_in_business' => 'Years trading',
         ]);
@@ -302,7 +302,7 @@ class FundiController extends Controller
             'sponsor_id' => 'nullable|integer|exists:partners,id',
             'sponsor_name' => 'nullable|string|max:150',
             'sponsor_contact' => 'nullable|string|max:120',
-        ], [], [
+        ], [
             'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name',
             'sponsor_contact' => 'Sponsor contact',
         ]);

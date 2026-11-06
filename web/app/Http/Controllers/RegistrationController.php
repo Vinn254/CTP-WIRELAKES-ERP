@@ -109,7 +109,7 @@ class RegistrationController extends Controller
             'id_scan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3072',
             'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
             'cv' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:3072',
-        ], [], [
+        ], [
             'national_id' => 'National ID', 'id_scan' => 'National ID scan',
             'sub_county' => 'Sub-county', 'mobiliser_code' => 'Mobilising CTP code',
             'cv' => 'CV', 'training_field_ids' => 'Field of training',

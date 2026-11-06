@@ -53,7 +53,7 @@ class PayrollController extends Controller
         $data = $request->validate([
             'period' => 'required|date',
             'note' => 'nullable|string|max:500',
-        ], [], ['period' => 'Month']);
+        ], ['period' => 'Month']);
 
         $run = Payroll::open($data['period'], $data['note'] ?? null, $request->user());
 

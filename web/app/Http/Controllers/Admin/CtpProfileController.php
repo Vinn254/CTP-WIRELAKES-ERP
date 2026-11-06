@@ -147,7 +147,7 @@ class CtpProfileController extends Controller
             'sponsor_id' => 'nullable|integer|exists:partners,id',
             'sponsor_name' => 'nullable|string|max:150',
             'sponsor_contact' => 'nullable|string|max:120',
-        ], [], [
+        ], [
             'sponsor_id' => 'Sponsoring partner', 'sponsor_name' => 'Sponsor name',
             'sponsor_contact' => 'Sponsor contact',
         ]);
@@ -230,7 +230,7 @@ class CtpProfileController extends Controller
             'service_counties.*' => 'string|max:100',
             'available_for_mobilisation' => 'nullable|boolean',
             'trainer_opt_in' => 'nullable|boolean',
-        ], [], [
+        ], [
             'gps_lat' => 'GPS latitude', 'gps_lng' => 'GPS longitude',
             'year_left_school' => 'Year left school',
         ]);
@@ -367,7 +367,7 @@ class CtpProfileController extends Controller
 
         $request->validate([
             'passport_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        ], [], ['passport_photo' => 'Profile photo']);
+        ], ['passport_photo' => 'Profile photo']);
 
         $ctp->attachPhoto($request);
 

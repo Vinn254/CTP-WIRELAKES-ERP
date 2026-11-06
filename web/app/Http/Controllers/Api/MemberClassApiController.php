@@ -72,8 +72,8 @@ class MemberClassApiController extends Controller
             $units = $cohort->unitList();
         }
 
-        $trainers = $cohort->unitTrainers();
-        $tutored = $units->map(fn ($unit) => $trainers[$unit->id] ?? null)->filter()->unique(fn ($t) => $t->id);
+        $hands = $cohort->handsMap();
+        $tutored = $units->flatMap(fn ($unit) => $hands[$unit->id] ?? collect())->unique(fn ($t) => $t->id);
 
         $marked = $units->map(function ($unit) use ($seat) {
             return ['unit' => $unit, 'grade' => Grading::compile($seat, $unit)];
@@ -110,14 +110,14 @@ class MemberClassApiController extends Controller
                     'room' => $slot->room,
                 ])->values(),
             ])->values(),
-            'units' => $marked->map(function (array $row) use ($marksByUnit, $trainers) {
+            'units' => $marked->map(function (array $row) use ($marksByUnit, $hands) {
                 $unit = $row['unit'];
                 $grade = $row['grade'];
 
                 return [
                     'position' => $unit->position,
                     'title' => $unit->title,
-                    'lecturer' => $trainers[$unit->id]?->personName(),
+                    'lecturer' => ($hands[$unit->id] ?? collect())->map->personName()->filter()->join(', ') ?: null,
                     'covered_on' => $marksByUnit[$unit->id]['on'] ?? null,
                     'marks' => collect(UnitGrading::PARTS)->map(fn (string $label, string $part) => [
                         'kind' => $part,

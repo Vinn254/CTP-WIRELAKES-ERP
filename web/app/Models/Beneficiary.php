@@ -41,7 +41,7 @@ class Beneficiary extends Model
             'project_id' => 'nullable|exists:projects,id',
             'id_number' => 'nullable|max:20|required_with:id_consent',
             'id_consent' => 'nullable|boolean',
-        ], [], [
+        ], [
             'benefited_on' => 'Date of benefit', 'id_number' => 'ID for follow-up', 'project_id' => 'Project',
         ]);
 

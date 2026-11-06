@@ -42,7 +42,7 @@ class PapersController extends Controller
         $data = $request->validate([
             'decision' => 'required|in:approved,returned',
             'note' => 'nullable|string|max:500',
-        ], [], ['decision' => 'Decision', 'note' => 'Note']);
+        ], ['decision' => 'Decision', 'note' => 'Note']);
 
         $message = Profile::decide($document, $data['decision'], $data['note'] ?? null, $request->user());
 
@@ -55,7 +55,7 @@ class PapersController extends Controller
         $data = $request->validate([
             'decision' => 'required|in:approved,rejected',
             'note' => 'nullable|string|max:500',
-        ], [], ['decision' => 'Decision', 'note' => 'Note']);
+        ], ['decision' => 'Decision', 'note' => 'Note']);
 
         $message = Profile::answer($change, $data['decision'], $data['note'] ?? null, $request->user());
 
@@ -92,7 +92,7 @@ class PapersController extends Controller
         $data = $request->validate([
             'subject_type' => 'required|string',
             'subject_id' => 'required|integer',
-        ], [], ['subject_type' => 'Whose file', 'subject_id' => 'The record']);
+        ], ['subject_type' => 'Whose file', 'subject_id' => 'The record']);
 
         $type = $data['subject_type'];
         $record = Profile::SUBJECTS[$type] ?? null;

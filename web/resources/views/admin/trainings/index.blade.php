@@ -168,11 +168,16 @@
                             <span class="tag">{{ $m->termLabel() }}</span>
                             <span class="hint">{{ $m->hoursLabel() }}</span>
                             @if ($m->outcome)<span class="hint">Expected: {{ $m->outcome }}</span>@endif
+                            @if ($m->hasSyllabus())
+                                <a class="tag" href="{{ route('admin.units.scheme', $m) }}" target="_blank">
+                                    {{ $m->syllabusLabel() }}</a>
+                            @endif
                             <span class="tag gray">{{ $m->completions()->count() }} marked</span>
                             @unless ($read)
                             <details class="need-form" style="display:inline-block;">
                                 <summary class="btn btn-sm btn-ghost">Edit</summary>
-                                <form method="POST" action="{{ route('admin.trainings.modules.update', [$t, $m]) }}"
+                                <form method="POST" enctype="multipart/form-data"
+                                      action="{{ route('admin.trainings.modules.update', [$t, $m]) }}"
                                       class="fee-form" style="text-align:left;">
                                     @csrf @method('PATCH')
                                     <div class="form-grid-2">
@@ -194,6 +199,16 @@
                                             <input type="number" name="position" min="0" max="999" value="{{ $m->position }}"></div>
                                         <div class="field"><label>What the trainee must be able to do</label>
                                             <input type="text" name="outcome" value="{{ $m->outcome }}" maxlength="500"></div>
+                                        <div class="field"><label>Scheme of work / syllabus</label>
+                                            <input type="file" name="syllabus"
+                                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip">
+                                            @if ($m->hasSyllabus())
+                                                <div class="hint">Replaces {{ $m->syllabus_name ?: $m->title }}
+                                                    ({{ $m->syllabus_uploaded_at?->format('d M Y') }}).</div>
+                                            @endif
+                                            <div class="help">Opens on the site for this office, the trainers named on
+                                                the unit and the students seated on it. 20 MB at most.</div>
+                                        </div>
                                     </div>
                                     <button class="btn btn-lime btn-block" type="submit" style="margin-top:10px;">Save module</button>
                                 </form>

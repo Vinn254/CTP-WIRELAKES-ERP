@@ -153,7 +153,7 @@ class TrainerController extends Controller
         $data = $request->validate([
             'decision' => 'required|in:approved,declined,suspended',
             'note' => 'nullable|string|max:500|required_if:decision,declined',
-        ], [], ['note' => 'Reason', 'decision' => 'Decision']);
+        ], ['note' => 'Reason', 'decision' => 'Decision']);
 
         $trainer->update([
             'status' => $data['decision'],

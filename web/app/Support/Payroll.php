@@ -224,7 +224,7 @@ class Payroll
             'payee_account' => 'nullable|string|max:120',
             'provider_ref' => 'nullable|string|max:60',
             'paid_on' => 'required|date|before_or_equal:today',
-        ], [], [
+        ], [
             'method' => 'How they are paid',
             'payee_account' => 'Account or phone number',
             'provider_ref' => 'Payment reference',

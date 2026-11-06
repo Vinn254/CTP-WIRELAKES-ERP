@@ -203,7 +203,7 @@ class MemberPortalApiController extends Controller
         $data = $request->validate([
             'cohort_id' => 'required|integer|exists:cohorts,id',
             'note' => 'nullable|string|max:1000',
-        ], [], ['cohort_id' => 'Training']);
+        ], ['cohort_id' => 'Training']);
 
         $cohort = Cohort::findOrFail($data['cohort_id']);
 

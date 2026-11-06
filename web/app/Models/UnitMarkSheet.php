@@ -61,7 +61,7 @@ class UnitMarkSheet extends Model
         return $request->validate([
             'covered_on' => 'required|date|before_or_equal:today',
             'note' => 'nullable|string|max:500',
-        ], [], ['covered_on' => 'Day the unit was taken']);
+        ], ['covered_on' => 'Day the unit was taken']);
     }
 
     public function dateLabel(): string

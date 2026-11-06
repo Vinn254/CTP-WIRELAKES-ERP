@@ -165,7 +165,7 @@ class CommunityController extends Controller
         $data = $request->validate([
             'ctp_id' => 'required|exists:ctp_registrations,id',
             'role' => 'required|in:'.implode(',', array_keys(Community::ROLES)),
-        ], [], ['ctp_id' => 'CTP']);
+        ], ['ctp_id' => 'CTP']);
 
         $ctp = CtpRegistration::findOrFail($data['ctp_id']);
         abort_unless(in_array($ctp->status, CtpRegistration::WORKING, true), 422,

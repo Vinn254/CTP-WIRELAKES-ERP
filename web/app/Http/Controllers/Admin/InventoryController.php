@@ -60,7 +60,7 @@ class InventoryController extends Controller
         $data = InventoryItem::dataFrom($request);
         $opening = (float) $request->validate([
             'qty_on_hand' => 'nullable|numeric|min:0|max:1000000',
-        ], [], ['qty_on_hand' => 'Opening balance'])['qty_on_hand'];
+        ], ['qty_on_hand' => 'Opening balance'])['qty_on_hand'];
 
         $item = InventoryItem::create([...$data, 'sku' => InventoryItem::nextSku($data['category']),
             'qty_on_hand' => 0, 'status' => 'active']);

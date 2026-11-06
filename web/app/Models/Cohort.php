@@ -128,6 +128,56 @@ class Cohort extends Model
     /** How a trainer is named on a screen: whichever of the three records the account stands behind. */
     public const TRAINER_WITH = ['fundi:id,full_name', 'staff:id,name', 'applicant:id,name'];
 
+    /** Every trainer named on this intake's units — a unit may be taught by more than one hand. */
+    public function hands(): HasMany
+    {
+        return $this->hasMany(UnitTrainer::class);
+    }
+
+    /**
+     * The hands on each unit of this intake, keyed by unit id, the lead name first. A unit nobody was named to falls
+     * back to the trainer the intake as a whole carries, so a run handed to one person reads exactly as it always did.
+     *
+     * @return array<int, Collection<int, Trainer>>
+     */
+    public function handsMap(): array
+    {
+        $units = $this->unitList();
+        $rows = $this->relationLoaded('hands') ? $this->hands : $this->hands()->get();
+        $leads = $units->pluck('pivot.trainer_id')->filter()->unique()->all();
+
+        $ids = collect($rows->pluck('trainer_id')->all())->merge($leads)->filter()->unique()->values()->all();
+        $byId = $ids === [] ? collect() : Trainer::with(self::TRAINER_WITH)->whereIn('id', $ids)->get()->keyBy('id');
+
+        return $units->mapWithKeys(function (TrainingModule $unit) use ($rows, $byId) {
+            $hands = $rows->where('training_module_id', $unit->id)
+                ->sortBy(fn ($row) => (int) $row->trainer_id === (int) ($unit->pivot?->trainer_id ?? 0) ? 0 : 1)
+                ->pluck('trainer_id')->map(fn ($id) => $byId[$id] ?? null)->filter()->unique('id')->values();
+
+            if ($hands->isEmpty()) {
+                $hands = collect([
+                    ($unit->pivot?->trainer_id ? $byId[$unit->pivot->trainer_id] ?? null : null) ?? $this->trainer,
+                ])->filter()->values();
+            }
+
+            return [$unit->id => $hands];
+        })->all();
+    }
+
+    /** The names on one unit as one line — “Mary Achieng, Joseph Kiprotich”. */
+    public function handsLine(?int $unitId): ?string
+    {
+        $names = ($this->handsMap()[$unitId ?? 0] ?? collect())->map->personName()->filter()->all();
+
+        return $names === [] ? null : implode(', ', $names);
+    }
+
+    /** The trainers on one of this intake's units, the lead name first. */
+    public function handsFor(?int $unitId): Collection
+    {
+        return $this->handsMap()[$unitId ?? 0] ?? collect();
+    }
+
     /**
      * The programme ids this intake runs — the list on the pivot plus the lead id on the row, so an intake saved
      * before the pivot existed is still read whole.
