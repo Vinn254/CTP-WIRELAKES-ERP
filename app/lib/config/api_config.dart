@@ -13,7 +13,7 @@
 ///   flutter run --dart-define=API_BASE_URL=http://192.168.1.42:8000
 library;
 
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 
 class ApiConfig {
   ApiConfig._();
@@ -26,16 +26,11 @@ class ApiConfig {
 
   /// Sensible default per platform.
   static String get _platformDefault {
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-      if (Platform.isIOS) return 'http://127.0.0.1:8000';
-      if (Platform.isWindows) return 'http://127.0.0.1:8000';
-      if (Platform.isMacOS) return 'http://127.0.0.1:8000';
-      if (Platform.isLinux) return 'http://127.0.0.1:8000';
-    } catch (_) {
-      // Platform may not be available in tests; fall through.
-    }
-    return 'http://127.0.0.1:8000';
+    // Only an Android emulator reaches its own computer through 10.0.2.2; a real device has no backend on it,
+    // so it is built with --dart-define and never lands here.
+    return defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:8000'
+        : 'http://127.0.0.1:8000';
   }
 
   /// The base URL without a trailing slash, e.g. "http://10.0.2.2:8000".

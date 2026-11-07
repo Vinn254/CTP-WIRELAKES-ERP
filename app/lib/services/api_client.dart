@@ -7,6 +7,7 @@ import '../models/attachment_models.dart';
 import '../models/field_models.dart';
 import '../models/member_models.dart';
 import '../models/portal_models.dart';
+import '../models/teaching_models.dart';
 import '../models/work_models.dart';
 
 class ApiException implements Exception {
@@ -49,6 +50,7 @@ class InlineFile {
 class ApiClient {
   static const _tokenKey = 'ctp_sanctum_token';
   static const _kindKey = 'ctp_account_kind';
+  static const _trainerKey = 'ctp_trainer_desk';
 
   String? _token;
   String? get token => _token;
@@ -64,11 +66,18 @@ class ApiClient {
   String? get kind => _kind;
   bool get isStaff => _kind == 'staff';
 
+  /// Whether this account holds the teaching desk — the same gate the website uses for My
+  /// teaching. A trainer who works in the office signs in here for their papers; an E-Fundi
+  /// who also trains gets the papers beside their own member screens.
+  bool _trainerDesk = false;
+  bool get trainerDesk => _trainerDesk;
+
   /// Load a previously stored token (and its account kind) from local storage.
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString(_tokenKey);
     _kind = prefs.getString(_kindKey);
+    _trainerDesk = prefs.getString(_trainerKey) == '1';
   }
 
   Future<void> _saveToken(String token) async {
@@ -83,12 +92,20 @@ class ApiClient {
     await prefs.setString(_kindKey, kind);
   }
 
+  Future<void> saveTrainerDesk(bool on) async {
+    _trainerDesk = on;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_trainerKey, on ? '1' : '0');
+  }
+
   Future<void> clearToken() async {
     _token = null;
     _kind = null;
+    _trainerDesk = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_kindKey);
+    await prefs.remove(_trainerKey);
   }
 
   Map<String, String> _headers({bool json = true}) {
@@ -121,6 +138,14 @@ class ApiClient {
   Future<dynamic> delete(String path) async {
     final res = await http
         .delete(Uri.parse(ApiConfig.url(path)), headers: _headers())
+        .timeout(_wait);
+    return _parse(res);
+  }
+
+  Future<dynamic> patch(String path, Map<String, dynamic> body) async {
+    final res = await http
+        .patch(Uri.parse(ApiConfig.url(path)),
+            headers: _headers(), body: jsonEncode(_flatten(body)))
         .timeout(_wait);
     return _parse(res);
   }
@@ -229,6 +254,7 @@ class ApiClient {
   Future<Map<String, dynamic>> resolveAccount() async {
     final data = await me();
     if (data['idle_minutes'] is int) idleMinutes = data['idle_minutes'] as int;
+    await saveTrainerDesk(data['trainer'] == true);
     if (data['staff'] == true) {
       await saveKind('staff');
     } else if (data['member_type'] != null) {
@@ -565,4 +591,133 @@ class ApiClient {
 
   Future<InlineFile> profilePhoto() async =>
       InlineFile.fromJson(await get('/me/photo') as Map<String, dynamic>);
+
+  // ---- The teaching desk (trainer) ------------------------------------------
+  //
+  // The same five papers the office and the E-Fundi portal fill, opened on the class the office posted
+  // this trainer on. Every write is the website's own controller answering with its own sentence.
+
+  Future<TeachingDeskBoard> teachingDesk() async =>
+      TeachingDeskBoard.fromJson(await get('/teaching') as Map<String, dynamic>);
+
+  Future<RegisterBoard> teachingRegister(int cohortId, {String? month, int? week}) async =>
+      RegisterBoard.fromJson(Map<String, dynamic>.from(await get(
+              '/teaching/$cohortId/register${_monthWeek(month, week)}') as Map));
+
+  /// One class on the week: the ticks, what was covered and the sheet the class signed. `forward: true`
+  /// sends it to the Registrar in the same breath, the way the web register's own button does.
+  Future<String> saveRegister(int cohortId, Map<String, dynamic> day) async {
+    final data = await post('/teaching/$cohortId/register', day);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> forwardRegister(int cohortId, int sessionId) async {
+    final data = await post('/teaching/$cohortId/register/$sessionId/forward', {});
+    return (data as Map)['message'].toString();
+  }
+
+  Future<InlineFile> registerSheet(int cohortId, int sessionId) async => InlineFile.fromJson(
+      await get('/teaching/$cohortId/register/$sessionId/sheet') as Map<String, dynamic>);
+
+  Future<MarksBoard> teachingMarks(int cohortId, {int? unitId, String? coveredOn}) async {
+    final query = [
+      if (unitId != null) 'training_module_id=$unitId',
+      if (coveredOn != null && coveredOn.isNotEmpty) 'covered_on=$coveredOn',
+    ].join('&');
+    final data = await get('/teaching/$cohortId/marks${query.isEmpty ? '' : '?$query'}')
+        as Map<String, dynamic>;
+    return MarksBoard.fromJson(data);
+  }
+
+  /// The whole grid at once — the marks ride under their trainee and their kind, exactly as the
+  /// web sheet names its inputs, so a blank box leaves the mark as it stands.
+  Future<String> saveMarks(int cohortId, Map<String, dynamic> sheet) async {
+    final data = await post('/teaching/$cohortId/marks', sheet);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> forwardMarks(int cohortId, int sheetId) async {
+    final data = await post('/teaching/$cohortId/marks/$sheetId/forward', {});
+    return (data as Map)['message'].toString();
+  }
+
+  Future<TimetableBoard> teachingTimetable(int cohortId) async => TimetableBoard.fromJson(
+      Map<String, dynamic>.from(await get('/teaching/$cohortId/timetable') as Map));
+
+  /// The week is written whole, so a class struck off does not sit behind the paper.
+  Future<String> saveTimetable(int cohortId, Map<String, dynamic> paper) async {
+    final data = await post('/teaching/$cohortId/timetable', paper);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> forwardTimetable(int cohortId, int timetableId) async {
+    final data = await post('/teaching/$cohortId/timetable/$timetableId/forward', {});
+    return (data as Map)['message'].toString();
+  }
+
+  Future<LessonsBoard> teachingLessons(int cohortId) async => LessonsBoard.fromJson(
+      Map<String, dynamic>.from(await get('/teaching/$cohortId/lessons') as Map));
+
+  Future<String> saveLesson(int cohortId, Map<String, dynamic> lesson, {int? lineId}) async {
+    final data = await post('/teaching/$cohortId/lessons${lineId == null ? '' : '/$lineId'}',
+        lesson);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> removeLesson(int cohortId, int lineId) async {
+    final data = await delete('/teaching/$cohortId/lessons/$lineId');
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> forwardLesson(int cohortId, int planId) async {
+    final data = await post('/teaching/$cohortId/lessons/$planId/forward', {});
+    return (data as Map)['message'].toString();
+  }
+
+  Future<MaterialsBoard> teachingMaterials(int cohortId) async => MaterialsBoard.fromJson(
+      Map<String, dynamic>.from(await get('/teaching/$cohortId/materials') as Map));
+
+  Future<String> storeHandout(int cohortId, Map<String, dynamic> paper) async {
+    final data = await post('/teaching/$cohortId/materials', paper);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> updateHandout(int cohortId, int materialId, Map<String, dynamic> paper) async {
+    final data = await patch('/teaching/$cohortId/materials/$materialId', paper);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> removeHandout(int cohortId, int materialId) async {
+    final data = await delete('/teaching/$cohortId/materials/$materialId');
+    return (data as Map)['message'].toString();
+  }
+
+  Future<InlineFile> openHandout(int cohortId, int materialId) async => InlineFile.fromJson(
+      await get('/teaching/$cohortId/materials/$materialId/open') as Map<String, dynamic>);
+
+  // ---- My week sheet --------------------------------------------------------
+
+  Future<TimeSheetBoard> timeSheet({String? month, int? week}) async => TimeSheetBoard.fromJson(
+      Map<String, dynamic>.from(
+          await get('/time-sheet${_monthWeek(month, week)}') as Map));
+
+  /// The ruled week: `action: 'submit'` signs it and sends it to the office the same way the
+  /// web page's own button does, while `draft` keeps the days for later.
+  Future<String> saveTimeSheet(Map<String, dynamic> body) async {
+    final data = await post('/time-sheet', body);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> saveTimeSheetDay(Map<String, dynamic> day) async {
+    final data = await post('/time-sheet/day', day);
+    return (data as Map)['message'].toString();
+  }
+
+  static String _monthWeek(String? month, int? week) {
+    final query = [
+      if (month != null) 'month=$month',
+      if (week != null) 'week=$week',
+    ].join('&');
+    return query.isEmpty ? '' : '?$query';
+  }
 }

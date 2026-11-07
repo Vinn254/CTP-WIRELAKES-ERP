@@ -244,6 +244,9 @@ class AuthController extends Controller
             'member_type' => $member ? ($member instanceof \App\Models\FundiRegistration ? 'fundi' : 'ctp') : null,
             'member_name' => $member?->full_name,
             'staff' => in_array($user->role, ['admin', 'superadmin'], true),
+            // A trainer opens the teaching papers from the app whatever their account is — an office sign-in that
+            // only teaches, and an E-Fundi sign-in that teaches as well.
+            'trainer' => \App\Support\Workspace::trainerDesk($user),
             'idle_minutes' => (int) config('account.idle_minutes'),
         ]);
     }

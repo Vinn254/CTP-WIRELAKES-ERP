@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'staff' => \App\Http\Middleware\EnsureUserIsStaff::class,
             'member' => \App\Http\Middleware\EnsureUserIsMember::class,
+            'trainer' => \App\Http\Middleware\EnsureUserIsTrainer::class,
             'idle' => \App\Http\Middleware\ExpireIdleApiToken::class,
         ]);
 

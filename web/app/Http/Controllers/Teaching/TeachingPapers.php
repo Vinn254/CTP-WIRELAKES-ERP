@@ -52,6 +52,15 @@ abstract class TeachingPapers extends Controller
         return route($this->prefix.$name, $params);
     }
 
+    /**
+     * What a paper answers with once it is written. The office reloads the page it came from and reads the line
+     * along the top; the app has no pages to reload, so its subclass turns the same sentence into JSON.
+     */
+    protected function done(string $message)
+    {
+        return back()->with('status', $message);
+    }
+
     protected function view(string $screen, Cohort $cohort, array $data = [])
     {
         // The sidebar's five paper links follow whichever class is being worked.
@@ -356,10 +365,10 @@ abstract class TeachingPapers extends Controller
         $who = $session->unitLabel() ?: CohortSession::KINDS[$data['kind']];
 
         if ($request->boolean('forward')) {
-            return back()->with('status', $this->forward($cohort, $session));
+            return $this->done($this->forward($cohort, $session));
         }
 
-        return back()->with('status', $who.' on '.$day->format('D d M Y').' saved — '
+        return $this->done($who.' on '.$day->format('D d M Y').' saved — '
             .$session->presentCount().' of '.$roll->count().' present. Forward it to the Registrar when it reads right.');
     }
 
@@ -367,7 +376,7 @@ abstract class TeachingPapers extends Controller
     {
         $this->gate($cohort);
 
-        return back()->with('status', $this->forward($cohort, $session));
+        return $this->done($this->forward($cohort, $session));
     }
 
     /** The signed sheet, opened only through the register it belongs to. */
@@ -467,7 +476,7 @@ abstract class TeachingPapers extends Controller
         }
 
         if ($request->boolean('forward')) {
-            return back()->with('status', $this->forward($cohort, $sheet));
+            return $this->done($this->forward($cohort, $sheet));
         }
 
         // A sheet the Registrar has already approved is corrected by them, and the record is counted again at once —
@@ -475,11 +484,11 @@ abstract class TeachingPapers extends Controller
         if ($sheet->status === 'approved' && TeachingDesk::approves($request->user())) {
             TeachingDesk::settle($sheet);
 
-            return back()->with('status', $written.' '.Str::plural('mark', $written).' corrected on the sheet for '
+            return $this->done($written.' '.Str::plural('mark', $written).' corrected on the sheet for '
                 .$sheet->unitLabel().' — the trainees’ records are counted again now.');
         }
 
-        return back()->with('status', $written.' '.Str::plural('mark', $written)
+        return $this->done($written.' '.Str::plural('mark', $written)
             .' saved on the sheet for '.$sheet->unitLabel().'. Forward it when the CTPs on it are in.');
     }
 
@@ -487,7 +496,7 @@ abstract class TeachingPapers extends Controller
     {
         $this->gate($cohort);
 
-        return back()->with('status', $this->forward($cohort, $sheet));
+        return $this->done($this->forward($cohort, $sheet));
     }
 
     // --------------------------------------------------------------- timetable
@@ -527,10 +536,10 @@ abstract class TeachingPapers extends Controller
         }
 
         if ($request->boolean('forward')) {
-            return back()->with('status', $this->forward($cohort, $paper));
+            return $this->done($this->forward($cohort, $paper));
         }
 
-        return back()->with('status', 'The week holds '.count($rows).' '.Str::plural('class', count($rows))
+        return $this->done('The week holds '.count($rows).' '.Str::plural('class', count($rows))
             .'. Forward it to the Registrar when it reads right.');
     }
 
@@ -538,7 +547,7 @@ abstract class TeachingPapers extends Controller
     {
         $this->gate($cohort);
 
-        return back()->with('status', $this->forward($cohort, $timetable));
+        return $this->done($this->forward($cohort, $timetable));
     }
 
     // ------------------------------------------------------------ lesson plan
@@ -598,12 +607,12 @@ abstract class TeachingPapers extends Controller
             abort_unless($line->lesson_plan_id === $plan->id, 404);
             $line->update($data);
 
-            return back()->with('status', 'Lesson '.$line->position.' rewritten on the plan.');
+            return $this->done('Lesson '.$line->position.' rewritten on the plan.');
         }
 
         $plan->lines()->create([...$data, 'position' => LessonLine::nextPosition($plan->id)]);
 
-        return back()->with('status', 'Lesson '.$plan->lessonCount().' added to the plan.');
+        return $this->done('Lesson '.$plan->lessonCount().' added to the plan.');
     }
 
     /** A lesson struck off is followed up by the ones behind it, so the plan still runs 1, 2, 3 to the last lesson. */
@@ -623,14 +632,14 @@ abstract class TeachingPapers extends Controller
             $rest->update(['position' => $i + 1]);
         }
 
-        return back()->with('status', 'Lesson taken off the plan, and the lessons behind it moved up.');
+        return $this->done('Lesson taken off the plan, and the lessons behind it moved up.');
     }
 
     public function forwardLesson(Cohort $cohort, LessonPlan $plan)
     {
         $this->gate($cohort);
 
-        return back()->with('status', $this->forward($cohort, $plan));
+        return $this->done($this->forward($cohort, $plan));
     }
 
     // ---------------------------------------------------------------- material
@@ -669,7 +678,7 @@ abstract class TeachingPapers extends Controller
             'file_size' => $file->getSize(),
         ] + $this->uploader($cohort));
 
-        return back()->with('status', $paper->title.' is on the cohort’s shelf for every trainee to open.');
+        return $this->done($paper->title.' is on the cohort’s shelf for every trainee to open.');
     }
 
     /** Replacing a handout overwrites it: the file the trainees open becomes the one saved now. */
@@ -691,7 +700,7 @@ abstract class TeachingPapers extends Controller
 
         $material->update($changes);
 
-        return back()->with('status', $material->title.' rewritten.');
+        return $this->done($material->title.' rewritten.');
     }
 
     public function destroyMaterial(Cohort $cohort, TrainingMaterial $material)
@@ -703,7 +712,7 @@ abstract class TeachingPapers extends Controller
         $title = $material->title;
         $material->delete();
 
-        return back()->with('status', $title.' taken off the shelf.');
+        return $this->done($title.' taken off the shelf.');
     }
 
     public function openMaterial(Request $request, Cohort $cohort, TrainingMaterial $material)

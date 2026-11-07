@@ -51,6 +51,9 @@ List<MemberPage> memberPages(Member member, Counts counts,
     if (canTrain) {
       pages.add(const MemberPage('trainer', 'Training CTPs', Icons.workspace_premium_outlined,
           hint: 'The sites you train at, your cohort and the progress you record.'));
+      // The side of the sheet an E-Fundi trainer signs and sends to Human Resources, beside their own record.
+      pages.add(const MemberPage('week', 'My time log', Icons.watch_later_outlined,
+          hint: 'The days you worked, week by week, signed and sent to Human Resources.'));
     }
   }
 

@@ -4,12 +4,10 @@
 library;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
+import '../platform/file_open.dart';
 import '../services/api_client.dart';
 
 /// The brand palette, taken straight from the website's own `:root` in public/css/app.css so the app and
@@ -383,13 +381,8 @@ Future<void> openDocument(BuildContext context, InlineFile file) async {
   }
 
   try {
-    final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/${_safeName(file.name)}';
-    await File(path).writeAsBytes(base64Of(file.dataUri!));
-    final result = await OpenFile.open(path);
-    if (result.type != ResultType.done && context.mounted) {
-      say(context, result.message.isNotEmpty ? result.message : 'No app on this phone can open it.');
-    }
+    final problem = await saveAndOpen(base64Of(file.dataUri!), _safeName(file.name));
+    if (problem != null && context.mounted) say(context, problem);
   } catch (e) {
     if (context.mounted) say(context, 'The file could not be opened: $e');
   }
@@ -802,4 +795,22 @@ void showError(BuildContext context, Object error) {
   final message = error is ApiException ? error.message : '$error';
   ScaffoldMessenger.of(context)
       .showSnackBar(SnackBar(content: Text(message), backgroundColor: danger));
+}
+
+/// A yes/no before an action the office then sees — forwarding a paper, taking a lesson off a plan.
+Future<bool?> confirm(BuildContext context,
+    {required String title, required String body, String cta = 'Send it'}) {
+  return showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text(title),
+      content: Text(body),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not yet')),
+        TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(cta, style: const TextStyle(fontWeight: FontWeight.w800))),
+      ],
+    ),
+  );
 }

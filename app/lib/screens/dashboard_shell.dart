@@ -20,6 +20,7 @@ import 'login_screen.dart';
 import 'member_pages.dart';
 import 'mobilisation_screen.dart';
 import 'overview_screen.dart';
+import 'time_sheet_screen.dart';
 import 'procurement_screen.dart';
 import 'profile_screen.dart';
 import 'projects_screen.dart';
@@ -185,6 +186,8 @@ class _DashboardShellState extends State<DashboardShell> with WidgetsBindingObse
         return InvitationsScreen(api: api, board: board);
       case 'trainer':
         return TrainerScreen(api: api, board: board);
+      case 'week':
+        return TimeSheetScreen(api: api);
       case 'ewaste':
         return EwasteScreen(api: api, board: board);
       case 'attachment':

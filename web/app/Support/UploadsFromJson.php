@@ -39,15 +39,25 @@ trait UploadsFromJson
                 str_contains($mime, 'png') => 'png',
                 str_contains($mime, 'pdf') => 'pdf',
                 str_contains($mime, 'webp') => 'webp',
+                str_contains($mime, 'msword') => 'doc',
+                str_contains($mime, 'wordprocessingml') => 'docx',
+                str_contains($mime, 'presentation') || str_contains($mime, 'powerpoint') => 'pptx',
+                str_contains($mime, 'spreadsheetml') || str_contains($mime, 'ms-excel') => 'xlsx',
+                str_contains($mime, 'zip') => 'zip',
+                str_contains($mime, 'text/plain') => 'txt',
                 default => 'jpg',
             };
 
             $scratch = tempnam(sys_get_temp_dir(), 'ctp-');
             file_put_contents($scratch, $bytes);
 
+            // The name keeps its own stem — slug('Notes.pdf') would otherwise drop the dot and store 'notespdf.pdf'.
             $name = (string) ($request->input($input.'_name') ?: $input);
+            $stem = pathinfo($name, PATHINFO_FILENAME) ?: $name;
 
-            $request->files->set($input, new UploadedFile($scratch, Str::slug($name, '-').'.'.$extension, $mime, null, true));
+            $request->files->set($input, new UploadedFile(
+                $scratch, Str::slug($stem, '-').'.'.$extension, $mime, null, true,
+            ));
         }
     }
 

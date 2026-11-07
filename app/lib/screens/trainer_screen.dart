@@ -3,6 +3,7 @@ import '../models/field_models.dart';
 import '../models/member_models.dart';
 import '../services/api_client.dart';
 import '../widgets/ui.dart';
+import 'papers/cohort_papers_screen.dart';
 
 /// Training CTPs — the senior fundi's teaching role: the sites they are approved at, the
 /// cohorts handed to them and the trainee roll they mark. The office approves a trainer
@@ -301,6 +302,20 @@ class _TrainerScreenState extends State<TrainerScreen> {
                     .where((x) => x != null && x.isNotEmpty)
                     .join(' · '),
                 style: const TextStyle(color: muted, fontSize: 12.5)),
+          ),
+          // The five papers the class is recorded on — the same page the web 'Class papers' button opens.
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => CohortPapersScreen(api: widget.api, cohortId: c.id, cohortLabel: c.reference),
+              )),
+              style: FilledButton.styleFrom(
+                  backgroundColor: green, foregroundColor: Colors.white,
+                  minimumSize: const Size(0, 40)),
+              icon: const Icon(Icons.description_outlined, size: 18),
+              label: const Text('Class papers'),
+            ),
           ),
           const Text('Your students — open one to record their performance',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: ink)),

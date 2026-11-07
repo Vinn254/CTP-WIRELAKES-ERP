@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_client.dart';
 import '../widgets/ui.dart';
 import 'dashboard_shell.dart';
+import 'trainer_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   final ApiClient api;
@@ -110,11 +111,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// The token is in hand: check it is a member account, then open the portal.
+  /// The token is in hand: check what the account is, then open its own app.
   Future<void> _finish() async {
     final me = await widget.api.resolveAccount();
     final isStaff = me['staff'] == true;
     final isMember = me['member_type'] != null;
+    final isTrainer = me['trainer'] == true;
+    final name = (me['user'] as Map?)?['name']?.toString() ?? '';
+
+    // A trainer who is not an E-Fundi signs in with the office account and gets the teaching desk here —
+    // papers and time log only. Any other office account is still sent to the website.
+    if (isStaff && isTrainer) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => TrainerShell(api: widget.api, name: name)),
+        );
+      }
+      return;
+    }
+
     if (isStaff || !isMember) {
       await widget.api.clearToken();
       if (mounted) {

@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\MemberClassApiController;
 use App\Http\Controllers\Api\MemberFieldApiController;
 use App\Http\Controllers\Api\MemberPortalApiController;
 use App\Http\Controllers\Api\MemberWorkApiController;
+use App\Http\Controllers\Api\TimeSheetApiController;
+use App\Http\Controllers\Api\TrainerTeachingApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -131,4 +133,44 @@ Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
 
     Route::get('/tech', [MemberWorkApiController::class, 'jobs'])->name('api.tech');
     Route::post('/tech/{ticket}/resolve', [MemberWorkApiController::class, 'resolveJob'])->whereNumber('ticket')->name('api.tech.resolve');
+});
+
+// A trainer's own desk over the API. Whoever may open My teaching on the website fills the same five papers here —
+// an office trainer who is not an E-Fundi signs in with their staff account and gets these screens and their own week
+// sheet, and an E-Fundi who trains gets them beside the member screens. Every route runs the website's own desk class,
+// so the timetable's hours, the unit a trainer is handed and the Registrar's answers are one set of rules, not two.
+Route::middleware(['auth:sanctum', 'idle', 'trainer'])->group(function () {
+    Route::get('/teaching', [TrainerTeachingApiController::class, 'desk'])->name('api.teaching');
+
+    Route::prefix('teaching/{cohort}')->whereNumber('cohort')->group(function () {
+        Route::get('register', [TrainerTeachingApiController::class, 'register'])->name('api.teaching.register');
+        Route::post('register', [TrainerTeachingApiController::class, 'saveDay'])->name('api.teaching.day.save');
+        Route::post('register/{session}/forward', [TrainerTeachingApiController::class, 'forwardDay'])->whereNumber('session')->name('api.teaching.day.forward');
+        Route::get('register/{session}/sheet', [TrainerTeachingApiController::class, 'daySheet'])->whereNumber('session')->name('api.teaching.day.sheet');
+
+        Route::get('marks', [TrainerTeachingApiController::class, 'marks'])->name('api.teaching.marks');
+        Route::post('marks', [TrainerTeachingApiController::class, 'saveSheet'])->name('api.teaching.sheet.save');
+        Route::post('marks/{sheet}/forward', [TrainerTeachingApiController::class, 'forwardSheet'])->whereNumber('sheet')->name('api.teaching.sheet.forward');
+
+        Route::get('timetable', [TrainerTeachingApiController::class, 'timetable'])->name('api.teaching.timetable');
+        Route::post('timetable', [TrainerTeachingApiController::class, 'saveTimetable'])->name('api.teaching.timetable.save');
+        Route::post('timetable/{timetable}/forward', [TrainerTeachingApiController::class, 'forwardTimetable'])->whereNumber('timetable')->name('api.teaching.timetable.forward');
+
+        Route::get('lessons', [TrainerTeachingApiController::class, 'lessons'])->name('api.teaching.lessons');
+        Route::post('lessons', [TrainerTeachingApiController::class, 'saveLesson'])->name('api.teaching.lesson.save');
+        Route::post('lessons/{line}', [TrainerTeachingApiController::class, 'saveLesson'])->whereNumber('line')->name('api.teaching.lesson.update');
+        Route::delete('lessons/{line}', [TrainerTeachingApiController::class, 'removeLesson'])->whereNumber('line')->name('api.teaching.lesson.remove');
+        Route::post('lessons/{plan}/forward', [TrainerTeachingApiController::class, 'forwardLesson'])->whereNumber('plan')->name('api.teaching.lesson.forward');
+
+        Route::get('materials', [TrainerTeachingApiController::class, 'materials'])->name('api.teaching.materials');
+        Route::post('materials', [TrainerTeachingApiController::class, 'storeMaterial'])->name('api.teaching.material.store');
+        Route::patch('materials/{material}', [TrainerTeachingApiController::class, 'updateMaterial'])->whereNumber('material')->name('api.teaching.material.update');
+        Route::delete('materials/{material}', [TrainerTeachingApiController::class, 'destroyMaterial'])->whereNumber('material')->name('api.teaching.material.destroy');
+        Route::get('materials/{material}/open', [TrainerTeachingApiController::class, 'openMaterial'])->whereNumber('material')->name('api.teaching.material.open');
+    });
+
+    // The week sheet every office account fills, trainers included — the same ruled paper My time log serves on the web.
+    Route::get('/time-sheet', [TimeSheetApiController::class, 'index'])->name('api.timesheet');
+    Route::post('/time-sheet', [TimeSheetApiController::class, 'save'])->name('api.timesheet.save');
+    Route::post('/time-sheet/day', [TimeSheetApiController::class, 'saveDay'])->name('api.timesheet.day.save');
 });
