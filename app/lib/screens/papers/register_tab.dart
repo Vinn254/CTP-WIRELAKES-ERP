@@ -7,6 +7,7 @@ import '../../models/teaching_models.dart';
 import '../../services/api_client.dart';
 import '../../widgets/ui.dart';
 import '../../widgets/week_picker.dart';
+import 'trainee_screen.dart';
 
 class RegisterTab extends StatefulWidget {
   final ApiClient api;
@@ -146,6 +147,22 @@ class _RegisterTabState extends State<RegisterTab> {
             )
           else
             for (final row in board.classes) _card(row),
+          if (board.roll.isNotEmpty)
+            SectionCard(
+              title: 'The roll (${board.roll.length})',
+              subtitle: 'One trainee’s record — their marks, track, modules and paperwork.',
+              child: Column(
+                children: [
+                  for (final seat in board.roll)
+                    RecordRow(
+                      title: seat.name,
+                      subtitle: seat.reference,
+                      trailing: const Icon(Icons.chevron_right, color: muted),
+                      onTap: () => openTraineeRecord(context, widget.api, seat.id),
+                    ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: OutlinedButton.icon(

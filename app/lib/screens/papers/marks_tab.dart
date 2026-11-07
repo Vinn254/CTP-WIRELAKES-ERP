@@ -7,6 +7,7 @@ import '../../models/teaching_models.dart';
 import '../../services/api_client.dart';
 import '../../widgets/ui.dart';
 import '../../widgets/week_picker.dart';
+import 'trainee_screen.dart';
 
 class MarksTab extends StatefulWidget {
   final ApiClient api;
@@ -393,6 +394,10 @@ class _MarksSheetScreenState extends State<MarksSheetScreen> {
                     SectionCard(
                       title: seat.name,
                       subtitle: seat.reference,
+                      trailing: TextButton(
+                        onPressed: () => openTraineeRecord(context, widget.api, seat.id),
+                        child: const Text('Record'),
+                      ),
                       child: Column(
                         children: [
                           for (final kind in board.kinds.keys)

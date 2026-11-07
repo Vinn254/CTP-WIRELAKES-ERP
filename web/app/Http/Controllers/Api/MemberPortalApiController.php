@@ -296,6 +296,8 @@ class MemberPortalApiController extends Controller
             'stage_label' => $e->stageLabel(),
             'track_pct' => $e->trackPct(),
             'attendance_pct' => $e->attendancePct(),
+            'certificate_code' => $e->certification?->isLive() ? $e->certification->certificate_code : null,
+            'certified_on' => $e->certification?->isLive() ? $e->certification->approved_on?->toDateString() : null,
             'can_withdraw' => in_array($e->state, ['pending', 'approved'], true)
                 && ! in_array($e->stage, ['completed', 'failed'], true),
         ];

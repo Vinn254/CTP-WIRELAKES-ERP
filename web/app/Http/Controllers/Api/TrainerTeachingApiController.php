@@ -7,14 +7,23 @@ use App\Models\Cohort;
 use App\Models\CohortSession;
 use App\Models\Enrollment;
 use App\Models\LessonLine;
+use App\Models\LibraryItem;
+use App\Models\ModuleCompletion;
+use App\Models\ProgressEntry;
 use App\Models\Timetable;
 use App\Models\TimetableSlot;
+use App\Models\Training;
+use App\Models\TrainingDocument;
 use App\Models\TrainingMaterial;
+use App\Models\TrainingModule;
 use App\Models\UnitMark;
 use App\Models\UnitMarkSheet;
 use App\Models\User;
 use App\Support\Departments;
+use App\Support\Grading;
+use App\Support\Library;
 use App\Support\TeachingDesk;
+use App\Support\TrainingTrack;
 use App\Support\UploadsFromJson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,6 +70,8 @@ class TrainerTeachingApiController extends TeachingPapers
         return response()->json([
             'trainer' => $this->trainerName(),
             'office' => Departments::canSee($request->user(), 'training') || $request->user()->isSuperAdmin(),
+            // Whose account this is: an office file has a staff profile to read, an E-Fundi's record does not.
+            'staff' => in_array($request->user()->role, ['admin', 'superadmin'], true),
             'cohorts' => $cohorts->map(fn (Cohort $cohort) => $this->cohortJson($cohort))->values(),
             'note' => $cohorts->isEmpty()
                 ? 'No class is handed to you yet. The office posts a trainer on a cohort before its papers open.'
@@ -111,6 +122,227 @@ class TrainerTeachingApiController extends TeachingPapers
             'That handout has no file on record.');
 
         return response()->json($this->inline($material->file_path, $material->file_name ?: $material->title));
+    }
+
+    // ------------------------------------------------------------------ library
+
+    /**
+     * GET /api/teaching/library — the Registrar's shelf for the programmes this account teaches, exactly as
+     * /admin/teaching/library serves it. A trainer is never charged: reading and keeping a title are both open here.
+     */
+    public function library(Request $request): JsonResponse
+    {
+        $mine = TeachingDesk::courses($request->user());
+
+        $kind = $request->input('kind');
+        $kind = isset(LibraryItem::KINDS[$kind]) ? $kind : null;
+
+        $course = $request->input('training_id');
+        $course = $course === 'general' ? 'general'
+            : (ctype_digit((string) $course) && in_array((int) $course, $mine, true) ? (int) $course : null);
+
+        $items = Library::shelf($mine)->with(['course:id,name', 'poster:id,name'])
+            ->when($course === 'general', fn ($q) => $q->whereNull('training_id'))
+            ->when(is_int($course), fn ($q) => $q->where('training_id', $course))
+            ->when($kind, fn ($q) => $q->where('kind', $kind))
+            ->latest('id')->get();
+
+        return response()->json([
+            'items' => $items->map(fn (LibraryItem $item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'kind' => $item->kind,
+                'kind_label' => $item->kindLabel(),
+                'course' => $item->courseLabel(),
+                'note' => $item->note,
+                'posted_on' => $item->dateLabel(),
+                'size' => $item->sizeLabel(),
+                'has_file' => (bool) $item->file_path,
+                'price' => '',
+                'paid' => true,
+            ])->values(),
+            'courses' => Training::whereIn('id', $mine)->orderBy('name')->get(['id', 'name'])
+                ->map(fn (Training $t) => ['id' => $t->id, 'name' => $t->name])->values(),
+            'course' => $course,
+            'kind' => $kind,
+            'kinds' => LibraryItem::KINDS,
+            'charges' => false,
+        ]);
+    }
+
+    /** GET /api/teaching/library/{item} — the file itself, handed to a trainer without a payment. */
+    public function libraryFile(Request $request, LibraryItem $item): JsonResponse
+    {
+        abort_unless($item->status === 'on', 404, 'That reading is off the shelf.');
+        abort_unless(Library::reads($item, TeachingDesk::courses($request->user())), 403,
+            $item->title.' is filed under '.$item->courseLabel().', a programme you do not teach. '
+            .'The office lists the programmes you are licensed for on the Trainers register.');
+        abort_unless($item->file_path, 404, 'That title has no file on record.');
+
+        return response()->json($this->inline($item->file_path, $item->file_name ?: $item->title));
+    }
+
+    // ------------------------------------------------------- a trainee's record
+
+    /**
+     * GET /api/teaching/trainee/{enrollment} — one trainee's record, the page the desk reads before it marks.
+     * The marks sheet, the track, the modules and the paperwork all come from the same models the web partials use,
+     * so a phone never shows a trainee a different total from the class's own sheet.
+     */
+    public function trainee(Request $request, Enrollment $enrollment): JsonResponse
+    {
+        $seat = $this->theirTrainee($enrollment);
+        $seat->load(['ctp', 'entries', 'moduleMarks', 'documents.module', 'certification', 'cohort.venue']);
+
+        $units = $seat->unitList();
+        $board = $seat->moduleBoard();
+        $held = $seat->state === 'approved';
+        $days = $seat->entries->where('kind', 'attendance');
+
+        return response()->json([
+            'screen' => 'trainee',
+            'seat' => [
+                'id' => (int) $seat->id,
+                'name' => $seat->ctp?->full_name ?: 'Trainee '.$seat->id,
+                'code' => $seat->ctp?->ctp_code,
+                'state_label' => $seat->stateLabel(),
+                'stage_label' => $seat->stageLabel(),
+                'held' => $held,
+                'attendance' => $seat->attendancePct(),
+                'attendance_min' => Enrollment::ATTENDANCE_MINIMUM,
+                'track' => $seat->trackPct(),
+                'days_marked' => $days->count(),
+                'days_present' => $days->where('present', true)->count(),
+            ],
+            'cohort' => $seat->cohort ? $this->cohortJson($seat->cohort) : null,
+            'marks' => $units->map(function (TrainingModule $unit) use ($seat) {
+                $grade = Grading::compile($seat, $unit);
+                $grading = Grading::for($unit);
+
+                return [
+                    'unit' => $unit->title,
+                    'term' => $unit->termLabel(),
+                    'note' => $grading->note,
+                    'parts' => collect($grade['parts'])->map(fn (array $part) => [
+                        'label' => $part['label'],
+                        'score' => $part['score'],
+                        'weight' => $part['weight'],
+                    ])->values(),
+                    'pct' => $grade['pct'],
+                    'letter' => $grade['letter'],
+                    'marked' => $grade['marked'],
+                    'passed' => $grade['passed'],
+                    'pass_pct' => $grade['pass_pct'],
+                    'remark' => $grade['remark'],
+                    'on_sheet' => round(collect($grade['parts'])->except('attendance')->sum('got'), 1),
+                ];
+            })->values(),
+            'parts' => collect($seat->trackParts())->map(fn (array $part) => [
+                'label' => $part['label'], 'got' => $part['got'], 'weight' => $part['weight'],
+                'detail' => $part['detail'], 'done' => (bool) $part['done'],
+            ])->values(),
+            'modules' => $board['modules']->map(function (TrainingModule $unit) use ($board) {
+                $mark = $board['marked']->get($unit->id);
+
+                return [
+                    'id' => (int) $unit->id,
+                    'position' => (int) $unit->position,
+                    'title' => $unit->title,
+                    'hours' => $unit->hoursLabel(),
+                    'outcome' => $unit->outcome,
+                    'marked_on' => $mark?->done_on?->format('d M Y'),
+                    'marked_by' => $mark?->recorderLabel(),
+                    'marked_note' => $mark?->note,
+                ];
+            })->values(),
+            'documents' => $seat->documents->sortByDesc('dated_on')->map(fn (TrainingDocument $paper) => [
+                'id' => (int) $paper->id,
+                'title' => $paper->title,
+                'kind_label' => $paper->kindLabel(),
+                'dated' => $paper->dated_on?->format('d M Y'),
+                'size' => $paper->sizeLabel(),
+                'unit' => $paper->module?->title,
+                'note' => $paper->note,
+                'has_file' => (bool) $paper->file_path,
+            ])->values(),
+            'cert' => $seat->certification ? [
+                'code' => $seat->certification->certificate_code,
+                'status_label' => $seat->certification->statusLabel(),
+                'reason' => $seat->certification->reason,
+            ] : null,
+            'units' => $this->unitJson($units),
+            'progress_kinds' => ProgressEntry::KINDS,
+            'document_kinds' => TrainingDocument::KINDS,
+            'period' => $seat->cohort?->dateLabel(),
+            'starts_on' => $seat->cohort?->starts_on?->toDateString(),
+            'ends_on' => $seat->cohort?->ends_on?->toDateString(),
+            'can_write' => $held,
+        ]);
+    }
+
+    /** POST /api/teaching/trainee/{enrollment}/progress — one line on the trainee's own track. */
+    public function saveProgress(Request $request, Enrollment $enrollment): JsonResponse
+    {
+        $seat = $this->theirTrainee($enrollment);
+
+        return $this->done(TrainingTrack::recordProgress($seat, $request, $this->recorder($seat)));
+    }
+
+    /** POST /api/teaching/trainee/{enrollment}/modules/{module} — a module the trainee has got through. */
+    public function markModule(Request $request, Enrollment $enrollment, TrainingModule $module): JsonResponse
+    {
+        $seat = $this->theirTrainee($enrollment);
+
+        return $this->done(TrainingTrack::markModule($seat, $module, ModuleCompletion::dataFrom($request),
+            $this->recorder($seat)));
+    }
+
+    /** DELETE /api/teaching/trainee/{enrollment}/modules/{module} — the mark taken off again. */
+    public function unmarkModule(Enrollment $enrollment, TrainingModule $module): JsonResponse
+    {
+        $seat = $this->theirTrainee($enrollment);
+
+        return $this->done(TrainingTrack::unmarkModule($seat, $module));
+    }
+
+    /** POST /api/teaching/trainee/{enrollment}/documents — a school report or a photo of the board they built. */
+    public function storeDocument(Request $request, Enrollment $enrollment)
+    {
+        $this->liftUploads($request, ['file']);
+        $seat = $this->theirTrainee($enrollment);
+
+        return $this->done(TrainingTrack::storeDocument($seat, $request, $this->recorder($seat)));
+    }
+
+    /** GET /api/teaching/trainee/{enrollment}/documents/{document} — the paper itself, opened from their record. */
+    public function document(Request $request, Enrollment $enrollment, TrainingDocument $paper): JsonResponse
+    {
+        $seat = $this->theirTrainee($enrollment);
+        abort_unless($paper->enrollment_id === $seat->id && $paper->file_path, 404,
+            'That document has no file on record.');
+
+        return response()->json($this->inline($paper->file_path, $paper->file_name ?: $paper->title));
+    }
+
+    /** A trainee outside a class this account papers for 404s, so no roster is reached by id. */
+    private function theirTrainee(Enrollment $enrollment): Enrollment
+    {
+        $enrollment->loadMissing('cohort');
+        abort_unless($enrollment->cohort, 404);
+        $this->gate($enrollment->cohort);
+
+        return $enrollment;
+    }
+
+    /** Whose hand put the line down — the same hand the papers are filed under. */
+    private function recorder(Enrollment $enrollment): array
+    {
+        $who = $this->actor($enrollment->cohort);
+
+        return array_filter([
+            'recorded_by_fundi' => $who['taken_by_fundi'],
+            'recorded_by_user' => $who['taken_by_user'],
+        ], fn ($value) => $value !== null);
     }
 
     // ------------------------------------------------------------------ seams

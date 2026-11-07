@@ -1,4 +1,6 @@
-/// My teaching on the phone — the classes the office handed this trainer, each one opening its five papers.
+/// My teaching on the phone — the classes the office handed this trainer. Choosing one here is what puts the
+/// five papers in the bar along the foot of the screen, so the register, the marks, the week, the plan and the
+/// material are all reachable without opening the class again.
 /// The same list web/resources/views/teaching draws for the Training desk and the trainer's portal page.
 library;
 
@@ -6,11 +8,26 @@ import 'package:flutter/material.dart';
 import '../../models/teaching_models.dart';
 import '../../services/api_client.dart';
 import '../../widgets/ui.dart';
-import 'cohort_papers_screen.dart';
 
 class TeachingDeskScreen extends StatefulWidget {
   final ApiClient api;
-  const TeachingDeskScreen({super.key, required this.api});
+
+  /// The board the shell already holds, so the bar knows the classes before this page repaints.
+  final TeachingDeskBoard? board;
+  final int? selectedId;
+  final ValueChanged<TeachingDeskBoard> onLoaded;
+  final ValueChanged<TaughtCohort> onSelect;
+
+  const TeachingDeskScreen({
+    super.key,
+    required this.api,
+    required this.onSelect,
+    this.onLoaded = _ignoreBoard,
+    this.board,
+    this.selectedId,
+  });
+
+  static void _ignoreBoard(TeachingDeskBoard _) {}
 
   @override
   State<TeachingDeskScreen> createState() => _TeachingDeskScreenState();
@@ -24,6 +41,7 @@ class _TeachingDeskScreenState extends State<TeachingDeskScreen> {
   @override
   void initState() {
     super.initState();
+    _board = widget.board;
     _load();
   }
 
@@ -31,20 +49,12 @@ class _TeachingDeskScreenState extends State<TeachingDeskScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final board = await widget.api.teachingDesk();
-      if (mounted) setState(() { _board = board; _loading = false; });
+      if (!mounted) return;
+      setState(() { _board = board; _loading = false; });
+      widget.onLoaded(board);
     } catch (e) {
       if (mounted) setState(() { _error = '$e'; _loading = false; });
     }
-  }
-
-  void _open(TaughtCohort cohort) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => CohortPapersScreen(
-        api: widget.api,
-        cohortId: cohort.id,
-        cohortLabel: cohort.reference,
-      ),
-    ));
   }
 
   @override
@@ -65,8 +75,9 @@ class _TeachingDeskScreenState extends State<TeachingDeskScreen> {
               style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: ink)),
           const Padding(
             padding: EdgeInsets.only(top: 4, bottom: 12),
-            child: Text('The attendance register, the marks, the class week, the lesson plan and the material — '
-                'written here and sent to the Academic Registrar.',
+            child: Text('Choose the class you are working on and its papers open along the bottom of the '
+                'screen — the attendance register, the marks, the class week, the lesson plan and the '
+                'material, written here and sent to the Academic Registrar.',
                 style: TextStyle(color: muted, fontSize: 12.5, height: 1.4)),
           ),
           if (board.cohorts.isEmpty)
@@ -91,12 +102,14 @@ class _TeachingDeskScreenState extends State<TeachingDeskScreen> {
       '${cohort.seats} ${cohort.seats == 1 ? 'CTP' : 'CTPs'} on the roll',
       '${cohort.units} ${cohort.units == 1 ? 'unit' : 'units'}',
     ].where((x) => x != null && x.isNotEmpty).join(' · ');
+    final chosen = cohort.id == widget.selectedId;
 
     return SectionCard(
       title: '${cohort.reference} — ${cohort.course}',
       subtitle: meta,
-      trailing: Tag(cohort.statusLabel,
-          color: cohort.status == 'running' ? green : muted),
+      trailing: chosen
+          ? const Tag('Working on this', color: onLime)
+          : Tag(cohort.statusLabel, color: cohort.status == 'running' ? green : muted),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -112,12 +125,13 @@ class _TeachingDeskScreenState extends State<TeachingDeskScreen> {
                   style: TextStyle(color: warn, fontSize: 12)),
             ),
           FilledButton.icon(
-            onPressed: () => _open(cohort),
+            onPressed: () => widget.onSelect(cohort),
             style: FilledButton.styleFrom(
-                backgroundColor: green, foregroundColor: Colors.white,
+                backgroundColor: chosen ? lime : green,
+                foregroundColor: chosen ? onLime : Colors.white,
                 minimumSize: const Size.fromHeight(44)),
-            icon: const Icon(Icons.description_outlined, size: 18),
-            label: const Text('Class papers'),
+            icon: Icon(chosen ? Icons.touch_app_outlined : Icons.description_outlined, size: 18),
+            label: Text(chosen ? 'Open its attendance register' : 'Work on this class'),
           ),
         ],
       ),

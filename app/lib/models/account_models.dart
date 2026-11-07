@@ -640,3 +640,167 @@ class LeaveBoard {
 }
 
 int _i(dynamic v) => v is int ? v : (v is num ? v.toInt() : int.tryParse('$v') ?? 0);
+
+String? _t(dynamic v) => v == null ? null : '$v';
+
+/// The office sends `[]` for a set it holds nothing in, so a list here means empty rather than broken.
+Map<String, String> _map(dynamic v) => v is! Map
+    ? const {}
+    : v.map((k, value) => MapEntry('$k', '$value'));
+
+// ---- My profile (an office account's own staff file) ------------------------
+
+/// One detail on the file: what is held, whether the person may ask for it, and how it is typed.
+class ProfileLine {
+  final String field;
+  final String label;
+  final String kind;
+  final bool officeOnly;
+  final String? raw;
+  final String value;
+  final Map<String, String> parts;
+  final Map<String, String> choices;
+
+  const ProfileLine({
+    required this.field,
+    required this.label,
+    required this.kind,
+    required this.officeOnly,
+    this.raw,
+    required this.value,
+    required this.parts,
+    required this.choices,
+  });
+
+  bool get empty => raw == null || raw == '';
+
+  factory ProfileLine.fromJson(Map<String, dynamic> j) => ProfileLine(
+        field: _t(j['field']) ?? '',
+        label: _t(j['label']) ?? '',
+        kind: _t(j['kind']) ?? 'text',
+        officeOnly: j['ro'] == true,
+        raw: _t(j['raw']),
+        value: _t(j['value']) ?? '',
+        parts: _map(j['parts']),
+        choices: _map(j['choices']),
+      );
+}
+
+/// A paper the person sent in for the desk to check.
+class ProfilePaper {
+  final int id;
+  final String kind;
+  final String label;
+  final String? fileName;
+  final String? size;
+  final String? sentOn;
+  final String status;
+  final String statusLabel;
+  final String? note;
+  final String? answeredBy;
+  final bool openable;
+  final bool replaceable;
+  final bool waiting;
+
+  const ProfilePaper({
+    required this.id,
+    required this.kind,
+    required this.label,
+    this.fileName,
+    this.size,
+    this.sentOn,
+    required this.status,
+    required this.statusLabel,
+    this.note,
+    this.answeredBy,
+    required this.openable,
+    required this.replaceable,
+    required this.waiting,
+  });
+
+  factory ProfilePaper.fromJson(Map<String, dynamic> j) => ProfilePaper(
+        id: _i(j['id']),
+        kind: _t(j['kind']) ?? '',
+        label: _t(j['label']) ?? '',
+        fileName: _t(j['file_name']),
+        size: _t(j['size']),
+        sentOn: _t(j['sent_on']),
+        status: _t(j['status']) ?? '',
+        statusLabel: _t(j['status_label']) ?? '',
+        note: _t(j['note']),
+        answeredBy: _t(j['answered_by']),
+        openable: j['openable'] == true,
+        replaceable: j['replaceable'] == true,
+        waiting: j['waiting'] == true,
+      );
+}
+
+/// An ask to have a detail corrected — the office writes it, not this screen.
+class ProfileAsk {
+  final int id;
+  final String? askedOn;
+  final String statusLabel;
+  final String? note;
+  final String fields;
+  final List<Map<String, String>> lines;
+  final String? answeredBy;
+  final bool pending;
+
+  const ProfileAsk({
+    required this.id,
+    this.askedOn,
+    required this.statusLabel,
+    this.note,
+    required this.fields,
+    required this.lines,
+    this.answeredBy,
+    required this.pending,
+  });
+
+  factory ProfileAsk.fromJson(Map<String, dynamic> j) => ProfileAsk(
+        id: _i(j['id']),
+        askedOn: _t(j['asked_on']),
+        statusLabel: _t(j['status_label']) ?? '',
+        note: _t(j['note']),
+        fields: _t(j['fields']) ?? '',
+        lines: (j['lines'] as List? ?? [])
+            .map((e) => Map<String, String>.from(e as Map))
+            .toList(),
+        answeredBy: _t(j['answered_by']),
+        pending: j['pending'] == true,
+      );
+}
+
+class StaffProfileBoard {
+  final String kind;
+  final String office;
+  final String person;
+  final String initials;
+  final bool hasPhoto;
+  final List<ProfileLine> lines;
+  final Map<String, String> papers;
+  final List<String> missing;
+  final List<String> need;
+  final List<ProfilePaper> documents;
+  final ProfileAsk? waiting;
+  final List<ProfileAsk> changes;
+
+  StaffProfileBoard.from(Map<String, dynamic> j)
+      : kind = _t(j['kind']) ?? '',
+        office = _t(j['office']) ?? 'Human Resources',
+        person = _t(j['person']) ?? '',
+        initials = _t(j['initials']) ?? '',
+        hasPhoto = j['has_photo'] == true,
+        lines = _list(j['lines'], ProfileLine.fromJson),
+        papers = _map(j['papers']),
+        missing = (j['missing'] as List? ?? []).map((e) => '$e').toList(),
+        need = (j['need'] as List? ?? []).map((e) => '$e').toList(),
+        documents = _list(j['documents'], ProfilePaper.fromJson),
+        waiting = j['waiting'] == null
+            ? null
+            : ProfileAsk.fromJson(Map<String, dynamic>.from(j['waiting'] as Map)),
+        changes = _list(j['changes'], ProfileAsk.fromJson);
+
+  /// The details a person may type themselves — what the Add-my-details sheet is built from.
+  List<ProfileLine> get askable => lines.where((l) => !l.officeOnly).toList();
+}

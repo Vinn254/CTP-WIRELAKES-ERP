@@ -93,6 +93,12 @@ class MemberClassApiController extends Controller
                 'track_pct' => round($seat->trackPct(), 1),
                 'grade_pct' => $overall,
                 'grade_letter' => $overall === null ? null : Grading::letter($overall),
+                'units_source' => $seat->unitSource(),
+                'units_note' => $seat->unitSourceLabel(),
+                'certificate' => $seat->certification?->isLive() ? [
+                    'code' => $seat->certification->certificate_code,
+                    'on' => $seat->certification->approved_on?->toDateString(),
+                ] : null,
             ],
             'timetable_on' => $timetable?->reviewed_at?->format('d M Y'),
             'timetable_from' => $timetable ? ($timetable->cohort_id ? 'cohort' : 'programme') : null,
@@ -113,6 +119,7 @@ class MemberClassApiController extends Controller
                 return [
                     'position' => $unit->position,
                     'title' => $unit->title,
+                    'term' => $unit->termLabel(),
                     'lecturer' => ($hands[$unit->id] ?? collect())->map->personName()->filter()->join(', ') ?: null,
                     'covered_on' => $marksByUnit[$unit->id]['on'] ?? null,
                     'marks' => collect(UnitGrading::PARTS)->map(fn (string $label, string $part) => [

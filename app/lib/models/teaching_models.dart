@@ -152,12 +152,16 @@ class WeekOption {
 class TeachingDeskBoard {
   final String trainer;
   final bool office;
+
+  /// An office account carries a staff file, so My profile opens beside the papers. An E-Fundi who trains does not.
+  final bool staff;
   final List<TaughtCohort> cohorts;
   final String? note;
 
   const TeachingDeskBoard({
     required this.trainer,
     required this.office,
+    this.staff = false,
     required this.cohorts,
     this.note,
   });
@@ -165,6 +169,7 @@ class TeachingDeskBoard {
   factory TeachingDeskBoard.fromJson(Map<String, dynamic> j) => TeachingDeskBoard(
         trainer: _s(j['trainer']) ?? '',
         office: j['office'] == true,
+        staff: j['staff'] == true,
         cohorts: _rows(j['cohorts']).map(TaughtCohort.fromJson).toList(),
         note: _s(j['note']),
       );
@@ -990,6 +995,257 @@ class TimeSheetBoard {
         years: (j['years'] as List? ?? []).map(_i).toList(),
         statuses: _labels(j['statuses']),
       );
+}
+
+/// One trainee's record — the page the desk reads before it marks. Everything on it is counted by the class's own
+/// sheet, so a phone never shows a trainee a different total from the register and marks papers.
+class TraineeSeat {
+  final int id;
+  final String name;
+  final String? code;
+  final String stateLabel;
+  final String stageLabel;
+  final bool held;
+  final double? attendance;
+  final int attendanceMin;
+  final double track;
+  final int daysMarked;
+  final int daysPresent;
+
+  const TraineeSeat({
+    required this.id,
+    required this.name,
+    this.code,
+    required this.stateLabel,
+    required this.stageLabel,
+    required this.held,
+    this.attendance,
+    required this.attendanceMin,
+    required this.track,
+    required this.daysMarked,
+    required this.daysPresent,
+  });
+
+  factory TraineeSeat.fromJson(Map<String, dynamic> j) => TraineeSeat(
+        id: _i(j['id']),
+        name: _s(j['name']) ?? 'Trainee',
+        code: _s(j['code']),
+        stateLabel: _s(j['state_label']) ?? '',
+        stageLabel: _s(j['stage_label']) ?? '',
+        held: j['held'] == true,
+        attendance: _num(j['attendance']),
+        attendanceMin: _i(j['attendance_min']),
+        track: _num(j['track']) ?? 0,
+        daysMarked: _i(j['days_marked']),
+        daysPresent: _i(j['days_present']),
+      );
+}
+
+class MarkPartScore {
+  final String label;
+  final double? score;
+  final int weight;
+
+  const MarkPartScore({required this.label, this.score, required this.weight});
+
+  factory MarkPartScore.fromJson(Map<String, dynamic> j) => MarkPartScore(
+        label: _s(j['label']) ?? '',
+        score: _num(j['score']),
+        weight: _i(j['weight']),
+      );
+}
+
+class TraineeMark {
+  final String unit;
+  final String? term;
+  final String? note;
+  final List<MarkPartScore> parts;
+  final double pct;
+
+  /// What the marks sheets alone come to, before attendance is weighed in.
+  final double onSheet;
+  final String letter;
+  final bool marked;
+  final bool passed;
+  final double passPct;
+  final String remark;
+
+  const TraineeMark({
+    required this.unit,
+    this.term,
+    this.note,
+    required this.parts,
+    required this.pct,
+    required this.onSheet,
+    required this.letter,
+    required this.marked,
+    required this.passed,
+    required this.passPct,
+    required this.remark,
+  });
+
+  factory TraineeMark.fromJson(Map<String, dynamic> j) => TraineeMark(
+        unit: _s(j['unit']) ?? 'Unit',
+        term: _s(j['term']),
+        note: _s(j['note']),
+        parts: _rows(j['parts']).map(MarkPartScore.fromJson).toList(),
+        pct: _num(j['pct']) ?? 0,
+        onSheet: _num(j['on_sheet']) ?? 0,
+        letter: _s(j['letter']) ?? '',
+        marked: j['marked'] == true,
+        passed: j['passed'] == true,
+        passPct: _num(j['pass_pct']) ?? 0,
+        remark: _s(j['remark']) ?? '',
+      );
+}
+
+class TrackPart {
+  final String label;
+  final double got;
+  final int weight;
+  final String detail;
+  final bool done;
+
+  const TrackPart({
+    required this.label,
+    required this.got,
+    required this.weight,
+    required this.detail,
+    required this.done,
+  });
+
+  factory TrackPart.fromJson(Map<String, dynamic> j) => TrackPart(
+        label: _s(j['label']) ?? '',
+        got: _num(j['got']) ?? 0,
+        weight: _i(j['weight']),
+        detail: _s(j['detail']) ?? '',
+        done: j['done'] == true,
+      );
+}
+
+class TraineeModule {
+  final int id;
+  final int position;
+  final String title;
+  final String? hours;
+  final String? outcome;
+  final String? markedOn;
+  final String? markedBy;
+  final String? markedNote;
+
+  const TraineeModule({
+    required this.id,
+    required this.position,
+    required this.title,
+    this.hours,
+    this.outcome,
+    this.markedOn,
+    this.markedBy,
+    this.markedNote,
+  });
+
+  bool get marked => markedOn != null;
+
+  factory TraineeModule.fromJson(Map<String, dynamic> j) => TraineeModule(
+        id: _i(j['id']),
+        position: _i(j['position']),
+        title: _s(j['title']) ?? 'Module',
+        hours: _s(j['hours']),
+        outcome: _s(j['outcome']),
+        markedOn: _s(j['marked_on']),
+        markedBy: _s(j['marked_by']),
+        markedNote: _s(j['marked_note']),
+      );
+}
+
+class TraineeDocument {
+  final int id;
+  final String title;
+  final String kindLabel;
+  final String? dated;
+  final String? size;
+  final String? unit;
+  final String? note;
+  final bool hasFile;
+
+  const TraineeDocument({
+    required this.id,
+    required this.title,
+    required this.kindLabel,
+    this.dated,
+    this.size,
+    this.unit,
+    this.note,
+    required this.hasFile,
+  });
+
+  factory TraineeDocument.fromJson(Map<String, dynamic> j) => TraineeDocument(
+        id: _i(j['id']),
+        title: _s(j['title']) ?? 'Document',
+        kindLabel: _s(j['kind_label']) ?? '',
+        dated: _s(j['dated']),
+        size: _s(j['size']),
+        unit: _s(j['unit']),
+        note: _s(j['note']),
+        hasFile: j['has_file'] == true,
+      );
+}
+
+class TraineeBoard {
+  final TraineeSeat seat;
+  final TaughtCohort? cohort;
+  final List<TraineeMark> marks;
+  final List<TrackPart> parts;
+  final List<TraineeModule> modules;
+  final List<TraineeDocument> documents;
+  final Map<String, dynamic>? cert;
+  final List<TaughtUnit> units;
+  final Map<String, String> progressKinds;
+  final Map<String, String> documentKinds;
+  final String? period;
+  final String? startsOn;
+  final String? endsOn;
+  final bool canWrite;
+
+  const TraineeBoard({
+    required this.seat,
+    required this.marks,
+    required this.parts,
+    required this.modules,
+    required this.documents,
+    required this.units,
+    required this.progressKinds,
+    required this.documentKinds,
+    required this.canWrite,
+    this.cohort,
+    this.cert,
+    this.period,
+    this.startsOn,
+    this.endsOn,
+  });
+
+  factory TraineeBoard.fromJson(Map<String, dynamic> j) => TraineeBoard(
+        seat: TraineeSeat.fromJson(Map<String, dynamic>.from(j['seat'] as Map)),
+        cohort: j['cohort'] == null
+            ? null
+            : TaughtCohort.fromJson(Map<String, dynamic>.from(j['cohort'] as Map)),
+        marks: _rows(j['marks']).map(TraineeMark.fromJson).toList(),
+        parts: _rows(j['parts']).map(TrackPart.fromJson).toList(),
+        modules: _rows(j['modules']).map(TraineeModule.fromJson).toList(),
+        documents: _rows(j['documents']).map(TraineeDocument.fromJson).toList(),
+        cert: j['cert'] == null ? null : Map<String, dynamic>.from(j['cert'] as Map),
+        units: _rows(j['units']).map(TaughtUnit.fromJson).toList(),
+        progressKinds: _labels(j['progress_kinds']),
+        documentKinds: _labels(j['document_kinds']),
+        period: _s(j['period']),
+        startsOn: _s(j['starts_on']),
+        endsOn: _s(j['ends_on']),
+        canWrite: j['can_write'] == true,
+      );
+
+  String get certificateCode => _s(cert?['code']) ?? 'no code yet';
+  String get certificateStatus => _s(cert?['status_label']) ?? '';
+  String? get certificateReason => _s(cert?['reason']);
 }
 
 String _today() {

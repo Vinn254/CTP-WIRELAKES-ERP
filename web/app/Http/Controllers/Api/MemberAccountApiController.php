@@ -92,8 +92,8 @@ class MemberAccountApiController extends Controller
 
     // ---- guards and serialisers ------------------------------------------
 
-    /** Only an E-Fundi holds a post; a CTP trainee has no balance to book. */
-    private function worker(): User
+    /** Only an E-Fundi holds a post; a CTP trainee has no balance to book. Overridden for an office account. */
+    protected function worker(): User
     {
         $user = auth()->user();
         abort_unless($user && $user->role === 'fundi', 403,
@@ -132,7 +132,7 @@ class MemberAccountApiController extends Controller
         ];
     }
 
-    private function leaveRow(LeaveRequest $l): array
+    protected function leaveRow(LeaveRequest $l): array
     {
         return [
             'id' => $l->id,

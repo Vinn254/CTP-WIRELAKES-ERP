@@ -1,15 +1,21 @@
 /// The trainer's own app. A trainer who is not an E-Fundi signs in with their office account and lands
-/// here — the teaching papers and the weekly time log, the two screens the web office gives them, without
-/// the rest of the desk. An E-Fundi who trains gets the same pages beside their own member screens.
+/// here — the teaching papers, the Registrar's shelf and the weekly time log, the pages the web desk gives them.
+/// Every one of them sits in the raised bar along the foot of the screen, so a paper is one press away and never
+/// behind a card you have to open first.
 library;
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../models/teaching_models.dart';
 import '../services/api_client.dart';
+import '../widgets/footer_nav.dart';
 import '../widgets/ui.dart';
+import 'leave_screen.dart';
 import 'login_screen.dart';
+import 'papers/cohort_papers_screen.dart';
 import 'papers/teaching_desk_screen.dart';
+import 'staff_profile_screen.dart';
 import 'time_sheet_screen.dart';
 
 class TrainerShell extends StatefulWidget {
@@ -25,7 +31,13 @@ class TrainerShell extends StatefulWidget {
 
 class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver {
   final _scaffold = GlobalKey<ScaffoldState>();
+
   String _page = 'teaching';
+
+  /// The class the five papers are written on. One class makes it automatic; several are chosen on My teaching.
+  TeachingDeskBoard? _board;
+  int? _cohortId;
+  String _cohortLabel = '';
 
   /// Bumping the key rebuilds the page underneath, so Refresh reloads the paper rather than redrawing it.
   int _tick = 0;
@@ -34,16 +46,25 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
   DateTime _lastTouch = DateTime.now();
   bool _expired = false;
 
-  static const _pages = [
-    MemberTile('teaching', 'My teaching', Icons.school_outlined),
-    MemberTile('week', 'My time log', Icons.watch_later_outlined),
-  ];
+  /// The pages the web desk gives this account, all of them in the bar along the foot. My profile only shows
+  /// for an office account — an E-Fundi who trains keeps the member profile their own portal holds.
+  List<FooterItem> get _footer => [
+        const FooterItem('teaching', 'My teaching', Icons.school_outlined),
+        ...paperPages,
+        const FooterItem('week', 'Time log', Icons.watch_later_outlined),
+        const FooterItem('leave', 'My leave', Icons.schedule_outlined),
+        if (_board?.staff ?? widget.api.isStaff)
+          const FooterItem('profile', 'My profile', Icons.badge_outlined),
+      ];
+
+  static const _paperKeys = {'register', 'marks', 'timetable', 'lessons', 'materials'};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _idle = Timer.periodic(const Duration(seconds: 20), (_) => _checkIdle());
+    _loadDesk();
   }
 
   @override
@@ -83,6 +104,46 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
         child: child,
       );
 
+  Future<void> _loadDesk() async {
+    try {
+      final board = await widget.api.teachingDesk();
+      if (!mounted) return;
+      setState(() {
+        _board = board;
+        // A single class needs no choosing; the bar should open straight onto its papers.
+        if (_cohortId == null && board.cohorts.length == 1) _choose(board.cohorts.first);
+      });
+    } catch (_) {
+      // My teaching reports the failure in its own words; the bar still holds every other page.
+    }
+  }
+
+  void _choose(TaughtCohort cohort) {
+    setState(() {
+      _cohortId = cohort.id;
+      _cohortLabel = cohort.reference;
+    });
+  }
+
+  void _open(String key) {
+    if (_paperKeys.contains(key) && _cohortId == null) {
+      final only = _board?.cohorts ?? const [];
+      if (only.length == 1) {
+        _choose(only.first);
+      } else {
+        setState(() => _page = 'teaching');
+        if (mounted) {
+          say(context, only.isEmpty
+              ? 'No class is handed to you yet, so there is nothing to write papers on.'
+              : 'Pick the class you are working on, then press the paper again.');
+        }
+        return;
+      }
+    }
+    setState(() => _page = key);
+    _scaffold.currentState?.closeDrawer();
+  }
+
   Future<void> _logout() async {
     await widget.api.logout();
     if (mounted) {
@@ -93,14 +154,10 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
     }
   }
 
-  void _open(String key) {
-    setState(() => _page = key);
-    _scaffold.currentState?.closeDrawer();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final current = _pages.firstWhere((p) => p.key == _page, orElse: () => _pages.first);
+    final current = _footer.firstWhere((p) => p.key == _page, orElse: () => _footer.first);
+    final onPaper = _paperKeys.contains(_page);
 
     return _alive(Scaffold(
       key: _scaffold,
@@ -148,7 +205,7 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   children: [
-                    for (final p in _pages)
+                    for (final p in _footer)
                       ListTile(
                         selected: p.key == current.key,
                         selectedTileColor: lime,
@@ -156,13 +213,10 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
                         shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(12))),
                         minVerticalPadding: 6,
-                        leading: Icon(p.icon,
-                            color: p.key == current.key ? onLime : muted),
+                        leading: Icon(p.icon, color: p.key == current.key ? onLime : muted),
                         title: Text(p.label,
                             style: TextStyle(
-                                fontWeight: p.key == current.key
-                                    ? FontWeight.w800
-                                    : FontWeight.w600,
+                                fontWeight: p.key == current.key ? FontWeight.w800 : FontWeight.w600,
                                 color: p.key == current.key ? onLime : ink)),
                         onTap: () => _open(p.key),
                       ),
@@ -179,25 +233,48 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
         ),
       ),
       appBar: AppBar(
-        title: Text(current.label),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(current.label),
+            if (onPaper && _cohortLabel.isNotEmpty)
+              Text(_cohortLabel,
+                  style: const TextStyle(fontSize: 11.5, color: Color(0xFFCDE6C6))),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
-            onPressed: () => setState(() => _tick++),
+            onPressed: () {
+              setState(() => _tick++);
+              _loadDesk();
+            },
           ),
         ],
       ),
-      body: _page == 'week'
-          ? TimeSheetScreen(key: ValueKey('week-$_tick'), api: widget.api)
-          : TeachingDeskScreen(key: ValueKey('teaching-$_tick'), api: widget.api),
+      body: switch (_page) {
+        'week' => TimeSheetScreen(key: ValueKey('week-$_tick'), api: widget.api),
+        'leave' => LeaveScreen(api: widget.api, staff: true),
+        'profile' => StaffProfileScreen(key: ValueKey('profile-$_tick'), api: widget.api),
+        'teaching' => TeachingDeskScreen(
+            key: ValueKey('teaching-$_tick'),
+            api: widget.api,
+            board: _board,
+            selectedId: _cohortId,
+            onLoaded: (loaded) => setState(() => _board = loaded),
+            onSelect: (cohort) {
+              _choose(cohort);
+              setState(() => _page = 'register');
+            },
+          ),
+        _ => paperBody(_page, api: widget.api, cohortId: _cohortId),
+      },
+      bottomNavigationBar: FooterNav(
+        items: _footer,
+        current: _page,
+        onOpen: _open,
+      ),
     ));
   }
-}
-
-class MemberTile {
-  final String key;
-  final String label;
-  final IconData icon;
-  const MemberTile(this.key, this.label, this.icon);
 }

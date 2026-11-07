@@ -6,10 +6,13 @@ import '../widgets/ui.dart';
 
 /// My leave — the days an E-Fundi has left of each type, and an application for Human Resources
 /// to answer. A CTP trainee holds no post, so the page never opens for one, exactly as on the portal.
+/// An office account opens the same paper with `staff: true`, the way /admin/my-leave serves it.
 class LeaveScreen extends StatefulWidget {
   final ApiClient api;
-  final Board board;
-  const LeaveScreen({super.key, required this.api, required this.board});
+  final Board? board;
+  final bool staff;
+
+  const LeaveScreen({super.key, required this.api, this.board, this.staff = false});
 
   @override
   State<LeaveScreen> createState() => _LeaveScreenState();
@@ -32,7 +35,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
       _error = null;
     });
     try {
-      final b = await widget.api.leave();
+      final b = widget.staff ? await widget.api.staffLeave() : await widget.api.leave();
       if (mounted) {
         setState(() {
           _data = b;
@@ -73,7 +76,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
       ],
     );
     if (body == null) return;
-    await _post(() => widget.api.applyLeave(body));
+    await _post(() => widget.staff
+        ? widget.api.applyStaffLeave(body)
+        : widget.api.applyLeave(body));
   }
 
   Future<void> _withdraw(LeaveRow row) async {
@@ -90,7 +95,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
       ),
     );
     if (ok != true) return;
-    await _post(() => widget.api.cancelLeave(row.id));
+    await _post(() => widget.staff
+        ? widget.api.cancelStaffLeave(row.id)
+        : widget.api.cancelLeave(row.id));
   }
 
   Future<void> _post(Future<String> Function() send) async {

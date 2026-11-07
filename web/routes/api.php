@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\MemberClassApiController;
 use App\Http\Controllers\Api\MemberFieldApiController;
 use App\Http\Controllers\Api\MemberPortalApiController;
 use App\Http\Controllers\Api\MemberWorkApiController;
+use App\Http\Controllers\Api\StaffLeaveApiController;
+use App\Http\Controllers\Api\StaffProfileApiController;
 use App\Http\Controllers\Api\TimeSheetApiController;
 use App\Http\Controllers\Api\TrainerTeachingApiController;
 use Illuminate\Http\Request;
@@ -142,6 +144,20 @@ Route::middleware(['auth:sanctum', 'idle', 'member'])->group(function () {
 Route::middleware(['auth:sanctum', 'idle', 'trainer'])->group(function () {
     Route::get('/teaching', [TrainerTeachingApiController::class, 'desk'])->name('api.teaching');
 
+    // The Registrar's shelf, read for the programmes this account teaches. A trainer keeps a title for nothing.
+    Route::get('/teaching/library', [TrainerTeachingApiController::class, 'library'])->name('api.teaching.library');
+    Route::get('/teaching/library/{item}', [TrainerTeachingApiController::class, 'libraryFile'])->whereNumber('item')->name('api.teaching.library.file');
+
+    // One trainee's record — the marks sheet, the track, the modules and the paperwork of /admin/teaching/{enrollment}.
+    Route::prefix('/teaching/trainee/{enrollment}')->whereNumber('enrollment')->group(function () {
+        Route::get('/', [TrainerTeachingApiController::class, 'trainee'])->name('api.teaching.trainee');
+        Route::post('progress', [TrainerTeachingApiController::class, 'saveProgress'])->name('api.teaching.trainee.progress');
+        Route::post('modules/{module}', [TrainerTeachingApiController::class, 'markModule'])->whereNumber('module')->name('api.teaching.trainee.module.mark');
+        Route::delete('modules/{module}', [TrainerTeachingApiController::class, 'unmarkModule'])->whereNumber('module')->name('api.teaching.trainee.module.unmark');
+        Route::post('documents', [TrainerTeachingApiController::class, 'storeDocument'])->name('api.teaching.trainee.document.store');
+        Route::get('documents/{document}', [TrainerTeachingApiController::class, 'document'])->whereNumber('document')->name('api.teaching.trainee.document.open');
+    });
+
     Route::prefix('teaching/{cohort}')->whereNumber('cohort')->group(function () {
         Route::get('register', [TrainerTeachingApiController::class, 'register'])->name('api.teaching.register');
         Route::post('register', [TrainerTeachingApiController::class, 'saveDay'])->name('api.teaching.day.save');
@@ -173,4 +189,21 @@ Route::middleware(['auth:sanctum', 'idle', 'trainer'])->group(function () {
     Route::get('/time-sheet', [TimeSheetApiController::class, 'index'])->name('api.timesheet');
     Route::post('/time-sheet', [TimeSheetApiController::class, 'save'])->name('api.timesheet.save');
     Route::post('/time-sheet/day', [TimeSheetApiController::class, 'saveDay'])->name('api.timesheet.day.save');
+
+    // My leave, as /admin/my-leave serves it to the same account. The balances and the writer are the member desk's own.
+    Route::get('/my-leave', [StaffLeaveApiController::class, 'leave'])->name('api.staff.leave');
+    Route::post('/my-leave', [StaffLeaveApiController::class, 'applyLeave'])->name('api.staff.leave.apply');
+    Route::post('/my-leave/{leave}/cancel', [StaffLeaveApiController::class, 'cancelLeave'])->whereNumber('leave')->name('api.staff.leave.cancel');
+});
+
+// My profile as /admin/profile serves it to an office account: what Human Resources holds, the papers sent in to be
+// checked and the edits asked for. A staff trainer on the phone reads and sends the same paper the website gives them.
+Route::middleware(['auth:sanctum', 'idle', 'staff'])->group(function () {
+    Route::get('/my-profile', [StaffProfileApiController::class, 'profile'])->name('api.staff.profile');
+    Route::get('/my-profile/photo', [StaffProfileApiController::class, 'photo'])->name('api.staff.profile.photo');
+    Route::post('/my-profile/document', [StaffProfileApiController::class, 'storeDocument'])->name('api.staff.profile.document');
+    Route::get('/my-profile/document/{document}', [StaffProfileApiController::class, 'documentFile'])->whereNumber('document')->name('api.staff.profile.document.open');
+    Route::post('/my-profile/document/{document}/withdraw', [StaffProfileApiController::class, 'withdrawDocument'])->whereNumber('document')->name('api.staff.profile.document.withdraw');
+    Route::post('/my-profile/change', [StaffProfileApiController::class, 'requestChange'])->name('api.staff.profile.change');
+    Route::post('/my-profile/change/{change}/withdraw', [StaffProfileApiController::class, 'withdrawChange'])->whereNumber('change')->name('api.staff.profile.change.withdraw');
 });

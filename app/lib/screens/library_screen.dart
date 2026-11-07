@@ -6,10 +6,13 @@ import '../widgets/ui.dart';
 
 /// My library — everything the Registrar has left on the shelf. The course a title is filed under groups it
 /// and says who the reading was written for; it does not lock the title away from the other students.
+/// A trainer opens the same shelf with `trainer: true` and pays nothing for any of it.
 class LibraryScreen extends StatefulWidget {
   final ApiClient api;
-  final Board board;
-  const LibraryScreen({super.key, required this.api, required this.board});
+  final Board? board;
+  final bool trainer;
+
+  const LibraryScreen({super.key, required this.api, this.board, this.trainer = false});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -32,7 +35,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final b = await widget.api.library(course: _course, kind: _kind);
+      final b = widget.trainer
+          ? await widget.api.teachingLibrary(course: _course, kind: _kind)
+          : await widget.api.library(course: _course, kind: _kind);
       if (mounted) {
         setState(() {
           _data = b;
@@ -50,9 +55,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
+  Future<InlineFile> _file(LibraryRow item, {bool save = false}) => widget.trainer
+      ? widget.api.teachingLibraryFile(item.id)
+      : widget.api.libraryFile(item.id, save: save);
+
   Future<void> _read(LibraryRow item) async {
     try {
-      final file = await widget.api.libraryFile(item.id);
+      final file = await _file(item);
       if (mounted) await openDocument(context, file);
     } catch (e) {
       if (mounted) showError(context, e);
@@ -66,7 +75,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     if (!b.charges || item.paid) {
       try {
-        final file = await widget.api.libraryFile(item.id, save: true);
+        final file = await _file(item, save: true);
         if (mounted) await openDocument(context, file);
       } catch (e) {
         if (mounted) showError(context, e);
@@ -115,8 +124,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
         children: [
           SectionCard(
             title: 'Find reading',
-            subtitle: 'Only what the Registrar has approved is on the shelf, and only the reading '
-                'filed for a course you sit in class for.',
+            subtitle: widget.trainer
+                ? 'Only what the Registrar has approved is on the shelf, and only the reading filed for '
+                    'a programme you teach. A trainer pays nothing for any of it.'
+                : 'Only what the Registrar has approved is on the shelf, and only the reading '
+                    'filed for a course you sit in class for.',
             child: Column(
               children: [
                 _picker(

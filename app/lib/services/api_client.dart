@@ -413,6 +413,20 @@ class ApiClient {
     return (data as Map)['message'].toString();
   }
 
+  /// The same leave book on an office account — /admin/my-leave's own balances, writer and answers.
+  Future<LeaveBoard> staffLeave() async =>
+      LeaveBoard.fromJson(await get('/my-leave') as Map<String, dynamic>);
+
+  Future<String> applyStaffLeave(Map<String, dynamic> application) async {
+    final data = await post('/my-leave', application);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> cancelStaffLeave(int leaveId) async {
+    final data = await post('/my-leave/$leaveId/cancel', {});
+    return (data as Map)['message'].toString();
+  }
+
   // ---- My communities & mobilisation (CTP) --------------------------------
 
   Future<CommunityBoard> communities() async =>
@@ -592,6 +606,42 @@ class ApiClient {
   Future<InlineFile> profilePhoto() async =>
       InlineFile.fromJson(await get('/me/photo') as Map<String, dynamic>);
 
+  // ---- My profile (an office account) ---------------------------------------
+  //
+  // /admin/profile for a staff account. The member screens above belong to a fundi or a CTP; an office
+  // account's file is held by Human Resources and answered there, so these routes run the website's own
+  // Profile class behind the staff gate and never write a detail onto the record by themselves.
+
+  Future<StaffProfileBoard> staffProfile() async =>
+      StaffProfileBoard.from(await get('/my-profile') as Map<String, dynamic>);
+
+  Future<InlineFile> staffProfilePhoto() async =>
+      InlineFile.fromJson(await get('/my-profile/photo') as Map<String, dynamic>);
+
+  /// A paper sent in for the desk to check. `document` is the paper being replaced with a better copy.
+  Future<String> staffSendDocument(Map<String, dynamic> paper) async {
+    final data = await post('/my-profile/document', paper);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<InlineFile> staffDocumentFile(int documentId) async => InlineFile.fromJson(
+      await get('/my-profile/document/$documentId') as Map<String, dynamic>);
+
+  Future<String> staffWithdrawDocument(int documentId) async {
+    final data = await post('/my-profile/document/$documentId/withdraw', {});
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> staffAskChange(Map<String, dynamic> details) async {
+    final data = await post('/my-profile/change', details);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> staffWithdrawChange(int changeId) async {
+    final data = await post('/my-profile/change/$changeId/withdraw', {});
+    return (data as Map)['message'].toString();
+  }
+
   // ---- The teaching desk (trainer) ------------------------------------------
   //
   // The same five papers the office and the E-Fundi portal fill, opened on the class the office posted
@@ -694,6 +744,56 @@ class ApiClient {
 
   Future<InlineFile> openHandout(int cohortId, int materialId) async => InlineFile.fromJson(
       await get('/teaching/$cohortId/materials/$materialId/open') as Map<String, dynamic>);
+
+  /// The Registrar's shelf for the programmes this trainer teaches. A trainer is never charged for a title,
+  /// so the same board the student reads carries `charges: false` here.
+  Future<LibraryBoard> teachingLibrary({String? course, String? kind}) async {
+    final query = [
+      if (course != null && course.isNotEmpty) 'training_id=$course',
+      if (kind != null && kind.isNotEmpty) 'kind=$kind',
+    ].join('&');
+    final data = await get('/teaching/library${query.isEmpty ? '' : '?$query'}') as Map<String, dynamic>;
+    return LibraryBoard.fromJson(data);
+  }
+
+  Future<InlineFile> teachingLibraryFile(int itemId) async =>
+      InlineFile.fromJson(await get('/teaching/library/$itemId') as Map<String, dynamic>);
+
+  // ---- One trainee's record -------------------------------------------------
+
+  /// The page the desk reads before it marks: the seat, the marks counted under the Registrar's weights,
+  /// the track, the modules got through, the paperwork and where certification stands.
+  Future<TraineeBoard> teachingTrainee(int enrollmentId) async =>
+      TraineeBoard.fromJson(
+          Map<String, dynamic>.from(await get('/teaching/trainee/$enrollmentId') as Map));
+
+  /// A line on the record — a day marked, a session, a CAT, a note. The website's own writer answers it.
+  Future<String> saveTraineeProgress(int enrollmentId, Map<String, dynamic> entry) async {
+    final data = await post('/teaching/trainee/$enrollmentId/progress', entry);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> markTraineeModule(int enrollmentId, int moduleId, {String? note}) async {
+    final data = await post('/teaching/trainee/$enrollmentId/modules/$moduleId', {
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+    });
+    return (data as Map)['message'].toString();
+  }
+
+  Future<String> unmarkTraineeModule(int enrollmentId, int moduleId) async {
+    final data = await delete('/teaching/trainee/$enrollmentId/modules/$moduleId');
+    return (data as Map)['message'].toString();
+  }
+
+  /// Evidence on the record — a school report, an assessment paper, a photo of the work.
+  Future<String> saveTraineeEvidence(int enrollmentId, Map<String, dynamic> paper) async {
+    final data = await post('/teaching/trainee/$enrollmentId/documents', paper);
+    return (data as Map)['message'].toString();
+  }
+
+  Future<InlineFile> traineeDocumentFile(int enrollmentId, int documentId) async =>
+      InlineFile.fromJson(
+          await get('/teaching/trainee/$enrollmentId/documents/$documentId') as Map<String, dynamic>);
 
   // ---- My week sheet --------------------------------------------------------
 

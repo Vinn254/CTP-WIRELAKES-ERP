@@ -123,21 +123,43 @@ class Enrollment extends Model
 
     public function unitList(): Collection
     {
+        return $this->unitPlan()['units'];
+    }
+
+    /** office (the seat was handed units) | programme (their own course on this intake) | intake (the whole intake). */
+    public function unitSource(): string
+    {
+        return $this->unitPlan()['source'];
+    }
+
+    public function unitSourceLabel(): string
+    {
+        return match ($this->unitSource()) {
+            'office' => 'The units the office handed you on this seat.',
+            'programme' => 'The units of your own programme that this intake runs.',
+            default => 'Every unit this intake runs — your programme has no units of its own on it yet.',
+        };
+    }
+
+    private function unitPlan(): array
+    {
         if (! $this->cohort) {
-            return collect();
+            return ['units' => collect(), 'source' => 'none'];
         }
 
         $mine = $this->units;
 
         if ($mine->isNotEmpty()) {
-            return $mine->values();
+            return ['units' => $mine->values(), 'source' => 'office'];
         }
 
         // Nothing handed over: the units of their own programme on this intake, or the whole intake.
         $programme = $this->ctp?->training_id ?: $this->cohort->training_id;
         $units = $this->cohort->unitsFor($programme ?: null);
 
-        return $units->isNotEmpty() ? $units : $this->cohort->unitList();
+        return $units->isNotEmpty()
+            ? ['units' => $units, 'source' => 'programme']
+            : ['units' => $this->cohort->unitList(), 'source' => 'intake'];
     }
 
     public function stateLabel(): string
