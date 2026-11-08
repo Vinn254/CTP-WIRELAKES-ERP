@@ -88,7 +88,7 @@ List<MemberPage> memberPages(Member member, Counts counts,
     pages.add(const MemberPage('earnings', 'My earnings', Icons.payments_outlined,
         hint: 'Every payout, what was paid out and what was deducted from it.'));
     // Leave is for the people who work in the programme — an E-Fundi holds a post, a CTP trainee does not.
-    pages.add(const MemberPage('leave', 'My leave', Icons.schedule_outlined,
+    pages.add(const MemberPage('leave', 'My leave', Icons.weekend_outlined,
         hint: 'Your days left of each type, and an application for Human Resources to answer.'));
   }
 

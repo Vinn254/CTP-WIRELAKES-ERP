@@ -1,7 +1,7 @@
 /// The trainer's own app. A trainer who is not an E-Fundi signs in with their office account and lands
 /// here — the teaching papers, the Registrar's shelf and the weekly time log, the pages the web desk gives them.
-/// Every one of them sits in the raised bar along the foot of the screen, so a paper is one press away and never
-/// behind a card you have to open first.
+/// The bar along the foot carries the pages a class day runs on; *More* opens the sidebar for the rest, so no
+/// page is ever more than two presses away and none is behind a card you have to open first.
 library;
 
 import 'dart:async';
@@ -46,13 +46,15 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
   DateTime _lastTouch = DateTime.now();
   bool _expired = false;
 
-  /// The pages the web desk gives this account, all of them in the bar along the foot. My profile only shows
-  /// for an office account — an E-Fundi who trains keeps the member profile their own portal holds.
+  /// The pages the web desk gives this account. The bar carries the five a class day runs on and the shelf;
+  /// *More* opens the sidebar, which lists every one of them. My profile only shows for an office account —
+  /// an E-Fundi who trains keeps the member profile their own portal holds.
   List<FooterItem> get _footer => [
         const FooterItem('teaching', 'My teaching', Icons.school_outlined),
-        ...paperPages,
+        for (final key in ['register', 'marks', 'timetable', 'library', 'lessons', 'materials'])
+          paperPages.firstWhere((p) => p.key == key),
         const FooterItem('week', 'Time log', Icons.watch_later_outlined),
-        const FooterItem('leave', 'My leave', Icons.schedule_outlined),
+        const FooterItem('leave', 'My leave', Icons.weekend_outlined),
         if (_board?.staff ?? widget.api.isStaff)
           const FooterItem('profile', 'My profile', Icons.badge_outlined),
       ];
@@ -274,6 +276,7 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
         items: _footer,
         current: _page,
         onOpen: _open,
+        onMore: () => _scaffold.currentState?.openDrawer(),
       ),
     ));
   }
