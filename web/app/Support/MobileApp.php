@@ -16,8 +16,17 @@ class MobileApp
 {
     public const FOLDER = 'uploads/app';
 
+    /** The folder the app itself is served from — on the host this is public_html/app. */
+    public const WEB_FOLDER = 'app';
+
     /** A package this size is already a very generous app; anything bigger is the wrong file. */
     public const MAX_KB = 200 * 1024;
+
+    /** Where a phone opens the app in its own browser. Always answers, so the site never shows a dead button. */
+    public static function webUrl(): string
+    {
+        return url('/'.self::WEB_FOLDER);
+    }
 
     /** The stored package, but only while the file is really on disk — a missing file never offers a dead link. */
     public static function package(): ?string

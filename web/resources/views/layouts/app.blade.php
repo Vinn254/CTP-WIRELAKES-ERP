@@ -50,7 +50,22 @@
                 </div>
             </div>
             <a href="{{ route('careers') }}" class="{{ request()->routeIs('careers.*') ? 'active' : '' }}">Careers</a>
-            <a href="{{ route('get-the-app') }}" class="{{ request()->routeIs('get-the-app.*') ? 'active' : '' }}">Get the app</a>
+            <div class="join-menu app-menu">
+                <button type="button" class="btn btn-lime btn-sm join-toggle" aria-expanded="false" onclick="toggleJoinMenu(this)">
+                    @include('partials.icon', ['n' => 'download', 'cls' => 'ico-dl'])Get the app
+                    @include('partials.icon', ['n' => 'chevron'])
+                </button>
+                <div class="join-drop">
+                    <a class="btn btn-primary btn-sm" href="{{ \App\Support\MobileApp::webUrl() }}">Open the app</a>
+                    @if (\App\Support\MobileApp::url())
+                        <a class="btn btn-ghost btn-sm" href="{{ route('get-the-app.download') }}" download>Install on Android</a>
+                    @endif
+                    @if ($playUrl = \App\Support\MobileApp::playUrl())
+                        <a class="btn btn-ghost btn-sm" href="{{ \App\Support\SafeUrl::href($playUrl) }}" target="_blank" rel="noopener">Google Play</a>
+                    @endif
+                    <span class="app-note">Sign in with the email and password you registered with.</span>
+                </div>
+            </div>
             <a href="{{ route('partners') }}" class="{{ request()->routeIs('partners.*') ? 'active' : '' }}">Partners</a>
             <a href="{{ route('donate') }}" class="{{ request()->routeIs('donate.*') ? 'active' : '' }}">Donate</a>
             <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact.*') || request()->routeIs('faq') ? 'active' : '' }}">Contact</a>
