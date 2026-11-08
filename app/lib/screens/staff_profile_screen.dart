@@ -203,7 +203,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                 width: 68,
                 height: 68,
                 child: _photo != null && _photo!.hasFile
-                    ? ClipOval(child: Image.memory(base64Of(_photo!.dataUri!), fit: BoxFit.cover))
+                    ? ClipOval(
+                        child: Image.memory(base64Of(_photo!.dataUri!),
+                            fit: BoxFit.cover, cacheWidth: 136))
                     : CircleAvatar(
                         backgroundColor: green,
                         foregroundColor: Colors.white,

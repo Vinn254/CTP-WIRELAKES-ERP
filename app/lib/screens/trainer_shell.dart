@@ -66,7 +66,7 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _idle = Timer.periodic(const Duration(seconds: 20), (_) => _checkIdle());
-    _loadDesk();
+    // My teaching opens first and hands the board up through onLoaded, so the desk is asked for once, not twice.
   }
 
   @override
@@ -264,7 +264,11 @@ class _TrainerShellState extends State<TrainerShell> with WidgetsBindingObserver
             api: widget.api,
             board: _board,
             selectedId: _cohortId,
-            onLoaded: (loaded) => setState(() => _board = loaded),
+            onLoaded: (loaded) {
+              setState(() => _board = loaded);
+              // A single class needs no choosing; the bar opens straight onto its papers.
+              if (_cohortId == null && loaded.cohorts.length == 1) _choose(loaded.cohorts.first);
+            },
             onSelect: (cohort) {
               _choose(cohort);
               setState(() => _page = 'register');

@@ -308,7 +308,8 @@ class PhotoPicker extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               child: photo == null
                   ? const Icon(Icons.add_a_photo_outlined, color: green)
-                  : Image.memory(base64Of(photo!.base64), fit: BoxFit.cover),
+                  : Image.memory(base64Of(photo!.base64),
+                      fit: BoxFit.cover, cacheWidth: 148),
             ),
             const SizedBox(width: 12),
             Expanded(

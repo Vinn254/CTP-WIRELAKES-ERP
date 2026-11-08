@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
 
   # Networking
   http: ^1.2.2
@@ -19,6 +18,9 @@ dependencies:
   image_picker: ^1.2.4
   path_provider: ^2.1.6
   open_file: ^3.5.11
+
+  # The browser build hands a document to the page as a download (platform/file_open_stub.dart)
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

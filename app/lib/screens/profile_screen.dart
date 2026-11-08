@@ -74,6 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Image.memory(
                       base64Of(_photo!.dataUri!),
                       fit: BoxFit.cover,
+                      cacheWidth: 216,
                     ),
                   )
                 : CircleAvatar(
