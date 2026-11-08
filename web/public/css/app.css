@@ -74,17 +74,21 @@ html:not(.dark) .site-header:not(.solid) .join-drop .btn-ghost { background: #ee
 .work-drop a:hover, .work-drop a.active { background: var(--lime-soft); color: var(--green); }
 .join-sep { height: 1px; background: var(--line); margin: 2px 0; }
 html.dark .join-drop .btn-ghost { background: transparent; color: #e6f2df; border-color: var(--line); }
-/* The one call to action in the header: the pill breathes and the arrow slides down the shaft, so the app
-   is found without anyone hunting for it. Nothing moves for someone who asked their device not to animate. */
-.app-menu .join-toggle { position: relative; }
-.app-menu .join-toggle::after { content: ""; position: absolute; inset: -2px; border-radius: 999px; pointer-events: none;
+/* The floating call to action, bottom right like a chat bubble: it rides every page, breathes so the eye
+   catches it, and opens the app download. Below the tablet it shrinks to the arrow alone. Nothing moves for
+   someone who asked their device not to animate. */
+.app-fab { position: fixed; right: 18px; bottom: 18px; z-index: 45; display: inline-flex; align-items: center; gap: 8px;
+  background: var(--lime); color: #083d0d; border-radius: 999px; padding: 13px 18px; font-weight: 700; font-size: .92rem;
+  text-decoration: none; box-shadow: 0 10px 24px rgba(6,103,34,.32); transition: transform .2s ease, background .2s ease; }
+.app-fab:hover, .app-fab:focus-visible { background: #3ea110; color: #083d0d; transform: translateY(-2px); }
+.app-fab .ico { width: 18px; height: 18px; animation: appArrow 1.9s ease-in-out infinite; }
+.app-fab::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; pointer-events: none;
   animation: appRing 2.6s cubic-bezier(.22,.61,.36,1) infinite; }
-@keyframes appRing { 0% { box-shadow: 0 0 0 0 rgba(76,182,20,.55); } 70%,100% { box-shadow: 0 0 0 13px rgba(76,182,20,0); } }
-.app-menu .ico-dl { animation: appArrow 1.9s ease-in-out infinite; }
+@keyframes appRing { 0% { box-shadow: 0 0 0 0 rgba(76,182,20,.5); } 70%,100% { box-shadow: 0 0 0 16px rgba(76,182,20,0); } }
 @keyframes appArrow { 0%,100% { transform: translateY(0); } 55% { transform: translateY(3px); } }
-.app-menu .app-note { color: var(--muted); font-size: .8rem; line-height: 1.4; padding: 2px 4px 0; }
+@media (max-width: 640px) { .app-fab { padding: 15px; } .app-fab span { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .app-menu .join-toggle::after, .app-menu .ico-dl { animation: none; }
+  .app-fab::after, .app-fab .ico { animation: none; }
 }
 .site-footer { background: var(--green-dark); color: #d9ecd4; margin-top: 60px; padding: 34px 0 22px; }
 .site-footer a { color: #a9e08c; text-decoration: none; }
