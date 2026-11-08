@@ -36,17 +36,9 @@
 
     <div class="grid-3" style="margin-top:22px;">
         <div class="card">
-            <h3>Your class</h3>
-            <p>The units handed to you, the lecturer on each, your marks out of 100, the week's timetable and the
-                handouts your trainer filed.</p>
-        </div>
-        <div class="card">
-            <h3>Your record</h3>
-            <p>Your track percentage, attendance, certificate once the office signs it, and the intakes you have been on.</p>
-        </div>
-        <div class="card">
-            <h3>Work and money</h3>
-            <p>Project invitations, work orders and what you must buy for them, plus every invoice you owe.</p>
+            <h3>Who it is for</h3>
+            <p>CTPs, E-Fundis of every grade and trainers — staff and fundi trainers alike. Everyone signs in with the
+                account this website already holds for them.</p>
         </div>
     </div>
 

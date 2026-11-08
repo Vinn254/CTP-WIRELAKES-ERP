@@ -96,7 +96,12 @@ if (! function_exists('css_href')) {
     {
         $path = public_path($file);
 
-        return asset($file).'?v='.((is_file($path) ? filemtime($path) : null) ?: config('app.build', 1));
+        // The size rides along with the timestamp: extracting a zip on the host leaves each file carrying the
+        // date it had inside the archive, so a visitor who cached the previous app.css would never be asked
+        // for the new one. A changed file always changes this address.
+        return is_file($path)
+            ? asset($file) . '?v=' . filemtime($path) . '-' . filesize($path)
+            : asset($file) . '?v=' . config('app.build', 1);
     }
 }
 

@@ -35,13 +35,37 @@
 </head>
 <body>
   <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
+    The first open pulls the whole app across the host's shared line, which takes a while. This screen is what
+    a member sees while that happens, and it goes the moment the app paints its first frame.
   -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #04491a; }
+    #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 18px; color: #eaf6e2; font: 500 15px/1.5 system-ui, sans-serif; }
+    #boot img { width: 86px; height: 86px; border-radius: 22px; background: #eaf6e2; padding: 10px; }
+    #boot .ring { width: 34px; height: 34px; border-radius: 50%; border: 4px solid rgba(234,246,226,.28);
+      border-top-color: #4cb614; animation: spin 1s linear infinite; }
+    #boot .slow { opacity: .72; max-width: 30ch; text-align: center; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { #boot .ring { animation: none; } }
+  </style>
+  <div id="boot">
+    <img src="icons/Icon-192.png" alt="WireLakes Technologies">
+    <div class="ring"></div>
+    <div id="boot-line">Opening the WireLakes app…</div>
+  </div>
+  <script>
+    new MutationObserver(function () {
+      if (document.querySelector('flutter-view canvas')) {
+        var boot = document.getElementById('boot');
+        if (boot) boot.remove();
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+    setTimeout(function () {
+      var line = document.getElementById('boot-line');
+      if (line) line.textContent = 'Still getting the app — this happens once, then it opens fast.';
+    }, 20000);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
